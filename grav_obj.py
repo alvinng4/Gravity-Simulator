@@ -12,7 +12,7 @@ class Grav_obj():
         self.rect.centery = y0
 
 
-    def blitme(self):
+    def draw(self):
         """Draw the object at its current location."""
         self.screen.blit(self.image, self.rect)
 
@@ -20,14 +20,19 @@ class Grav_obj():
 
 
 
+
+
+
+
+
 def solar_system(screen):
     """Initialize the solar system when user hit a key"""
-    sun = Grav_obj(screen, "images/sun.png")
-    mercury = Grav_obj()
-    venus = Grav_obj()
-    earth = Grav_obj()
-    mars = Grav_obj()
-    jupiter = Grav_obj()
-    saturn = Grav_obj()
-    uranus = Grav_obj()
-    neptune = Grav_obj()
+    sun = Grav_obj(screen, "images/sun.png", 0, 0)
+    mercury = Grav_obj(screen, "images/mercury.png")
+    venus = Grav_obj(screen, "images/venus.png")
+    earth = Grav_obj(screen, "images/earth.png")
+    mars = Grav_obj(screen, "images/mars.png")
+    jupiter = Grav_obj(screen, "images/jupiter.png")
+    saturn = Grav_obj(screen, "images/saturn.png")
+    uranus = Grav_obj(screen, "images/uranus.png")
+    neptune = Grav_obj(screen, "images/neptune.png")
