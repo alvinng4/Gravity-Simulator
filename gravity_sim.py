@@ -13,13 +13,12 @@ def main():
 
     screen = pygame.display.set_mode((Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT))
     pygame.display.set_caption("Gravity Simulator")
-
-    sun = Grav_obj(screen, "images/sun.png", 0, 0)
-
+    camera = pf.Camera()
+    
     # Start the main loop for the program.
     while True:
-        pf.check_events()
-        pf.update_screen(screen, sun)
+        pf.check_events(camera)
+        pf.update_screen(screen)
 
 
 if __name__ == "__main__":
