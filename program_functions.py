@@ -36,33 +36,39 @@ class Camera():
         if self.moving_down == True:
             self.pos_y -= self.speed_y
 
+                 
+def check_key_up_events(event, camera):
+    if event.type == pygame.K_d or event.type == pygame.K_RIGHT:
+        camera.moving_right == False
+    elif event.type == pygame.K_a or event.type == pygame.K_LEFT:
+        camera.moving_left == False       
+    elif event.type == pygame.K_w or event.type == pygame.K_UP:
+        camera.moving_up == False
+    elif event.type == pygame.K_d or event.type == pygame.K_DOWN:
+        camera.moving_down == False
+
+
+def check_key_down_events(event, camera):
+    if event.type == pygame.K_d or event.type == pygame.K_RIGHT:
+        camera.moving_right == True
+    elif event.type == pygame.K_a or event.type == pygame.K_LEFT:
+        camera.moving_left == True        
+    elif event.type == pygame.K_w or event.type == pygame.K_UP:
+        camera.moving_up == True
+    elif event.type == pygame.K_d or event.type == pygame.K_DOWN:
+        camera.moving_down == True
+    elif event.key == pygame.K_ESCAPE:
+        sys.exit()
 
 
 def check_events(camera):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.type == pygame.K_d or event.type == pygame.K_RIGHT:
-                camera.moving_right == True
-            elif event.type == pygame.K_a or event.type == pygame.K_LEFT:
-                camera.moving_left == True        
-            elif event.type == pygame.K_w or event.type == pygame.K_UP:
-                camera.moving_up == True
-            elif event.type == pygame.K_d or event.type == pygame.K_DOWN:
-                camera.moving_down == True   
+        elif event.type == pygame.KEYDOWN:   
+            check_key_down_events(event, camera)
         elif event.type == pygame.KEYUP:
-            if event.type == pygame.K_d or event.type == pygame.K_RIGHT:
-                camera.moving_right == False
-            elif event.type == pygame.K_a or event.type == pygame.K_LEFT:
-                camera.moving_left == False       
-            elif event.type == pygame.K_w or event.type == pygame.K_UP:
-                camera.moving_up == False
-            elif event.type == pygame.K_d or event.type == pygame.K_DOWN:
-                camera.moving_down == False
-
-                 
-
+            check_key_up_events(event, camera)
 
 
 def update_screen(screen, *grav_objs):
