@@ -2,6 +2,8 @@ import sys
 
 import pygame.font
 
+from textbox import Textbox
+
 
 class Menu:
     """A class to build the menu"""
@@ -9,13 +11,55 @@ class Menu:
     def __init__(self, grav_sim):
         """Initialize button attributes."""
         self.screen = grav_sim.screen
+        self.screen_rect = grav_sim.screen.get_rect()
+        self.settings = grav_sim.settings
 
         self.menu_active == False
 
-        self.resume_button = Button(grav_sim, 0.3, "Resume")
-        self.void_button = Button(grav_sim, 0.1, "Void")
-        self.solar_system_button = Button(grav_sim, -0.1, "Solar System")
-        self.exit_button = Button(grav_sim, -0.3, "Exit")
+        self.resume_button = Textbox(
+            grav_sim,
+            0.25,
+            0.1,
+            "Resume",
+            48,
+            (245, 245, 245),
+            (0, 0, 0),
+            centerx=self.screen_rect.centerx,
+            centery=self.screen_rect.centery - 0.3 * self.settings.screen_height,
+        )
+        self.void_button = Textbox(
+            grav_sim,
+            0.25,
+            0.1,
+            "Void",
+            48,
+            (245, 245, 245),
+            (0, 0, 0),
+            centerx=self.screen_rect.centerx,
+            centery=self.screen_rect.centery - 0.1 * self.settings.screen_height,
+        )
+        self.solar_system_button = Textbox(
+            grav_sim,
+            0.25,
+            0.1,
+            "Solar System",
+            48,
+            (245, 245, 245),
+            (0, 0, 0),
+            centerx=self.screen_rect.centerx,
+            centery=self.screen_rect.centery - (-0.1) * self.settings.screen_height,
+        )
+        self.exit_button = Textbox(
+            grav_sim,
+            0.25,
+            0.1,
+            "Exit",
+            48,
+            (245, 245, 245),
+            (0, 0, 0),
+            centerx=self.screen_rect.centerx,
+            centery=self.screen_rect.centery - (-0.3) * self.settings.screen_height,
+        )
 
     def menu_active(self):
         return self.menu_active
@@ -38,41 +82,3 @@ class Menu:
             self.menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
             sys.exit()
-
-
-class Button:
-    """A class to build buttons"""
-
-    def __init__(self, grav_sim, height_factor, msg):
-        """Initialize button attributes."""
-        self.screen = grav_sim.screen
-        self.screen_rect = self.screen.get_rect()
-
-        # Set the dimensions and properties of the button.
-        self.width = 0.25 * grav_sim.settings.screen_width
-        self.height = 0.1 * grav_sim.settings.screen_height
-
-        self.button_color = (245, 245, 245)
-        self.text_color = (0, 0, 0)
-        self.font = pygame.font.SysFont(None, 48)
-
-        # Build the button's rect object and center it.
-        self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.rect.centerx = self.screen_rect.centerx
-        self.rect.centery = (
-            self.screen_rect.centery - height_factor * grav_sim.settings.screen_height
-        )
-
-        # The button message needs to be printed only once.
-        self._print_msg(msg)
-
-    def _print_msg(self, msg):
-        """Turn msg into a rendered image and center text on the button."""
-        self.msg_image = self.font.render(msg, True, self.text_color, self.button_color)
-        self.msg_image_rect = self.msg_image.get_rect()
-        self.msg_image_rect.center = self.rect.center
-
-    def draw(self):
-        """Draw blank button and then draw message."""
-        self.screen.fill(self.button_color, self.rect)
-        self.screen.blit(self.msg_image, self.msg_image_rect)
