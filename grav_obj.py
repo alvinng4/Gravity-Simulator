@@ -3,18 +3,21 @@ import sys
 import pygame
 import pygame.gfxdraw
 from pygame.sprite import Sprite
-import numpy
 
 
 class Grav_obj(Sprite):
-    def __init__(self, grav_sim, pos_x, pos_y, scale_factor, img_path: str = None):
+    def __init__(self, grav_sim, pos_x, pos_y, real_scale, name: str = None, img_path: str = None):
         super().__init__()
         self.screen = grav_sim.screen
         self.camera = grav_sim.camera
         self.settings = grav_sim.settings
         self.color = self.settings.GRAV_OBJ_COLOR
+        if not name.strip().title() == "Sun":
+            self.img_scale = grav_sim.camera.img_scale
+        else:
+            self.img_scale = 1
 
-        self.diameter = scale_factor * self.settings.SCREEN_HEIGHT
+        self.diameter = real_scale * self.img_scale * self.settings.SCREEN_HEIGHT
         if img_path:
             try:
                 load_image = pygame.image.load(img_path).convert_alpha()
