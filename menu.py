@@ -12,15 +12,18 @@ class Menu:
 
         self.menu_active == False
 
-        self.resume_button = Button(grav_sim, 0.8, "Resume")
-        self.exit_button = Button(grav_sim, 1.2, "Exit")
-        
+        self.resume_button = Button(grav_sim, 0.3, "Resume")
+        self.void_button = Button(grav_sim, 0.1, "Void")
+        self.solar_system_button = Button(grav_sim, -0.1, "Solar System")
+        self.exit_button = Button(grav_sim, -0.3, "Exit")
 
     def menu_active(self):
         return self.menu_active
 
     def draw(self):
         self.resume_button.draw()
+        self.void_button.draw()
+        self.solar_system_button.draw()
         self.exit_button.draw()
 
     def _check_button(self, mouse_pos):
@@ -28,7 +31,6 @@ class Menu:
             self.menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
             sys.exit()
-        
 
 
 class Button:
@@ -50,7 +52,7 @@ class Button:
         # Build the button's rect object and center it.
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.centerx = self.screen_rect.centerx
-        self.rect.centery = height_factor * self.screen_rect.centery
+        self.rect.centery = self.screen_rect.centery - height_factor * grav_sim.settings.SCREEN_HEIGHT
 
         # The button message needs to be printed only once.
         self._print_msg(msg)

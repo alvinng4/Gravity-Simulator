@@ -14,7 +14,7 @@ class Camera:
         self.moving_left = False
         self.moving_up = False
         self.moving_down = False
-    
+
     def pos(self):
         return (self.pos_x, self.pos_y)
 
