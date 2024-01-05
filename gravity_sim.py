@@ -6,7 +6,7 @@ from settings import Settings
 from grav_obj import Grav_obj
 from camera import Camera
 from menu import Menu
-
+from stats import Stats
 
 class GravitySimulator:
     """Overall class to manage the main program."""
@@ -14,14 +14,15 @@ class GravitySimulator:
     def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
+        self.start_time = pygame.time.get_ticks()
+        self.stats = Stats()
         self.settings = Settings()
 
         self.screen = pygame.display.set_mode(
-            (Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT), pygame.SCALED, vsync=1
+            (self.settings.screen_width, self.settings.screen_height), pygame.SCALED, vsync=1
         )
         pygame.display.set_caption("Gravity Simulator")
         self.camera = Camera(img_scale=10)
-
         self.menu = Menu(self)
         self.grav_objs = pygame.sprite.Group()
 
@@ -32,7 +33,7 @@ class GravitySimulator:
             self._check_events()
             self._update_grav_objs()
             self._update_screen()
-            self.clock.tick(self.settings.FPS)
+            self.clock.tick(self.settings.fps)
 
     def _check_events(self):
         for event in pygame.event.get():
@@ -72,9 +73,10 @@ class GravitySimulator:
 
     def _update_screen(self):
         self.camera.update_movement()
-        self.screen.fill(Settings.BG_COLOR)
+        self.screen.fill(self.settings.bg_color)
 
         self.grav_objs.draw(self.screen)
+        self.stats.update(self)
 
         if self.menu.menu_active == True:
             self.menu.draw()

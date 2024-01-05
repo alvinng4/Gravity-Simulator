@@ -49,8 +49,8 @@ class Button:
         self.screen_rect = self.screen.get_rect()
 
         # Set the dimensions and properties of the button.
-        self.width = 0.25 * grav_sim.settings.SCREEN_WIDTH
-        self.height = 0.1 * grav_sim.settings.SCREEN_HEIGHT
+        self.width = 0.25 * grav_sim.settings.screen_width
+        self.height = 0.1 * grav_sim.settings.screen_height
 
         self.button_color = (245, 245, 245)
         self.text_color = (0, 0, 0)
@@ -59,7 +59,7 @@ class Button:
         # Build the button's rect object and center it.
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.centerx = self.screen_rect.centerx
-        self.rect.centery = self.screen_rect.centery - height_factor * grav_sim.settings.SCREEN_HEIGHT
+        self.rect.centery = self.screen_rect.centery - height_factor * grav_sim.settings.screen_height
 
         # The button message needs to be printed only once.
         self._print_msg(msg)

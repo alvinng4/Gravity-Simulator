@@ -1,10 +1,11 @@
 class Settings:
     """A class to store all settings for gravity simulator."""
 
-    SCREEN_WIDTH = 1366
-    SCREEN_HEIGHT = 768
-    BG_COLOR = (0, 0, 0)  # Background color
+    def __init__(self):
+        self.screen_width = 1366
+        self.screen_height = 768
+        self.bg_color = (0, 0, 0)  # Background color
 
-    FPS = 60
-
-    GRAV_OBJ_COLOR = (255, 255, 255)
+        self.fps = 60
+        
+        self.grav_obj_color = (255, 255, 255)
