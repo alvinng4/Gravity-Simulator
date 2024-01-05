@@ -26,8 +26,15 @@ class Menu:
         self.solar_system_button.draw()
         self.exit_button.draw()
 
-    def _check_button(self, mouse_pos):
+    def _check_button(self, mouse_pos, grav_sim):
         if self.resume_button.rect.collidepoint(mouse_pos):
+            self.menu_active = False
+        if self.void_button.rect.collidepoint(mouse_pos):
+            grav_sim.grav_objs.empty()
+            self.menu_active = False
+        if self.solar_system_button.rect.collidepoint(mouse_pos):
+            grav_sim.grav_objs.empty()
+            grav_sim._create_solor_system()
             self.menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
             sys.exit()

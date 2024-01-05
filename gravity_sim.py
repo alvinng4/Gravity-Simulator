@@ -20,11 +20,11 @@ class GravitySimulator:
             (Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT), pygame.SCALED, vsync=1
         )
         pygame.display.set_caption("Gravity Simulator")
-        self.camera = Camera(img_scale=50)
+        self.camera = Camera(img_scale=10)
 
         self.menu = Menu(self)
         self.grav_objs = pygame.sprite.Group()
-        self._create_solor_system()
+
 
     def run_prog(self):
         # Start the main loop for the program.
@@ -43,7 +43,7 @@ class GravitySimulator:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.menu.menu_active == True:
-                    self.menu._check_button(mouse_pos)
+                    self.menu._check_button(mouse_pos, self)
             elif event.type == pygame.QUIT:
                 sys.exit()
 
