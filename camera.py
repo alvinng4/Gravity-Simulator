@@ -1,6 +1,3 @@
-from settings import Settings
-
-
 class Camera:
     def __init__(self, img_scale=1):
         self.pos_x = 0

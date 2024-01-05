@@ -11,7 +11,7 @@ class Grav_obj(Sprite):
         self.screen = grav_sim.screen
         self.camera = grav_sim.camera
         self.settings = grav_sim.settings
-        self.color = self.settings.GRAV_OBJ_COLOR
+        self.color = self.settings.grav_obj_color
         if not name.strip().title() == "Sun":
             self.img_scale = grav_sim.camera.img_scale
         else:
@@ -19,7 +19,7 @@ class Grav_obj(Sprite):
 
         self.pos_x = pos_x
         self.pos_y = pos_y
-        self.diameter = real_scale * self.img_scale * self.settings.SCREEN_HEIGHT
+        self.diameter = real_scale * self.img_scale * self.settings.screen_height
         if img_path:
             try:
                 load_image = pygame.image.load(img_path).convert_alpha()
