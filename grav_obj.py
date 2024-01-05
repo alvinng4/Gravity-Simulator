@@ -5,6 +5,7 @@ import pygame.gfxdraw
 from pygame.sprite import Sprite
 import numpy
 
+
 class Grav_obj(Sprite):
     def __init__(self, grav_sim, x0, y0, img_path: str = None):
         super().__init__()
@@ -28,18 +29,23 @@ class Grav_obj(Sprite):
     def draw(self):
         """Draw the object at its current location."""
         draw_rect = self.rect.copy()
-        draw_rect.center = (draw_rect.centerx - self.camera.pos_x, draw_rect.centery - self.camera.pos_y)
+        draw_rect.center = (
+            draw_rect.centerx - self.camera.pos_x,
+            draw_rect.centery - self.camera.pos_y,
+        )
         self.screen.blit(self.image, draw_rect)
 
 
-def solar_system(screen):
-    """Initialize the solar system"""
-    sun = Grav_obj(screen, "images/sun.png")
-    mercury = Grav_obj(screen, "images/mercury.png")
-    venus = Grav_obj(screen, "images/venus.png")
-    earth = Grav_obj(screen, "images/earth.png")
-    mars = Grav_obj(screen, "images/mars.png")
-    jupiter = Grav_obj(screen, "images/jupiter.png")
-    saturn = Grav_obj(screen, "images/saturn.png")
-    uranus = Grav_obj(screen, "images/uranus.png")
-    neptune = Grav_obj(screen, "images/neptune.png")
+class solar_system(Grav_obj):
+    def __init__(self, grav_sim):
+        """Initialize the solar system"""
+        super().__init__()
+        self.sun = Grav_obj(grav_sim, "images/sun.png")
+        self.mercury = Grav_obj(grav_sim, "images/mercury.png")
+        self.venus = Grav_obj(grav_sim, "images/venus.png")
+        self.earth = Grav_obj(grav_sim, "images/earth.png")
+        self.mars = Grav_obj(grav_sim, "images/mars.png")
+        self.jupiter = Grav_obj(grav_sim, "images/jupiter.png")
+        self.saturn = Grav_obj(grav_sim, "images/saturn.png")
+        self.uranus = Grav_obj(grav_sim, "images/uranus.png")
+        self.neptune = Grav_obj(grav_sim, "images/neptune.png")

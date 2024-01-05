@@ -16,15 +16,27 @@ class GravitySimulator:
         self.clock = pygame.time.Clock()
         self.settings = Settings()
 
-        self.screen = pygame.display.set_mode((Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT), pygame.SCALED, vsync = 1)
+        self.screen = pygame.display.set_mode(
+            (Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT), pygame.SCALED, vsync=1
+        )
         pygame.display.set_caption("Gravity Simulator")
         self.camera = Camera()
 
         self.menu = Menu(self)
 
         ### For testing
-        self.sun = Grav_obj(self, self.screen.get_rect().centerx, self.screen.get_rect().centery, "images/sun.png")
-        self.mars = Grav_obj(self, self.screen.get_rect().centerx, self.screen.get_rect().centery, "images/mars.png")
+        self.sun = Grav_obj(
+            self,
+            self.screen.get_rect().centerx,
+            self.screen.get_rect().centery,
+            "images/sun.png",
+        )
+        self.mars = Grav_obj(
+            self,
+            self.screen.get_rect().centerx,
+            self.screen.get_rect().centery,
+            "images/mars.png",
+        )
         ###
 
     def run_prog(self):
@@ -66,7 +78,7 @@ class GravitySimulator:
             self.camera.moving_up = True
         elif event.key == pygame.K_s:
             self.camera.moving_down = True
-        elif event.key == pygame.K_ESCAPE: 
+        elif event.key == pygame.K_ESCAPE:
             self.menu.menu_active = True
 
     def _update_screen(self):
@@ -80,7 +92,7 @@ class GravitySimulator:
 
         if self.menu.menu_active == True:
             self.menu.draw()
-        
+
         pygame.display.flip()
 
 
