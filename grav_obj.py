@@ -4,6 +4,8 @@ import pygame
 import pygame.gfxdraw
 from pygame.sprite import Sprite
 
+from textbox import Textbox
+
 
 class Grav_obj(Sprite):
     def __init__(
