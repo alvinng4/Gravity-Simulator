@@ -20,7 +20,7 @@ class GravitySimulator:
             (Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT), pygame.SCALED, vsync=1
         )
         pygame.display.set_caption("Gravity Simulator")
-        self.camera = Camera()
+        self.camera = Camera(img_scale=10)
 
         self.menu = Menu(self)
 
@@ -29,8 +29,17 @@ class GravitySimulator:
             self,
             self.screen.get_rect().centerx,
             self.screen.get_rect().centery,
-            0.1,
+            0.155,
+            "Sun",
             "images/sun.png",
+        )
+        self.earth = Grav_obj(
+            self,
+            1.5 * self.screen.get_rect().centerx,
+            self.screen.get_rect().centery,
+            0.005,
+            "Earth",
+            "images/earth.png",
         )
         ###
 
@@ -76,12 +85,14 @@ class GravitySimulator:
         elif event.key == pygame.K_ESCAPE:
             self.menu.menu_active = True
 
+
     def _update_screen(self):
-        self.camera.update()
+        self.camera.update_movement()
         self.screen.fill(Settings.BG_COLOR)
 
         ### For testing
         self.sun.draw()
+        self.earth.draw()
         ###
 
         if self.menu.menu_active == True:
