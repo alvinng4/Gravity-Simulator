@@ -6,9 +6,9 @@ Welcome to my 2D N-body gravity simulator project. This is still in the initial 
 
 ## Available functions:
 WASD: move camera\
+"Esc" Menu -> Resume / Exit
 
 ## Key functions to be developed in the future:
-"ESC": Menu\
 "P": Pause\
 Right click: drag screen\
 Left click: Create new gravity object\
