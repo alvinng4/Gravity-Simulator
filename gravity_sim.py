@@ -15,10 +15,13 @@ class GravitySimulator:
         self.clock = pygame.time.Clock()
         self.settings = Settings()
 
-        self.screen = pygame.display.set_mode((Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT))
+        self.screen = pygame.display.set_mode((Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT), pygame.SCALED, vsync = 1)
         pygame.display.set_caption("Gravity Simulator")
-        self.camera = Camera(self)
+        self.camera = Camera()
 
+        ### For testing
+        self.sun = Grav_obj(self, self.screen.get_rect().centerx, self.screen.get_rect().centery, "images/sun.png")
+        ###
 
     def run_prog(self):
         # Start the main loop for the program.
@@ -27,50 +30,47 @@ class GravitySimulator:
             self._update_screen()
             self.clock.tick(60)
 
-    
     def _check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:   
+            elif event.type == pygame.KEYDOWN:
                 self._check_key_down_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_key_up_events(event)
 
-    def _check_key_up_events(self, event):
-        if event.type == pygame.K_d or event.type == pygame.K_RIGHT:
-            self.camera.moving_right == False
-        elif event.type == pygame.K_a or event.type == pygame.K_LEFT:
-            self.camera.moving_left == False       
-        elif event.type == pygame.K_w or event.type == pygame.K_UP:
-            self.camera.moving_up == False
-        elif event.type == pygame.K_d or event.type == pygame.K_DOWN:
-            self.camera.moving_down == False
 
+    def _check_key_up_events(self, event):
+        if event.key == pygame.K_d:
+            self.camera.moving_right = False
+        elif event.key == pygame.K_a:
+            self.camera.moving_left = False
+        elif event.key == pygame.K_w:
+            self.camera.moving_up = False
+        elif event.key == pygame.K_s:
+            self.camera.moving_down = False
 
     def _check_key_down_events(self, event):
-        if event.type == pygame.K_d or event.type == pygame.K_RIGHT:
-            self.camera.moving_right == True
-        elif event.type == pygame.K_a or event.type == pygame.K_LEFT:
-            self.camera.moving_left == True        
-        elif event.type == pygame.K_w or event.type == pygame.K_UP:
-            self.camera.moving_up == True
-        elif event.type == pygame.K_d or event.type == pygame.K_DOWN:
-            self.camera.moving_down == True
-        elif event.key == pygame.K_ESCAPE: # Temporary
+        if event.key == pygame.K_d:
+            self.camera.moving_right = True
+        elif event.key == pygame.K_a:
+            self.camera.moving_left = True
+        elif event.key == pygame.K_w:
+            self.camera.moving_up = True
+        elif event.key == pygame.K_s:
+            self.camera.moving_down = True
+        elif event.key == pygame.K_ESCAPE:  # Temporary
             sys.exit()
 
     def _update_screen(self):
+        self.camera.update()
         self.screen.fill(Settings.BG_COLOR)
+        ### For testing
+        self.sun.draw()
+        ###
         pygame.display.flip()
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
-    grav_sim = GravitySimulator()  
+    grav_sim = GravitySimulator()
     grav_sim.run_prog()

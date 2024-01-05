@@ -1,15 +1,10 @@
-import sys
-
-import pygame
-
 from settings import Settings
 
-class Camera():
-    def __init__(self, grav_sim):
-        self.screen_rect = grav_sim.screen.get_rect()
 
-        self.pos_x = self.screen_rect.centerx
-        self.pos_y = self.screen_rect.centery
+class Camera:
+    def __init__(self):
+        self.pos_x = 0
+        self.pos_y = 0
 
         self.speed_x = 10
         self.speed_y = 10
@@ -19,32 +14,22 @@ class Camera():
         self.moving_left = False
         self.moving_up = False
         self.moving_down = False
+    
+    def pos(self):
+        return (self.pos_x, self.pos_y)
 
     def speed_x(self):
-        return self.speed_x 
-    
+        return self.speed_x
+
     def speed_y(self):
         return self.speed_y
-    
+
     def update(self):
         if self.moving_right == True:
             self.pos_x += self.speed_x
         if self.moving_left == True:
             self.pos_x -= self.speed_x
         if self.moving_up == True:
-            self.pos_y += self.speed_y
-        if self.moving_down == True:
             self.pos_y -= self.speed_y
-
-                 
-
-
-
-
-
-
-    
-
-
-
-
+        if self.moving_down == True:
+            self.pos_y += self.speed_y

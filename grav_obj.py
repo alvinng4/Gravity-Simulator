@@ -3,18 +3,19 @@ import sys
 import pygame
 import pygame.gfxdraw
 from pygame.sprite import Sprite
-
+import numpy
 
 class Grav_obj(Sprite):
     def __init__(self, grav_sim, x0, y0, img_path: str = None):
         super().__init__()
         self.screen = grav_sim.screen
+        self.camera = grav_sim.camera
         self.settings = grav_sim.settings
         self.color = self.settings.GRAV_OBJ_COLOR
 
         if img_path:
             try:
-                self.image = pygame.image.load(img_path)
+                self.image = pygame.image.load(img_path).convert_alpha()
                 self.rect = self.image.get_rect()
             except FileNotFoundError:
                 sys.exit(
@@ -26,7 +27,9 @@ class Grav_obj(Sprite):
 
     def draw(self):
         """Draw the object at its current location."""
-        self.screen.blit(self.image, self.rect)
+        draw_rect = self.rect.copy()
+        draw_rect.center = (draw_rect.centerx - self.camera.pos_x, draw_rect.centery - self.camera.pos_y)
+        self.screen.blit(self.image, draw_rect)
 
 
 def solar_system(screen):

@@ -1,13 +1,17 @@
 # 2D-N-body-gravity-simulator
+Welcome to my 2D N-body gravity simulator project. This is still in the initial stage of development. More functions are going to be implemented in the future.
 
-# Progress
-Currently working on the camera function: drag, move and zoom
+## Progress
 
-## Key functions to be added in the future:
-Scrolling: zoom in and out\
+
+## Available functions:
 WASD: move camera\
-"R": Reset\
-"ESC": Escape program\
+
+## Key functions to be developed in the future:
+"ESC": Menu\
+"P": Pause\
 Right click: drag screen\
 Left click: Create new gravity object\
 Arrow up and down: Change the rate of mass change when creating new object\
+Right click: drag screen (May not add as this is very difficult)\
+Scrolling: zoom in and out (May not add as this is very difficult)\
