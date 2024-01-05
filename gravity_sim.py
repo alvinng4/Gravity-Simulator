@@ -5,6 +5,7 @@ import pygame
 from settings import Settings
 from grav_obj import Grav_obj
 from camera import Camera
+from menu import Menu
 
 
 class GravitySimulator:
@@ -19,8 +20,11 @@ class GravitySimulator:
         pygame.display.set_caption("Gravity Simulator")
         self.camera = Camera()
 
+        self.menu = Menu(self)
+
         ### For testing
         self.sun = Grav_obj(self, self.screen.get_rect().centerx, self.screen.get_rect().centery, "images/sun.png")
+        self.mars = Grav_obj(self, self.screen.get_rect().centerx, self.screen.get_rect().centery, "images/mars.png")
         ###
 
     def run_prog(self):
@@ -28,17 +32,20 @@ class GravitySimulator:
         while True:
             self._check_events()
             self._update_screen()
-            self.clock.tick(60)
+            self.clock.tick(self.settings.FPS)
 
     def _check_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN:
                 self._check_key_down_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_key_up_events(event)
-
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.menu.menu_active == True:
+                    self.menu._check_button(mouse_pos)
+            elif event.type == pygame.QUIT:
+                sys.exit()
 
     def _check_key_up_events(self, event):
         if event.key == pygame.K_d:
@@ -59,15 +66,21 @@ class GravitySimulator:
             self.camera.moving_up = True
         elif event.key == pygame.K_s:
             self.camera.moving_down = True
-        elif event.key == pygame.K_ESCAPE:  # Temporary
-            sys.exit()
+        elif event.key == pygame.K_ESCAPE: 
+            self.menu.menu_active = True
 
     def _update_screen(self):
         self.camera.update()
         self.screen.fill(Settings.BG_COLOR)
+
         ### For testing
         self.sun.draw()
+        self.mars.draw()
         ###
+
+        if self.menu.menu_active == True:
+            self.menu.draw()
+        
         pygame.display.flip()
 
 

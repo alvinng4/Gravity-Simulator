@@ -5,4 +5,6 @@ class Settings:
     SCREEN_HEIGHT = 768
     BG_COLOR = (0, 0, 0)  # Background color
 
+    FPS = 60
+
     GRAV_OBJ_COLOR = (255, 255, 255)
