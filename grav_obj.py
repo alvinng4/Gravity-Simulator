@@ -7,24 +7,26 @@ import numpy
 
 
 class Grav_obj(Sprite):
-    def __init__(self, grav_sim, x0, y0, img_path: str = None):
+    def __init__(self, grav_sim, pos_x, pos_y, scale_factor, img_path: str = None):
         super().__init__()
         self.screen = grav_sim.screen
         self.camera = grav_sim.camera
         self.settings = grav_sim.settings
         self.color = self.settings.GRAV_OBJ_COLOR
 
+        self.diameter = scale_factor * self.settings.SCREEN_HEIGHT
         if img_path:
             try:
-                self.image = pygame.image.load(img_path).convert_alpha()
+                load_image = pygame.image.load(img_path).convert_alpha()
+                self.image = pygame.transform.scale(load_image, (self.diameter, self.diameter))
                 self.rect = self.image.get_rect()
             except FileNotFoundError:
                 sys.exit(
                     "Error: Image not found. Check that you are in the correct directory, and the image path provided for Grav_obj is correct."
                 )
 
-        self.rect.centerx = x0
-        self.rect.centery = y0
+        self.rect.centerx = pos_x
+        self.rect.centery = pos_y
 
     def draw(self):
         """Draw the object at its current location."""
