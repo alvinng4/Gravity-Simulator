@@ -17,6 +17,8 @@ class Grav_obj(Sprite):
         else:
             self.img_scale = 1
 
+        self.pos_x = pos_x
+        self.pos_y = pos_y
         self.diameter = real_scale * self.img_scale * self.settings.SCREEN_HEIGHT
         if img_path:
             try:
@@ -31,26 +33,10 @@ class Grav_obj(Sprite):
         self.rect.centerx = pos_x
         self.rect.centery = pos_y
 
-    def draw(self):
-        """Draw the object at its current location."""
-        draw_rect = self.rect.copy()
-        draw_rect.center = (
-            draw_rect.centerx - self.camera.pos_x,
-            draw_rect.centery - self.camera.pos_y,
+    def update(self):
+        """Update the apparent position of all grav_objs with camera"""
+        self.rect.center = (
+            self.pos_x - self.camera.pos_x,
+            self.pos_y - self.camera.pos_y,
         )
-        self.screen.blit(self.image, draw_rect)
 
-
-class solar_system(Grav_obj):
-    def __init__(self, grav_sim):
-        """Initialize the solar system"""
-        super().__init__()
-        self.sun = Grav_obj(grav_sim, "images/sun.png")
-        self.mercury = Grav_obj(grav_sim, "images/mercury.png")
-        self.venus = Grav_obj(grav_sim, "images/venus.png")
-        self.earth = Grav_obj(grav_sim, "images/earth.png")
-        self.mars = Grav_obj(grav_sim, "images/mars.png")
-        self.jupiter = Grav_obj(grav_sim, "images/jupiter.png")
-        self.saturn = Grav_obj(grav_sim, "images/saturn.png")
-        self.uranus = Grav_obj(grav_sim, "images/uranus.png")
-        self.neptune = Grav_obj(grav_sim, "images/neptune.png")
