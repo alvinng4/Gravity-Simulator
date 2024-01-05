@@ -29,13 +29,8 @@ class GravitySimulator:
             self,
             self.screen.get_rect().centerx,
             self.screen.get_rect().centery,
+            0.1,
             "images/sun.png",
-        )
-        self.mars = Grav_obj(
-            self,
-            self.screen.get_rect().centerx,
-            self.screen.get_rect().centery,
-            "images/mars.png",
         )
         ###
 
@@ -87,7 +82,6 @@ class GravitySimulator:
 
         ### For testing
         self.sun.draw()
-        self.mars.draw()
         ###
 
         if self.menu.menu_active == True:
