@@ -6,7 +6,9 @@ from pygame.sprite import Sprite
 
 
 class Grav_obj(Sprite):
-    def __init__(self, grav_sim, pos_x, pos_y, real_scale, name: str = None, img_path: str = None):
+    def __init__(
+        self, grav_sim, pos_x, pos_y, real_scale, name: str = None, img_path: str = None
+    ):
         super().__init__()
         self.screen = grav_sim.screen
         self.camera = grav_sim.camera
@@ -23,7 +25,9 @@ class Grav_obj(Sprite):
         if img_path:
             try:
                 load_image = pygame.image.load(img_path).convert_alpha()
-                self.image = pygame.transform.scale(load_image, (self.diameter, self.diameter))
+                self.image = pygame.transform.scale(
+                    load_image, (self.diameter, self.diameter)
+                )
                 self.rect = self.image.get_rect()
             except FileNotFoundError:
                 sys.exit(
@@ -39,4 +43,3 @@ class Grav_obj(Sprite):
             self.pos_x - self.camera.pos_x,
             self.pos_y - self.camera.pos_y,
         )
-

@@ -59,7 +59,9 @@ class Button:
         # Build the button's rect object and center it.
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.centerx = self.screen_rect.centerx
-        self.rect.centery = self.screen_rect.centery - height_factor * grav_sim.settings.screen_height
+        self.rect.centery = (
+            self.screen_rect.centery - height_factor * grav_sim.settings.screen_height
+        )
 
         # The button message needs to be printed only once.
         self._print_msg(msg)

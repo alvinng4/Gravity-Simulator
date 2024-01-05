@@ -7,5 +7,5 @@ class Settings:
         self.bg_color = (0, 0, 0)  # Background color
 
         self.fps = 60
-        
+
         self.grav_obj_color = (255, 255, 255)
