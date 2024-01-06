@@ -5,7 +5,6 @@ class Camera:
         self.speed_x = 10
         self.speed_y = 10
 
-        self._img_scale = 1
         self.img_scale = img_scale
 
         # Movement flag
@@ -33,15 +32,4 @@ class Camera:
         if self.moving_down == True:
             self.pos_y += self.speed_y
 
-    @property
-    def img_scale(self):
-        return self._img_scale
 
-    @img_scale.setter
-    def img_scale(self, value):
-        if value > 100:
-            self._img_scale = 100
-        elif value < 1:
-            self._img_scale = 1
-        else:
-            self._img_scale = value

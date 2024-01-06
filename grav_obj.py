@@ -4,8 +4,6 @@ import pygame
 import pygame.gfxdraw
 from pygame.sprite import Sprite
 
-from textbox import Textbox
-
 
 class Grav_obj(Sprite):
     def __init__(
@@ -17,7 +15,7 @@ class Grav_obj(Sprite):
         self.settings = grav_sim.settings
         self.color = self.settings.grav_obj_color
         if not name.strip().title() == "Sun":
-            self.img_scale = grav_sim.camera.img_scale
+            self.img_scale = grav_sim.settings.img_scale
         else:
             self.img_scale = 1
 
@@ -45,3 +43,40 @@ class Grav_obj(Sprite):
             self.pos_x - self.camera.pos_x,
             self.pos_y - self.camera.pos_y,
         )
+
+    @classmethod
+    def create_solor_system(self, grav_sim):
+        centerx = grav_sim.screen.get_rect().centerx
+        centery = grav_sim.screen.get_rect().centery
+        sun = Grav_obj(grav_sim, centerx, centery, 0.05, "Sun", "images/sun.png")
+        mercury = Grav_obj(
+            grav_sim, 1.1 * centerx, centery, 0.0005, "Mercury", "images/mercury.png"
+        )
+        venus = Grav_obj(
+            grav_sim, 1.2 * centerx, centery, 0.0005, "Venus", "images/venus.png"
+        )
+        earth = Grav_obj(
+            grav_sim, 1.3 * centerx, centery, 0.0005, "Earth", "images/earth.png"
+        )
+        mars = Grav_obj(grav_sim, 1.5 * centerx, centery, 0.0005, "Mars", "images/mars.png")
+        jupiter = Grav_obj(
+            grav_sim, 1.8 * centerx, centery, 0.0005, "Jupiter", "images/jupiter.png"
+        )
+        saturn = Grav_obj(
+            grav_sim, 2 * centerx, centery, 0.0005, "Saturn", "images/saturn.png"
+        )
+        uranus = Grav_obj(
+            grav_sim, 4 * centerx, centery, 0.0005, "Uranus", "images/uranus.png"
+        )
+        neptune = Grav_obj(
+            grav_sim, 5 * centerx, centery, 0.0005, "Neptune", "images/neptune.png"
+        )
+        grav_sim.grav_objs.add(sun)
+        grav_sim.grav_objs.add(mercury)
+        grav_sim.grav_objs.add(venus)
+        grav_sim.grav_objs.add(earth)
+        grav_sim.grav_objs.add(mars)
+        grav_sim.grav_objs.add(jupiter)
+        grav_sim.grav_objs.add(saturn)
+        grav_sim.grav_objs.add(uranus)
+        grav_sim.grav_objs.add(neptune)
