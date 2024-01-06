@@ -9,14 +9,14 @@ class Text_box:
         grav_sim,
         size_factor_x: float,
         size_factor_y: float,
-        msg: str,
         font_size: int,
-        textbox_color: tuple = None,
-        text_color: tuple = (0, 0, 0),
+        msg: str = None,
+        text_box_color: tuple = None,
+        text_color: tuple = (255, 255, 255),
         centerx: float = None,
         centery: float = None,
-        textbox_left: float = 0,
-        textbox_top: float = 0,
+        text_box_left: float = 0,
+        text_box_top: float = 0,
     ):
         """Initialize button attributes."""
         self.screen = grav_sim.screen
@@ -26,21 +26,22 @@ class Text_box:
         self.width = size_factor_x * grav_sim.settings.screen_width
         self.height = size_factor_y * grav_sim.settings.screen_height
 
-        self.textbox_color = textbox_color
+        self.textbox_color = text_box_color
         self.text_color = text_color
         self.font = pygame.font.SysFont(None, font_size)
 
         # Build the button's rect object and center it.
-        self.rect = pygame.Rect(0, 0, self.width, self.height)
+        self.rect = pygame.Rect(text_box_left, text_box_top, self.width, self.height)
         if centerx:
             self.rect.centerx = centerx
         if centery:
             self.rect.centery = centery
 
         # The button message needs to be printed only once.
-        self._print_msg(msg)
+        if msg:
+            self.print_msg(msg)
 
-    def _print_msg(self, msg):
+    def print_msg(self, msg):
         """Turn msg into a rendered image and center text on the button."""
         self.msg_image = self.font.render(
             msg, True, self.text_color, self.textbox_color

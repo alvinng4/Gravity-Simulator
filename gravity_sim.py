@@ -16,7 +16,6 @@ class GravitySimulator:
         pygame.init()
         self.clock = pygame.time.Clock()
         self.start_time = pygame.time.get_ticks()
-        self.stats = Stats()
         self.settings = Settings()
 
         self.screen = pygame.display.set_mode(
@@ -25,6 +24,7 @@ class GravitySimulator:
             vsync=1,
         )
         pygame.display.set_caption("Gravity Simulator")
+        self.stats = Stats(self)
         self.camera = Camera(self.settings.img_scale)
         self.menu = Menu(self)
         self.grav_objs = pygame.sprite.Group()
