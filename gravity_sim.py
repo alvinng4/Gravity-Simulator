@@ -15,9 +15,7 @@ class GravitySimulator:
     def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.start_time = pygame.time.get_ticks()
         self.settings = Settings()
-
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height),
             pygame.SCALED,
@@ -25,7 +23,7 @@ class GravitySimulator:
         )
         pygame.display.set_caption("Gravity Simulator")
         self.stats = Stats(self)
-        self.camera = Camera(self.settings.img_scale)
+        self.camera = Camera()
         self.menu = Menu(self)
         self.grav_objs = pygame.sprite.Group()
 
@@ -33,9 +31,8 @@ class GravitySimulator:
         # Start the main loop for the program.
         while True:
             self._check_events()
-            self.grav_objs.update()
             self._update_screen()
-            self.clock.tick(self.settings.fps)
+            self.clock.tick(60)
 
     def _check_events(self):
         for event in pygame.event.get():
@@ -75,6 +72,7 @@ class GravitySimulator:
 
     def _update_screen(self):
         self.camera.update_movement()
+        self.grav_objs.update()
         self.screen.fill(self.settings.bg_color)
 
         self.grav_objs.draw(self.screen)

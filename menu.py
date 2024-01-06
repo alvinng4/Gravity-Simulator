@@ -12,8 +12,9 @@ class Menu:
     def __init__(self, grav_sim):
         """Initialize button attributes."""
         self.screen = grav_sim.screen
-        self.screen_rect = grav_sim.screen.get_rect()
+        self.screen_rect = self.screen.get_rect()
         self.settings = grav_sim.settings
+        self.stats = grav_sim.stats
         self.start_menu_active = True
         self.menu_active = True
 
@@ -65,7 +66,7 @@ class Menu:
             0.25,
             0.08,
             48,
-            msg="Figure 8",
+            msg="Figure 8 orbit",
             text_box_color=(245, 245, 245),
             text_color=(0, 0, 0),
             centerx=self.screen_rect.centerx,
@@ -83,34 +84,37 @@ class Menu:
             centery=self.screen_rect.centery - (-0.3) * self.settings.screen_height,
         )
 
-    def menu_active(self):
-        return self.menu_active
-
     def draw(self):
+        """Draw the menu buttons"""
         if self.start_menu_active == True:
             self.start_menu_caption.draw()
         else:
             self.resume_button.draw()
+
         self.void_button.draw()
         self.solar_system_button.draw()
         self.figure_8_button.draw()
         self.exit_button.draw()
 
     def _check_button(self, mouse_pos, grav_sim):
+        """Check if there is any click on the buttons"""
         if self.resume_button.rect.collidepoint(mouse_pos):
             self.menu_active = False
         if self.void_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
+            self.stats.reset_stats()
             self.menu_active = False
             self.start_menu_active = False
         if self.solar_system_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_solor_system(grav_sim)
+            self.stats.reset_stats()
             self.menu_active = False
             self.start_menu_active = False
         if self.figure_8_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_figure_8(grav_sim)
+            self.stats.reset_stats()
             self.menu_active = False
             self.start_menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
