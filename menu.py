@@ -14,9 +14,19 @@ class Menu:
         self.screen = grav_sim.screen
         self.screen_rect = grav_sim.screen.get_rect()
         self.settings = grav_sim.settings
+        self.start_menu_active = True
+        self.menu_active = True
 
-        self.menu_active == False
-
+        # The caption is put here because the functions are closely related to the menu.
+        self.start_simulator_caption = Text_box(
+            grav_sim,
+            0.25,
+            0.08,
+            48,
+            msg="2D N-body Gravity Simulator",
+            centerx=self.screen_rect.centerx,
+            centery=self.screen_rect.centery - 0.3 * self.settings.screen_height,
+        )
         self.resume_button = Text_box(
             grav_sim,
             0.25,
@@ -77,7 +87,10 @@ class Menu:
         return self.menu_active
 
     def draw(self):
-        self.resume_button.draw()
+        if self.start_menu_active == True:
+            self.start_simulator_caption.draw()
+        else:
+            self.resume_button.draw()
         self.void_button.draw()
         self.solar_system_button.draw()
         self.figure_8_button.draw()
@@ -89,13 +102,16 @@ class Menu:
         if self.void_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             self.menu_active = False
+            self.start_menu_active = False
         if self.solar_system_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_solor_system(grav_sim)
             self.menu_active = False
+            self.start_menu_active = False
         if self.figure_8_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_figure_8(grav_sim)
             self.menu_active = False
+            self.start_menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
             sys.exit()
