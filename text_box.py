@@ -1,7 +1,7 @@
 import pygame.font
 
 
-class Textbox:
+class Text_box:
     """A class to build text boxes"""
 
     def __init__(

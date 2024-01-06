@@ -2,7 +2,7 @@ import sys
 
 import pygame.font
 
-from textbox import Textbox
+from text_box import Text_box
 
 
 class Menu:
@@ -16,7 +16,7 @@ class Menu:
 
         self.menu_active == False
 
-        self.resume_button = Textbox(
+        self.resume_button = Text_box(
             grav_sim,
             0.25,
             0.1,
@@ -27,7 +27,7 @@ class Menu:
             centerx=self.screen_rect.centerx,
             centery=self.screen_rect.centery - 0.3 * self.settings.screen_height,
         )
-        self.void_button = Textbox(
+        self.void_button = Text_box(
             grav_sim,
             0.25,
             0.1,
@@ -38,7 +38,7 @@ class Menu:
             centerx=self.screen_rect.centerx,
             centery=self.screen_rect.centery - 0.1 * self.settings.screen_height,
         )
-        self.solar_system_button = Textbox(
+        self.solar_system_button = Text_box(
             grav_sim,
             0.25,
             0.1,
@@ -49,7 +49,7 @@ class Menu:
             centerx=self.screen_rect.centerx,
             centery=self.screen_rect.centery - (-0.1) * self.settings.screen_height,
         )
-        self.exit_button = Textbox(
+        self.exit_button = Text_box(
             grav_sim,
             0.25,
             0.1,

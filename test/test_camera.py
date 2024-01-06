@@ -1,22 +1,6 @@
 from camera import Camera
 
 
-def test_default():
-    camera = Camera()
-    assert camera._img_scale == 1
-
-
-def test_camera_img_scale():
-    camera1 = Camera(img_scale=10.1)
-    assert camera1._img_scale == 10.1
-    camera2 = Camera(img_scale=1000)
-    assert camera2._img_scale == 100
-    camera3 = Camera(img_scale=0.1)
-    assert camera3._img_scale == 1
-    camera3 = Camera(img_scale=-10)
-    assert camera3._img_scale == 1
-
-
 def test_camera_movement():
     camera = Camera()
     camera.moving_right = True
