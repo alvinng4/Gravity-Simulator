@@ -1,6 +1,5 @@
 # TODO
-Statsboard
-Simulations velociy verlet\
+Simulations\
 create new grav_obj by holding mouse left click
 
 # Optional(Challenging)
