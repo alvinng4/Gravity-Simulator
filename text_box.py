@@ -10,6 +10,7 @@ class Text_box:
         size_factor_x: float,
         size_factor_y: float,
         font_size: int,
+        font: str = None,
         msg: str = None,
         text_box_color: tuple = None,
         text_color: tuple = (255, 255, 255),
@@ -28,7 +29,7 @@ class Text_box:
 
         self.textbox_color = text_box_color
         self.text_color = text_color
-        self.font = pygame.font.SysFont(None, font_size)
+        self.font = pygame.font.SysFont(font, font_size)
 
         # Build the button's rect object and center it.
         self.rect = pygame.Rect(text_box_left, text_box_top, self.width, self.height)

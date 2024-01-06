@@ -31,7 +31,8 @@ class Stats:
             grav_sim,
             0.08,
             0.03,
-            24,
+            20,
+            font="Avenir",
             text_box_top=0,
             text_box_left=0,
         )
@@ -39,7 +40,8 @@ class Stats:
             grav_sim,
             0.08,
             0.03,
-            24,
+            20,
+            font="Avenir",
             text_box_top=self.fps_board.rect.bottom,
             text_box_left=0,
         )
