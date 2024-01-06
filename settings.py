@@ -12,7 +12,6 @@ class Settings:
 
         self.img_scale = img_scale
 
-
     @property
     def img_scale(self):
         return self._img_scale

@@ -31,5 +31,3 @@ class Camera:
             self.pos_y -= self.speed_y
         if self.moving_down == True:
             self.pos_y += self.speed_y
-
-

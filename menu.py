@@ -3,6 +3,7 @@ import sys
 import pygame.font
 
 from text_box import Text_box
+from grav_obj import Grav_obj
 
 
 class Menu:
@@ -19,7 +20,7 @@ class Menu:
         self.resume_button = Text_box(
             grav_sim,
             0.25,
-            0.1,
+            0.08,
             "Resume",
             48,
             (245, 245, 245),
@@ -30,29 +31,40 @@ class Menu:
         self.void_button = Text_box(
             grav_sim,
             0.25,
-            0.1,
+            0.08,
             "Void",
             48,
             (245, 245, 245),
             (0, 0, 0),
             centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - 0.1 * self.settings.screen_height,
+            centery=self.screen_rect.centery - 0.15 * self.settings.screen_height,
         )
         self.solar_system_button = Text_box(
             grav_sim,
             0.25,
-            0.1,
+            0.08,
             "Solar System",
             48,
             (245, 245, 245),
             (0, 0, 0),
             centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - (-0.1) * self.settings.screen_height,
+            centery=self.screen_rect.centery,
+        )
+        self.figure_8_button = Text_box(
+            grav_sim,
+            0.25,
+            0.08,
+            "Figure 8",
+            48,
+            (245, 245, 245),
+            (0, 0, 0),
+            centerx=self.screen_rect.centerx,
+            centery=self.screen_rect.centery - (-0.15) * self.settings.screen_height,
         )
         self.exit_button = Text_box(
             grav_sim,
             0.25,
-            0.1,
+            0.08,
             "Exit",
             48,
             (245, 245, 245),
@@ -68,6 +80,7 @@ class Menu:
         self.resume_button.draw()
         self.void_button.draw()
         self.solar_system_button.draw()
+        self.figure_8_button.draw()
         self.exit_button.draw()
 
     def _check_button(self, mouse_pos, grav_sim):
@@ -78,7 +91,11 @@ class Menu:
             self.menu_active = False
         if self.solar_system_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
-            grav_sim._create_solor_system()
+            Grav_obj.create_solor_system(grav_sim)
+            self.menu_active = False
+        if self.figure_8_button.rect.collidepoint(mouse_pos):
+            grav_sim.grav_objs.empty()
+            Grav_obj.create_figure_8(grav_sim)
             self.menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
             sys.exit()
