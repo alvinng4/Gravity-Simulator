@@ -33,7 +33,7 @@ class GravitySimulator:
         # Start the main loop for the program.
         while True:
             self._check_events()
-            self._update_grav_objs()
+            self.grav_objs.update()
             self._update_screen()
             self.clock.tick(self.settings.fps)
 
@@ -87,13 +87,6 @@ class GravitySimulator:
     def _create_grav_obj(self):
         grav_obj = Grav_obj(self, 0, 0, 1)
         self.grav_objs.add(grav_obj)
-
-    def _create_solor_system(self):
-        Grav_obj.create_solor_system(self)
-
-    def _update_grav_objs(self):
-        """Update the apparent position of all grav_objs with camera"""
-        self.grav_objs.update()
 
 
 if __name__ == "__main__":
