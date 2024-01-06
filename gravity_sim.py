@@ -70,7 +70,8 @@ class GravitySimulator:
         elif event.key == pygame.K_s:
             self.camera.moving_down = True
         elif event.key == pygame.K_ESCAPE:
-            self.menu.menu_active = True
+            if self.menu.start_menu_active == False:
+                self.menu.menu_active = not self.menu.menu_active
 
     def _update_screen(self):
         self.camera.update_movement()

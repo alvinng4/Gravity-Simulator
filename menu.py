@@ -17,8 +17,7 @@ class Menu:
         self.start_menu_active = True
         self.menu_active = True
 
-        # The caption is put here because the functions are closely related to the menu.
-        self.start_simulator_caption = Text_box(
+        self.start_menu_caption = Text_box(
             grav_sim,
             0.25,
             0.08,
@@ -88,7 +87,7 @@ class Menu:
 
     def draw(self):
         if self.start_menu_active == True:
-            self.start_simulator_caption.draw()
+            self.start_menu_caption.draw()
         else:
             self.resume_button.draw()
         self.void_button.draw()
