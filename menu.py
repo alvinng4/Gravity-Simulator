@@ -19,10 +19,11 @@ class Menu:
 
         self.start_menu_caption = Text_box(
             grav_sim,
-            0.25,
-            0.08,
-            48,
+            0,
+            0,
+            72,
             msg="2D N-body Gravity Simulator",
+            font="Avenir",
             centerx=self.screen_rect.centerx,
             centery=self.screen_rect.centery - 0.3 * self.settings.screen_height,
         )
