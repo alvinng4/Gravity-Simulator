@@ -1,15 +1,13 @@
 class Settings:
     """A class to store all settings for gravity simulator."""
 
-    def __init__(self, sun_img_scale=10, img_scale=50):
+    def __init__(self, sun_img_scale=20, img_scale=30):
         self.screen_width = 1366
         self.screen_height = 768
         self.bg_color = (0, 0, 0)  # Background color
-
         self.fps = 60
 
         self.grav_obj_color = (255, 255, 255)
-
         self.sun_img_scale = sun_img_scale
         self.img_scale = img_scale
 
