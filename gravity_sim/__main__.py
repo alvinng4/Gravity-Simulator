@@ -23,10 +23,10 @@ class GravitySimulator:
             img_scale=self.args.img_scale[1],
         )
         self.screen = pygame.display.set_mode(
-                (self.settings.screen_width, self.settings.screen_height),
-                pygame.SCALED,
-                vsync=1,
-                )
+            (self.settings.screen_width, self.settings.screen_height),
+            pygame.SCALED,
+            vsync=1,
+        )
         pygame.display.set_caption("Gravity Simulator")
         self.clock = pygame.time.Clock()
         self.menu = Menu(self)
@@ -95,7 +95,7 @@ class GravitySimulator:
             "--resolution",
             "-r",
             nargs=2,
-            default=[1366, 768],
+            default=[1920, 1080],
             type=float,
             help="Usage: --resolution width, height",
         )
