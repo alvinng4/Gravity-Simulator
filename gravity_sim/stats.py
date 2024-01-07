@@ -38,41 +38,41 @@ class Stats:
     def create_stats_board(self, grav_sim):
         self.fps_board = Text_box(
             grav_sim,
-            0.08,
-            0.03,
+            0,
+            0,
             20,
             font="Avenir",
             text_box_left_top=(10, 0),
         )
         self.obj_board = Text_box(
             grav_sim,
-            0.08,
+            0,
             0.03,
             20,
             font="Avenir",
-            text_box_left_top=(10, self.fps_board.rect.bottom),
+            text_box_left_top=(10, 23),
         )
         self.sun_img_scale_board = Text_box(
             grav_sim,
-            0.145,
+            0,
             0.03,
             20,
             font="Avenir",
-            text_box_left_top=(10, self.obj_board.rect.bottom),
+            text_box_left_top=(10, 46),
         )
         self.img_scale_board = Text_box(
             grav_sim,
-            0.18,
+            0,
             0.03,
             20,
             font="Avenir",
-            text_box_left_top=(10, self.sun_img_scale_board.rect.bottom),
+            text_box_left_top=(10, 69),
         )
         self.run_time_board = Text_box(
             grav_sim,
-            0.16,
+            0,
             0.03,
             20,
             font="Avenir",
-            text_box_left_top=(10, self.img_scale_board.rect.bottom),
+            text_box_left_top=(10, 92),
         )
