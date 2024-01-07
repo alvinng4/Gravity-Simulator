@@ -10,10 +10,12 @@ class Stats:
         self.fps = grav_sim.clock.get_fps()
         self.sun_img_scale = grav_sim.settings.sun_img_scale
         self.img_scale = grav_sim.settings.img_scale
+        self.distance_scale = grav_sim.settings.distance_scale
         self.create_stats_board(grav_sim)
         # Image scale is fixed in the settings
         self.sun_img_scale_board.print_msg(f"Sun Image Scale = {self.sun_img_scale}")
         self.img_scale_board.print_msg(f"Objects Image Scale = {self.img_scale}")
+        self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
 
     def update(self, grav_sim):
         self.fps = grav_sim.clock.get_fps()
@@ -29,6 +31,7 @@ class Stats:
         self.obj_board.draw()
         self.sun_img_scale_board.draw()
         self.img_scale_board.draw()
+        self.distance_scale_board.draw()
         self.run_time_board.draw()
 
     def reset_stats(self):
@@ -68,11 +71,19 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 69),
         )
-        self.run_time_board = Text_box(
+        self.distance_scale_board = Text_box(
             grav_sim,
             0,
             0.03,
             20,
             font="Avenir",
             text_box_left_top=(10, 92),
+        )
+        self.run_time_board = Text_box(
+            grav_sim,
+            0,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 115),
         )

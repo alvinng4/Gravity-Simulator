@@ -22,11 +22,17 @@ class Grav_obj(Sprite):
         self.diameter = 2 * self.params["R"]
         if name == "Sun":
             self.img_diameter = (
-                    self.diameter * 0.25 * self.settings.sun_img_scale * self.settings.screen_height
-                )
+                self.diameter
+                * 0.25
+                * self.settings.sun_img_scale
+                * self.settings.screen_height
+            )
         else:
             self.img_diameter = (
-                self.diameter * 0.25 * self.settings.img_scale * self.settings.screen_height
+                self.diameter
+                * 0.25
+                * self.settings.img_scale
+                * self.settings.screen_height
             )
 
         # Note: apparent_scale = real_scale * img_scale
@@ -51,8 +57,18 @@ class Grav_obj(Sprite):
     def update(self):
         """Update the apparent position of all grav_objs with camera"""
         self.rect.center = (
-            self.params["r1"] * 0.25 * self.settings.screen_height + self.screen.get_rect().centerx - self.camera.pos_x,
-            - self.params["r2"] * 0.25 * self.settings.screen_height + self.screen.get_rect().centery - self.camera.pos_y,
+            self.params["r1"]
+            * 0.25
+            * self.settings.distance_scale
+            * self.settings.screen_height
+            + self.screen.get_rect().centerx
+            - self.camera.pos_x,
+            -self.params["r2"]
+            * 0.25
+            * self.settings.distance_scale
+            * self.settings.screen_height
+            + self.screen.get_rect().centery
+            - self.camera.pos_y,
         )
 
     @classmethod
@@ -88,7 +104,7 @@ class Grav_obj(Sprite):
                 "R": 0.004650467261,
             },
             path_sun,
-            name = "Sun",
+            name="Sun",
         )
         mercury = Grav_obj(
             grav_sim,
