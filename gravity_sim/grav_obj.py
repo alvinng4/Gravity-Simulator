@@ -48,7 +48,7 @@ class Grav_obj(Sprite):
 
     @classmethod
     def create_solor_system(self, grav_sim):
-        main_dir_path = os.path.dirname(os.path.dirname(__file__))
+        main_dir_path = os.path.dirname(__file__)
         centerx = grav_sim.screen.get_rect().centerx
         centery = grav_sim.screen.get_rect().centery
         path_sun = os.path.join(main_dir_path, "images/sun.png")
