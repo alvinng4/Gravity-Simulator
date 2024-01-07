@@ -1,7 +1,7 @@
 class Settings:
     """A class to store all settings for gravity simulator."""
 
-    def __init__(self, sun_img_scale=20, img_scale=30):
+    def __init__(self, sun_img_scale=-1, img_scale=30):
         self.screen_width = 1366
         self.screen_height = 768
         self.bg_color = (0, 0, 0)  # Background color
@@ -15,12 +15,13 @@ class Settings:
     def sun_img_scale(self):
         return self._sun_img_scale
 
+    # Img would corrupt if the scale too large.
     @sun_img_scale.setter
     def sun_img_scale(self, value):
         if value > 100:
             self._sun_img_scale = 100
-        elif value < -100:
-            self._sun_img_scale = -100
+        if value < 0:
+            self._sun_img_scale = 0
         else:
             self._sun_img_scale = value
 
@@ -28,11 +29,12 @@ class Settings:
     def img_scale(self):
         return self._img_scale
 
+    # Img would corrupt if the scale is too large.
     @img_scale.setter
     def img_scale(self, value):
         if value > 100:
             self._img_scale = 100
-        elif value < 1:
-            self._img_scale = 1
+        elif value < 0:
+            self._img_scale = 0
         else:
             self._img_scale = value
