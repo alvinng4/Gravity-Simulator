@@ -44,8 +44,7 @@ class Stats:
             0.03,
             20,
             font="Avenir",
-            text_box_top=0,
-            text_box_left=0,
+            text_box_left_top=(10, 0),
         )
         self.obj_board = Text_box(
             grav_sim,
@@ -53,8 +52,7 @@ class Stats:
             0.03,
             20,
             font="Avenir",
-            text_box_top=self.fps_board.rect.bottom,
-            text_box_left=0,
+            text_box_left_top=(10, self.fps_board.rect.bottom),
         )
         self.sun_img_scale_board = Text_box(
             grav_sim,
@@ -62,8 +60,7 @@ class Stats:
             0.03,
             20,
             font="Avenir",
-            text_box_top=self.obj_board.rect.bottom,
-            text_box_left=0,
+            text_box_left_top=(10, self.obj_board.rect.bottom),
         )
         self.img_scale_board = Text_box(
             grav_sim,
@@ -71,8 +68,7 @@ class Stats:
             0.03,
             20,
             font="Avenir",
-            text_box_top=self.sun_img_scale_board.rect.bottom,
-            text_box_left=0,
+            text_box_left_top=(10, self.sun_img_scale_board.rect.bottom),
         )
         self.run_time_board = Text_box(
             grav_sim,
@@ -80,6 +76,5 @@ class Stats:
             0.03,
             20,
             font="Avenir",
-            text_box_top=self.img_scale_board.rect.bottom,
-            text_box_left=0,
+            text_box_left_top=(10, self.img_scale_board.rect.bottom),
         )

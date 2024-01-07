@@ -14,10 +14,8 @@ class Text_box:
         msg: str = None,
         text_box_color: tuple = None,
         text_color: tuple = (255, 255, 255),
-        centerx: float = None,
-        centery: float = None,
-        text_box_left: float = 0,
-        text_box_top: float = 0,
+        center: tuple = None,
+        text_box_left_top: tuple = (0, 0),
     ):
         """Initialize text box attributes."""
         self.screen = grav_sim.screen
@@ -32,11 +30,16 @@ class Text_box:
         self.font = pygame.font.SysFont(font, font_size)
 
         # Build the text box's rect object and center it.
-        self.rect = pygame.Rect(text_box_left, text_box_top, self.width, self.height)
-        if centerx:
-            self.rect.centerx = centerx
-        if centery:
-            self.rect.centery = centery
+        self.center = center
+        self.text_box_left_top = text_box_left_top
+        self.rect = pygame.Rect(
+            self.text_box_left_top[0],
+            self.text_box_left_top[1],
+            self.width,
+            self.height,
+        )
+        if self.center:
+            self.rect.center = self.center
 
         # The message needs to be printed only once.
         if msg:
@@ -48,7 +51,11 @@ class Text_box:
             msg, True, self.text_color, self.textbox_color
         )
         self.msg_image_rect = self.msg_image.get_rect()
-        self.msg_image_rect.center = self.rect.center
+        if self.center:
+            self.msg_image_rect.center = self.rect.center
+        else:
+            self.msg_image_rect.left = self.text_box_left_top[0]
+            self.msg_image_rect.top = self.text_box_left_top[1]
 
     def draw(self):
         """Draw blank text box and then draw message."""
