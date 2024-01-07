@@ -2,14 +2,15 @@
 Welcome to my CS50 Python project: 2D N-body gravity simulator. This project is currently in the initial stage of development. More functions are going to be implemented in the future.
 
 ## Quick Start
-Before running the program, make sure you have the pygame and numpy packages installed. You can install them by running the following command:
+### Install required packages
+
+Before running the program, make sure that you have the pygame and numpy packages installed. You can install them by running the following command in terminal:
 ```
 pip3 install pygame
-```
-```
 pip3 install numpy
 ```
-After downloading the program, you can run the program by
+### Run the program
+Once you have downloaded the source files, open a terminal window, navigate to the directory of the source files and run:
 ```
 python3 gravity_sim
 ```
