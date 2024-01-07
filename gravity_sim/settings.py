@@ -17,7 +17,7 @@ class Settings:
     def sun_img_scale(self):
         return self._sun_img_scale
 
-    # Img would corrupt if the scale too large.
+    # Img may corrupt if the scale is too large.
     @sun_img_scale.setter
     def sun_img_scale(self, value):
         if value > 100:
@@ -31,7 +31,7 @@ class Settings:
     def img_scale(self):
         return self._img_scale
 
-    # Img would corrupt if the scale is too large.
+    # Img may corrupt if the scale is too large.
     @img_scale.setter
     def img_scale(self, value):
         if value > 100:

@@ -22,19 +22,11 @@ class GravitySimulator:
             sun_img_scale=self.args.img_scale[0],
             img_scale=self.args.img_scale[1],
         )
-        if self.is_full_screen == True:
-            self.screen = pygame.display.set_mode(
-                (0, 0),
-                pygame.FULLSCREEN,
-                pygame.SCALED,
-                vsync=1,
-            )
-        elif self.is_full_screen == False:
-            self.screen = pygame.display.set_mode(
+        self.screen = pygame.display.set_mode(
                 (self.settings.screen_width, self.settings.screen_height),
                 pygame.SCALED,
                 vsync=1,
-            )
+                )
         pygame.display.set_caption("Gravity Simulator")
         self.clock = pygame.time.Clock()
         self.menu = Menu(self)
@@ -81,6 +73,8 @@ class GravitySimulator:
             self.camera.moving_up = True
         elif event.key == pygame.K_s:
             self.camera.moving_down = True
+        elif event.key == pygame.K_f:
+            pygame.display.toggle_fullscreen()
         elif event.key == pygame.K_ESCAPE:
             if self.menu.start_menu_active == False:
                 self.menu.menu_active = not self.menu.menu_active
@@ -114,12 +108,8 @@ class GravitySimulator:
             help="Usage: --img_scale Solar image scale, obj image scale",
         )
         self.args = parser.parse_args()
-        if self.args.resolution[0] == 0 and self.args.resolution[1] == 0:
-            self.args.resolution[0] = 1920
-            self.args.resolution[1] = 1080
-            self.is_full_screen = True
-        elif self.args.resolution[0] != 0 and self.args.resolution[1] != 0:
-            self.is_full_screen = False
+        if self.args.resolution[0] != 0 and self.args.resolution[1] != 0:
+            pass
         else:
             sys.exit("Invalid resolution")
 
