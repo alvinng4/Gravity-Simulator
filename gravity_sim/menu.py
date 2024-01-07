@@ -14,7 +14,6 @@ class Menu:
         self.screen = grav_sim.screen
         self.screen_rect = self.screen.get_rect()
         self.settings = grav_sim.settings
-        self.stats = grav_sim.stats
         self.start_menu_active = True
         self.menu_active = True
 
@@ -112,19 +111,19 @@ class Menu:
                 self.menu_active = False
         if self.void_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
-            self.stats.reset_stats()
+            grav_sim.stats.reset_stats()
             self.menu_active = False
             self.start_menu_active = False
         if self.solar_system_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_solor_system(grav_sim)
-            self.stats.reset_stats()
+            grav_sim.stats.reset_stats()
             self.menu_active = False
             self.start_menu_active = False
         if self.figure_8_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_figure_8(grav_sim)
-            self.stats.reset_stats()
+            grav_sim.stats.reset_stats()
             self.menu_active = False
             self.start_menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):

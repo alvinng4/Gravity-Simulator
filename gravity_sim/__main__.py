@@ -22,9 +22,9 @@ class GravitySimulator:
             vsync=1,
         )
         pygame.display.set_caption("Gravity Simulator")
+        self.menu = Menu(self)
         self.stats = Stats(self)
         self.camera = Camera()
-        self.menu = Menu(self)
         self.grav_objs = pygame.sprite.Group()
 
     def run_prog(self):
