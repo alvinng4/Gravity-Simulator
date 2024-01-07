@@ -1,4 +1,5 @@
 import sys
+import argparse
 
 import pygame
 
@@ -13,15 +14,29 @@ class GravitySimulator:
     """Overall class to manage the main program."""
 
     def __init__(self):
+        self._read_command_line_arg()
         pygame.init()
-        self.clock = pygame.time.Clock()
-        self.settings = Settings()
-        self.screen = pygame.display.set_mode(
-            (self.settings.screen_width, self.settings.screen_height),
-            pygame.SCALED,
-            vsync=1,
+        self.settings = Settings(
+            screen_width=self.args.resolution[0],
+            screen_height=self.args.resolution[1],
+            sun_img_scale=self.args.img_scale[0],
+            img_scale=self.args.img_scale[1],
         )
+        if self.is_full_screen == True:
+            self.screen = pygame.display.set_mode(
+                (0, 0),
+                pygame.FULLSCREEN,
+                pygame.SCALED,
+                vsync=1,
+            )
+        elif self.is_full_screen == False:
+            self.screen = pygame.display.set_mode(
+                (self.settings.screen_width, self.settings.screen_height),
+                pygame.SCALED,
+                vsync=1,
+            )
         pygame.display.set_caption("Gravity Simulator")
+        self.clock = pygame.time.Clock()
         self.menu = Menu(self)
         self.stats = Stats(self)
         self.camera = Camera()
@@ -74,18 +89,39 @@ class GravitySimulator:
         self.camera.update_movement()
         self.grav_objs.update()
         self.screen.fill(self.settings.bg_color)
-
         self.grav_objs.draw(self.screen)
         self.stats.update(self)
-
         if self.menu.menu_active == True:
             self.menu.draw()
-
         pygame.display.flip()
 
-    def _create_grav_obj(self):
-        grav_obj = Grav_obj(self, 0, 0, 1)
-        self.grav_objs.add(grav_obj)
+    def _read_command_line_arg(self):
+        parser = argparse.ArgumentParser(description="2D N-body gravity simulator")
+        parser.add_argument(
+            "--resolution",
+            "-r",
+            nargs=2,
+            default=[1366, 768],
+            type=float,
+            help="Usage: --resolution width, height",
+        )
+        parser.add_argument(
+            "--img_scale",
+            "-i",
+            nargs=2,
+            default=[10, 30],
+            type=float,
+            help="Usage: --img_scale Solar image scale, obj image scale",
+        )
+        self.args = parser.parse_args()
+        if self.args.resolution[0] == 0 and self.args.resolution[1] == 0:
+            self.args.resolution[0] = 1920
+            self.args.resolution[1] = 1080
+            self.is_full_screen = True
+        elif self.args.resolution[0] != 0 and self.args.resolution[1] != 0:
+            self.is_full_screen = False
+        else:
+            sys.exit("Invalid resolution")
 
 
 if __name__ == "__main__":

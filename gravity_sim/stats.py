@@ -20,7 +20,7 @@ class Stats:
         self.objects_count = len(grav_sim.grav_objs)
         if grav_sim.menu.start_menu_active == True:
             self.start_time = pygame.time.get_ticks()
-        self.run_time = (pygame.time.get_ticks() - self.start_time) / 1000  
+        self.run_time = (pygame.time.get_ticks() - self.start_time) / 1000
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
         self.obj_board.print_msg(f"Object = {self.objects_count}")
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")

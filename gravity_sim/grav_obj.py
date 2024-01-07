@@ -47,6 +47,12 @@ class Grav_obj(Sprite):
         )
 
     @classmethod
+    def create_grav_obj(self, grav_sim):
+        pass
+        # grav_obj = Grav_obj(grav_sim, params, 1)
+        # grav_sim.grav_objs.add(grav_obj)
+
+    @classmethod
     def create_solor_system(self, grav_sim):
         main_dir_path = os.path.dirname(__file__)
         centerx = grav_sim.screen.get_rect().centerx
