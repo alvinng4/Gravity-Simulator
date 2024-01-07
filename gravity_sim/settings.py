@@ -1,9 +1,8 @@
 class Settings:
     """A class to store all settings for gravity simulator."""
 
-    def __init__(
-        self, screen_width=1366, screen_height=768, sun_img_scale=10, img_scale=30
-    ):
+    def __init__(self, screen_width, screen_height, sun_img_scale, img_scale):
+        # To change the default settings of screen_width, screen_height, sun_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.bg_color = (0, 0, 0)  # Background color

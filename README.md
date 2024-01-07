@@ -25,16 +25,16 @@ Please note that due to unknown reasons, the menu buttons may not work perfectly
 When starting the program, you can customize the settings using command-line arguments.
 
 ### Resolution and full screen
-The default resolution is 1366 x 768. However, you can set your own resolution by the following commands:
+The default resolution is 1920 x 1080. However, you can set your own resolution by the following commands:
 ```
 python3 gravity_sim -r <width> <height>
 ```
 ```
 python3 gravity_sim --resolution <width> <height>
 ```
-For example, if you want to set the resolution to 1920 x 1080, you may enter
+For example, if you want to set the resolution to 2560 x 1440, simply enter:
 ```
-python3 gravity_sim -r 1920 1080
+python3 gravity_sim -r 2560 1440
 ```
 
 ### Image scale
@@ -62,5 +62,5 @@ python3 gravity_sim -r 1920 1080 -i 10 30
 
 
 ## Bibliography
-1. Roa, Javier, et al. Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems, MIT Press, 2020
-2. Matthes, Eric. Python Crash Course, 3rd Edition: A Hands-On, Project-Based Introduction to Programming, No Starch Press, 2023
+1. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
+2. Matthes, Eric. *Python Crash Course, 3rd Edition: A Hands-On, Project-Based Introduction to Programming*, No Starch Press, 2023
