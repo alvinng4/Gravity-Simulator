@@ -21,7 +21,6 @@ class GravitySimulator:
             screen_height=self.args.resolution[1],
             sun_img_scale=self.args.img_scale[0],
             img_scale=self.args.img_scale[1],
-            distance_scale=self.args.distance_scale[0],
         )
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height),
@@ -52,6 +51,8 @@ class GravitySimulator:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.menu.menu_active == True:
                     self.menu._check_button(mouse_pos, self)
+            elif event.type == pygame.MOUSEWHEEL:
+                self.settings.distance_scale += 0.1 * event.y
             elif event.type == pygame.QUIT:
                 sys.exit()
 
@@ -107,14 +108,6 @@ class GravitySimulator:
             default=[20, 400],
             type=float,
             help="Usage: --img_scale <solar image scale>, <obj image scale>",
-        )
-        parser.add_argument(
-            "--distance_scale",
-            "-d",
-            nargs=1,
-            default=1,
-            type=float,
-            help="Usage: --distance_scale <distance scale>",
         )
         self.args = parser.parse_args()
         if self.args.resolution[0] > 0 and self.args.resolution[1] > 0:

@@ -14,17 +14,18 @@ Once you have downloaded the source files, open a terminal window, navigate to t
 ```
 python3 gravity_sim
 ```
-Please note that due to unknown reasons, the menu buttons may not work perfectly on the first execution of the program.
+Note: due to unknown reasons, the menu buttons may not work perfectly on the first execution of the program.
 
 ## Control
-`W` `A` `S` `D`: move camera\
+`W` `A` `S` `D`: Move camera\
 `Esc`: Open the menu\
-`F`: Full screen mode
+`F`: Toggle full screen mode\
+`Scroll`: Change the distance scale
 
 ## Changing the settings
 When starting the program, you can customize the settings using command-line arguments.
 ```
-python3 gravity_sim [-r | --resolution] [-i | --img_scale] [-d | --distance_scale] <args> 
+python3 gravity_sim [-r | --resolution] [-i | --img_scale] <args> 
 ```
 
 ### Resolution
@@ -37,14 +38,9 @@ All the images of the gravitational objects are scaled by some factors for bette
 ```
 python3 gravity_sim -i <sun_img_scale> <obj_img_scale>
 ```
-### Distance scale
-In some cases, celestial bodies may be too far out of the screen to be seen. You can address this by changing the distance scale. Simply run:
+You may change the parameters altogether. The following command can be used to set a resolution of 2560 x 1440, sun image scale of 10 and object image scale of 30. 
 ```
-python3 gravity_sim -d <distance_scale>
-```
-You may change the parameters altogether. The following command can be used to set a resolution of 2560 x 1440, sun image scale of 10, object image scale of 30 and distance scale of 0.5:
-```
-python3 gravity_sim -r 2560 1440 -i 10 30 -d 0.5
+python3 gravity_sim -r 2560 1440 -i 10 30
 ```
 
 
