@@ -13,8 +13,34 @@ class Settings:
         self.img_scale = img_scale
 
     @property
+    def screen_width(self):
+        return self._screen_width
+
+    @property
+    def screen_height(self):
+        return self._screen_height
+
+    @property
     def sun_img_scale(self):
         return self._sun_img_scale
+
+    @property
+    def img_scale(self):
+        return self._img_scale
+
+    @screen_width.setter
+    def screen_width(self, value):
+        if value < 0:
+            self._screen_width = 0
+        else:
+            self._screen_width = value
+
+    @screen_height.setter
+    def screen_height(self, value):
+        if value < 0:
+            self._screen_height = 0
+        else:
+            self._screen_height = value
 
     # Img may corrupt if the scale is too large.
     @sun_img_scale.setter
@@ -25,10 +51,6 @@ class Settings:
             self._sun_img_scale = 0
         else:
             self._sun_img_scale = value
-
-    @property
-    def img_scale(self):
-        return self._img_scale
 
     # Img may corrupt if the scale is too large.
     @img_scale.setter

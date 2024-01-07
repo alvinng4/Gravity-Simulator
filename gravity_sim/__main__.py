@@ -108,7 +108,7 @@ class GravitySimulator:
             help="Usage: --img_scale Solar image scale, obj image scale",
         )
         self.args = parser.parse_args()
-        if self.args.resolution[0] != 0 and self.args.resolution[1] != 0:
+        if self.args.resolution[0] > 0 and self.args.resolution[1] > 0:
             pass
         else:
             sys.exit("Invalid resolution")
