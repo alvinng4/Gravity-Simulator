@@ -11,8 +11,9 @@ pip3 install numpy
 ```
 After downloading the program, you can run the program by
 ```
-python3 2D-N-body_gravity_simulator/gravity_sim
+python3 gravity_sim
 ```
+Note that the menu buttons may not work perfectly on the first execution of the program.
 
 ## Implemented Features:
 * Movable camera
@@ -24,10 +25,11 @@ python3 2D-N-body_gravity_simulator/gravity_sim
 `Esc`: Open the menu 
 
 ## Key functions to be developed in the future:
-1. `P`: Pause
+1. Simulation function (Main focus)
 2. `Left click`: Create new gravitational object
 3. `Arrow up and down`: Change the rate of mass change when creating new object
-4. Main simulation function
+4. `P`: Pause
+
 
 ## Bibliography
 1. Roa, Javier, et al. Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems, MIT Press, 2020
