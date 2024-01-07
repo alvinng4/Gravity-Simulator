@@ -24,7 +24,7 @@ Please note that due to unknown reasons, the menu buttons may not work perfectly
 ## Changing the settings
 When starting the program, you can customize the settings using command-line arguments.
 
-### Resolution and full screen
+### Resolution
 The default resolution is 1920 x 1080. However, you can set your own resolution by the following commands:
 ```
 python3 gravity_sim -r <width> <height>
@@ -38,7 +38,7 @@ python3 gravity_sim -r 2560 1440
 ```
 
 ### Image scale
-All the images of the gravitational objects are scaled by some ratio for better visibility. You can change the scale by the following commands:
+All the images of the gravitational objects are scaled by some factor for better visibility. You can change the scale by the following commands:
 ```
 python3 gravity_sim -i <sun_img_scale> <obj_img_scale>
 ```
@@ -51,7 +51,7 @@ python3 gravity_sim -i 10 30
 ```
 You may also change both the resolution and image scale together:
 ```
-python3 gravity_sim -r 1920 1080 -i 10 30
+python3 gravity_sim -r 2560 1440 -i 10 30
 ```
 
 ## Functions in development:
