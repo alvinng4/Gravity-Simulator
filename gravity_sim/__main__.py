@@ -21,6 +21,7 @@ class GravitySimulator:
             screen_height=self.args.resolution[1],
             sun_img_scale=self.args.img_scale[0],
             img_scale=self.args.img_scale[1],
+            distance_scale=self.args.distance_scale[0],
         )
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height),
@@ -97,7 +98,7 @@ class GravitySimulator:
             nargs=2,
             default=[1920, 1080],
             type=float,
-            help="Usage: --resolution width, height",
+            help="Usage: --resolution <width>, <height>",
         )
         parser.add_argument(
             "--img_scale",
@@ -105,7 +106,15 @@ class GravitySimulator:
             nargs=2,
             default=[20, 400],
             type=float,
-            help="Usage: --img_scale Solar image scale, obj image scale",
+            help="Usage: --img_scale <solar image scale>, <obj image scale>",
+        )
+        parser.add_argument(
+            "--distance_scale",
+            "-d",
+            nargs=1,
+            default=1,
+            type=float,
+            help="Usage: --distance_scale <distance scale>",
         )
         self.args = parser.parse_args()
         if self.args.resolution[0] > 0 and self.args.resolution[1] > 0:
