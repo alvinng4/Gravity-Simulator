@@ -1,4 +1,4 @@
-from camera import Camera
+from gravity_sim.camera import Camera
 
 
 def test_camera_movement():

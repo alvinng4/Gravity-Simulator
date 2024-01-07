@@ -11,7 +11,7 @@ pip3 install numpy
 ```
 After downloading the program, you can run the program by
 ```
-python3 grav_sim.py
+python3 2D-N-body_gravity_simulator/gravity_sim
 ```
 
 ## Implemented Features:
