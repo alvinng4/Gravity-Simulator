@@ -107,8 +107,9 @@ class Menu:
 
     def _check_button(self, mouse_pos, grav_sim):
         """Check if there is any click on the buttons"""
-        if self.resume_button.rect.collidepoint(mouse_pos):
-            self.menu_active = False
+        if self.start_menu_active == False:
+            if self.resume_button.rect.collidepoint(mouse_pos):
+                self.menu_active = False
         if self.void_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             self.stats.reset_stats()
