@@ -103,7 +103,7 @@ class GravitySimulator:
             "--img_scale",
             "-i",
             nargs=2,
-            default=[10, 30],
+            default=[20, 400],
             type=float,
             help="Usage: --img_scale Solar image scale, obj image scale",
         )
