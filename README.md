@@ -18,7 +18,8 @@ Please note that due to unknown reasons, the menu buttons may not work perfectly
 
 ## Control
 `W` `A` `S` `D`: move camera\
-`Esc`: Open the menu 
+`Esc`: Open the menu\
+`F`: Full screen mode
 
 ## Changing the settings
 When starting the program, you can customize the settings using command-line arguments.
@@ -34,10 +35,6 @@ python3 gravity_sim --resolution <width> <height>
 For example, if you want to set the resolution to 1920 x 1080, you may enter
 ```
 python3 gravity_sim -r 1920 1080
-```
-If you want to set it to full screen, simply enter 0 for both width and height.
-```
-python3 gravity_sim -r 0 0
 ```
 
 ### Image scale
