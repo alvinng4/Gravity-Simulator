@@ -1,4 +1,4 @@
-from settings import Settings
+from gravity_sim.settings import Settings
 
 
 def test_settings_sun_img_scale():

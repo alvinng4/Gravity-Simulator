@@ -1,4 +1,5 @@
 import sys
+import os
 
 import pygame
 import pygame.gfxdraw
@@ -29,7 +30,7 @@ class Grav_obj(Sprite):
                 self.rect = self.image.get_rect()
             except FileNotFoundError:
                 sys.exit(
-                    "Error: Image not found. Check that you are in the correct directory, and the image path provided for Grav_obj is correct."
+                    "Error: Image not found. Make sure the image path provided for Grav_obj is correct."
                 )
         else:
             pass
@@ -47,61 +48,71 @@ class Grav_obj(Sprite):
 
     @classmethod
     def create_solor_system(self, grav_sim):
+        main_dir_path = os.path.dirname(os.path.dirname(__file__))
         centerx = grav_sim.screen.get_rect().centerx
         centery = grav_sim.screen.get_rect().centery
+        path_sun = os.path.join(main_dir_path, "images/sun.png")
+        path_mercury = os.path.join(main_dir_path, "images/mercury.png")
+        path_venus = os.path.join(main_dir_path, "images/venus.png")
+        path_earth = os.path.join(main_dir_path, "images/earth.png")
+        path_mars = os.path.join(main_dir_path, "images/mars.png")
+        path_jupiter = os.path.join(main_dir_path, "images/jupiter.png")
+        path_saturn = os.path.join(main_dir_path, "images/saturn.png")
+        path_uranus = os.path.join(main_dir_path, "images/uranus.png")
+        path_neptune = os.path.join(main_dir_path, "images/neptune.png")
         sun = Grav_obj(
             grav_sim,
             {"x": centerx, "y": centery},
             0.05 * grav_sim.settings.sun_img_scale,
-            "images/sun.png",
+            path_sun,
         )
         mercury = Grav_obj(
             grav_sim,
             {"x": 1.1 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/mercury.png",
+            path_mercury,
         )
         venus = Grav_obj(
             grav_sim,
             {"x": 1.2 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/venus.png",
+            path_venus,
         )
         earth = Grav_obj(
             grav_sim,
             {"x": 1.3 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/earth.png",
+            path_earth,
         )
         mars = Grav_obj(
             grav_sim,
             {"x": 1.5 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/mars.png",
+            path_mars,
         )
         jupiter = Grav_obj(
             grav_sim,
             {"x": 1.8 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/jupiter.png",
+            path_jupiter,
         )
         saturn = Grav_obj(
             grav_sim,
             {"x": 2 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/saturn.png",
+            path_saturn,
         )
         uranus = Grav_obj(
             grav_sim,
             {"x": 4 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/uranus.png",
+            path_uranus,
         )
         neptune = Grav_obj(
             grav_sim,
             {"x": 5 * centerx, "y": centery},
             0.0005 * grav_sim.settings.img_scale,
-            "images/neptune.png",
+            path_neptune,
         )
         grav_sim.grav_objs.add(sun)
         grav_sim.grav_objs.add(mercury)
