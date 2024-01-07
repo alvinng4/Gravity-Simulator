@@ -35,8 +35,7 @@ For example, if you want to set the resolution to 1920 x 1080, you may enter
 ```
 python3 gravity_sim -r 1920 1080
 ```
-If you want to set it to full screen, simply enter 0 for both width and height. The resolution will be fixed at\
-1920 x 1080.
+If you want to set it to full screen, simply enter 0 for both width and height.
 ```
 python3 gravity_sim -r 0 0
 ```
