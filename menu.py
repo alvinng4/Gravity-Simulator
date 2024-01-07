@@ -25,8 +25,10 @@ class Menu:
             72,
             msg="2D N-body Gravity Simulator",
             font="Avenir",
-            centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - 0.3 * self.settings.screen_height,
+            center=(
+                self.screen_rect.centerx,
+                self.screen_rect.centery - 0.3 * self.settings.screen_height,
+            ),
         )
         self.resume_button = Text_box(
             grav_sim,
@@ -36,8 +38,10 @@ class Menu:
             msg="Resume",
             text_box_color=(245, 245, 245),
             text_color=(0, 0, 0),
-            centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - 0.3 * self.settings.screen_height,
+            center=(
+                self.screen_rect.centerx,
+                self.screen_rect.centery - 0.3 * self.settings.screen_height,
+            ),
         )
         self.void_button = Text_box(
             grav_sim,
@@ -47,8 +51,10 @@ class Menu:
             msg="Void",
             text_box_color=(245, 245, 245),
             text_color=(0, 0, 0),
-            centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - 0.15 * self.settings.screen_height,
+            center=(
+                self.screen_rect.centerx,
+                self.screen_rect.centery - 0.15 * self.settings.screen_height,
+            ),
         )
         self.solar_system_button = Text_box(
             grav_sim,
@@ -58,8 +64,7 @@ class Menu:
             msg="Solar System",
             text_box_color=(245, 245, 245),
             text_color=(0, 0, 0),
-            centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery,
+            center=(self.screen_rect.centerx, self.screen_rect.centery),
         )
         self.figure_8_button = Text_box(
             grav_sim,
@@ -69,8 +74,10 @@ class Menu:
             msg="Figure 8 orbit",
             text_box_color=(245, 245, 245),
             text_color=(0, 0, 0),
-            centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - (-0.15) * self.settings.screen_height,
+            center=(
+                self.screen_rect.centerx,
+                self.screen_rect.centery - (-0.15) * self.settings.screen_height,
+            ),
         )
         self.exit_button = Text_box(
             grav_sim,
@@ -80,8 +87,10 @@ class Menu:
             msg="Exit",
             text_box_color=(245, 245, 245),
             text_color=(0, 0, 0),
-            centerx=self.screen_rect.centerx,
-            centery=self.screen_rect.centery - (-0.3) * self.settings.screen_height,
+            center=(
+                self.screen_rect.centerx,
+                self.screen_rect.centery - (-0.3) * self.settings.screen_height,
+            ),
         )
 
     def draw(self):

@@ -1,29 +1,32 @@
 # 2D-N-body-gravity-simulator
 Welcome to my CS50 Python project: 2D N-body gravity simulator. This project is currently in the initial stage of development. More functions are going to be implemented in the future.
 
-## Requirements
-Before running the program, make sure you have the pygame package installed. You can install it by running the following command:
+## Quick Start
+Before running the program, make sure you have the pygame and numpy packages installed. You can install them by running the following command:
 ```
 pip3 install pygame
 ```
-Then, after downloading the program, you can run the program by
+```
+pip3 install numpy
+```
+After downloading the program, you can run the program by
 ```
 python3 grav_sim.py
 ```
 
 ## Implemented Features:
-Movable camera\
-Menu\
-Statistics board displaying FPS, number of objects, etc.
+* Movable camera
+* Menu
+* Statistics board displaying FPS, number of objects, etc.
 
 ## Control
 `W` `A` `S` `D`: move camera\
 `Esc`: Open the menu 
 
 ## Key functions to be developed in the future:
-1. `P`: Pause\
-2. `Left click`: Create new gravitational object\
-3. `Arrow up and down`: Change the rate of mass change when creating new object\
+1. `P`: Pause
+2. `Left click`: Create new gravitational object
+3. `Arrow up and down`: Change the rate of mass change when creating new object
 4. Main simulation function
 
 ## Bibliography
