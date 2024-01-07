@@ -34,8 +34,8 @@ def test_settings_sun_img_scale():
 def test_settings_img_scale():
     settings1 = Settings(sun_img_scale=10, img_scale=10.1, screen_width=1920, screen_height=1080)
     assert settings1._img_scale == 10.1
-    settings2 = Settings(sun_img_scale=10, img_scale=1000, screen_width=1920, screen_height=1080)
-    assert settings2._img_scale == 100
+    settings2 = Settings(sun_img_scale=10, img_scale=2000, screen_width=1920, screen_height=1080)
+    assert settings2._img_scale == 1000
     settings3 = Settings(sun_img_scale=10, img_scale=0.1, screen_width=1920, screen_height=1080)
     assert settings3._img_scale == 0.1
     settings4 = Settings(sun_img_scale=-10, img_scale=-10, screen_width=1920, screen_height=1080)
