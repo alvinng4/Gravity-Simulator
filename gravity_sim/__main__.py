@@ -2,12 +2,14 @@ import sys
 import argparse
 
 import pygame
+import numpy
 
 from settings import Settings
 from grav_obj import Grav_obj
 from camera import Camera
 from menu import Menu
 from stats import Stats
+from simulator import simulator
 
 
 class GravitySimulator:
@@ -38,6 +40,8 @@ class GravitySimulator:
         # Start the main loop for the program.
         while True:
             self._check_events()
+            if self.grav_objs:
+                self._simulation()
             self._update_screen()
             self.clock.tick(60)
 
@@ -55,6 +59,21 @@ class GravitySimulator:
                 self.settings.distance_scale += 0.1 * event.y
             elif event.type == pygame.QUIT:
                 sys.exit()
+
+    def _simulation(self):
+        x_s, v_s, x_e, v_e = simulator(self.grav_objs)
+        self.grav_objs.sprites()[0].params["r1"] = x_s[0]
+        self.grav_objs.sprites()[0].params["r2"] = x_s[1]
+        self.grav_objs.sprites()[0].params["r3"] = x_s[2]
+        self.grav_objs.sprites()[0].params["v1"] = v_s[0]
+        self.grav_objs.sprites()[0].params["v2"] = v_s[1]
+        self.grav_objs.sprites()[0].params["v3"] = v_s[2]
+        self.grav_objs.sprites()[3].params["r1"] = x_e[0]
+        self.grav_objs.sprites()[3].params["r2"] = x_e[1]
+        self.grav_objs.sprites()[3].params["r3"] = x_e[2]
+        self.grav_objs.sprites()[3].params["v1"] = v_e[0]
+        self.grav_objs.sprites()[3].params["v2"] = v_e[1]
+        self.grav_objs.sprites()[3].params["v3"] = v_e[2]
 
     def _check_key_up_events(self, event):
         if event.key == pygame.K_d:
