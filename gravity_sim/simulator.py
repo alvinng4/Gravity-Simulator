@@ -1,3 +1,4 @@
+# Euler Cromer method for 2 body simulation
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -25,12 +26,12 @@ def simulator(grav_objs):
     a_e = -G * m_s * (x_e - x_s) / np.linalg.norm(x_e - x_s) ** 3
     a_s = -G * m_e * (x_s - x_e) / np.linalg.norm(x_e - x_s) ** 3
 
-    x_e = x_e + v_e * dt
     v_e = v_e + a_e * dt
-
-    x_s = x_s + v_s * dt
+    x_e = x_e + v_e * dt
+    
     v_s = v_s + a_s * dt
-
+    x_s = x_s + v_s * dt
+    
     return x_s, v_s, x_e, v_e
 
 
