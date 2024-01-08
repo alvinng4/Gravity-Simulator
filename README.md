@@ -45,7 +45,7 @@ python3 gravity_sim -r 2560 1440 -i 10 30
 
 
 ## Functions in development:
-1. Simulation function (Main focus)
+1. More advanced simulation: currently implemented Euler-Cromer 2-body simulation.
 2. `Left click`: Create new gravitational object
 3. `Arrow up and down`: Change the rate of mass change when creating new object
 4. `P`: Pause
