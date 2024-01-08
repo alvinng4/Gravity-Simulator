@@ -32,63 +32,63 @@ class Menu:
         self.resume_button = Text_box(
             grav_sim,
             0.25,
-            0.08,
+            0.05,
             48,
             msg="Resume",
-            text_box_color=(245, 245, 245),
+            text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
             center=(
                 self.screen_rect.centerx,
-                self.screen_rect.centery - 0.3 * self.settings.screen_height,
+                self.screen_rect.centery - 0.2 * self.settings.screen_height,
             ),
         )
         self.void_button = Text_box(
             grav_sim,
             0.25,
-            0.08,
+            0.05,
             48,
             msg="Void",
-            text_box_color=(245, 245, 245),
+            text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
             center=(
                 self.screen_rect.centerx,
-                self.screen_rect.centery - 0.15 * self.settings.screen_height,
+                self.screen_rect.centery - 0.1 * self.settings.screen_height,
             ),
         )
         self.solar_system_button = Text_box(
             grav_sim,
             0.25,
-            0.08,
+            0.05,
             48,
             msg="Solar System",
-            text_box_color=(245, 245, 245),
+            text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
             center=(self.screen_rect.centerx, self.screen_rect.centery),
         )
         self.figure_8_button = Text_box(
             grav_sim,
             0.25,
-            0.08,
+            0.05,
             48,
             msg="Figure 8 orbit",
-            text_box_color=(245, 245, 245),
+            text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
             center=(
                 self.screen_rect.centerx,
-                self.screen_rect.centery - (-0.15) * self.settings.screen_height,
+                self.screen_rect.centery - (-0.1) * self.settings.screen_height,
             ),
         )
         self.exit_button = Text_box(
             grav_sim,
             0.25,
-            0.08,
+            0.05,
             48,
             msg="Exit",
-            text_box_color=(245, 245, 245),
+            text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
             center=(
                 self.screen_rect.centerx,
-                self.screen_rect.centery - (-0.3) * self.settings.screen_height,
+                self.screen_rect.centery - (-0.2) * self.settings.screen_height,
             ),
         )
 
