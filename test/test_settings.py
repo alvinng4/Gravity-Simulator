@@ -40,3 +40,14 @@ def test_settings_img_scale():
     assert settings3._img_scale == 0.1
     settings4 = Settings(sun_img_scale=-10, img_scale=-10, screen_width=1920, screen_height=1080)
     assert settings4._img_scale == 0
+
+def test_settings_distance_scale():
+    settings = Settings(sun_img_scale=10, img_scale=10.1, screen_width=1920, screen_height=1080)
+    settings.distance_scale = 1
+    assert settings.distance_scale == 1
+    settings.distance_scale = 1000
+    assert settings.distance_scale == 1000
+    settings.distance_scale = -10.5
+    assert settings.distance_scale == 0.1
+    settings.distance_scale = 0
+    assert settings.distance_scale == 0.1

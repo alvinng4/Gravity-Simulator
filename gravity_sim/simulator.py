@@ -15,7 +15,7 @@ dt = 0.5
 def simulator(grav_objs):
     sun = grav_objs.sprites()[0]
     earth = grav_objs.sprites()[3]
-
+    
     x_s = np.array([sun.params["r1"], sun.params["r2"], sun.params["r3"]])
     x_e = np.array([earth.params["r1"], earth.params["r2"], earth.params["r3"]])
     v_s = np.array([sun.params["v1"], sun.params["v2"], sun.params["v3"]])
