@@ -1,10 +1,14 @@
 import sys
 import os
+import math
 
 import pygame
 import pygame.gfxdraw
 from pygame.sprite import Sprite
 
+
+# Gravitational constant (AU ^3/d^2/ M_sun):
+G = 0.00029591220828559 
 
 class Grav_obj(Sprite):
     def __init__(
@@ -238,6 +242,7 @@ class Grav_obj(Sprite):
         Create a figure 8 orbit
         Data from the book Moving Planets Around: An Introduction to 
         N-Body Simulations Applied to Exoplanetary Systems, Ch.7, Page 109
+        As the data given use G = 1, the mass is converted by m / G, since a = GM/r^2.
         """
         # Currently use sun as object. May or may not change later.
         main_dir_path = os.path.dirname(__file__)
@@ -251,7 +256,7 @@ class Grav_obj(Sprite):
                 "v1": 0.466203685,
                 "v2": 0.43236573,
                 "v3": 0.0,
-                "m": 1.0,
+                "m": 1.0 / G,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
@@ -266,7 +271,7 @@ class Grav_obj(Sprite):
                 "v1": 0.466203685,
                 "v2": 0.43236573,
                 "v3": 0.0,
-                "m": 1.0,
+                "m": 1.0 / G,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
@@ -281,7 +286,7 @@ class Grav_obj(Sprite):
                 "v1": -0.93240737,
                 "v2": -0.86473146,
                 "v3": 0.0,
-                "m": 1.0,
+                "m": 1.0 / G,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
