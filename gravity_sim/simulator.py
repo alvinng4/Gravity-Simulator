@@ -9,30 +9,51 @@ G = 0.00029591220828559
 # t1 = 365
 dt = 0.5
 
-# r1 - r3: Positions (AU), v1 - v3: Velocities (AU/d), m: Mass (Solar masses)
+# r1 - r3: Positions (AU)
+# v1 - v3: Velocities (AU/d)
+# m: Mass (Solar masses)
+# a_i = - G M_j (ri - rj) / |r_ij|^3
+
+class Simulator:
+
+    def __init__(self, grav_sim):
+        self.objects_count = grav_sim.stats.objects_count
 
 
-def simulator(grav_objs):
-    sun = grav_objs.sprites()[0]
-    earth = grav_objs.sprites()[3]
-    
-    x_s = np.array([sun.params["r1"], sun.params["r2"], sun.params["r3"]])
-    x_e = np.array([earth.params["r1"], earth.params["r2"], earth.params["r3"]])
-    v_s = np.array([sun.params["v1"], sun.params["v2"], sun.params["v3"]])
-    v_e = np.array([earth.params["v1"], earth.params["v2"], earth.params["v3"]])
-    m_s = sun.params["m"]
-    m_e = earth.params["m"]
+    def initialize_problem(self, grav_sim):
+        self.x = np.zeros((self.objects_count, 3))
+        self.v = np.zeros((self.objects_count, 3))
+        self.m = np.zeros(self.objects_count)
+        for j in range(self.objects_count):
+            self.x[j] = np.array([grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)])
+            self.v[j] = np.array([grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)])
+            self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
 
-    a_e = -G * m_s * (x_e - x_s) / np.linalg.norm(x_e - x_s) ** 3
-    a_s = -G * m_e * (x_s - x_e) / np.linalg.norm(x_e - x_s) ** 3
 
-    v_e = v_e + a_e * dt
-    x_e = x_e + v_e * dt
-    
-    v_s = v_s + a_s * dt
-    x_s = x_s + v_s * dt
-    
-    return x_s, v_s, x_e, v_e
+    def ode_n_body_first_order(self):
+        # Allocating memory
+        self.a = self.x * 0
+
+        # Differential equations:
+        for j in range(0, self.objects_count):
+            for k in range(0, self.objects_count):
+                if j != k:
+                    R = self.x[j] - self.x[k]
+                    self.a[j] += - G * self.m[k] * R / np.linalg.norm(R) ** 3
+
+
+    def Euler_Cromer(self):
+        for j in range(0, self.objects_count):
+            self.v[j] = self.v[j] + self.a[j] * dt
+            self.x[j] = self.x[j] + self.v[j] * dt
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

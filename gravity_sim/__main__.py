@@ -9,7 +9,7 @@ from grav_obj import Grav_obj
 from camera import Camera
 from menu import Menu
 from stats import Stats
-from simulator import simulator
+from simulator import Simulator
 
 
 class GravitySimulator:
@@ -61,19 +61,19 @@ class GravitySimulator:
                 sys.exit()
 
     def _simulation(self):
-        x_s, v_s, x_e, v_e = simulator(self.grav_objs)
-        self.grav_objs.sprites()[0].params["r1"] = x_s[0]
-        self.grav_objs.sprites()[0].params["r2"] = x_s[1]
-        self.grav_objs.sprites()[0].params["r3"] = x_s[2]
-        self.grav_objs.sprites()[0].params["v1"] = v_s[0]
-        self.grav_objs.sprites()[0].params["v2"] = v_s[1]
-        self.grav_objs.sprites()[0].params["v3"] = v_s[2]
-        self.grav_objs.sprites()[3].params["r1"] = x_e[0]
-        self.grav_objs.sprites()[3].params["r2"] = x_e[1]
-        self.grav_objs.sprites()[3].params["r3"] = x_e[2]
-        self.grav_objs.sprites()[3].params["v1"] = v_e[0]
-        self.grav_objs.sprites()[3].params["v2"] = v_e[1]
-        self.grav_objs.sprites()[3].params["v3"] = v_e[2]
+        self.simulator = Simulator(self)
+        self.simulator.initialize_problem(self)
+        self.simulator.ode_n_body_first_order()
+        self.simulator.Euler_Cromer()
+
+        for j in range(self.stats.objects_count):
+            self.grav_objs.sprites()[j].params["r1"] = self.simulator.x[j][0]
+            self.grav_objs.sprites()[j].params["r2"] = self.simulator.x[j][1]
+            self.grav_objs.sprites()[j].params["r3"] = self.simulator.x[j][2]
+            self.grav_objs.sprites()[j].params["v1"] = self.simulator.v[j][0]
+            self.grav_objs.sprites()[j].params["v2"] = self.simulator.v[j][1]
+            self.grav_objs.sprites()[j].params["v3"] = self.simulator.v[j][2]
+
 
     def _check_key_up_events(self, event):
         if event.key == pygame.K_d:
