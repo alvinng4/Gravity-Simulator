@@ -234,11 +234,14 @@ class Grav_obj(Sprite):
 
     @classmethod
     def create_figure_8(self, grav_sim):
-        pass
         """
         Create a figure 8 orbit
         Data from the book Moving Planets Around: An Introduction to 
         N-Body Simulations Applied to Exoplanetary Systems, Ch.7, Page 109
+        """
+        # Currently use sun as object. May or may not change later.
+        main_dir_path = os.path.dirname(__file__)
+        path_sun = os.path.join(main_dir_path, "images/sun.png")
         object_1 = Grav_obj(
             grav_sim,
             {
@@ -251,6 +254,8 @@ class Grav_obj(Sprite):
                 "m": 1.0,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
+            path_sun,
+            name="Sun",
         )
         object_2 = Grav_obj(
             grav_sim,
@@ -264,6 +269,8 @@ class Grav_obj(Sprite):
                 "m": 1.0,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
+            path_sun,
+            name="Sun",
         )
         object_3 = Grav_obj(
             grav_sim,
@@ -277,5 +284,10 @@ class Grav_obj(Sprite):
                 "m": 1.0,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
+            path_sun,
+            name="Sun",
         )
-        """
+        grav_sim.grav_objs.add(object_1)
+        grav_sim.grav_objs.add(object_2)
+        grav_sim.grav_objs.add(object_3)
+        
