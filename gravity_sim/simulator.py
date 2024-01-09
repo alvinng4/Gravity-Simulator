@@ -41,6 +41,11 @@ class Simulator:
                     R = self.x[j] - self.x[k]
                     self.a[j] += - G * self.m[k] * R / np.linalg.norm(R) ** 3
 
+    def Euler(self):
+        for j in range(0, self.objects_count):
+            self.x[j] = self.x[j] + self.v[j] * dt
+            self.v[j] = self.v[j] + self.a[j] * dt
+        
 
     def Euler_Cromer(self):
         for j in range(0, self.objects_count):
