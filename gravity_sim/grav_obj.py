@@ -317,7 +317,7 @@ class Grav_obj(Sprite):
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": 1.0 / G,
+                "m": 3.0 / G,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
@@ -332,7 +332,7 @@ class Grav_obj(Sprite):
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": 1.0 / G,
+                "m": 4.0 / G,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
@@ -347,7 +347,7 @@ class Grav_obj(Sprite):
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": 1.0 / G,
+                "m": 5.0 / G,
                 "R": 0.004650467261, # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
