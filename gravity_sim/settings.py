@@ -7,7 +7,8 @@ class Settings:
         screen_height,
         sun_img_scale,
         img_scale,
-        time_speed: int = 512,
+        time_speed: int = 5,
+        dt: float=0.01,
     ):
         # To change the default settings of screen_width, screen_height, sun_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
@@ -20,6 +21,7 @@ class Settings:
         self.img_scale = img_scale
         self.distance_scale = 1
         self.time_speed = time_speed
+        self.dt = dt
 
     @property
     def screen_width(self):
@@ -44,6 +46,10 @@ class Settings:
     @property
     def time_speed(self):
         return self._time_speed
+    
+    @property
+    def dt(self):
+        return self._dt
 
     @screen_width.setter
     def screen_width(self, value):
@@ -90,9 +96,16 @@ class Settings:
 
     @time_speed.setter
     def time_speed(self, value):
-        if value > 512:
-            self._time_speed = 512
+        if value > 10000:
+            self._time_speed = 10000
         elif value < 1:
             self._time_speed = 1
         else:
             self._time_speed = int(value)
+
+    @dt.setter
+    def dt(self, value):
+        if value < 0:
+            self._dt = 0
+        else:
+            self._dt = value

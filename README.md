@@ -1,15 +1,27 @@
 # 2D-N-body-gravity-simulator
-Welcome to my CS50 Python project: 2D N-body gravity simulator. This project is currently in the initial stage of development. More functions are going to be implemented in the future.
+Welcome to my CS50 Python project: 2D N-body gravity simulator. This project is currently in development. More functions are going to be implemented in the future.
 
+## Progress
+* Euler and Euler-Cromer methods for N-body are implemented.
+* 4 modes are available: Void, Solar System, Figure-8 Orbit and Pythagorean Three-Body Orbit.
+* Will implement RK4 very soon.
 ## Quick Start
 ### Install required packages
 
-Before running the program, make sure that you have the pygame and numpy packages installed. You can install them by running the following commands in terminal:
+Before running the program, make sure that you have the following packages installed:
+1. pygame 
+2. numpy
+3. scipy
+4. numba
+
+You can install them by running the following commands in terminal:
 ```
 pip3 install pygame
 pip3 install numpy
+pip3 install scipy
+pip3 install numba
 ```
-### Run the program
+### Running the program
 Once you have downloaded the source files, open a terminal window, navigate to the directory of the source files and run:
 ```
 python3 gravity_sim
@@ -45,7 +57,7 @@ python3 gravity_sim -r 2560 1440 -i 10 30
 
 
 ## Functions in development:
-1. More advanced simulation: currently implemented Euler-Cromer 2-body simulation.
+1. More advanced simulation: RKF4(5) method.
 2. `Left click`: Create new gravitational object
 3. `Arrow up and down`: Change the rate of mass change when creating new object
 4. `P`: Pause
