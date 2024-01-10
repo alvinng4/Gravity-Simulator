@@ -9,7 +9,7 @@ from grav_obj import Grav_obj
 from camera import Camera
 from menu import Menu
 from stats import Stats
-from simulator import Simulator
+import simulator
 
 
 class GravitySimulator:
@@ -35,7 +35,10 @@ class GravitySimulator:
         self.stats = Stats(self)
         self.camera = Camera()
         self.grav_objs = pygame.sprite.Group()
-        self.simulator = Simulator()
+        self.m = []
+        self.x = []
+        self.v = []
+
 
     def run_prog(self):
         # Start the main loop for the program.
@@ -69,16 +72,16 @@ class GravitySimulator:
 
     def _simulation(self):
         for _ in range(self.settings.time_speed):
-            self.simulator.initialize_problem(self)
-            self.simulator.ode_n_body_first_order()
-            self.simulator.Euler_Cromer()
-            for j in range(grav_sim.stats.objects_count):
-                self.grav_objs.sprites()[j].params["r1"] = self.simulator.x[j][0]
-                self.grav_objs.sprites()[j].params["r2"] = self.simulator.x[j][1]
-                self.grav_objs.sprites()[j].params["r3"] = self.simulator.x[j][2]
-                self.grav_objs.sprites()[j].params["v1"] = self.simulator.v[j][0]
-                self.grav_objs.sprites()[j].params["v2"] = self.simulator.v[j][1]
-                self.grav_objs.sprites()[j].params["v3"] = self.simulator.v[j][2]
+            self.x, self.v, self.m = simulator.initialize_problem(self, self.x, self.v, self.m)
+            self.x, self.v, self.a, self.m = simulator.ode_n_body_first_order(self.stats.objects_count, self.x, self.v, self.m)
+            self.x, self.v = simulator.Euler_Cromer(self.stats.objects_count, self.x, self.v, self.a)
+            for j in range(self.stats.objects_count):
+                self.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
+                self.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
+                self.grav_objs.sprites()[j].params["r3"] = self.x[j][2]
+                self.grav_objs.sprites()[j].params["v1"] = self.v[j][0]
+                self.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
+                self.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
 
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)

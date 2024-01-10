@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import numba as nb
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
 # Simulation time (days)
@@ -13,48 +13,52 @@ dt = 0.001
 # m: Mass (Solar masses)
 # a_i = - G M_j (ri - rj) / |r_ij|^3
 
+def initialize_problem(grav_sim, x, v, m):
+    objects_count = grav_sim.stats.objects_count
+    if len(m) == objects_count:
+        pass
+    else:
+        x = np.zeros((objects_count, 3))
+        v = np.zeros((objects_count, 3))
+        m = np.zeros(objects_count)
+    for j in range(objects_count):
+        x[j] = np.array(
+            [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
+        )
+        v[j] = np.array(
+            [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
+        )
+        m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
+    
+    return x, v, m
 
-class Simulator:
-    def __init__(self):
-        self.m = []
+@nb.njit
+def ode_n_body_first_order(objects_count, x, v, m):
+    # Allocating memory
+    a = np.zeros((objects_count, 3))
 
-    def initialize_problem(self, grav_sim):
-        self.objects_count = grav_sim.stats.objects_count
-        if len(self.m) == self.objects_count:
-            pass
-        else:
-            self.x = np.zeros((self.objects_count, 3))
-            self.v = np.zeros((self.objects_count, 3))
-            self.m = np.zeros(self.objects_count)
-        for j in range(self.objects_count):
-            self.x[j] = np.array(
-                [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
-            )
-            self.v[j] = np.array(
-                [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
-            )
-            self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
+    # Differential equations:
+    for j in range(0, objects_count):
+        for k in range(0, objects_count):
+            if j != k:
+                R = x[j] - x[k]
+                a[j] += -G * m[k] * R / np.linalg.norm(R) ** 3
 
-    def ode_n_body_first_order(self):
-        # Allocating memory
-        self.a = np.zeros((self.objects_count, 3))
+    return x, v, a, m
 
-        # Differential equations:
-        for j in range(0, self.objects_count):
-            for k in range(0, self.objects_count):
-                if j != k:
-                    R = self.x[j] - self.x[k]
-                    self.a[j] += -G * self.m[k] * R / np.linalg.norm(R) ** 3
+@nb.njit
+def Euler(objects_count, x, v, a, dt=0.001):
+    for j in range(0, objects_count):
+        x[j] = x[j] + v[j] * dt
+        v[j] = v[j] + a[j] * dt
+    return x, v
 
-    def Euler(self):
-        for j in range(0, self.objects_count):
-            self.x[j] = self.x[j] + self.v[j] * dt
-            self.v[j] = self.v[j] + self.a[j] * dt
-
-    def Euler_Cromer(self):
-        for j in range(0, self.objects_count):
-            self.v[j] = self.v[j] + self.a[j] * dt
-            self.x[j] = self.x[j] + self.v[j] * dt
+@nb.njit
+def Euler_Cromer(objects_count, x, v, a, dt=0.001):
+    for j in range(0, objects_count):
+        v[j] = v[j] + a[j] * dt
+        x[j] = x[j] + v[j] * dt
+    return x, v
 
     # def RK4(self):
     # for j in range(0, self.objects_count):
