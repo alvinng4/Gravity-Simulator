@@ -71,7 +71,7 @@ class GravitySimulator:
         for _ in range(self.settings.time_speed):
             self.simulator.initialize_problem(self)
             self.simulator.ode_n_body_first_order()
-            self.simulator.Euler_Cromer()            
+            self.simulator.Euler_Cromer()
             for j in range(grav_sim.stats.objects_count):
                 self.grav_objs.sprites()[j].params["r1"] = self.simulator.x[j][0]
                 self.grav_objs.sprites()[j].params["r2"] = self.simulator.x[j][1]
@@ -110,7 +110,7 @@ class GravitySimulator:
         elif event.key == pygame.K_f:
             pygame.display.toggle_fullscreen()
         elif event.key == pygame.K_ESCAPE:
-            if self.menu.start_menu_active == False:
+            if self.menu.main_menu_active == False:
                 self.menu.menu_active = not self.menu.menu_active
 
     def _read_command_line_arg(self):

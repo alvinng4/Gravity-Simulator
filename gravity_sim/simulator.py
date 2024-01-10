@@ -6,15 +6,15 @@ G = 0.00029591220828559
 # Simulation time (days)
 # t0 = 0
 # t1 = 365
-dt = 0.00001
+dt = 0.001
 
 # r1 - r3: Positions (AU)
 # v1 - v3: Velocities (AU/d)
 # m: Mass (Solar masses)
 # a_i = - G M_j (ri - rj) / |r_ij|^3
 
-class Simulator:
 
+class Simulator:
     def __init__(self):
         self.m = []
 
@@ -27,10 +27,13 @@ class Simulator:
             self.v = np.zeros((self.objects_count, 3))
             self.m = np.zeros(self.objects_count)
         for j in range(self.objects_count):
-            self.x[j] = np.array([grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)])
-            self.v[j] = np.array([grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)])
+            self.x[j] = np.array(
+                [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
+            )
+            self.v[j] = np.array(
+                [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
+            )
             self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
-
 
     def ode_n_body_first_order(self):
         # Allocating memory
@@ -41,30 +44,20 @@ class Simulator:
             for k in range(0, self.objects_count):
                 if j != k:
                     R = self.x[j] - self.x[k]
-                    self.a[j] += - G * self.m[k] * R / np.linalg.norm(R) ** 3
+                    self.a[j] += -G * self.m[k] * R / np.linalg.norm(R) ** 3
 
     def Euler(self):
         for j in range(0, self.objects_count):
             self.x[j] = self.x[j] + self.v[j] * dt
             self.v[j] = self.v[j] + self.a[j] * dt
-        
 
     def Euler_Cromer(self):
         for j in range(0, self.objects_count):
             self.v[j] = self.v[j] + self.a[j] * dt
             self.x[j] = self.x[j] + self.v[j] * dt
 
-    #def RK4(self):
-        #for j in range(0, self.objects_count):
-
-
-
-
-
-
-
-
-
+    # def RK4(self):
+    # for j in range(0, self.objects_count):
 
 
 if __name__ == "__main__":
