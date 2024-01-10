@@ -19,7 +19,7 @@ class Stats:
         self.fps = grav_sim.clock.get_fps()
         self.objects_count = len(grav_sim.grav_objs)
         self.distance_scale = round(grav_sim.settings.distance_scale, 1)
-        if grav_sim.menu.start_menu_active == True:
+        if grav_sim.menu.main_menu_active == True:
             self.start_time = pygame.time.get_ticks()
         self.run_time = (pygame.time.get_ticks() - self.start_time) / 1000
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
