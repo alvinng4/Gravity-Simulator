@@ -74,7 +74,7 @@ class GravitySimulator:
         for _ in range(self.settings.time_speed):
             self.x, self.v, self.m = simulator.initialize_problem(self, self.x, self.v, self.m)
             self.x, self.v, self.a, self.m = simulator.ode_n_body_first_order(self.stats.objects_count, self.x, self.v, self.m)
-            self.x, self.v = simulator.Euler_Cromer(self.stats.objects_count, self.x, self.v, self.a)
+            self.x, self.v = simulator.Euler_Cromer(self.stats.objects_count, self.x, self.v, self.a, self.settings.dt)
             for j in range(self.stats.objects_count):
                 self.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
                 self.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
