@@ -16,11 +16,12 @@ dt = 0.05
 
 class Simulator:
 
-    def __init__(self, grav_sim):
-        self.objects_count = grav_sim.stats.objects_count
+    def __init__(self):
+        pass
 
 
     def initialize_problem(self, grav_sim):
+        self.objects_count = len(grav_sim.grav_objs)
         self.x = np.zeros((self.objects_count, 3))
         self.v = np.zeros((self.objects_count, 3))
         self.m = np.zeros(self.objects_count)
