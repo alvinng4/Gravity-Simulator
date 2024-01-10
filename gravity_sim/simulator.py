@@ -6,7 +6,7 @@ G = 0.00029591220828559
 # Simulation time (days)
 # t0 = 0
 # t1 = 365
-dt = 0.05
+dt = 0.00001
 
 # r1 - r3: Positions (AU)
 # v1 - v3: Velocities (AU/d)
