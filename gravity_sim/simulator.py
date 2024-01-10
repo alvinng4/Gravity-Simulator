@@ -54,6 +54,10 @@ class Simulator:
             self.v[j] = self.v[j] + self.a[j] * dt
             self.x[j] = self.x[j] + self.v[j] * dt
 
+    #def RK4(self):
+        #for j in range(0, self.objects_count):
+
+
 
 
 

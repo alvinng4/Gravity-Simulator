@@ -91,6 +91,19 @@ class Menu:
                 self.screen_rect.centery - (-0.2) * self.settings.screen_height,
             ),
         )
+        self.main_menu_button = Text_box(
+            grav_sim,
+            0.25,
+            0.05,
+            48,
+            msg="Main Menu",
+            text_box_color=(220, 220, 220),
+            text_color=(0, 0, 0),
+            center=(
+                self.screen_rect.centerx,
+                self.screen_rect.centery - (-0.3) * self.settings.screen_height,
+            ),
+        )
 
     def draw(self):
         """Draw the menu buttons"""
@@ -98,6 +111,7 @@ class Menu:
             self.start_menu_caption.draw()
         else:
             self.resume_button.draw()
+            self.main_menu_button.draw()
 
         self.void_button.draw()
         self.solar_system_button.draw()
@@ -128,3 +142,7 @@ class Menu:
             self.start_menu_active = False
         if self.exit_button.rect.collidepoint(mouse_pos):
             sys.exit()
+        if self.main_menu_button.rect.collidepoint(mouse_pos):
+            grav_sim.grav_objs.empty()
+            grav_sim.stats.reset_stats()
+            self.start_menu_active = True
