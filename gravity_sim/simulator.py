@@ -1,4 +1,3 @@
-# Euler Cromer method for 2 body simulation
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,14 +16,16 @@ dt = 0.05
 class Simulator:
 
     def __init__(self):
-        pass
-
+        self.m = []
 
     def initialize_problem(self, grav_sim):
         self.objects_count = grav_sim.stats.objects_count
-        self.x = np.zeros((self.objects_count, 3))
-        self.v = np.zeros((self.objects_count, 3))
-        self.m = np.zeros(self.objects_count)
+        if len(self.m) == self.objects_count:
+            pass
+        else:
+            self.x = np.zeros((self.objects_count, 3))
+            self.v = np.zeros((self.objects_count, 3))
+            self.m = np.zeros(self.objects_count)
         for j in range(self.objects_count):
             self.x[j] = np.array([grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)])
             self.v[j] = np.array([grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)])
@@ -33,7 +34,7 @@ class Simulator:
 
     def ode_n_body_first_order(self):
         # Allocating memory
-        self.a = self.x * 0
+        self.a = np.zeros((self.objects_count, 3))
 
         # Differential equations:
         for j in range(0, self.objects_count):
