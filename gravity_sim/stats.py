@@ -27,15 +27,16 @@ class Stats:
         self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
 
+    def reset_stats(self):
+        self.start_time = pygame.time.get_ticks()
+
+    def draw(self):
         self.fps_board.draw()
         self.obj_board.draw()
         self.sun_img_scale_board.draw()
         self.img_scale_board.draw()
         self.distance_scale_board.draw()
         self.run_time_board.draw()
-
-    def reset_stats(self):
-        self.start_time = pygame.time.get_ticks()
 
     @classmethod
     def create_stats_board(self, grav_sim):

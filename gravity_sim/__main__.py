@@ -35,11 +35,13 @@ class GravitySimulator:
         self.stats = Stats(self)
         self.camera = Camera()
         self.grav_objs = pygame.sprite.Group()
+        self.simulator = Simulator()
 
     def run_prog(self):
         # Start the main loop for the program.
         while True:
             self._check_events()
+            self._update_events()
             if self.grav_objs:
                 self._simulation()
             self._update_screen()
@@ -60,20 +62,31 @@ class GravitySimulator:
             elif event.type == pygame.QUIT:
                 sys.exit()
 
+    def _update_events(self):
+        self.camera.update_movement()
+        self.grav_objs.update()
+        self.stats.update(self)
+
     def _simulation(self):
-        self.simulator = Simulator()
-        self.simulator.initialize_problem(self)
-        self.simulator.ode_n_body_first_order()
-        self.simulator.Euler_Cromer()
+        for _ in range(self.settings.time_speed):
+            self.simulator.initialize_problem(self)
+            self.simulator.ode_n_body_first_order()
+            self.simulator.Euler_Cromer()            
+            for j in range(grav_sim.stats.objects_count):
+                self.grav_objs.sprites()[j].params["r1"] = self.simulator.x[j][0]
+                self.grav_objs.sprites()[j].params["r2"] = self.simulator.x[j][1]
+                self.grav_objs.sprites()[j].params["r3"] = self.simulator.x[j][2]
+                self.grav_objs.sprites()[j].params["v1"] = self.simulator.v[j][0]
+                self.grav_objs.sprites()[j].params["v2"] = self.simulator.v[j][1]
+                self.grav_objs.sprites()[j].params["v3"] = self.simulator.v[j][2]
 
-        for j in range(len(self.grav_objs)):
-            self.grav_objs.sprites()[j].params["r1"] = self.simulator.x[j][0]
-            self.grav_objs.sprites()[j].params["r2"] = self.simulator.x[j][1]
-            self.grav_objs.sprites()[j].params["r3"] = self.simulator.x[j][2]
-            self.grav_objs.sprites()[j].params["v1"] = self.simulator.v[j][0]
-            self.grav_objs.sprites()[j].params["v2"] = self.simulator.v[j][1]
-            self.grav_objs.sprites()[j].params["v3"] = self.simulator.v[j][2]
-
+    def _update_screen(self):
+        self.screen.fill(self.settings.bg_color)
+        self.grav_objs.draw(self.screen)
+        self.stats.draw()
+        if self.menu.menu_active == True:
+            self.menu.draw()
+        pygame.display.flip()
 
     def _check_key_up_events(self, event):
         if event.key == pygame.K_d:
@@ -99,16 +112,6 @@ class GravitySimulator:
         elif event.key == pygame.K_ESCAPE:
             if self.menu.start_menu_active == False:
                 self.menu.menu_active = not self.menu.menu_active
-
-    def _update_screen(self):
-        self.camera.update_movement()
-        self.grav_objs.update()
-        self.screen.fill(self.settings.bg_color)
-        self.grav_objs.draw(self.screen)
-        self.stats.update(self)
-        if self.menu.menu_active == True:
-            self.menu.draw()
-        pygame.display.flip()
 
     def _read_command_line_arg(self):
         parser = argparse.ArgumentParser(description="2D N-body gravity simulator")

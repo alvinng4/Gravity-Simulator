@@ -1,7 +1,7 @@
 class Settings:
     """A class to store all settings for gravity simulator."""
 
-    def __init__(self, screen_width, screen_height, sun_img_scale, img_scale):
+    def __init__(self, screen_width, screen_height, sun_img_scale, img_scale, time_speed: int=16):
         # To change the default settings of screen_width, screen_height, sun_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
         self.screen_height = screen_height
@@ -12,6 +12,7 @@ class Settings:
         self.sun_img_scale = sun_img_scale
         self.img_scale = img_scale
         self.distance_scale = 1
+        self.time_speed = time_speed
 
     @property
     def screen_width(self):
@@ -32,6 +33,10 @@ class Settings:
     @property
     def distance_scale(self):
         return self._distance_scale
+    
+    @property
+    def time_speed(self):
+        return self._time_speed
 
     @screen_width.setter
     def screen_width(self, value):
@@ -75,3 +80,12 @@ class Settings:
             self._distance_scale = 0.1
         else:
             self._distance_scale = value
+
+    @time_speed.setter
+    def time_speed(self, value):
+        if value > 256:
+            self._time_speed = 256
+        elif value < 1:
+            self._time_speed = 1
+        else:
+            self._time_speed = int(value)
