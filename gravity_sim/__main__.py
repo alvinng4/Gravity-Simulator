@@ -61,12 +61,12 @@ class GravitySimulator:
                 sys.exit()
 
     def _simulation(self):
-        self.simulator = Simulator(self)
+        self.simulator = Simulator()
         self.simulator.initialize_problem(self)
         self.simulator.ode_n_body_first_order()
         self.simulator.Euler_Cromer()
 
-        for j in range(self.stats.objects_count):
+        for j in range(len(self.grav_objs)):
             self.grav_objs.sprites()[j].params["r1"] = self.simulator.x[j][0]
             self.grav_objs.sprites()[j].params["r2"] = self.simulator.x[j][1]
             self.grav_objs.sprites()[j].params["r3"] = self.simulator.x[j][2]
