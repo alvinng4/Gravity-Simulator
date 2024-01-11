@@ -31,7 +31,7 @@ Note: due to unknown reasons, the menu buttons may not work perfectly on the fir
 ## Control
 `W` `A` `S` `D`: Move camera\
 `Esc`: Open the menu\
-`P`: Pause
+`P`: Pause\
 `F`: Toggle full screen mode\
 `Scroll`: Change the distance scale
 
