@@ -70,6 +70,7 @@ class GravitySimulator:
 
     def _simulation(self):
         for _ in range(self.settings.time_speed):
+            self.stats.simulation_time += self.stats.dt
             self.x, self.v, self.m = simulator.initialize_problem(self, self.x, self.v, self.m)
             self.x, self.v, self.a, self.m = simulator.ode_n_body_first_order(self.stats.objects_count, self.x, self.v, self.m)
             self.x, self.v = simulator.Euler_Cromer(self.stats.objects_count, self.x, self.v, self.a, self.settings.dt)
@@ -80,6 +81,7 @@ class GravitySimulator:
                 self.grav_objs.sprites()[j].params["v1"] = self.v[j][0]
                 self.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
                 self.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
+            
 
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)
