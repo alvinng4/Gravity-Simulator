@@ -31,10 +31,14 @@ class Stats:
 
         if grav_sim.menu.main_menu_active == True:
             self.start_time = time.time()
-        self.run_time = time.time() - self.start_time
+        
+        # Pause time counting when paused
+        if self.is_paused == False:
+            self.run_time = time.time() - self.start_time
 
         if self.is_holding_rclick == True:
             self.holding_rclick_time = time.time() - self.holding_rclick_start_time
+        
 
     def reset_stats(self):
         self.start_time = time.time()
