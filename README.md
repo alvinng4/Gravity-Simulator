@@ -33,7 +33,8 @@ Note: due to unknown reasons, the menu buttons may not work perfectly on the fir
 `Esc`: Open the menu\
 `P`: Pause\
 `F`: Toggle full screen mode\
-`Scroll`: Change the distance scale
+`Scroll`: Change the distance scale\
+`Left click`: Hold to create new object
 
 ## Changing the settings
 When starting the program, you can customize the settings using command-line arguments.
@@ -59,10 +60,6 @@ python3 gravity_sim -r 2560 1440 -i 10 30
 
 ## Functions in development:
 1. More advanced simulation: RKF4(5) method.
-2. `Left click`: Create new gravitational object
-3. `Arrow up and down`: Change the rate of mass change when creating new object
-
-
 
 ## Bibliography
 1. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020

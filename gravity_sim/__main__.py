@@ -7,6 +7,7 @@ from settings import Settings
 from camera import Camera
 from menu import Menu
 from stats import Stats
+from grav_obj import Grav_obj
 import simulator
 
 
@@ -57,12 +58,14 @@ class GravitySimulator:
                 mouse_pos = pygame.mouse.get_pos()
                 if event.button == 3: # right click
                     self.stats.start_holding_rclick()
+                    self.new_obj_mouse_pos = mouse_pos
                 elif event.button == 1: # left click
                     if self.menu.menu_active == True:
                         self.menu._check_button(mouse_pos, self)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 3:
                     self.stats.end_holding_rclick()
+                    Grav_obj.create_grav_obj(self, self.new_obj_mouse_pos)
             elif event.type == pygame.MOUSEWHEEL:
                 self.settings.distance_scale += 0.1 * event.y
             elif event.type == pygame.QUIT:
