@@ -35,7 +35,7 @@ def initialize_problem(grav_sim, x, v, m):
 
 
 @nb.njit
-def ode_n_body_first_order(objects_count, x, v, m):
+def ode_n_body_first_order(objects_count, x, m):
     # Allocating memory
     a = np.zeros((objects_count, 3))
 
@@ -46,26 +46,59 @@ def ode_n_body_first_order(objects_count, x, v, m):
                 R = x[j] - x[k]
                 a[j] += -G * m[k] * R / np.linalg.norm(R) ** 3
 
-    return x, v, a, m
+    return a
 
 
 @nb.njit
-def euler(objects_count, x, v, a, dt=0.001):
-    for j in range(0, objects_count):
-        x[j] = x[j] + v[j] * dt
-        v[j] = v[j] + a[j] * dt
-    return x, v
+def euler(x, v, a, dt=0.001):
+    return x + v * dt, v + a * dt
 
 
 @nb.njit
-def euler_cromer(objects_count, x, v, a, dt=0.001):
-    for j in range(0, objects_count):
-        v[j] = v[j] + a[j] * dt
-        x[j] = x[j] + v[j] * dt
+def euler_cromer(x, v, a, dt=0.001):
+    v = v + a * dt
+    x = x + v * dt
     return x, v
 
-    # def RK4(self):
-    # for j in range(0, self.objects_count):
+@nb.njit
+def rk2(objects_count, x, v, a, m, dt):
+    # POOR PERFORMANCE NEED FIX
+    x_half, v_half = euler(x, v, a, 0.5 * dt)
+
+    k2_v = ode_n_body_first_order(objects_count, x_half, m)
+    k2_x = v_half
+
+    v = v + dt * k2_v 
+    x = x + dt * k2_x
+
+    return x, v
+
+@nb.njit
+def rk4(objects_count, x, v, a, m, dt):
+    # POOR PERFORMANCE NEED FIX
+    k1_v = a
+    k1_x = v
+
+    v1 = v + 0.5 * k1_v * dt
+    x1 = x + 0.5 * k1_x * dt
+    k2_v = ode_n_body_first_order(objects_count, x1, m)
+    k2_x = v1
+
+    v2 = v + 0.5 * k2_v * dt
+    x2 = x + 0.5 * k2_x * dt
+    k3_v = ode_n_body_first_order(objects_count, x2, m)
+    k3_x = v2
+
+    v3 = v + k3_v * dt
+    x3 = x + k3_x * dt
+    k4_v = ode_n_body_first_order(objects_count, x3, m)
+    k4_x = v3
+
+
+    v = v + dt * (k1_v + 2 * k2_v + 2 * k3_v + k4_v) / 6.0
+    x = x + dt * (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6.0
+
+    return x, v
 
 @nb.njit 
 def total_energy(objects_count, x, v, m):
@@ -79,5 +112,5 @@ def total_energy(objects_count, x, v, m):
     return E
 
 
-if __name__ == "__main__":
-    pass
+
+
