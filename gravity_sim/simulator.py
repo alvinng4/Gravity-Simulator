@@ -71,7 +71,7 @@ def euler_cromer(objects_count, x, v, a, dt=0.001):
 def total_energy(objects_count, x, v, m):
     E = 0
     for j in range(0, objects_count):
-        E += 0.5 * m[j] * np.linalg.norm(v)**2
+        E += 0.5 * m[j] * np.linalg.norm(v[j])**2
         for k in range(0, objects_count):
             if j != k:  
                 R = x[j] - x[k]
