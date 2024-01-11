@@ -56,16 +56,18 @@ class GravitySimulator:
                 self._check_key_up_events(event)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                if event.button == 3: # right click
-                    self.stats.start_holding_rclick()
-                    self.new_obj_mouse_pos = mouse_pos
-                elif event.button == 1: # left click
-                    if self.menu.menu_active == True:
+                if self.menu.menu_active == False:
+                    if event.button == 3: # right click
+                        self.stats.start_holding_rclick()
+                        self.new_obj_mouse_pos = mouse_pos
+                elif self.menu.menu_active == True:
+                    if event.button == 1: # left click
                         self.menu._check_button(mouse_pos, self)
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 3:
-                    self.stats.end_holding_rclick()
-                    Grav_obj.create_grav_obj(self, self.new_obj_mouse_pos)
+                if self.stats.is_holding_rclick == True:
+                    if event.button == 3:
+                        self.stats.end_holding_rclick()
+                        Grav_obj.create_grav_obj(self, self.new_obj_mouse_pos)
             elif event.type == pygame.MOUSEWHEEL:
                 self.settings.distance_scale += 0.1 * event.y
             elif event.type == pygame.QUIT:
