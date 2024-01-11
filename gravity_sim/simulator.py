@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import numba as nb
+
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
 # Simulation time (days)
@@ -11,6 +12,7 @@ G = 0.00029591220828559
 # v1 - v3: Velocities (AU/d)
 # m: Mass (Solar masses)
 # a_i = - G M_j (ri - rj) / |r_ij|^3
+
 
 def initialize_problem(grav_sim, x, v, m):
     objects_count = grav_sim.stats.objects_count
@@ -28,8 +30,9 @@ def initialize_problem(grav_sim, x, v, m):
             [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
         )
         m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
-    
+
     return x, v, m
+
 
 @nb.njit
 def ode_n_body_first_order(objects_count, x, v, m):
@@ -45,12 +48,14 @@ def ode_n_body_first_order(objects_count, x, v, m):
 
     return x, v, a, m
 
+
 @nb.njit
 def Euler(objects_count, x, v, a, dt=0.001):
     for j in range(0, objects_count):
         x[j] = x[j] + v[j] * dt
         v[j] = v[j] + a[j] * dt
     return x, v
+
 
 @nb.njit
 def Euler_Cromer(objects_count, x, v, a, dt=0.001):

@@ -37,7 +37,6 @@ class GravitySimulator:
         self.x = []
         self.v = []
 
-
     def run_prog(self):
         # Start the main loop for the program.
         while True:
@@ -69,19 +68,27 @@ class GravitySimulator:
         self.stats.update(self)
 
     def _simulation(self):
-        for _ in range(self.settings.time_speed):
-            self.stats.simulation_time += self.stats.dt
-            self.x, self.v, self.m = simulator.initialize_problem(self, self.x, self.v, self.m)
-            self.x, self.v, self.a, self.m = simulator.ode_n_body_first_order(self.stats.objects_count, self.x, self.v, self.m)
-            self.x, self.v = simulator.Euler_Cromer(self.stats.objects_count, self.x, self.v, self.a, self.settings.dt)
-            for j in range(self.stats.objects_count):
-                self.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
-                self.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
-                self.grav_objs.sprites()[j].params["r3"] = self.x[j][2]
-                self.grav_objs.sprites()[j].params["v1"] = self.v[j][0]
-                self.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
-                self.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
-            
+        if self.stats.is_paused:
+            pass
+        else:
+            for _ in range(self.settings.time_speed):
+                self.stats.simulation_time += self.stats.dt
+                self.x, self.v, self.m = simulator.initialize_problem(
+                    self, self.x, self.v, self.m
+                )
+                self.x, self.v, self.a, self.m = simulator.ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.v, self.m
+                )
+                self.x, self.v = simulator.Euler_Cromer(
+                    self.stats.objects_count, self.x, self.v, self.a, self.settings.dt
+                )
+                for j in range(self.stats.objects_count):
+                    self.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
+                    self.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
+                    self.grav_objs.sprites()[j].params["r3"] = self.x[j][2]
+                    self.grav_objs.sprites()[j].params["v1"] = self.v[j][0]
+                    self.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
+                    self.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
 
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)
@@ -110,6 +117,12 @@ class GravitySimulator:
             self.camera.moving_up = True
         elif event.key == pygame.K_s:
             self.camera.moving_down = True
+        elif event.key == pygame.K_p:
+            if self.stats.is_paused == False:
+                self.stats.start_pause()
+            elif self.stats.is_paused == True:
+                self.stats.end_pause()
+
         elif event.key == pygame.K_f:
             pygame.display.toggle_fullscreen()
         elif event.key == pygame.K_ESCAPE:

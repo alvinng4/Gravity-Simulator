@@ -31,6 +31,7 @@ Note: due to unknown reasons, the menu buttons may not work perfectly on the fir
 ## Control
 `W` `A` `S` `D`: Move camera\
 `Esc`: Open the menu\
+`P`: Pause
 `F`: Toggle full screen mode\
 `Scroll`: Change the distance scale
 
@@ -60,7 +61,7 @@ python3 gravity_sim -r 2560 1440 -i 10 30
 1. More advanced simulation: RKF4(5) method.
 2. `Left click`: Create new gravitational object
 3. `Arrow up and down`: Change the rate of mass change when creating new object
-4. `P`: Pause
+
 
 
 ## Bibliography
