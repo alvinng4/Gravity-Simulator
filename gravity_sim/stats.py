@@ -8,6 +8,7 @@ class Stats:
 
     def __init__(self, grav_sim):
         self.fps = grav_sim.clock.get_fps()
+        self.settings = grav_sim.settings
         self.sun_img_scale = grav_sim.settings.sun_img_scale
         self.img_scale = grav_sim.settings.img_scale
         self.create_stats_board(grav_sim)
@@ -19,12 +20,16 @@ class Stats:
         self.fps = grav_sim.clock.get_fps()
         self.objects_count = len(grav_sim.grav_objs)
         self.distance_scale = round(grav_sim.settings.distance_scale, 1)
+        self.dt = grav_sim.settings.dt
+        self.time_speed = grav_sim.settings.time_speed
         if grav_sim.menu.main_menu_active == True:
             self.start_time = pygame.time.get_ticks()
         self.run_time = (pygame.time.get_ticks() - self.start_time) / 1000
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
         self.obj_board.print_msg(f"Object = {self.objects_count}")
         self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
+        self.dt_board.print_msg(f"dt = {self.dt} days / frame")
+        self.time_speed_board.print_msg(f"Time Speed = {self.time_speed}x")
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
 
     def reset_stats(self):
@@ -36,6 +41,8 @@ class Stats:
         self.sun_img_scale_board.draw()
         self.img_scale_board.draw()
         self.distance_scale_board.draw()
+        self.dt_board.draw()
+        self.time_speed_board.draw()
         self.run_time_board.draw()
 
     @classmethod
@@ -80,11 +87,27 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 92),
         )
-        self.run_time_board = Text_box(
+        self.dt_board = Text_box(
             grav_sim,
             0,
             0.03,
             20,
             font="Avenir",
             text_box_left_top=(10, 115),
+        )
+        self.time_speed_board = Text_box(
+            grav_sim,
+            0,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 138),
+        )
+        self.run_time_board = Text_box(
+            grav_sim,
+            0,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 161),
         )
