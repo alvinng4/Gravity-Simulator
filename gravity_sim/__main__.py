@@ -2,10 +2,8 @@ import sys
 import argparse
 
 import pygame
-import numpy
 
 from settings import Settings
-from grav_obj import Grav_obj
 from camera import Camera
 from menu import Menu
 from stats import Stats
