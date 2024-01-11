@@ -57,11 +57,11 @@ class GravitySimulator:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.menu.menu_active == False:
-                    if event.button == 3: # right click
+                    if event.button == 3:  # right click
                         self.stats.start_holding_rclick()
                         self.new_obj_mouse_pos = mouse_pos
                 elif self.menu.menu_active == True:
-                    if event.button == 1: # left click
+                    if event.button == 1:  # left click
                         self.menu._check_button(mouse_pos, self)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self.stats.is_holding_rclick == True:
@@ -87,13 +87,20 @@ class GravitySimulator:
                 self.x, self.v, self.m = simulator.initialize_problem(
                     self, self.x, self.v, self.m
                 )
-                self.x, self.v, self.a, self.m = simulator.ode_n_body_first_order(
+                self.a = simulator.ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.m
+                )
+                self.x, self.v = simulator.rk4(
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.a,
+                    self.m,
+                    self.settings.dt,
+                )
+                self.stats.total_energy = simulator.total_energy(
                     self.stats.objects_count, self.x, self.v, self.m
                 )
-                self.x, self.v = simulator.euler_cromer(
-                    self.stats.objects_count, self.x, self.v, self.a, self.settings.dt
-                )
-                self.stats.total_energy = simulator.total_energy(self.stats.objects_count, self.x, self.v, self.m)
                 for j in range(self.stats.objects_count):
                     self.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
                     self.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
@@ -107,7 +114,12 @@ class GravitySimulator:
         self.grav_objs.draw(self.screen)
         self.stats.draw()
         if self.stats.is_holding_rclick == True:
-            pygame.draw.line(self.screen, "white", (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]), pygame.mouse.get_pos())
+            pygame.draw.line(
+                self.screen,
+                "white",
+                (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]),
+                pygame.mouse.get_pos(),
+            )
         if self.menu.menu_active == True:
             self.menu.draw()
         pygame.display.flip()
