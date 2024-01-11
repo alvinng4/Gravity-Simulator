@@ -3,11 +3,13 @@ import matplotlib.pyplot as plt
 import numba as nb
 
 # Gravitational constant (AU ^3/d^2/ M_sun):
-G = 0.00029591220828559
-# Simulation time (days)
-# t0 = 0
-# t1 = 365
+#G = 0.00029591220828559
+G = 1.0  # For Testing
 
+
+
+
+# dt: Simulation time (days)
 # r1 - r3: Positions (AU)
 # v1 - v3: Velocities (AU/d)
 # m: Mass (Solar masses)
@@ -113,4 +115,38 @@ def total_energy(objects_count, x, v, m):
 
 
 
+def test():
+    # Initialize
+    R1 = np.array([ 1.0, 0.0, 0.0])
+    R2 = np.array([-1.0, 0.0, 0.0])
+    V1 = np.array([0.0, 0.5, 0.0])
+    V2 = np.array([0.0, -0.5, 0.0])
+    x = np.zeros((2, 3))
+    v = np.zeros((2, 3))
+    x[0] = R1
+    x[1] = R2
+    v[0] = V1
+    v[1] = V2
+    m = [1.0, 1.0]
 
+    t0 = 0.0
+    tf = 100.0
+
+    dt = 0.0001
+
+    npts = int(np.floor((tf - t0) / dt)) + 1
+    sol_time = np.linspace(t0, t0 + dt * (npts - 1), npts)
+    energy = np.zeros(npts)
+    for count, t in enumerate(sol_time):
+        a = ode_n_body_first_order(2, x, m)
+        x, v = rk4(2, x, v, a, m, dt)
+        energy[count] = total_energy(2, x, v, m)
+
+    plt.figure()
+    plt.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
+    plt.xlabel('Time')
+    plt.ylabel('|(E(t)-E0)/E0|')
+    plt.show()
+
+if __name__ == "__main__":
+    test()
