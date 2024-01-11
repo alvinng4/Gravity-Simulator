@@ -50,7 +50,7 @@ def ode_n_body_first_order(objects_count, x, v, m):
 
 
 @nb.njit
-def Euler(objects_count, x, v, a, dt=0.001):
+def euler(objects_count, x, v, a, dt=0.001):
     for j in range(0, objects_count):
         x[j] = x[j] + v[j] * dt
         v[j] = v[j] + a[j] * dt
@@ -58,7 +58,7 @@ def Euler(objects_count, x, v, a, dt=0.001):
 
 
 @nb.njit
-def Euler_Cromer(objects_count, x, v, a, dt=0.001):
+def euler_cromer(objects_count, x, v, a, dt=0.001):
     for j in range(0, objects_count):
         v[j] = v[j] + a[j] * dt
         x[j] = x[j] + v[j] * dt
@@ -66,6 +66,17 @@ def Euler_Cromer(objects_count, x, v, a, dt=0.001):
 
     # def RK4(self):
     # for j in range(0, self.objects_count):
+
+@nb.njit 
+def total_energy(objects_count, x, v, m):
+    E = 0
+    for j in range(0, objects_count):
+        E += 0.5 * m[j] * np.linalg.norm(v)**2
+        for k in range(0, objects_count):
+            if j != k:  
+                R = x[j] - x[k]
+                E += - G * m[j] * m[k] / np.linalg.norm(R)
+    return E
 
 
 if __name__ == "__main__":
