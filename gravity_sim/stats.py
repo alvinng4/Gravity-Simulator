@@ -14,6 +14,7 @@ class Stats:
         self.settings = grav_sim.settings
         self.sun_img_scale = grav_sim.settings.sun_img_scale
         self.img_scale = grav_sim.settings.img_scale
+        self.total_energy = 0
         self.is_paused = False
         self.create_stats_board(grav_sim)
         # Image scale is fixed in the settings
@@ -53,6 +54,7 @@ class Stats:
             f"Simulation Time = {self.simulation_time / 365.2425:.1e} years"
         )
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
+        self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
 
     def draw(self):
         self.print_msg()
@@ -65,6 +67,7 @@ class Stats:
         self.time_speed_board.draw()
         self.simulation_time_board.draw()
         self.run_time_board.draw()
+        self.total_energy_board.draw()
 
     @classmethod
     def create_stats_board(self, grav_sim):
@@ -140,3 +143,12 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 184),
         )
+        self.total_energy_board = Text_box(
+            grav_sim,
+            0,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 207),
+        )
+
