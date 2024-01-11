@@ -1,6 +1,5 @@
 import sys
 import os
-import math
 
 import pygame
 import pygame.gfxdraw
@@ -21,6 +20,7 @@ class Grav_obj(Sprite):
     ):
         super().__init__()
         self.screen = grav_sim.screen
+        self.screen_rect = self.screen.get_rect()
         self.camera = grav_sim.camera
         self.settings = grav_sim.settings
         self.params = params
@@ -66,21 +66,42 @@ class Grav_obj(Sprite):
             * 0.25
             * self.settings.distance_scale
             * self.settings.screen_height
-            + self.screen.get_rect().centerx
+            + self.screen_rect.centerx
             - self.camera.pos_x,
             -self.params["r2"]
             * 0.25
             * self.settings.distance_scale
             * self.settings.screen_height
-            + self.screen.get_rect().centery
+            + self.screen_rect.centery
             - self.camera.pos_y,
         )
 
     @classmethod
-    def create_grav_obj(self, grav_sim):
-        pass
-        # grav_obj = Grav_obj(grav_sim, params, 1)
-        # grav_sim.grav_objs.add(grav_obj)
+    def create_grav_obj(self, grav_sim, mouse_pos):
+        main_dir_path = os.path.dirname(__file__)
+        path_sun = os.path.join(main_dir_path, "images/sun.png")
+        m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
+        solar_radius = 0.004650467261
+        R = solar_radius * (m ** (1. / 3.))
+        grav_obj = Grav_obj(
+            grav_sim,
+            {
+                "r1": (mouse_pos[0] - grav_sim.screen.get_rect().centerx - grav_sim.camera.pos_x) / (grav_sim.settings.distance_scale * 0.25 * grav_sim.settings.screen_height),
+                "r2": - (mouse_pos[1] - grav_sim.screen.get_rect().centery - grav_sim.camera.pos_y)/ (grav_sim.settings.distance_scale * 0.25 * grav_sim.settings.screen_height),
+                "r3": 0.0,
+                "v1": 0.0,
+                "v2": 0.0,
+                "v3": 0.0,
+                "m": m, 
+                "R": R,
+            },
+            path_sun,
+            name="Sun",
+        )
+        grav_sim.grav_objs.add(grav_obj)
+
+
+
 
     @classmethod
     def create_solor_system(self, grav_sim):
@@ -101,7 +122,7 @@ class Grav_obj(Sprite):
         path_neptune = os.path.join(main_dir_path, "images/neptune.png")
         # r1 - r3: Positions (AU), v1 - v3: Velocities (AU/d), m: Mass (Solar masses)
         sun = Grav_obj(
-            grav_sim,  # Wrong data, fix later
+            grav_sim,
             {
                 "r1": -0.007967955691534,
                 "r2": -0.002906227441573,
