@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 from text_box import Text_box
@@ -12,6 +14,7 @@ class Stats:
         self.settings = grav_sim.settings
         self.sun_img_scale = grav_sim.settings.sun_img_scale
         self.img_scale = grav_sim.settings.img_scale
+        self.is_paused = False
         self.create_stats_board(grav_sim)
         # Image scale is fixed in the settings
         self.sun_img_scale_board.print_msg(f"Sun Image Scale = {self.sun_img_scale}")
@@ -24,21 +27,35 @@ class Stats:
         self.dt = grav_sim.settings.dt
         self.time_speed = grav_sim.settings.time_speed
         if grav_sim.menu.main_menu_active == True:
-            self.start_time = pygame.time.get_ticks()
-        self.run_time = (pygame.time.get_ticks() - self.start_time) / 1000
+            self.start_time = time.time()
+
+        self.run_time = time.time() - self.start_time
+
+    def start_pause(self):
+        self.paused_start_time = time.time()
+        self.is_paused = True
+
+    def end_pause(self):
+        self.start_time -= self.paused_start_time - time.time()
+        self.is_paused = False
+
+    def reset_stats(self):
+        self.start_time = time.time()
+        self.simulation_time = 0
+
+    def print_msg(self):
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
         self.obj_board.print_msg(f"Object = {self.objects_count}")
         self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
         self.dt_board.print_msg(f"dt = {self.dt} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.time_speed}x")
-        self.simulation_time_board.print_msg(f"Simulation Time = {self.simulation_time / 365.2425:.1e} years")
+        self.simulation_time_board.print_msg(
+            f"Simulation Time = {self.simulation_time / 365.2425:.1e} years"
+        )
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
 
-    def reset_stats(self):
-        self.start_time = pygame.time.get_ticks()
-        self.simulation_time = 0
-
     def draw(self):
+        self.print_msg()
         self.fps_board.draw()
         self.obj_board.draw()
         self.sun_img_scale_board.draw()
