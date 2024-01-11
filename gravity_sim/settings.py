@@ -7,7 +7,7 @@ class Settings:
         screen_height,
         sun_img_scale,
         img_scale,
-        time_speed: int = 1,
+        time_speed: int = 5,
         dt: float = 0.01,
     ):
         # To change the default settings of screen_width, screen_height, sun_img_scale, img_scale, go to _read_command_line_arg function in __main__.py

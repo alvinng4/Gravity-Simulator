@@ -104,6 +104,8 @@ class GravitySimulator:
         self.screen.fill(self.settings.bg_color)
         self.grav_objs.draw(self.screen)
         self.stats.draw()
+        if self.stats.is_holding_rclick == True:
+            pygame.draw.line(self.screen, "white", (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]), pygame.mouse.get_pos())
         if self.menu.menu_active == True:
             self.menu.draw()
         pygame.display.flip()
