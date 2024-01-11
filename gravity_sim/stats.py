@@ -7,6 +7,7 @@ class Stats:
     """Track statistics for Gravity Simulator."""
 
     def __init__(self, grav_sim):
+        self.simulation_time = 0
         self.fps = grav_sim.clock.get_fps()
         self.settings = grav_sim.settings
         self.sun_img_scale = grav_sim.settings.sun_img_scale
@@ -30,10 +31,12 @@ class Stats:
         self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
         self.dt_board.print_msg(f"dt = {self.dt} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.time_speed}x")
+        self.simulation_time_board.print_msg(f"Simulation Time = {self.simulation_time / 365.2425:.1e} years")
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
 
     def reset_stats(self):
         self.start_time = pygame.time.get_ticks()
+        self.simulation_time = 0
 
     def draw(self):
         self.fps_board.draw()
@@ -43,6 +46,7 @@ class Stats:
         self.distance_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
+        self.simulation_time_board.draw()
         self.run_time_board.draw()
 
     @classmethod
@@ -103,11 +107,19 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 138),
         )
-        self.run_time_board = Text_box(
+        self.simulation_time_board = Text_box(
             grav_sim,
             0,
             0.03,
             20,
             font="Avenir",
             text_box_left_top=(10, 161),
+        )
+        self.run_time_board = Text_box(
+            grav_sim,
+            0,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 184),
         )
