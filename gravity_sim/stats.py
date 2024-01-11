@@ -16,6 +16,7 @@ class Stats:
         self.img_scale = grav_sim.settings.img_scale
         self.total_energy = 0
         self.is_paused = False
+        self.is_holding_rclick = False
         self.create_stats_board(grav_sim)
         # Image scale is fixed in the settings
         self.sun_img_scale_board.print_msg(f"Sun Image Scale = {self.sun_img_scale}")
@@ -27,10 +28,17 @@ class Stats:
         self.distance_scale = round(grav_sim.settings.distance_scale, 1)
         self.dt = grav_sim.settings.dt
         self.time_speed = grav_sim.settings.time_speed
+
         if grav_sim.menu.main_menu_active == True:
             self.start_time = time.time()
-
         self.run_time = time.time() - self.start_time
+
+        if self.is_holding_rclick == True:
+            self.holding_rclick_time = time.time() - self.holding_rclick_start_time
+
+    def reset_stats(self):
+        self.start_time = time.time()
+        self.simulation_time = 0
 
     def start_pause(self):
         self.paused_start_time = time.time()
@@ -40,9 +48,22 @@ class Stats:
         self.start_time -= self.paused_start_time - time.time()
         self.is_paused = False
 
-    def reset_stats(self):
-        self.start_time = time.time()
-        self.simulation_time = 0
+    def start_holding_rclick(self):
+        self.holding_rclick_start_time = time.time()
+        self.is_holding_rclick = True
+
+    def end_holding_rclick(self):
+        self.is_holding_rclick = False
+
+
+
+
+
+
+
+
+
+
 
     def print_msg(self):
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
