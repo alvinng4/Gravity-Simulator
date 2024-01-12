@@ -33,30 +33,50 @@ class Simulator:
         self.is_rk4 = False
         self.is_leapfrog = True
 
+        self.current_integrator = None
+
     def run_simulation(self, grav_sim):
         self.stats.simulation_time += self.stats.dt
         if self.is_initialize == True:
             self.x, self.v, self.m = self.initialize_problem(
                 grav_sim, self.x, self.v, self.m
             )
+        if self.is_euler == True:
+            current_integrator = "euler"
+        elif self.is_euler_cromer == True:
+            current_integrator = "euler_cromer"
+        elif self.is_rk2 == True:
+            current_integrator = "rk2"
+        elif self.is_rk4 == True:
+            current_integrator = "rk4"
+        elif self.is_leapfrog == True:
+            current_integrator = "leapfrog"
 
-        if self.is_leapfrog == False:
-            self.a = ode_n_body_first_order(self.stats.objects_count, self.x, self.m)
-            if self.is_euler == True:
+        match current_integrator:
+            case "euler":
+                self.a = ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.m
+                )
                 self.x, self.v = euler(
                     self.x,
                     self.v,
                     self.a,
                     self.settings.dt,
                 )
-            elif self.is_euler_cromer == True:
+            case "euler_cromer":
+                self.a = ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.m
+                )
                 self.x, self.v = euler_cromer(
                     self.x,
                     self.v,
                     self.a,
                     self.settings.dt,
                 )
-            elif self.is_rk2 == True:
+            case "rk2":
+                self.a = ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.m
+                )
                 self.x, self.v = rk2(
                     self.stats.objects_count,
                     self.x,
@@ -65,7 +85,10 @@ class Simulator:
                     self.m,
                     self.settings.dt,
                 )
-            elif self.is_rk4 == True:
+            case "rk4":
+                self.a = ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.m
+                )
                 self.x, self.v = rk4(
                     self.stats.objects_count,
                     self.x,
@@ -74,21 +97,21 @@ class Simulator:
                     self.m,
                     self.settings.dt,
                 )
-        elif self.is_leapfrog == True:
-            if self.is_initialize == True:
-                self.a = ode_n_body_first_order(
-                    self.stats.objects_count, self.x, self.m
-                )
-                self.is_initialize = False
+            case "leapfrog":
+                if self.is_initialize == True:
+                    self.a = ode_n_body_first_order(
+                        self.stats.objects_count, self.x, self.m
+                    )
+                    self.is_initialize = False
 
-            self.x, self.v, self.a = leapfrog(
-                self.stats.objects_count,
-                self.x,
-                self.v,
-                self.a,
-                self.m,
-                self.settings.dt,
-            )
+                self.x, self.v, self.a = leapfrog(
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.a,
+                    self.m,
+                    self.settings.dt,
+                )
 
         self.stats.total_energy = total_energy(
             self.stats.objects_count, self.x, self.v, self.m
