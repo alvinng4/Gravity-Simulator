@@ -47,28 +47,29 @@ class GravitySimulator:
 
     def _check_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                self._check_key_down_events(event)
-            elif event.type == pygame.KEYUP:
-                self._check_key_up_events(event)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_pos = pygame.mouse.get_pos()
-                if self.menu.menu_active == False:
-                    if event.button == 3:  # right click
-                        self.stats.start_holding_rclick()
-                        self.new_obj_mouse_pos = mouse_pos
-                elif self.menu.menu_active == True:
-                    if event.button == 1:  # left click
-                        self.menu.check_button(mouse_pos, self)
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if self.stats.is_holding_rclick == True:
-                    if event.button == 3:
-                        self.stats.end_holding_rclick()
-                        Grav_obj.create_star(self, self.new_obj_mouse_pos)
-            elif event.type == pygame.MOUSEWHEEL:
-                self.settings.distance_scale += 0.1 * event.y
-            elif event.type == pygame.QUIT:
-                sys.exit()
+            match event.type:
+                case pygame.KEYDOWN:
+                    self._check_key_down_events(event)
+                case pygame.KEYUP:
+                    self._check_key_up_events(event)
+                case pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if self.menu.menu_active == False:
+                        if event.button == 3:  # right click
+                            self.stats.start_holding_rclick()
+                            self.new_obj_mouse_pos = mouse_pos
+                    elif self.menu.menu_active == True:
+                        if event.button == 1:  # left click
+                            self.menu.check_button(mouse_pos, self)
+                case pygame.MOUSEBUTTONUP:
+                    if self.stats.is_holding_rclick == True:
+                        if event.button == 3:
+                            self.stats.end_holding_rclick()
+                            Grav_obj.create_star(self, self.new_obj_mouse_pos)
+                case pygame.MOUSEWHEEL:
+                    self.settings.distance_scale += 0.1 * event.y
+                case pygame.QUIT:
+                    sys.exit()
 
     def _update_events(self):
         self.camera.update_movement()
@@ -93,34 +94,36 @@ class GravitySimulator:
         pygame.display.flip()
 
     def _check_key_up_events(self, event):
-        if event.key == pygame.K_d:
-            self.camera.moving_right = False
-        elif event.key == pygame.K_a:
-            self.camera.moving_left = False
-        elif event.key == pygame.K_w:
-            self.camera.moving_up = False
-        elif event.key == pygame.K_s:
-            self.camera.moving_down = False
+        match event.key:
+            case pygame.K_d:
+                self.camera.moving_right = False
+            case pygame.K_a:
+                self.camera.moving_left = False
+            case pygame.K_w:
+                self.camera.moving_up = False
+            case pygame.K_s:
+                self.camera.moving_down = False
 
     def _check_key_down_events(self, event):
-        if event.key == pygame.K_d:
-            self.camera.moving_right = True
-        elif event.key == pygame.K_a:
-            self.camera.moving_left = True
-        elif event.key == pygame.K_w:
-            self.camera.moving_up = True
-        elif event.key == pygame.K_s:
-            self.camera.moving_down = True
-        elif event.key == pygame.K_p:
-            if self.stats.is_paused == False:
-                self.stats.start_pause()
-            elif self.stats.is_paused == True:
-                self.stats.end_pause()
-        elif event.key == pygame.K_f:
-            pygame.display.toggle_fullscreen()
-        elif event.key == pygame.K_ESCAPE:
-            if self.menu.main_menu_active == False:
-                self.menu.menu_active = not self.menu.menu_active
+        match event.key:
+            case pygame.K_d:
+                self.camera.moving_right = True
+            case pygame.K_a:
+                self.camera.moving_left = True
+            case pygame.K_w:
+                self.camera.moving_up = True
+            case pygame.K_s:
+                self.camera.moving_down = True
+            case pygame.K_p:
+                if self.stats.is_paused == False:
+                    self.stats.start_pause()
+                elif self.stats.is_paused == True:
+                    self.stats.end_pause()
+            case pygame.K_f:
+                pygame.display.toggle_fullscreen()
+            case pygame.K_ESCAPE:
+                if self.menu.main_menu_active == False:
+                    self.menu.menu_active = not self.menu.menu_active
 
     def _read_command_line_arg(self):
         parser = argparse.ArgumentParser(description="2D N-body gravity simulator")
