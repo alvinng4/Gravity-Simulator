@@ -2,7 +2,6 @@ import sys
 import os
 
 import pygame
-import pygame.gfxdraw
 from pygame.sprite import Sprite
 
 
@@ -29,7 +28,7 @@ class Grav_obj(Sprite):
             self.img_diameter = (
                 self.diameter
                 * 0.25
-                * self.settings.sun_img_scale
+                * self.settings.star_img_scale
                 * self.settings.screen_height
             )
         else:

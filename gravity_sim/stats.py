@@ -1,7 +1,5 @@
 import time
 
-import pygame
-
 from text_box import Text_box
 
 
@@ -12,15 +10,15 @@ class Stats:
         self.simulation_time = 0
         self.fps = grav_sim.clock.get_fps()
         self.settings = grav_sim.settings
-        self.sun_img_scale = grav_sim.settings.sun_img_scale
+        self.star_img_scale = grav_sim.settings.star_img_scale
         self.img_scale = grav_sim.settings.img_scale
         self.total_energy = 0
         self.is_paused = False
         self.is_holding_rclick = False
         self.create_stats_board(grav_sim)
         # Image scale is fixed in the settings
-        self.sun_img_scale_board.print_msg(f"Sun Image Scale = {self.sun_img_scale}")
-        self.img_scale_board.print_msg(f"Objects Image Scale = {self.img_scale}")
+        self.star_img_scale_board.print_msg(f"Star Image Scale = {self.star_img_scale}")
+        self.img_scale_board.print_msg(f"Planet Image Scale = {self.img_scale}")
 
     def update(self, grav_sim):
         self.fps = grav_sim.clock.get_fps()
@@ -75,7 +73,7 @@ class Stats:
         self.print_msg()
         self.fps_board.draw()
         self.obj_board.draw()
-        self.sun_img_scale_board.draw()
+        self.star_img_scale_board.draw()
         self.img_scale_board.draw()
         self.distance_scale_board.draw()
         self.dt_board.draw()
@@ -102,7 +100,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 23),
         )
-        self.sun_img_scale_board = Text_box(
+        self.star_img_scale_board = Text_box(
             grav_sim,
             0,
             0.03,
