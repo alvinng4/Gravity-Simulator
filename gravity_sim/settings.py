@@ -5,19 +5,19 @@ class Settings:
         self,
         screen_width,
         screen_height,
-        sun_img_scale,
+        star_img_scale,
         img_scale,
         time_speed: int = 10,
         dt: float = 0.01,
     ):
-        # To change the default settings of screen_width, screen_height, sun_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
+        # To change the default settings of screen_width, screen_height, star_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.bg_color = (0, 0, 0)  # Background color
         self.fps = 60
 
         self.grav_obj_color = (255, 255, 255)
-        self.sun_img_scale = sun_img_scale
+        self.star_img_scale = star_img_scale
         self.img_scale = img_scale
         self.distance_scale = 1
         self.time_speed = time_speed
@@ -32,8 +32,8 @@ class Settings:
         return self._screen_height
 
     @property
-    def sun_img_scale(self):
-        return self._sun_img_scale
+    def star_img_scale(self):
+        return self._star_img_scale
 
     @property
     def img_scale(self):
@@ -66,14 +66,14 @@ class Settings:
             self._screen_height = value
 
     # Img may corrupt if the scale is too large.
-    @sun_img_scale.setter
-    def sun_img_scale(self, value):
+    @star_img_scale.setter
+    def star_img_scale(self, value):
         if value > 100:
-            self._sun_img_scale = 100
+            self._star_img_scale = 100
         elif value < 0:
-            self._sun_img_scale = 0
+            self._star_img_scale = 0
         else:
-            self._sun_img_scale = value
+            self._star_img_scale = value
 
     # Img may corrupt if the scale is too large.
     @img_scale.setter

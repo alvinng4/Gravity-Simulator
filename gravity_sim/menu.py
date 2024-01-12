@@ -1,7 +1,5 @@
 import sys
 
-import pygame.font
-
 from text_box import Text_box
 from grav_obj import Grav_obj
 

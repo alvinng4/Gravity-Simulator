@@ -20,7 +20,7 @@ class GravitySimulator:
         self.settings = Settings(
             screen_width=self.args.resolution[0],
             screen_height=self.args.resolution[1],
-            sun_img_scale=self.args.img_scale[0],
+            star_img_scale=self.args.img_scale[0],
             img_scale=self.args.img_scale[1],
         )
         self.screen = pygame.display.set_mode(
