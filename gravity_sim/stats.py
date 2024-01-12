@@ -37,10 +37,10 @@ class Stats:
         if self.is_holding_rclick == True:
             self.holding_rclick_time = time.time() - self.holding_rclick_start_time
 
-    def reset_stats(self, grav_sim):
+    def reset(self, grav_sim):
         self.start_time = time.time()
         self.simulation_time = 0
-        grav_sim.simulator.a = []
+        grav_sim.simulator.is_initialize = True
 
     def start_pause(self):
         self.paused_start_time = time.time()

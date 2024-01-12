@@ -140,7 +140,7 @@ class Menu:
                 self.menu_active = False
             if self.main_menu_button.rect.collidepoint(mouse_pos):
                 grav_sim.grav_objs.empty()
-                grav_sim.stats.reset_stats(grav_sim)
+                grav_sim.stats.reset(grav_sim)
                 self.main_menu_active = True
         else:
             if self.exit_button.rect.collidepoint(mouse_pos):
@@ -159,6 +159,6 @@ class Menu:
 
     def menu_common_actions(self, grav_sim):
         grav_sim.grav_objs.empty()
-        grav_sim.stats.reset_stats(grav_sim)
+        grav_sim.stats.reset(grav_sim)
         self.menu_active = False
         self.main_menu_active = False

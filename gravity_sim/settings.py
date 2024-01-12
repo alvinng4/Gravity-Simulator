@@ -7,7 +7,7 @@ class Settings:
         screen_height,
         star_img_scale,
         img_scale,
-        time_speed: int = 10,
+        time_speed: int = 100,
         dt: float = 0.01,
     ):
         # To change the default settings of screen_width, screen_height, star_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
