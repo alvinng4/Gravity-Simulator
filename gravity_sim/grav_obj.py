@@ -82,26 +82,41 @@ class Grav_obj(Sprite):
         path_sun = os.path.join(main_dir_path, "images/sun.png")
         m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
         solar_radius = 0.004650467261
-        R = solar_radius * (m ** (1. / 3.))
+        R = solar_radius * (m ** (1.0 / 3.0))
         grav_obj = Grav_obj(
             grav_sim,
             {
-                "r1": (mouse_pos[0] - grav_sim.screen.get_rect().centerx - grav_sim.camera.pos_x) / (grav_sim.settings.distance_scale * 0.25 * grav_sim.settings.screen_height),
-                "r2": - (mouse_pos[1] - grav_sim.screen.get_rect().centery - grav_sim.camera.pos_y)/ (grav_sim.settings.distance_scale * 0.25 * grav_sim.settings.screen_height),
+                "r1": (
+                    mouse_pos[0]
+                    - grav_sim.screen.get_rect().centerx
+                    - grav_sim.camera.pos_x
+                )
+                / (
+                    grav_sim.settings.distance_scale
+                    * 0.25
+                    * grav_sim.settings.screen_height
+                ),
+                "r2": -(
+                    mouse_pos[1]
+                    - grav_sim.screen.get_rect().centery
+                    - grav_sim.camera.pos_y
+                )
+                / (
+                    grav_sim.settings.distance_scale
+                    * 0.25
+                    * grav_sim.settings.screen_height
+                ),
                 "r3": 0.0,
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": m, 
+                "m": m,
                 "R": R,
             },
             path_sun,
             name="Sun",
         )
         grav_sim.grav_objs.add(grav_obj)
-
-
-
 
     @classmethod
     def create_solor_system(self, grav_sim):

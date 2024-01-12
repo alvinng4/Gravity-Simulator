@@ -8,7 +8,7 @@ from camera import Camera
 from menu import Menu
 from stats import Stats
 from grav_obj import Grav_obj
-import simulator
+from simulator import Simulator
 
 
 class GravitySimulator:
@@ -34,17 +34,14 @@ class GravitySimulator:
         self.stats = Stats(self)
         self.camera = Camera()
         self.grav_objs = pygame.sprite.Group()
-        self.m = []
-        self.x = []
-        self.v = []
+        self.simulator = Simulator(self)
 
     def run_prog(self):
         # Start the main loop for the program.
         while True:
             self._check_events()
             self._update_events()
-            if self.grav_objs:
-                self._simulation()
+            self._simulation()
             self._update_screen()
             self.clock.tick(60)
 
@@ -79,35 +76,11 @@ class GravitySimulator:
         self.stats.update(self)
 
     def _simulation(self):
-        if self.stats.is_paused:
-            pass
-        else:
-            for _ in range(self.settings.time_speed):
-                self.stats.simulation_time += self.stats.dt
-                self.x, self.v, self.m = simulator.initialize_problem(
-                    self, self.x, self.v, self.m
-                )
-                self.a = simulator.ode_n_body_first_order(
-                    self.stats.objects_count, self.x, self.m
-                )
-                self.x, self.v = simulator.rk4(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.a,
-                    self.m,
-                    self.settings.dt,
-                )
-                self.stats.total_energy = simulator.total_energy(
-                    self.stats.objects_count, self.x, self.v, self.m
-                )
-                for j in range(self.stats.objects_count):
-                    self.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
-                    self.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
-                    self.grav_objs.sprites()[j].params["r3"] = self.x[j][2]
-                    self.grav_objs.sprites()[j].params["v1"] = self.v[j][0]
-                    self.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
-                    self.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
+        if self.grav_objs:
+            if not self.stats.is_paused:
+                for _ in range(self.settings.time_speed):
+                    self.simulator.run_simulation(self)
+                self.simulator.unload_value(self)
 
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)

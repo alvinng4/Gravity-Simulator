@@ -4,9 +4,7 @@ import numba as nb
 
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
-#G = 1.0  # For Testing
-
-
+# G = 1.0  # For Testing
 
 
 # dt: Simulation time (days)
@@ -16,24 +14,109 @@ G = 0.00029591220828559
 # a_i = - G M_j (ri - rj) / |r_ij|^3
 
 
-def initialize_problem(grav_sim, x, v, m):
-    objects_count = grav_sim.stats.objects_count
-    if len(m) == objects_count:
-        pass
-    else:
-        x = np.zeros((objects_count, 3))
-        v = np.zeros((objects_count, 3))
-        m = np.zeros(objects_count)
-    for j in range(objects_count):
-        x[j] = np.array(
-            [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
-        )
-        v[j] = np.array(
-            [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
-        )
-        m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
+class Simulator:
+    def __init__(self, grav_sim):
+        self.stats = grav_sim.stats
+        self.settings = grav_sim.settings
 
-    return x, v, m
+        self.m = []
+        self.x = []
+        self.v = []
+        self.a = []
+        
+        # Integrators
+        self.is_euler = False
+        self.is_euler_cromer = False
+        self.is_rk2 = False
+        self.is_rk4 = False
+        self.is_leapfrog = True
+
+    def run_simulation(self, grav_sim):
+        self.stats.simulation_time += self.stats.dt
+        self.x, self.v, self.m = self.initialize_problem(
+            grav_sim, self.x, self.v, self.m
+        )
+
+        if self.is_leapfrog == False:
+            self.a = ode_n_body_first_order(self.stats.objects_count, self.x, self.m)
+            if self.is_euler == True:
+                self.x, self.v = euler(
+                    self.x,
+                    self.v,
+                    self.a,
+                    self.settings.dt,
+                )
+            elif self.is_euler_cromer == True:
+                self.x, self.v = euler_cromer(
+                    self.x,
+                    self.v,
+                    self.a,
+                    self.settings.dt,
+                )
+            elif self.is_rk2 == True:
+                self.x, self.v = rk2(
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.a,
+                    self.m,
+                    self.settings.dt,
+                )
+            elif self.is_rk4 == True:
+                self.x, self.v = rk4(
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.a,
+                    self.m,
+                    self.settings.dt,
+                )
+        elif self.is_leapfrog == True:
+            if len(self.a) == 0:
+                self.a = ode_n_body_first_order(
+                    self.stats.objects_count, self.x, self.m
+                )
+            self.x, self.v, self.a = leapfrog(
+                self.stats.objects_count,
+                self.x,
+                self.v,
+                self.a,
+                self.m,
+                self.settings.dt,
+            )
+
+        self.stats.total_energy = total_energy(
+            self.stats.objects_count, self.x, self.v, self.m
+        )
+
+    def unload_value(self, grav_sim):
+        for j in range(self.stats.objects_count):
+            grav_sim.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
+            grav_sim.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
+            grav_sim.grav_objs.sprites()[j].params["r3"] = self.x[j][2]
+            grav_sim.grav_objs.sprites()[j].params["v1"] = self.v[j][0]
+            grav_sim.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
+            grav_sim.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
+
+    @staticmethod
+    def initialize_problem(grav_sim, x, v, m):
+        objects_count = grav_sim.stats.objects_count
+        if len(m) == objects_count:
+            pass
+        else:
+            x = np.zeros((objects_count, 3))
+            v = np.zeros((objects_count, 3))
+            m = np.zeros(objects_count)
+        for j in range(objects_count):
+            x[j] = np.array(
+                [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
+            )
+            v[j] = np.array(
+                [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
+            )
+            m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
+
+        return x, v, m
 
 
 @nb.njit
@@ -62,6 +145,7 @@ def euler_cromer(x, v, a, dt=0.001):
     x = x + v * dt
     return x, v
 
+
 @nb.njit
 def rk2(objects_count, x, v, a, m, dt):
     x_half, v_half = euler(x, v, a, 0.5 * dt)
@@ -69,10 +153,11 @@ def rk2(objects_count, x, v, a, m, dt):
     k2_v = ode_n_body_first_order(objects_count, x_half, m)
     k2_x = v_half
 
-    v = v + dt * k2_v 
+    v = v + dt * k2_v
     x = x + dt * k2_x
 
     return x, v
+
 
 @nb.njit
 def rk4(objects_count, x, v, a, m, dt):
@@ -94,41 +179,37 @@ def rk4(objects_count, x, v, a, m, dt):
     k4_v = ode_n_body_first_order(objects_count, x3, m)
     k4_x = v3
 
-
     v = v + dt * (k1_v + 2 * k2_v + 2 * k3_v + k4_v) / 6.0
     x = x + dt * (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6.0
 
     return x, v
 
+
 @nb.njit
-def leapfrog(objects_count, x, v, a, m ,dt):
-    a_0 = ode_n_body_first_order(objects_count, x, m)
+def leapfrog(objects_count, x, v, a, m, dt):
+    a_0 = a
     x = x + v * dt + a_0 * 0.5 * dt * dt
     a_1 = ode_n_body_first_order(objects_count, x, m)
     v = v + (a_0 + a_1) * 0.5 * dt
 
-    return x, v
+    return x, v, a_1
 
 
-
-
-
-@nb.njit 
+@nb.njit
 def total_energy(objects_count, x, v, m):
     E = 0
     for j in range(0, objects_count):
-        E += 0.5 * m[j] * np.linalg.norm(v[j])**2
+        E += 0.5 * m[j] * np.linalg.norm(v[j]) ** 2
         for k in range(0, objects_count):
-            if j != k:  
+            if j != k:
                 R = x[j] - x[k]
-                E += - G * m[j] * m[k] / np.linalg.norm(R)
+                E += -G * m[j] * m[k] / np.linalg.norm(R)
     return E
-
 
 
 def test():
     # Initialize
-    R1 = np.array([ 1.0, 0.0, 0.0])
+    R1 = np.array([1.0, 0.0, 0.0])
     R2 = np.array([-1.0, 0.0, 0.0])
     V1 = np.array([0.0, 0.5, 0.0])
     V2 = np.array([0.0, -0.5, 0.0])
@@ -148,21 +229,21 @@ def test():
     sol_time = np.linspace(t0, t0 + dt * (npts - 1), npts)
     energy = np.zeros(npts)
     for count, t in enumerate(sol_time):
-        a = ode_n_body_first_order(2, x, m)
-        x, v = leapfrog(2, x, v, a, m, dt)
-        energy[count] = total_energy(2, x, v, m)
+        a = Simulator.ode_n_body_first_order(2, x, m)
+        x, v = Simulator.leapfrog(2, x, v, a, m, dt)
+        energy[count] = Simulator.total_energy(2, x, v, m)
 
     # Plotting
     plt.figure()
     plt.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
-    plt.xlabel('Time')
-    plt.ylabel('|(E(t)-E0)/E0|')
+    plt.xlabel("Time")
+    plt.ylabel("|(E(t)-E0)/E0|")
     plt.show()
 
     plt.figure()
     plt.semilogy(sol_time, np.abs(energy))
-    plt.xlabel('Time')
-    plt.ylabel('E(t)')
+    plt.xlabel("Time")
+    plt.ylabel("E(t)")
     plt.show()
 
 
