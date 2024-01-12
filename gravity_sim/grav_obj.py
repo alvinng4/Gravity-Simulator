@@ -324,7 +324,7 @@ class Grav_obj(Sprite):
         Create a Pythagorean three-body orbit
         Data from the book Moving Planets Around: An Introduction to
         N-Body Simulations Applied to Exoplanetary Systems, Ch.7, Page 109
-        As the data given use G = 1, the mass is converted by m / G, since a = GM/r^2.
+        As the data given use G = 1, the mass is converted by m / G, since a = GM / r^2.
         """
         # Currently use sun as object. May or may not change later.
         main_dir_path = os.path.dirname(__file__)
