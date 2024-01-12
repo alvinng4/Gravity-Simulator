@@ -17,9 +17,9 @@ class Menu:
 
         self.main_menu_caption = Text_box(
             grav_sim,
-            0,
-            0,
             72,
+            0,
+            0,
             msg="2D N-body Gravity Simulator",
             font="Avenir",
             center=(
@@ -29,9 +29,9 @@ class Menu:
         )
         self.resume_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Resume",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
@@ -42,9 +42,9 @@ class Menu:
         )
         self.void_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Void",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
@@ -55,9 +55,9 @@ class Menu:
         )
         self.solar_system_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Solar System",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
@@ -68,9 +68,9 @@ class Menu:
         )
         self.figure_8_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Figure 8 orbit",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
@@ -81,9 +81,9 @@ class Menu:
         )
         self.pyth_3_body_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Pythagorean three-body",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
@@ -94,9 +94,9 @@ class Menu:
         )
         self.exit_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Exit",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),
@@ -107,9 +107,9 @@ class Menu:
         )
         self.main_menu_button = Text_box(
             grav_sim,
+            48,
             0.25,
             0.05,
-            48,
             msg="Main Menu",
             text_box_color=(220, 220, 220),
             text_color=(0, 0, 0),

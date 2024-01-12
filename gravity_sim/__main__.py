@@ -55,7 +55,8 @@ class GravitySimulator:
                     self._check_key_up_events(event)
                 case pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
-                    self.stats.check_button(self, mouse_pos)
+                    if event.button == 1: # left click
+                        self.stats.check_button(self, mouse_pos)
                     if self.menu.menu_active == False:
                         if event.button == 3:  # right click
                             self.stats.start_holding_rclick()
