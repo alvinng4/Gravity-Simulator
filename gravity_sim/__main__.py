@@ -46,6 +46,7 @@ class GravitySimulator:
             self.clock.tick(60)
 
     def _check_events(self):
+        self.simulator.check_current_integrator()
         for event in pygame.event.get():
             match event.type:
                 case pygame.KEYDOWN:
@@ -54,13 +55,14 @@ class GravitySimulator:
                     self._check_key_up_events(event)
                 case pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
+                    self.stats.check_button(self, mouse_pos)
                     if self.menu.menu_active == False:
                         if event.button == 3:  # right click
                             self.stats.start_holding_rclick()
                             self.new_obj_mouse_pos = mouse_pos
                     elif self.menu.menu_active == True:
                         if event.button == 1:  # left click
-                            self.menu.check_button(mouse_pos, self)
+                            self.menu.check_button(self, mouse_pos)
                 case pygame.MOUSEBUTTONUP:
                     if self.stats.is_holding_rclick == True:
                         if event.button == 3:
@@ -86,7 +88,7 @@ class GravitySimulator:
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)
         self.grav_objs.draw(self.screen)
-        self.stats.draw()
+        self.stats.draw(self)
         if self.stats.is_holding_rclick == True:
             self._new_obj_draw_line_circle()
         if self.menu.menu_active == True:

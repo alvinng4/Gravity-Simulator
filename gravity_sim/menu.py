@@ -133,7 +133,7 @@ class Menu:
         self.figure_8_button.draw()
         self.pyth_3_body_button.draw()
 
-    def check_button(self, mouse_pos, grav_sim):
+    def check_button(self, grav_sim, mouse_pos):
         """Check if there is any click on the buttons"""
         if self.main_menu_active == False:
             if self.resume_button.rect.collidepoint(mouse_pos):
