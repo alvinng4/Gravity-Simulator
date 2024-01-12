@@ -36,6 +36,7 @@ class Simulator:
 
         match self.current_integrator:
             case "euler":
+                self.is_initialize = False
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
                 )
@@ -46,6 +47,7 @@ class Simulator:
                     self.settings.dt,
                 )
             case "euler_cromer":
+                self.is_initialize = False
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
                 )
@@ -56,6 +58,7 @@ class Simulator:
                     self.settings.dt,
                 )
             case "rk2":
+                self.is_initialize = False
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
                 )
@@ -68,6 +71,7 @@ class Simulator:
                     self.settings.dt,
                 )
             case "rk4":
+                self.is_initialize = False
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
                 )
