@@ -24,6 +24,8 @@ class Simulator:
         self.v = []
         self.a = []
 
+        self.is_initialize = True
+
         # Integrators
         self.is_euler = False
         self.is_euler_cromer = False
@@ -33,9 +35,10 @@ class Simulator:
 
     def run_simulation(self, grav_sim):
         self.stats.simulation_time += self.stats.dt
-        self.x, self.v, self.m = self.initialize_problem(
-            grav_sim, self.x, self.v, self.m
-        )
+        if self.is_initialize == True:
+            self.x, self.v, self.m = self.initialize_problem(
+                grav_sim, self.x, self.v, self.m
+            )
 
         if self.is_leapfrog == False:
             self.a = ode_n_body_first_order(self.stats.objects_count, self.x, self.m)
@@ -72,10 +75,12 @@ class Simulator:
                     self.settings.dt,
                 )
         elif self.is_leapfrog == True:
-            if len(self.a) == 0 or len(self.a) != self.stats.objects_count:
+            if self.is_initialize == True:
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
                 )
+                self.is_initialize = False
+
             self.x, self.v, self.a = leapfrog(
                 self.stats.objects_count,
                 self.x,

@@ -117,6 +117,7 @@ class Grav_obj(Sprite):
             name="Sun",
         )
         grav_sim.grav_objs.add(grav_obj)
+        grav_sim.simulator.is_initialize = True
 
     @classmethod
     def create_solor_system(self, grav_sim):

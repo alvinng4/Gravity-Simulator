@@ -87,25 +87,7 @@ class GravitySimulator:
         self.grav_objs.draw(self.screen)
         self.stats.draw()
         if self.stats.is_holding_rclick == True:
-            pygame.draw.line(
-                self.screen,
-                "white",
-                (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]),
-                pygame.mouse.get_pos(),
-            )
-            m = 1 * 0.5 * self.stats.holding_rclick_time
-            R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
-            img_R = (
-                R
-                * 0.25
-                * self.settings.star_img_scale
-                * self.settings.screen_height
-                * 699.0
-                / 894.0
-            )
-            pygame.draw.circle(
-                self.screen, "orange", self.new_obj_mouse_pos, img_R, width=1
-            )
+            self._new_obj_draw_line_circle()
         if self.menu.menu_active == True:
             self.menu.draw()
         pygame.display.flip()
@@ -163,6 +145,27 @@ class GravitySimulator:
             pass
         else:
             sys.exit("Invalid resolution")
+
+    def _new_obj_draw_line_circle(self):
+        pygame.draw.line(
+            self.screen,
+            "white",
+            (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]),
+            pygame.mouse.get_pos(),
+        )
+        m = 1 * 0.5 * self.stats.holding_rclick_time
+        R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
+        img_R = (
+            R
+            * 0.25
+            * self.settings.star_img_scale
+            * self.settings.screen_height
+            * 699.0
+            / 894.0
+        )
+        pygame.draw.circle(
+            self.screen, "orange", self.new_obj_mouse_pos, img_R, width=1
+        )
 
 
 if __name__ == "__main__":
