@@ -26,7 +26,7 @@ Once you have downloaded the source files, open a terminal window, navigate to t
 ```
 python3 gravity_sim
 ```
-Note: due to unknown reasons, the menu buttons may not work perfectly on the first execution of the program.
+Note: buttons may need some time to react.
 
 ## Control
 `W` `A` `S` `D`: Move camera\
