@@ -142,31 +142,31 @@ class Menu:
                 self.menu_active = False
             if self.main_menu_button.rect.collidepoint(mouse_pos):
                 grav_sim.grav_objs.empty()
-                grav_sim.stats.reset_stats()
+                grav_sim.stats.reset_stats(grav_sim)
                 self.main_menu_active = True
         else:
             if self.exit_button.rect.collidepoint(mouse_pos):
                 sys.exit()
         if self.void_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
-            grav_sim.stats.reset_stats()
+            grav_sim.stats.reset_stats(grav_sim)
             self.menu_active = False
             self.main_menu_button_menu_active = False
         if self.solar_system_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_solor_system(grav_sim)
-            grav_sim.stats.reset_stats()
+            grav_sim.stats.reset_stats(grav_sim)
             self.menu_active = False
             self.main_menu_active = False
         if self.figure_8_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_figure_8(grav_sim)
-            grav_sim.stats.reset_stats()
+            grav_sim.stats.reset_stats(grav_sim)
             self.menu_active = False
             self.main_menu_active = False
         if self.pyth_3_body_button.rect.collidepoint(mouse_pos):
             grav_sim.grav_objs.empty()
             Grav_obj.create_pyth_3_body(grav_sim)
-            grav_sim.stats.reset_stats()
+            grav_sim.stats.reset_stats(grav_sim)
             self.menu_active = False
             self.main_menu_active = False

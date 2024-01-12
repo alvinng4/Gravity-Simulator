@@ -31,18 +31,18 @@ class Stats:
 
         if grav_sim.menu.main_menu_active == True:
             self.start_time = time.time()
-        
+
         # Pause time counting when paused
         if self.is_paused == False:
             self.run_time = time.time() - self.start_time
 
         if self.is_holding_rclick == True:
             self.holding_rclick_time = time.time() - self.holding_rclick_start_time
-        
 
-    def reset_stats(self):
+    def reset_stats(self, grav_sim):
         self.start_time = time.time()
         self.simulation_time = 0
+        grav_sim.simulator.a = []
 
     def start_pause(self):
         self.paused_start_time = time.time()
@@ -58,16 +58,6 @@ class Stats:
 
     def end_holding_rclick(self):
         self.is_holding_rclick = False
-
-
-
-
-
-
-
-
-
-
 
     def print_msg(self):
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
@@ -176,4 +166,3 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 207),
         )
-
