@@ -135,7 +135,7 @@ class Menu:
         self.figure_8_button.draw()
         self.pyth_3_body_button.draw()
 
-    def _check_button(self, mouse_pos, grav_sim):
+    def check_button(self, mouse_pos, grav_sim):
         """Check if there is any click on the buttons"""
         if self.main_menu_active == False:
             if self.resume_button.rect.collidepoint(mouse_pos):
@@ -148,25 +148,19 @@ class Menu:
             if self.exit_button.rect.collidepoint(mouse_pos):
                 sys.exit()
         if self.void_button.rect.collidepoint(mouse_pos):
-            grav_sim.grav_objs.empty()
-            grav_sim.stats.reset_stats(grav_sim)
-            self.menu_active = False
-            self.main_menu_button_menu_active = False
+            self.menu_common_actions(grav_sim)
         if self.solar_system_button.rect.collidepoint(mouse_pos):
-            grav_sim.grav_objs.empty()
+            self.menu_common_actions(grav_sim)
             Grav_obj.create_solor_system(grav_sim)
-            grav_sim.stats.reset_stats(grav_sim)
-            self.menu_active = False
-            self.main_menu_active = False
         if self.figure_8_button.rect.collidepoint(mouse_pos):
-            grav_sim.grav_objs.empty()
+            self.menu_common_actions(grav_sim)
             Grav_obj.create_figure_8(grav_sim)
-            grav_sim.stats.reset_stats(grav_sim)
-            self.menu_active = False
-            self.main_menu_active = False
         if self.pyth_3_body_button.rect.collidepoint(mouse_pos):
-            grav_sim.grav_objs.empty()
+            self.menu_common_actions(grav_sim)
             Grav_obj.create_pyth_3_body(grav_sim)
-            grav_sim.stats.reset_stats(grav_sim)
-            self.menu_active = False
-            self.main_menu_active = False
+
+    def menu_common_actions(self, grav_sim):
+        grav_sim.grav_objs.empty()
+        grav_sim.stats.reset_stats(grav_sim)
+        self.menu_active = False
+        self.main_menu_active = False

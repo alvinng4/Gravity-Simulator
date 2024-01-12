@@ -59,7 +59,7 @@ class GravitySimulator:
                         self.new_obj_mouse_pos = mouse_pos
                 elif self.menu.menu_active == True:
                     if event.button == 1:  # left click
-                        self.menu._check_button(mouse_pos, self)
+                        self.menu.check_button(mouse_pos, self)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self.stats.is_holding_rclick == True:
                     if event.button == 3:
