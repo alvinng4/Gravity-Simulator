@@ -2,12 +2,12 @@
 Welcome to my CS50 Python project: 2D N-body gravity simulator. This project is currently in development. More functions are going to be implemented in the future.
 
 ## Progress
-* Euler and Euler-Cromer methods for N-body are implemented.
+* Fixed step-size Euler, Euler-Cromer, RK2, RK4 and leapfrog methods for N-body are implemented.
 * 4 modes are available: Void, Solar System, Figure-8 Orbit and Pythagorean Three-Body Orbit.
-* Will implement RK4 very soon.
+* RKF4(5) in development
+
 ## Quick Start
 ### Install required packages
-
 Before running the program, make sure that you have the following packages installed:
 1. pygame 
 2. numpy
@@ -50,9 +50,9 @@ python3 gravity_sim -r <width> <height>
 ### Image scale
 All the images of the gravitational objects are scaled by some factors for better visibility. You can change the scale by the following commands:
 ```
-python3 gravity_sim -i <sun_img_scale> <obj_img_scale>
+python3 gravity_sim -i <star_img_scale> <planet_img_scale>
 ```
-You may change the parameters altogether. The following command can be used to set a resolution of 2560 x 1440, sun image scale of 10 and object image scale of 30. 
+You may change the parameters altogether. The following command can be used to set a resolution of 2560 x 1440, star image scale of 10 and planet image scale of 30. 
 ```
 python3 gravity_sim -r 2560 1440 -i 10 30
 ```

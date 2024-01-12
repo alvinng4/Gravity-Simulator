@@ -64,7 +64,7 @@ class GravitySimulator:
                 if self.stats.is_holding_rclick == True:
                     if event.button == 3:
                         self.stats.end_holding_rclick()
-                        Grav_obj.create_grav_obj(self, self.new_obj_mouse_pos)
+                        Grav_obj.create_star(self, self.new_obj_mouse_pos)
             elif event.type == pygame.MOUSEWHEEL:
                 self.settings.distance_scale += 0.1 * event.y
             elif event.type == pygame.QUIT:
@@ -92,6 +92,19 @@ class GravitySimulator:
                 "white",
                 (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]),
                 pygame.mouse.get_pos(),
+            )
+            m = 1 * 0.5 * self.stats.holding_rclick_time
+            R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
+            img_R = (
+                R
+                * 0.25
+                * self.settings.star_img_scale
+                * self.settings.screen_height
+                * 699.0
+                / 894.0
+            )
+            pygame.draw.circle(
+                self.screen, "orange", self.new_obj_mouse_pos, img_R, width=1
             )
         if self.menu.menu_active == True:
             self.menu.draw()
