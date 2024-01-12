@@ -7,9 +7,11 @@ class Text_box:
     def __init__(
         self,
         grav_sim,
-        size_factor_x: float,
-        size_factor_y: float,
         font_size: int,
+        size_factor_x: float=None,
+        size_factor_y: float=None,
+        size_x: int=None,
+        size_y: int=None,
         font: str = None,
         msg: str = None,
         text_box_color: tuple = None,
@@ -22,8 +24,14 @@ class Text_box:
         self.screen_rect = self.screen.get_rect()
 
         # Set the dimensions and properties of the text box.
-        self.width = size_factor_x * grav_sim.settings.screen_width
-        self.height = size_factor_y * grav_sim.settings.screen_height
+        if size_factor_x != None:
+            self.width = size_factor_x * grav_sim.settings.screen_width
+        else: 
+            self.width = size_x
+        if size_factor_y != None:
+            self.height = size_factor_y * grav_sim.settings.screen_height
+        else: 
+            self.height = size_y
 
         self.textbox_color = text_box_color
         self.text_color = text_color
