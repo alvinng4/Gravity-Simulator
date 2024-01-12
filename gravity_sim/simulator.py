@@ -23,7 +23,7 @@ class Simulator:
         self.x = []
         self.v = []
         self.a = []
-        
+
         # Integrators
         self.is_euler = False
         self.is_euler_cromer = False
@@ -72,7 +72,7 @@ class Simulator:
                     self.settings.dt,
                 )
         elif self.is_leapfrog == True:
-            if len(self.a) == 0:
+            if len(self.a) == 0 or len(self.a) != self.stats.objects_count:
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
                 )
