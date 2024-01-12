@@ -102,6 +102,20 @@ class Simulator:
             self.stats.objects_count, self.x, self.v, self.m
         )
 
+    def initialize_problem(self, grav_sim):
+        objects_count = grav_sim.stats.objects_count
+        self.x = np.zeros((objects_count, 3))
+        self.v = np.zeros((objects_count, 3))
+        self.m = np.zeros(objects_count)
+        for j in range(objects_count):
+            self.x[j] = np.array(
+                [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
+            )
+            self.v[j] = np.array(
+                [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
+            )
+            self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
+
     def unload_value(self, grav_sim):
         for j in range(self.stats.objects_count):
             grav_sim.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
@@ -116,7 +130,7 @@ class Simulator:
         self.is_euler_cromer = False
         self.is_rk2 = False
         self.is_rk4 = False
-        self.is_leapfrog = True
+        self.is_leapfrog = False
 
     def check_current_integrator(self):
         if self.is_euler == True:
@@ -129,20 +143,6 @@ class Simulator:
             self.current_integrator = "rk4"
         elif self.is_leapfrog == True:
             self.current_integrator = "leapfrog"
-
-    def initialize_problem(self, grav_sim):
-        objects_count = grav_sim.stats.objects_count
-        self.x = np.zeros((objects_count, 3))
-        self.v = np.zeros((objects_count, 3))
-        self.m = np.zeros(objects_count)
-        for j in range(objects_count):
-            self.x[j] = np.array(
-                [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
-            )
-            self.v[j] = np.array(
-                [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
-            )
-            self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
 
 
 @nb.njit
