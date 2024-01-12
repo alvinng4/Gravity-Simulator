@@ -25,34 +25,16 @@ class Simulator:
         self.a = []
 
         self.is_initialize = True
-
-        # Integrators
-        self.is_euler = False
-        self.is_euler_cromer = False
-        self.is_rk2 = False
-        self.is_rk4 = False
-        self.is_leapfrog = True
-
-        self.current_integrator = None
+        self.set_all_integrators_false()
+        self.is_leapfrog = True  # Default integrator
+        self.current_integrator = "leapfrog"
 
     def run_simulation(self, grav_sim):
         self.stats.simulation_time += self.stats.dt
         if self.is_initialize == True:
-            self.x, self.v, self.m = self.initialize_problem(
-                grav_sim, self.x, self.v, self.m
-            )
-        if self.is_euler == True:
-            current_integrator = "euler"
-        elif self.is_euler_cromer == True:
-            current_integrator = "euler_cromer"
-        elif self.is_rk2 == True:
-            current_integrator = "rk2"
-        elif self.is_rk4 == True:
-            current_integrator = "rk4"
-        elif self.is_leapfrog == True:
-            current_integrator = "leapfrog"
+            self.initialize_problem(grav_sim)
 
-        match current_integrator:
+        match self.current_integrator:
             case "euler":
                 self.a = ode_n_body_first_order(
                     self.stats.objects_count, self.x, self.m
@@ -112,7 +94,6 @@ class Simulator:
                     self.m,
                     self.settings.dt,
                 )
-
         self.stats.total_energy = total_energy(
             self.stats.objects_count, self.x, self.v, self.m
         )
@@ -126,25 +107,38 @@ class Simulator:
             grav_sim.grav_objs.sprites()[j].params["v2"] = self.v[j][1]
             grav_sim.grav_objs.sprites()[j].params["v3"] = self.v[j][2]
 
-    @staticmethod
-    def initialize_problem(grav_sim, x, v, m):
+    def set_all_integrators_false(self):
+        self.is_euler = False
+        self.is_euler_cromer = False
+        self.is_rk2 = False
+        self.is_rk4 = False
+        self.is_leapfrog = True
+
+    def check_current_integrator(self):
+        if self.is_euler == True:
+            self.current_integrator = "euler"
+        elif self.is_euler_cromer == True:
+            self.current_integrator = "euler_cromer"
+        elif self.is_rk2 == True:
+            self.current_integrator = "rk2"
+        elif self.is_rk4 == True:
+            self.current_integrator = "rk4"
+        elif self.is_leapfrog == True:
+            self.current_integrator = "leapfrog"
+
+    def initialize_problem(self, grav_sim):
         objects_count = grav_sim.stats.objects_count
-        if len(m) == objects_count:
-            pass
-        else:
-            x = np.zeros((objects_count, 3))
-            v = np.zeros((objects_count, 3))
-            m = np.zeros(objects_count)
+        self.x = np.zeros((objects_count, 3))
+        self.v = np.zeros((objects_count, 3))
+        self.m = np.zeros(objects_count)
         for j in range(objects_count):
-            x[j] = np.array(
+            self.x[j] = np.array(
                 [grav_sim.grav_objs.sprites()[j].params[f"r{i + 1}"] for i in range(3)]
             )
-            v[j] = np.array(
+            self.v[j] = np.array(
                 [grav_sim.grav_objs.sprites()[j].params[f"v{i + 1}"] for i in range(3)]
             )
-            m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
-
-        return x, v, m
+            self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
 
 
 @nb.njit

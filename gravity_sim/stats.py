@@ -1,5 +1,7 @@
 import time
 
+import pygame
+
 from text_box import Text_box
 
 
@@ -16,9 +18,15 @@ class Stats:
         self.is_paused = False
         self.is_holding_rclick = False
         self.create_stats_board(grav_sim)
-        # Image scale is fixed in the settings
+        # Image scale is fixed in the settings, only need to be drawn once (Change later)
         self.star_img_scale_board.print_msg(f"Star Image Scale = {self.star_img_scale}")
         self.img_scale_board.print_msg(f"Planet Image Scale = {self.img_scale}")
+        self.integrators_board.print_msg(f"Integrators: (Click to switch)")
+        self.euler_board.print_msg(f"Euler")
+        self.euler_cromer_board.print_msg(f"Euler-Cromer")
+        self.rk2_board.print_msg(f"2nd order Runge-Kutta")
+        self.rk4_board.print_msg(f"4th order Runge-Kutta")
+        self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
 
     def update(self, grav_sim):
         self.fps = grav_sim.clock.get_fps()
@@ -71,7 +79,7 @@ class Stats:
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
         self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
 
-    def draw(self):
+    def draw(self, grav_sim):
         self.print_msg()
         self.fps_board.draw()
         self.obj_board.draw()
@@ -83,6 +91,56 @@ class Stats:
         self.simulation_time_board.draw()
         self.run_time_board.draw()
         self.total_energy_board.draw()
+
+        self.integrators_board.draw()
+        self.euler_board.draw()
+        self.euler_cromer_board.draw()
+        self.rk2_board.draw()
+        self.rk4_board.draw()
+        self.leapfrog_board.draw()
+
+        match grav_sim.simulator.current_integrator:
+            case "euler":
+                pygame.draw.circle(
+                    grav_sim.screen, "green", (250, self.euler_board.rect.centery), 4
+                )
+            case "euler_cromer":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "green",
+                    (250, self.euler_cromer_board.rect.centery),
+                    4,
+                )
+            case "rk2":
+                pygame.draw.circle(
+                    grav_sim.screen, "green", (250, self.rk2_board.rect.centery), 4
+                )
+            case "rk4":
+                pygame.draw.circle(
+                    grav_sim.screen, "green", (250, self.rk4_board.rect.centery), 4
+                )
+            case "leapfrog":
+                pygame.draw.circle(
+                    grav_sim.screen, "green", (250, self.leapfrog_board.rect.centery), 4
+                )
+
+    def check_button(self, grav_sim, mouse_pos):
+        """Check if there is any click on the buttons"""
+        if self.euler_board.rect.collidepoint(mouse_pos):
+            grav_sim.simulator.set_all_integrators_false()
+            grav_sim.simulator.is_euler = True
+        if self.euler_cromer_board.rect.collidepoint(mouse_pos):
+            grav_sim.simulator.set_all_integrators_false()
+            grav_sim.simulator.is_euler_cromer = True
+        if self.rk2_board.rect.collidepoint(mouse_pos):
+            grav_sim.simulator.set_all_integrators_false()
+            grav_sim.simulator.is_rk2 = True
+        if self.rk4_board.rect.collidepoint(mouse_pos):
+            grav_sim.simulator.set_all_integrators_false()
+            grav_sim.simulator.is_rk4 = True
+        if self.leapfrog_board.rect.collidepoint(mouse_pos):
+            grav_sim.simulator.set_all_integrators_false()
+            grav_sim.simulator.is_leapfrog = True
 
     @classmethod
     def create_stats_board(self, grav_sim):
@@ -165,4 +223,52 @@ class Stats:
             20,
             font="Avenir",
             text_box_left_top=(10, 207),
+        )
+        self.integrators_board = Text_box(
+            grav_sim,
+            0,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 253),
+        )
+        self.euler_board = Text_box(
+            grav_sim,
+            0.13,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 276),
+        )
+        self.euler_cromer_board = Text_box(
+            grav_sim,
+            0.13,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 299),
+        )
+        self.rk2_board = Text_box(
+            grav_sim,
+            0.13,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 322),
+        )
+        self.rk4_board = Text_box(
+            grav_sim,
+            0.13,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 345),
+        )
+        self.leapfrog_board = Text_box(
+            grav_sim,
+            0.13,
+            0.03,
+            20,
+            font="Avenir",
+            text_box_left_top=(10, 368),
         )
