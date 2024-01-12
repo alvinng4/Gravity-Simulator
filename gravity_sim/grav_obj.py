@@ -5,11 +5,13 @@ import pygame
 from pygame.sprite import Sprite
 
 
-# Gravitational constant (AU ^3/d^2/ M_sun):
-G = 0.00029591220828559
-
-
 class Grav_obj(Sprite):
+    # Gravitational constant (AU^3 / d^2 / M_sun):
+    G = 0.00029591220828559
+
+    # Solar radius in AU
+    SOLAR_RADIUS = 0.004650467261
+
     def __init__(
         self,
         grav_sim,
@@ -76,12 +78,11 @@ class Grav_obj(Sprite):
         )
 
     @classmethod
-    def create_grav_obj(self, grav_sim, mouse_pos):
+    def create_star(self, grav_sim, mouse_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "images/sun.png")
         m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
-        solar_radius = 0.004650467261
-        R = solar_radius * (m ** (1.0 / 3.0))
+        R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         grav_obj = Grav_obj(
             grav_sim,
             {
@@ -145,7 +146,7 @@ class Grav_obj(Sprite):
                 "v2": -0.000007057133214,
                 "v3": -0.000000045734537,
                 "m": 1,
-                "R": 0.004650467261,
+                "R": Grav_obj.SOLAR_RADIUS,
             },
             path_sun,
             name="Sun",
@@ -292,8 +293,8 @@ class Grav_obj(Sprite):
                 "v1": 0.466203685,
                 "v2": 0.43236573,
                 "v3": 0.0,
-                "m": 1.0 / G,
-                "R": 0.004650467261,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
+                "m": 1.0 / Grav_obj.G,
+                "R": Grav_obj.SOLAR_RADIUS,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
             name="Sun",
@@ -307,8 +308,8 @@ class Grav_obj(Sprite):
                 "v1": 0.466203685,
                 "v2": 0.43236573,
                 "v3": 0.0,
-                "m": 1.0 / G,
-                "R": 0.004650467261,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
+                "m": 1.0 / Grav_obj.G,
+                "R": Grav_obj.SOLAR_RADIUS,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
             name="Sun",
@@ -322,8 +323,8 @@ class Grav_obj(Sprite):
                 "v1": -0.93240737,
                 "v2": -0.86473146,
                 "v3": 0.0,
-                "m": 1.0 / G,
-                "R": 0.004650467261,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
+                "m": 1.0 / Grav_obj.G,
+                "R": Grav_obj.SOLAR_RADIUS,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
             name="Sun",
@@ -352,8 +353,8 @@ class Grav_obj(Sprite):
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": 3.0 / G,
-                "R": 0.004650467261,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
+                "m": 3.0 / Grav_obj.G,
+                "R": Grav_obj.SOLAR_RADIUS,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
             name="Sun",
@@ -367,8 +368,8 @@ class Grav_obj(Sprite):
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": 4.0 / G,
-                "R": 0.004650467261,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
+                "m": 4.0 / Grav_obj.G,
+                "R": Grav_obj.SOLAR_RADIUS,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
             name="Sun",
@@ -382,8 +383,8 @@ class Grav_obj(Sprite):
                 "v1": 0.0,
                 "v2": 0.0,
                 "v3": 0.0,
-                "m": 5.0 / G,
-                "R": 0.004650467261,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
+                "m": 5.0 / Grav_obj.G,
+                "R": Grav_obj.SOLAR_RADIUS,  # The radius is arbitrary. Here we give it the solar radii as it have 1 solar mass
             },
             path_sun,
             name="Sun",
