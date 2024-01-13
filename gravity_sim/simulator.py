@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import numba as nb
+import numba as nb          # Note: nb.njit cannot works on functions inside a class
 
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
@@ -144,7 +143,7 @@ class Simulator:
         elif self.is_leapfrog == True:
             self.current_integrator = "leapfrog"
 
-
+# Note: jit cannot works on functions inside a class
 @nb.njit
 def ode_n_body_first_order(objects_count, x, m):
     # Allocating memory
