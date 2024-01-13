@@ -146,7 +146,7 @@ class Grav_obj(Sprite):
                 "v1": 0.000004875094764,
                 "v2": -0.000007057133214,
                 "v3": -0.000000045734537,
-                "m": 1,
+                "m": 1.0,
                 "R": Grav_obj.SOLAR_RADIUS,
             },
             path_sun,
