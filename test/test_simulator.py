@@ -17,8 +17,8 @@ G = 0.00029591220828559
 def test():
     #integrator = "euler"
     #integrator = "euler_cromer"
-    integrator = "rk2"
-    #integrator = "rk4"
+    #integrator = "rk2"
+    integrator = "rk4"
     #integrator = "leapfrog"
     #test_two_vectors(integrator)
     test_solar_system(integrator)
@@ -105,8 +105,8 @@ def test_solar_system(integrator):
         5.1499991953912e-05,
     ]
     t0 = 0.0
-    tf = 1000.0
-    dt = 0.001
+    tf = 10000.0
+    dt = 0.01
 
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
@@ -182,7 +182,7 @@ def test_figure_8():
     v[1] = V2
     m = [1.0 / G, 1.0 / G]
     t0 = 0.0
-    tf = 10000.0
+    tf = 1000.0
     dt = 0.001
 
     # Simulation
