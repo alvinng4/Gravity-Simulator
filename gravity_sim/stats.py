@@ -51,6 +51,7 @@ class Stats:
     def reset(self, grav_sim):
         self.start_time = time.time()
         self.simulation_time = 0
+        self.total_energy = 0
         grav_sim.simulator.is_initialize = True
         grav_sim.camera.pos_x = 0
         grav_sim.camera.pos_y = 0
