@@ -17,6 +17,13 @@ class GravitySimulator:
     def __init__(self):
         self._read_command_line_arg()
         pygame.init()
+        # Initialization dependencies:
+        # settings: none
+        # menu: none
+        # camera: none
+        # stats: settings
+        # grav_objs: camera, settings
+        # simulator: stats, settings
         self.settings = Settings(
             screen_width=self.args.resolution[0],
             screen_height=self.args.resolution[1],
@@ -31,19 +38,19 @@ class GravitySimulator:
         pygame.display.set_caption("Gravity Simulator")
         self.clock = pygame.time.Clock()
         self.menu = Menu(self)
-        self.stats = Stats(self)
         self.camera = Camera()
+        self.stats = Stats(self)
         self.grav_objs = pygame.sprite.Group()
         self.simulator = Simulator(self)
 
     def run_prog(self):
-        # Start the main loop for the program.
+        """The main loop for the program"""
         while True:
             self._check_events()
             self._update_events()
             self._simulation()
             self._update_screen()
-            self.clock.tick(60)
+            self.clock.tick(self.settings.MAX_FPS)
 
     def _check_events(self):
         self.simulator.check_current_integrator()
@@ -54,25 +61,13 @@ class GravitySimulator:
                 case pygame.KEYUP:
                     self._check_key_up_events(event)
                 case pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
-                    if event.button == 1: # left click
-                        self.stats.check_button(self, mouse_pos)
-                    if self.menu.menu_active == False:
-                        if event.button == 3:  # right click
-                            self.stats.start_holding_rclick()
-                            self.new_obj_mouse_pos = mouse_pos
-                            self.new_obj_camera_pos_x = self.camera.pos_x
-                            self.new_obj_camera_pos_y = self.camera.pos_y
-                    elif self.menu.menu_active == True:
-                        if event.button == 1:  # left click
-                            self.menu.check_button(self, mouse_pos)
+                    self._check_mouse_button_down_events(event)
                 case pygame.MOUSEBUTTONUP:
-                    if self.stats.is_holding_rclick == True:
-                        if event.button == 3:
-                            self.stats.end_holding_rclick()
-                            Grav_obj.create_star(self, self.new_obj_mouse_pos, self.new_obj_camera_pos_x, self.new_obj_camera_pos_y)
+                    self._check_mouse_button_up_events(event)
                 case pygame.MOUSEWHEEL:
-                    self.settings.distance_scale += 10 * event.y
+                    self.settings.distance_scale += (
+                        Settings.DISTANCE_SCALE_SPEED * event.y
+                    )
                 case pygame.QUIT:
                     sys.exit()
 
@@ -89,7 +84,7 @@ class GravitySimulator:
                 self.simulator.unload_value(self)
 
     def _update_screen(self):
-        self.screen.fill(self.settings.bg_color)
+        self.screen.fill(Settings.BG_COLOR)
         self.grav_objs.draw(self.screen)
         self.stats.draw(self)
         if self.stats.is_holding_rclick == True:
@@ -130,13 +125,34 @@ class GravitySimulator:
                 if self.menu.main_menu_active == False:
                     self.menu.menu_active = not self.menu.menu_active
 
+    def _check_mouse_button_down_events(self, event):
+        mouse_pos = pygame.mouse.get_pos()
+        if event.button == 1:  # left click
+            if self.menu.menu_active == True:
+                self.menu.check_button(self, mouse_pos)
+            else:
+                self.stats.check_button(self, mouse_pos)
+        elif event.button == 3:  # right click
+            if self.menu.menu_active == False:
+                self.stats.start_holding_rclick()
+                self.new_obj_mouse_pos = mouse_pos
+                self.new_obj_camera_pos = self.camera.pos
+
+    def _check_mouse_button_up_events(self, event):
+        if event.button == 3:  # right click up
+            if self.stats.is_holding_rclick == True:
+                self.stats.end_holding_rclick()
+                Grav_obj.create_star(
+                    self, self.new_obj_mouse_pos, self.new_obj_camera_pos
+                )
+
     def _read_command_line_arg(self):
         parser = argparse.ArgumentParser(description="2D N-body gravity simulator")
         parser.add_argument(
             "--resolution",
             "-r",
             nargs=2,
-            default=[1920, 1080],
+            default=Settings.DEFAULT_RESOLUTION,
             type=float,
             help="Usage: --resolution <width>, <height>",
         )
@@ -144,34 +160,43 @@ class GravitySimulator:
             "--img_scale",
             "-i",
             nargs=2,
-            default=[5000, 100000],
+            default=[
+                Settings.DEFAULT_STAR_IMG_SCALE,
+                Settings.DEFAULT_PLANET_IMG_SCALE,
+            ],
             type=float,
-            help="Usage: --img_scale <solar image scale>, <obj image scale>",
+            help="Usage: --img_scale <star image scale>, <planetf image scale>",
         )
         self.args = parser.parse_args()
-        if self.args.resolution[0] > 0 and self.args.resolution[1] > 0:
-            pass
-        else:
+        if not (self.args.resolution[0] > 0 and self.args.resolution[1] > 0):
             sys.exit("Invalid resolution")
 
     def _new_obj_draw_line_circle(self):
         pygame.draw.line(
             self.screen,
             "white",
-            (self.new_obj_mouse_pos[0] + (self.new_obj_camera_pos_x - self.camera.pos_x), self.new_obj_mouse_pos[1] + (self.new_obj_camera_pos_y - self.camera.pos_y)),
+            (
+                self.new_obj_mouse_pos[0]
+                + (self.new_obj_camera_pos[0] - self.camera.pos[0]),
+                self.new_obj_mouse_pos[1]
+                + (self.new_obj_camera_pos[1] - self.camera.pos[1]),
+            ),
             pygame.mouse.get_pos(),
         )
         m = 1 * 0.5 * self.stats.holding_rclick_time
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         img_R = (
             R
-            * (699.0 / 894.0)   # Sun size in the img with size (894 x 894)
+            * (699.0 / 894.0)  # Actual Sun size in images/sun.png with size (894 x 894)
             * self.settings.star_img_scale
         )
-        new_obj_circle_pos = [self.new_obj_mouse_pos[0] + (self.new_obj_camera_pos_x - self.camera.pos_x), self.new_obj_mouse_pos[1] + (self.new_obj_camera_pos_y - self.camera.pos_y)]
-        pygame.draw.circle(
-            self.screen, "orange", new_obj_circle_pos, img_R, width=1
-        )
+        new_obj_circle_pos = [
+            self.new_obj_mouse_pos[0]
+            + (self.new_obj_camera_pos[0] - self.camera.pos[0]),
+            self.new_obj_mouse_pos[1]
+            + (self.new_obj_camera_pos[1] - self.camera.pos[1]),
+        ]
+        pygame.draw.circle(self.screen, "orange", new_obj_circle_pos, img_R, width=1)
 
 
 if __name__ == "__main__":

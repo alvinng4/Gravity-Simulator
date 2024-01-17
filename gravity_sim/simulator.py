@@ -1,5 +1,5 @@
 import numpy as np
-import numba as nb          # Note: nb.njit cannot works on functions inside a class
+import numba as nb  # Note: nb.njit cannot works on functions inside a class
 
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
@@ -142,6 +142,7 @@ class Simulator:
             self.current_integrator = "rk4"
         elif self.is_leapfrog == True:
             self.current_integrator = "leapfrog"
+
 
 # Note: jit cannot works on functions inside a class
 @nb.njit
