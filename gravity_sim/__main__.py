@@ -158,7 +158,7 @@ class GravitySimulator:
         pygame.draw.line(
             self.screen,
             "white",
-            (self.new_obj_mouse_pos[0], self.new_obj_mouse_pos[1]),
+            (self.new_obj_mouse_pos[0] + (self.new_obj_camera_pos_x - self.camera.pos_x), self.new_obj_mouse_pos[1] + (self.new_obj_camera_pos_y - self.camera.pos_y)),
             pygame.mouse.get_pos(),
         )
         m = 1 * 0.5 * self.stats.holding_rclick_time
@@ -168,7 +168,7 @@ class GravitySimulator:
             * (699.0 / 894.0)   # Sun size in the img with size (894 x 894)
             * self.settings.star_img_scale
         )
-        new_obj_circle_pos = [self.new_obj_mouse_pos[0] + self.new_obj_camera_pos_x - self.camera.pos_x, self.new_obj_mouse_pos[1] + self.new_obj_camera_pos_y - self.camera.pos_y]
+        new_obj_circle_pos = [self.new_obj_mouse_pos[0] + (self.new_obj_camera_pos_x - self.camera.pos_x), self.new_obj_mouse_pos[1] + (self.new_obj_camera_pos_y - self.camera.pos_y)]
         pygame.draw.circle(
             self.screen, "orange", new_obj_circle_pos, img_R, width=1
         )
