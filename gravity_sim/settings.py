@@ -1,27 +1,34 @@
 class Settings:
     """A class to store all settings for gravity simulator."""
 
+    DEFAULT_RESOLUTION = (1920, 1080)
+    DEFAULT_STAR_IMG_SCALE = 5000
+    DEFAULT_PLANET_IMG_SCALE = 100000
+    DEFAULT_DISTANCE_SCALE = 200
+    DEFAULT_TIME_SPEED = 1
+    DEFAULT_dt = 0.1
+    MAX_FPS = 60
+    BG_COLOR = (0, 0, 0)  # Background color
+
+    DISTANCE_SCALE_SPEED = 10
+
     def __init__(
         self,
-        screen_width,
-        screen_height,
-        star_img_scale,
-        img_scale,
-        time_speed: int = 1,
-        dt: float = 0.1,
+        screen_width: int,
+        screen_height: int,
+        star_img_scale: float,
+        img_scale: float,
+        time_speed: int = DEFAULT_TIME_SPEED,
+        dt: float = DEFAULT_dt,
     ):
         # To change the default settings of screen_width, screen_height, star_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.bg_color = (0, 0, 0)  # Background color
-        self.fps = 60
-
-        self.grav_obj_color = (255, 255, 255)
         self.star_img_scale = star_img_scale
         self.img_scale = img_scale
-        self.distance_scale = 100
         self.time_speed = time_speed
         self.dt = dt
+        self.distance_scale = Settings.DEFAULT_DISTANCE_SCALE
 
     @property
     def screen_width(self):
@@ -68,8 +75,8 @@ class Settings:
     # Img may corrupt if the scale is too large.
     @star_img_scale.setter
     def star_img_scale(self, value):
-        if value > 500000:
-            self._star_img_scale = 500000
+        if value > 100000:
+            self._star_img_scale = 100000
         elif value < 0:
             self._star_img_scale = 0
         else:

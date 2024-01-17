@@ -21,12 +21,21 @@ pip3 install numpy
 pip3 install scipy
 pip3 install numba
 ```
+If you do not want to install scipy and numba, you can still run the program by removing the following lines in `gravity_sim/simulator.py`.
+Warning: This may leads to a significant drop in performance.
+```
+import numba as nb
+```
+```
+@nb.njit
+```
+
 ### Running the program
 Once you have downloaded the source files, open a terminal window, navigate to the directory of the source files and run:
 ```
 python3 gravity_sim
 ```
-Note: buttons may need some time to react.
+Note: the buttons may need some time to react.
 
 ## Control
 `W` `A` `S` `D`: Move camera\

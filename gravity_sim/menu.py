@@ -146,18 +146,18 @@ class Menu:
             if self.exit_button.rect.collidepoint(mouse_pos):
                 sys.exit()
         if self.void_button.rect.collidepoint(mouse_pos):
-            self.menu_common_actions(grav_sim)
+            self._menu_common_actions(grav_sim)
         if self.solar_system_button.rect.collidepoint(mouse_pos):
-            self.menu_common_actions(grav_sim)
+            self._menu_common_actions(grav_sim)
             Grav_obj.create_solor_system(grav_sim)
         if self.figure_8_button.rect.collidepoint(mouse_pos):
-            self.menu_common_actions(grav_sim)
+            self._menu_common_actions(grav_sim)
             Grav_obj.create_figure_8(grav_sim)
         if self.pyth_3_body_button.rect.collidepoint(mouse_pos):
-            self.menu_common_actions(grav_sim)
+            self._menu_common_actions(grav_sim)
             Grav_obj.create_pyth_3_body(grav_sim)
 
-    def menu_common_actions(self, grav_sim):
+    def _menu_common_actions(self, grav_sim):
         grav_sim.grav_objs.empty()
         grav_sim.stats.reset(grav_sim)
         self.menu_active = False

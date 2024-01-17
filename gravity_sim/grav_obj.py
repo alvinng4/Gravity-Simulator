@@ -27,17 +27,10 @@ class Grav_obj(Sprite):
         self.params = params
         self.diameter = 2 * self.params["R"]
         if name == "Sun":
-            self.img_diameter = (
-                self.diameter
-                * self.settings.star_img_scale
-            )
+            self.img_diameter = self.diameter * self.settings.star_img_scale
         else:
-            self.img_diameter = (
-                self.diameter
-                * self.settings.img_scale
-            )
+            self.img_diameter = self.diameter * self.settings.img_scale
 
-        # Note: apparent_scale = real_scale * img_scale
         if img_path:
             try:
                 load_image = pygame.image.load(img_path).convert_alpha()
@@ -49,28 +42,20 @@ class Grav_obj(Sprite):
                 sys.exit(
                     "Error: Image not found. Make sure the image path provided for Grav_obj is correct."
                 )
-        else:
-            pass
-            # Create new object by holding left click.
-
-        self.rect.centerx = self.params["r1"]
-        self.rect.centery = self.params["r2"]
 
     def update(self):
         """Update the apparent position of all grav_objs with camera"""
         self.rect.center = (
-            self.params["r1"]
-            * self.settings.distance_scale
+            self.params["r1"] * self.settings.distance_scale
             + self.screen_rect.centerx
-            - self.camera.pos_x,
-            -self.params["r2"]
-            * self.settings.distance_scale
+            - self.camera.pos[0],
+            -self.params["r2"] * self.settings.distance_scale
             + self.screen_rect.centery
-            - self.camera.pos_y,
+            - self.camera.pos[1],
         )
 
     @classmethod
-    def create_star(self, grav_sim, mouse_pos, camera_pos_x, camera_pos_y):
+    def create_star(self, grav_sim, mouse_pos, camera_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "images/sun.png")
         m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
@@ -79,15 +64,11 @@ class Grav_obj(Sprite):
             grav_sim,
             {
                 "r1": (
-                    mouse_pos[0]
-                    - grav_sim.screen.get_rect().centerx
-                    + camera_pos_x
+                    mouse_pos[0] - grav_sim.screen.get_rect().centerx + camera_pos[0]
                 )
                 / grav_sim.settings.distance_scale,
                 "r2": -(
-                    mouse_pos[1]
-                    - grav_sim.screen.get_rect().centery
-                    + camera_pos_y
+                    mouse_pos[1] - grav_sim.screen.get_rect().centery + camera_pos[1]
                 )
                 / grav_sim.settings.distance_scale,
                 "r3": 0.0,
