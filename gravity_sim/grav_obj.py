@@ -29,16 +29,12 @@ class Grav_obj(Sprite):
         if name == "Sun":
             self.img_diameter = (
                 self.diameter
-                * 0.25
                 * self.settings.star_img_scale
-                * self.settings.screen_height
             )
         else:
             self.img_diameter = (
                 self.diameter
-                * 0.25
                 * self.settings.img_scale
-                * self.settings.screen_height
             )
 
         # Note: apparent_scale = real_scale * img_scale
@@ -64,21 +60,17 @@ class Grav_obj(Sprite):
         """Update the apparent position of all grav_objs with camera"""
         self.rect.center = (
             self.params["r1"]
-            * 0.25
             * self.settings.distance_scale
-            * self.settings.screen_height
             + self.screen_rect.centerx
             - self.camera.pos_x,
             -self.params["r2"]
-            * 0.25
             * self.settings.distance_scale
-            * self.settings.screen_height
             + self.screen_rect.centery
             - self.camera.pos_y,
         )
 
     @classmethod
-    def create_star(self, grav_sim, mouse_pos):
+    def create_star(self, grav_sim, mouse_pos, camera_pos_x, camera_pos_y):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "images/sun.png")
         m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
@@ -89,23 +81,15 @@ class Grav_obj(Sprite):
                 "r1": (
                     mouse_pos[0]
                     - grav_sim.screen.get_rect().centerx
-                    - grav_sim.camera.pos_x
+                    + camera_pos_x
                 )
-                / (
-                    grav_sim.settings.distance_scale
-                    * 0.25
-                    * grav_sim.settings.screen_height
-                ),
+                / grav_sim.settings.distance_scale,
                 "r2": -(
                     mouse_pos[1]
                     - grav_sim.screen.get_rect().centery
-                    - grav_sim.camera.pos_y
+                    + camera_pos_y
                 )
-                / (
-                    grav_sim.settings.distance_scale
-                    * 0.25
-                    * grav_sim.settings.screen_height
-                ),
+                / grav_sim.settings.distance_scale,
                 "r3": 0.0,
                 "v1": 0.0,
                 "v2": 0.0,

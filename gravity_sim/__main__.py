@@ -61,6 +61,8 @@ class GravitySimulator:
                         if event.button == 3:  # right click
                             self.stats.start_holding_rclick()
                             self.new_obj_mouse_pos = mouse_pos
+                            self.new_obj_camera_pos_x = self.camera.pos_x
+                            self.new_obj_camera_pos_y = self.camera.pos_y
                     elif self.menu.menu_active == True:
                         if event.button == 1:  # left click
                             self.menu.check_button(self, mouse_pos)
@@ -68,9 +70,9 @@ class GravitySimulator:
                     if self.stats.is_holding_rclick == True:
                         if event.button == 3:
                             self.stats.end_holding_rclick()
-                            Grav_obj.create_star(self, self.new_obj_mouse_pos)
+                            Grav_obj.create_star(self, self.new_obj_mouse_pos, self.new_obj_camera_pos_x, self.new_obj_camera_pos_y)
                 case pygame.MOUSEWHEEL:
-                    self.settings.distance_scale += 0.1 * event.y
+                    self.settings.distance_scale += 10 * event.y
                 case pygame.QUIT:
                     sys.exit()
 
@@ -142,7 +144,7 @@ class GravitySimulator:
             "--img_scale",
             "-i",
             nargs=2,
-            default=[20, 400],
+            default=[5000, 100000],
             type=float,
             help="Usage: --img_scale <solar image scale>, <obj image scale>",
         )
@@ -163,14 +165,12 @@ class GravitySimulator:
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         img_R = (
             R
-            * 0.25
+            * (699.0 / 894.0)   # Sun size in the img with size (894 x 894)
             * self.settings.star_img_scale
-            * self.settings.screen_height
-            * 699.0
-            / 894.0
         )
+        new_obj_circle_pos = [self.new_obj_mouse_pos[0] + self.new_obj_camera_pos_x - self.camera.pos_x, self.new_obj_mouse_pos[1] + self.new_obj_camera_pos_y - self.camera.pos_y]
         pygame.draw.circle(
-            self.screen, "orange", self.new_obj_mouse_pos, img_R, width=1
+            self.screen, "orange", new_obj_circle_pos, img_R, width=1
         )
 
 
