@@ -7,8 +7,8 @@ class Settings:
         screen_height,
         star_img_scale,
         img_scale,
-        time_speed: int = 1000,
-        dt: float = 0.01,
+        time_speed: int = 1,
+        dt: float = 0.1,
     ):
         # To change the default settings of screen_width, screen_height, star_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
@@ -19,7 +19,7 @@ class Settings:
         self.grav_obj_color = (255, 255, 255)
         self.star_img_scale = star_img_scale
         self.img_scale = img_scale
-        self.distance_scale = 1
+        self.distance_scale = 100
         self.time_speed = time_speed
         self.dt = dt
 
@@ -68,8 +68,8 @@ class Settings:
     # Img may corrupt if the scale is too large.
     @star_img_scale.setter
     def star_img_scale(self, value):
-        if value > 100:
-            self._star_img_scale = 100
+        if value > 500000:
+            self._star_img_scale = 500000
         elif value < 0:
             self._star_img_scale = 0
         else:
@@ -78,8 +78,8 @@ class Settings:
     # Img may corrupt if the scale is too large.
     @img_scale.setter
     def img_scale(self, value):
-        if value > 1000:
-            self._img_scale = 1000
+        if value > 5000000:
+            self._img_scale = 5000000
         elif value < 0:
             self._img_scale = 0
         else:
@@ -89,8 +89,8 @@ class Settings:
     def distance_scale(self, value):
         if value > 1000:
             self._distance_scale = 1000
-        elif value <= 0.1:
-            self._distance_scale = 0.1
+        elif value <= 0:
+            self._distance_scale = 0
         else:
             self._distance_scale = value
 
