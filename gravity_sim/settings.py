@@ -12,6 +12,8 @@ class Settings:
 
     DISTANCE_SCALE_SPEED = 10
 
+    DEFAULT_NEW_OBJECT_VELOCITY_SCALE = 0.0001
+
     def __init__(
         self,
         screen_width: int,
@@ -96,8 +98,8 @@ class Settings:
     def distance_scale(self, value):
         if value > 1000:
             self._distance_scale = 1000
-        elif value <= 0:
-            self._distance_scale = 0
+        elif value <= 10:
+            self._distance_scale = 10
         else:
             self._distance_scale = value
 

@@ -126,14 +126,15 @@ class GravitySimulator:
                     self.menu.menu_active = not self.menu.menu_active
 
     def _check_mouse_button_down_events(self, event):
-        mouse_pos = pygame.mouse.get_pos()
         if event.button == 1:  # left click
+            mouse_pos = pygame.mouse.get_pos()
             if self.menu.menu_active == True:
                 self.menu.check_button(self, mouse_pos)
             else:
                 self.stats.check_button(self, mouse_pos)
         elif event.button == 3:  # right click
             if self.menu.menu_active == False:
+                mouse_pos = pygame.mouse.get_pos()
                 self.stats.start_holding_rclick()
                 self.new_obj_mouse_pos = mouse_pos
                 self.new_obj_camera_pos = self.camera.pos
@@ -141,9 +142,16 @@ class GravitySimulator:
     def _check_mouse_button_up_events(self, event):
         if event.button == 3:  # right click up
             if self.stats.is_holding_rclick == True:
+                self.new_obj_drag_mouse_pos = (
+                    pygame.mouse.get_pos()
+                )  # for object's velocity
                 self.stats.end_holding_rclick()
                 Grav_obj.create_star(
-                    self, self.new_obj_mouse_pos, self.new_obj_camera_pos
+                    self,
+                    self.new_obj_mouse_pos,
+                    self.new_obj_camera_pos,
+                    self.new_obj_drag_mouse_pos,
+                    self.camera.pos,
                 )
 
     def _read_command_line_arg(self):

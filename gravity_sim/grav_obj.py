@@ -4,6 +4,8 @@ import os
 import pygame
 from pygame.sprite import Sprite
 
+from settings import Settings
+
 
 class Grav_obj(Sprite):
     # Gravitational constant (AU^3 / d^2 / M_sun):
@@ -54,8 +56,8 @@ class Grav_obj(Sprite):
             - self.camera.pos[1],
         )
 
-    @classmethod
-    def create_star(self, grav_sim, mouse_pos, camera_pos):
+    @staticmethod
+    def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "images/sun.png")
         m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
@@ -72,8 +74,18 @@ class Grav_obj(Sprite):
                 )
                 / grav_sim.settings.distance_scale,
                 "r3": 0.0,
-                "v1": 0.0,
-                "v2": 0.0,
+                "v1": -(
+                    (drag_mouse_pos[0] - mouse_pos[0])
+                    + (drag_camera_pos[0] - camera_pos[0])
+                )
+                * Settings.DEFAULT_NEW_OBJECT_VELOCITY_SCALE
+                / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
+                "v2": (
+                    (drag_mouse_pos[1] - mouse_pos[1])
+                    + (drag_camera_pos[1] - camera_pos[1])
+                )
+                * Settings.DEFAULT_NEW_OBJECT_VELOCITY_SCALE
+                / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
                 "v3": 0.0,
                 "m": m,
                 "R": R,
@@ -84,8 +96,8 @@ class Grav_obj(Sprite):
         grav_sim.grav_objs.add(grav_obj)
         grav_sim.simulator.is_initialize = True
 
-    @classmethod
-    def create_solor_system(self, grav_sim):
+    @staticmethod
+    def create_solor_system(grav_sim):
         """
         Create the solar system
         Data dated on A.D. 2024-Jan-01 00:00:00.0000 TDB
@@ -239,8 +251,8 @@ class Grav_obj(Sprite):
         grav_sim.grav_objs.add(uranus)
         grav_sim.grav_objs.add(neptune)
 
-    @classmethod
-    def create_figure_8(self, grav_sim):
+    @staticmethod
+    def create_figure_8(grav_sim):
         """
         Create a figure-8 orbit
         Data from the book Moving Planets Around: An Introduction to
@@ -299,8 +311,8 @@ class Grav_obj(Sprite):
         grav_sim.grav_objs.add(object_2)
         grav_sim.grav_objs.add(object_3)
 
-    @classmethod
-    def create_pyth_3_body(self, grav_sim):
+    @staticmethod
+    def create_pyth_3_body(grav_sim):
         """
         Create a Pythagorean three-body orbit
         Data from the book Moving Planets Around: An Introduction to

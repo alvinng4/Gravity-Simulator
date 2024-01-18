@@ -43,7 +43,7 @@ Note: the buttons may need some time to react.
 `P`: Pause\
 `F`: Toggle full screen mode\
 `Scroll`: Change the distance scale\
-`Left click`: Hold to create new object
+`Left click`: Hold to create new object —— dragging your mouse would give it an initial boost
 
 ## Changing the settings
 When starting the program, you can customize the settings using command-line arguments.
