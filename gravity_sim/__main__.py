@@ -54,6 +54,7 @@ class GravitySimulator:
 
     def _check_events(self):
         self.simulator.check_current_integrator()
+        self.stats.check_current_changing_parameter()
         for event in pygame.event.get():
             match event.type:
                 case pygame.KEYDOWN:
@@ -65,9 +66,7 @@ class GravitySimulator:
                 case pygame.MOUSEBUTTONUP:
                     self._check_mouse_button_up_events(event)
                 case pygame.MOUSEWHEEL:
-                    self.settings.distance_scale += (
-                        Settings.DISTANCE_SCALE_SPEED * event.y
-                    )
+                    self.stats.scroll_change_parameters(event.y)
                 case pygame.QUIT:
                     sys.exit()
 
@@ -128,10 +127,9 @@ class GravitySimulator:
     def _check_mouse_button_down_events(self, event):
         if event.button == 1:  # left click
             mouse_pos = pygame.mouse.get_pos()
+            self.stats.check_button(self, mouse_pos)
             if self.menu.menu_active == True:
-                self.menu.check_button(self, mouse_pos)
-            else:
-                self.stats.check_button(self, mouse_pos)
+                self.menu.check_button(self, mouse_pos)  
         elif event.button == 3:  # right click
             if self.menu.menu_active == False:
                 mouse_pos = pygame.mouse.get_pos()

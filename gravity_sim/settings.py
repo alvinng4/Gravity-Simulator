@@ -10,7 +10,11 @@ class Settings:
     MAX_FPS = 60
     BG_COLOR = (0, 0, 0)  # Background color
 
-    DISTANCE_SCALE_SPEED = 10
+    CHANGE_STAR_IMG_SCALE_SPEED = 500
+    CHANGE_IMG_SCALE_SPEED = 10000
+    CHANGE_DISTANCE_SCALE_SPEED = 10
+    CHANGE_dt_SPEED = 0.1
+    CHANGE_TIME_SPEED_SPEED = 10
 
     DEFAULT_NEW_OBJECT_VELOCITY_SCALE = 0.0001
 
@@ -53,12 +57,12 @@ class Settings:
         return self._distance_scale
 
     @property
-    def time_speed(self):
-        return self._time_speed
-
-    @property
     def dt(self):
         return self._dt
+
+    @property
+    def time_speed(self):
+        return self._time_speed
 
     @screen_width.setter
     def screen_width(self, value):
@@ -103,6 +107,13 @@ class Settings:
         else:
             self._distance_scale = value
 
+    @dt.setter
+    def dt(self, value):
+        if value < 0:
+            self._dt = 0
+        else:
+            self._dt = value
+
     @time_speed.setter
     def time_speed(self, value):
         if value > 10000:
@@ -112,9 +123,4 @@ class Settings:
         else:
             self._time_speed = int(value)
 
-    @dt.setter
-    def dt(self, value):
-        if value < 0:
-            self._dt = 0
-        else:
-            self._dt = value
+
