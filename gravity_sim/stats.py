@@ -2,6 +2,7 @@ import time
 
 import pygame
 
+from settings import Settings
 from text_box import Text_box
 
 
@@ -15,12 +16,14 @@ class Stats:
     def __init__(self, grav_sim):
         self.simulation_time = 0
         self.fps = grav_sim.clock.get_fps()
+        self.total_energy = 0
         self.settings = grav_sim.settings
         self.star_img_scale = grav_sim.settings.star_img_scale
         self.img_scale = grav_sim.settings.img_scale
-        self.total_energy = 0
         self.is_paused = False
         self.is_holding_rclick = False
+        self.set_all_parameters_changing_false()
+        self.current_changing_parameter = None
         self.create_statsboard(grav_sim)
         self._statsboard_init_print_msg()
 
@@ -65,28 +68,34 @@ class Stats:
 
     def print_msg(self):
         self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
-        self.obj_board.print_msg(f"Object = {self.objects_count}")
-        self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
-        self.dt_board.print_msg(f"dt = {self.dt} days / frame")
-        self.time_speed_board.print_msg(f"Time Speed = {self.time_speed}x")
+        self.obj_count_board.print_msg(f"Object = {self.objects_count}")
         self.simulation_time_board.print_msg(
             f"Simulation Time = {self.simulation_time / 365.2425:.1e} years"
         )
         self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
         self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
 
+        self.star_img_scale_board.print_msg(f"Star Image Scale = {self.settings.star_img_scale}")
+        self.img_scale_board.print_msg(f"Planet Image Scale = {self.settings.img_scale}")
+        self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
+        self.dt_board.print_msg(f"dt = {self.dt} days / frame")
+        self.time_speed_board.print_msg(f"Time Speed = {self.time_speed}x")
+
+
     def draw(self, grav_sim):
         self.print_msg()
         self.fps_board.draw()
-        self.obj_board.draw()
+        self.obj_count_board.draw()
+        self.simulation_time_board.draw()
+        self.run_time_board.draw()
+        self.total_energy_board.draw()
+
+        self.parameters_board.draw()
         self.star_img_scale_board.draw()
         self.img_scale_board.draw()
         self.distance_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
-        self.simulation_time_board.draw()
-        self.run_time_board.draw()
-        self.total_energy_board.draw()
 
         self.integrators_board.draw()
         self.euler_board.draw()
@@ -94,6 +103,32 @@ class Stats:
         self.rk2_board.draw()
         self.rk4_board.draw()
         self.leapfrog_board.draw()
+
+        # Visual indicator for currently changing parameter
+        match self.current_changing_parameter:
+            case "star_img_scale":
+                pygame.draw.circle(
+                    grav_sim.screen, "yellow", (280, self.star_img_scale_board.rect.centery), 4
+                )
+            case "img_scale":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "yellow",
+                    (280, self.img_scale_board.rect.centery),
+                    4,
+                )
+            case "distance_scale":
+                pygame.draw.circle(
+                    grav_sim.screen, "yellow", (280, self.distance_scale_board.rect.centery), 4
+                )
+            case "dt":
+                pygame.draw.circle(
+                    grav_sim.screen, "yellow", (280, self.dt_board.rect.centery), 4
+                )
+            case "time_speed":
+                pygame.draw.circle(
+                    grav_sim.screen, "yellow", (280, self.time_speed_board.rect.centery), 4
+                )
 
         # Visual indicator for currently selected integrator
         match grav_sim.simulator.current_integrator:
@@ -123,6 +158,22 @@ class Stats:
 
     def check_button(self, grav_sim, mouse_pos):
         """Check if there is any click on the buttons"""
+        if self.star_img_scale_board.rect.collidepoint(mouse_pos):
+            self.set_all_parameters_changing_false()
+            self.is_changing_star_img_scale = True
+        if self.img_scale_board.rect.collidepoint(mouse_pos):
+            self.set_all_parameters_changing_false()
+            self.is_changing_img_scale = True
+        if self.distance_scale_board.rect.collidepoint(mouse_pos):
+            self.set_all_parameters_changing_false()
+            self.is_changing_distance_scale = True
+        if self.dt_board.rect.collidepoint(mouse_pos):
+            self.set_all_parameters_changing_false()
+            self.is_changing_dt = True
+        if self.time_speed_board.rect.collidepoint(mouse_pos):
+            self.set_all_parameters_changing_false()
+            self.is_changing_time_speed = True
+
         if self.euler_board.rect.collidepoint(mouse_pos):
             grav_sim.simulator.set_all_integrators_false()
             grav_sim.simulator.is_euler = True
@@ -139,16 +190,57 @@ class Stats:
             grav_sim.simulator.set_all_integrators_false()
             grav_sim.simulator.is_leapfrog = True
 
+    def check_current_changing_parameter(self):
+        if self.is_changing_star_img_scale == True:
+            self.current_changing_parameter = "star_img_scale"
+        elif self.is_changing_img_scale == True:
+            self.current_changing_parameter = "img_scale"
+        elif self.is_changing_distance_scale == True:
+            self.current_changing_parameter = "distance_scale"
+        elif self.is_changing_dt == True:
+            self.current_changing_parameter = "dt"
+        elif self.is_changing_time_speed == True:
+            self.current_changing_parameter = "time_speed"        
+
+    def set_all_parameters_changing_false(self):
+        self.is_changing_star_img_scale = False
+        self.is_changing_img_scale = False
+        self.is_changing_distance_scale = False
+        self.is_changing_dt = False 
+        self.is_changing_time_speed = False
+
     def _statsboard_init_print_msg(self):
-        # Image scale is fixed in the settings, only need to be drawn once (Change later)
-        self.star_img_scale_board.print_msg(f"Star Image Scale = {self.star_img_scale}")
-        self.img_scale_board.print_msg(f"Planet Image Scale = {self.img_scale}")
+        self.parameters_board.print_msg("Parameters: (Click to change)")
         self.integrators_board.print_msg(f"Integrators: (Click to switch)")
         self.euler_board.print_msg(f"Euler")
         self.euler_cromer_board.print_msg(f"Euler-Cromer")
         self.rk2_board.print_msg(f"2nd order Runge-Kutta")
         self.rk4_board.print_msg(f"4th order Runge-Kutta")
         self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
+
+    def scroll_change_parameters(self, magnitude):
+        match self.current_changing_parameter:
+            case "star_img_scale":
+                self.settings.star_img_scale += (
+                    Settings.CHANGE_STAR_IMG_SCALE_SPEED * magnitude
+                )
+            case "img_scale":
+                self.settings.img_scale += (
+                    Settings.CHANGE_IMG_SCALE_SPEED * magnitude
+                )
+            case "distance_scale":
+                self.settings.distance_scale += (
+                Settings.CHANGE_DISTANCE_SCALE_SPEED * magnitude
+                    )
+            case "dt":
+                self.settings.dt += (
+                Settings.CHANGE_dt_SPEED * magnitude
+                    )
+            case "time_speed":
+                self.settings.time_speed += (
+                Settings.CHANGE_TIME_SPEED_SPEED * magnitude
+                    )
+
 
     @classmethod
     def create_statsboard(self, grav_sim):
@@ -160,7 +252,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 0),
         )
-        self.obj_board = Text_box(
+        self.obj_count_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -168,7 +260,8 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 23),
         )
-        self.star_img_scale_board = Text_box(
+
+        self.simulation_time_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -176,7 +269,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 46),
         )
-        self.img_scale_board = Text_box(
+        self.run_time_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -184,7 +277,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 69),
         )
-        self.distance_scale_board = Text_box(
+        self.total_energy_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -192,15 +285,8 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 92),
         )
-        self.dt_board = Text_box(
-            grav_sim,
-            Stats.STATSBOARD_FONT,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
-            font="Avenir",
-            text_box_left_top=(10, 115),
-        )
-        self.time_speed_board = Text_box(
+
+        self.parameters_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -208,7 +294,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 138),
         )
-        self.simulation_time_board = Text_box(
+        self.star_img_scale_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -216,7 +302,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 161),
         )
-        self.run_time_board = Text_box(
+        self.img_scale_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -224,7 +310,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 184),
         )
-        self.total_energy_board = Text_box(
+        self.distance_scale_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -232,7 +318,15 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 207),
         )
-        self.integrators_board = Text_box(
+        self.dt_board = Text_box(
+            grav_sim,
+            Stats.STATSBOARD_FONT,
+            size_x=Stats.STATSBOARD_SIZE_X,
+            size_y=Stats.STATSBOARD_SIZE_Y,
+            font="Avenir",
+            text_box_left_top=(10, 230),
+        )
+        self.time_speed_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -240,15 +334,8 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 253),
         )
-        self.euler_board = Text_box(
-            grav_sim,
-            Stats.STATSBOARD_FONT,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
-            font="Avenir",
-            text_box_left_top=(10, 276),
-        )
-        self.euler_cromer_board = Text_box(
+
+        self.integrators_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -256,7 +343,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 299),
         )
-        self.rk2_board = Text_box(
+        self.euler_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -264,7 +351,7 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 322),
         )
-        self.rk4_board = Text_box(
+        self.euler_cromer_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
@@ -272,11 +359,27 @@ class Stats:
             font="Avenir",
             text_box_left_top=(10, 345),
         )
-        self.leapfrog_board = Text_box(
+        self.rk2_board = Text_box(
             grav_sim,
             Stats.STATSBOARD_FONT,
             size_x=Stats.STATSBOARD_SIZE_X,
             size_y=Stats.STATSBOARD_SIZE_Y,
             font="Avenir",
             text_box_left_top=(10, 368),
+        )
+        self.rk4_board = Text_box(
+            grav_sim,
+            Stats.STATSBOARD_FONT,
+            size_x=Stats.STATSBOARD_SIZE_X,
+            size_y=Stats.STATSBOARD_SIZE_Y,
+            font="Avenir",
+            text_box_left_top=(10, 391),
+        )
+        self.leapfrog_board = Text_box(
+            grav_sim,
+            Stats.STATSBOARD_FONT,
+            size_x=Stats.STATSBOARD_SIZE_X,
+            size_y=Stats.STATSBOARD_SIZE_Y,
+            font="Avenir",
+            text_box_left_top=(10, 414),
         )

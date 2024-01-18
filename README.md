@@ -42,8 +42,9 @@ Note: the buttons may need some time to react.
 `Esc`: Open the menu\
 `P`: Pause\
 `F`: Toggle full screen mode\
-`Scroll`: Change the distance scale\
-`Left click`: Hold to create new object —— dragging your mouse would give it an initial boost
+`Left click`: Hold to create new object —— dragging your mouse would give it an initial boost\
+`Right click` + `Scroll`: Right click on the parameters panel to select a parameter and scroll to change its value\
+`Right click`: Right click on the integrators panel to switch integrator
 
 ## Changing the settings
 When starting the program, you can customize the settings using command-line arguments.
