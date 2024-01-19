@@ -1,5 +1,9 @@
 import sys
 import argparse
+from os import environ
+
+# Remove the "Hello from the pygame community." message when starting the program.
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import pygame
 
@@ -15,15 +19,18 @@ class GravitySimulator:
     """Overall class to manage the main program."""
 
     def __init__(self):
+        """
+        Initialize the main program.
+        Initialization dependencies:
+            settings: none
+            menu: none
+            camera: none
+            stats: settings
+            grav_objs: camera, settings
+            simulator: stats, settings
+        """
         self._read_command_line_arg()
         pygame.init()
-        # Initialization dependencies:
-        # settings: none
-        # menu: none
-        # camera: none
-        # stats: settings
-        # grav_objs: camera, settings
-        # simulator: stats, settings
         self.settings = Settings(
             screen_width=self.args.resolution[0],
             screen_height=self.args.resolution[1],
