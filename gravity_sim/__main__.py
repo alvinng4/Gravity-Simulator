@@ -34,8 +34,6 @@ class GravitySimulator:
         self.settings = Settings(
             screen_width=self.args.resolution[0],
             screen_height=self.args.resolution[1],
-            star_img_scale=self.args.img_scale[0],
-            img_scale=self.args.img_scale[1],
         )
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height),
@@ -160,7 +158,7 @@ class GravitySimulator:
                 )
 
     def _read_command_line_arg(self):
-        parser = argparse.ArgumentParser(description="2D N-body gravity simulator")
+        parser = argparse.ArgumentParser(description="N-body gravity simulator")
         parser.add_argument(
             "--resolution",
             "-r",
@@ -168,17 +166,6 @@ class GravitySimulator:
             default=Settings.DEFAULT_RESOLUTION,
             type=float,
             help="Usage: --resolution <width>, <height>",
-        )
-        parser.add_argument(
-            "--img_scale",
-            "-i",
-            nargs=2,
-            default=[
-                Settings.DEFAULT_STAR_IMG_SCALE,
-                Settings.DEFAULT_PLANET_IMG_SCALE,
-            ],
-            type=float,
-            help="Usage: --img_scale <star image scale>, <planetf image scale>",
         )
         self.args = parser.parse_args()
         if not (self.args.resolution[0] > 0 and self.args.resolution[1] > 0):

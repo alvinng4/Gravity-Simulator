@@ -1,4 +1,4 @@
-# 2D-N-body-gravity-simulator
+# N-body-gravity-simulator
 Welcome to my Python project: N-body gravity simulator. This project is currently in development. More functions are going to be implemented in the future.
 
 ## Progress
@@ -46,27 +46,11 @@ Note: the buttons may need some time to react.
 `Right click` + `Scroll`: Right click on the parameters panel to select a parameter and scroll to change its value\
 `Right click`: Right click on the integrators panel to switch integrator
 
-## Changing the settings
-When starting the program, you can customize the settings using command-line arguments.
-```
-python3 gravity_sim [-r | --resolution] [-i | --img_scale] <args> 
-```
-
-### Resolution
+## Changing the resolution
 The default resolution is set to 1920 x 1080. However, you can set your own resolution by the following commands:
 ```
 python3 gravity_sim -r <width> <height>
 ```
-### Image scale
-All the images of the gravitational objects are scaled by some factors for better visibility. You can change the scale by the following commands:
-```
-python3 gravity_sim -i <star_img_scale> <planet_img_scale>
-```
-You may change the parameters altogether. The following command can be used to set a resolution of 2560 x 1440, star image scale of 10 and planet image scale of 30. 
-```
-python3 gravity_sim -r 2560 1440 -i 10 30
-```
-
 
 ## Functions in development:
 1. More advanced simulation: RKF4(5) method.
