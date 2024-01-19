@@ -1,5 +1,5 @@
 # 2D-N-body-gravity-simulator
-Welcome to my CS50 Python project: 2D N-body gravity simulator. This project is currently in development. More functions are going to be implemented in the future.
+Welcome to my Python project: N-body gravity simulator. This project is currently in development. More functions are going to be implemented in the future.
 
 ## Progress
 * Fixed step-size Euler, Euler-Cromer, RK2, RK4 and leapfrog methods for N-body are implemented.
