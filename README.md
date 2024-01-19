@@ -38,16 +38,17 @@ python3 gravity_sim
 Note: the buttons may need some time to react.
 
 ## Control
-`W` `A` `S` `D`: Move camera\
-`Esc`: Open the menu\
-`P`: Pause\
-`F`: Toggle full screen mode\
-`Left click`: Hold to create new object —— dragging your mouse would give it an initial boost\
-`Right click` + `Scroll`: Right click on the parameters panel to select a parameter and scroll to change its value\
-`Right click`: Right click on the integrators panel to switch integrator
+Move camera: `W` `A` `S` `D`\
+Menu: `Esc`\
+Pause: `P`\
+Toggle full-screen mode: `F`\
+Create new star: 
+Hold the right mouse button to create a star + drag the mouse to give it an initial boost.\
+Adjust parameter values: Left-click on the parameters panel to select a parameter + scroll to change its value.\
+Switch integrators: Left-click the integrator on the integrators panel.
 
 ## Changing the resolution
-The default resolution is set to 1920 x 1080. However, you can set your own resolution by the following commands:
+The default resolution is set to 1920 x 1080. However, you can set your own resolution by the following command:
 ```
 python3 gravity_sim -r <width> <height>
 ```
