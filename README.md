@@ -21,7 +21,7 @@ pip3 install numpy
 pip3 install scipy
 pip3 install numba
 ```
-If you do not want to install scipy and numba, you can still run the program by removing the following lines in `gravity_sim/simulator.py`.
+If you do not want to install scipy and numba, you can still run the program by removing the following lines in `gravity_sim/simulator.py`.\
 Warning: This may leads to a significant drop in performance.
 ```
 import numba as nb

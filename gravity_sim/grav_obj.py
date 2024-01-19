@@ -31,7 +31,7 @@ class Grav_obj(Sprite):
         if name == "Sun":
             self.img_diameter = self.diameter * self.settings.star_img_scale
         else:
-            self.img_diameter = self.diameter * self.settings.img_scale
+            self.img_diameter = self.diameter * self.settings.planet_img_scale
 
         if img_path:
             try:

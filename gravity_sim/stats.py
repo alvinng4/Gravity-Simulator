@@ -1,4 +1,5 @@
 import time
+import math
 
 import pygame
 
@@ -18,11 +19,9 @@ class Stats:
         self.total_energy = 0
         self.settings = grav_sim.settings
         self.star_img_scale = grav_sim.settings.star_img_scale
-        self.img_scale = grav_sim.settings.img_scale
+        self.planet_img_scale = grav_sim.settings.planet_img_scale
         self.is_paused = False
         self.is_holding_rclick = False
-        self.set_all_parameters_changing_false()
-        self.current_changing_parameter = None
         self.create_statsboard(grav_sim)
         self._statsboard_init_print_msg()
 
@@ -66,23 +65,23 @@ class Stats:
         self.is_holding_rclick = False
 
     def print_msg(self):
-        self.fps_board.print_msg(f"FPS = {round(self.fps, 1)}")
+        self.fps_board.print_msg(f"FPS = {self.fps:2.1f}")
         self.obj_count_board.print_msg(f"Object = {self.objects_count}")
         self.simulation_time_board.print_msg(
             f"Simulation Time = {self.simulation_time / 365.2425:.1e} years"
         )
-        self.run_time_board.print_msg(f"Run time = {int(self.run_time)} seconds")
+        self.run_time_board.print_msg(f"Run time = {self.run_time:.0f} seconds")
         self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
 
         self.star_img_scale_board.print_msg(
-            f"Star Image Scale = {self.settings.star_img_scale}"
+            f"Star Image Scale = {self.settings.star_img_scale:d}"
         )
-        self.img_scale_board.print_msg(
-            f"Planet Image Scale = {self.settings.img_scale}"
+        self.planet_img_scale_board.print_msg(
+            f"Planet Image Scale = {self.settings.planet_img_scale:d}"
         )
         self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
-        self.dt_board.print_msg(f"dt = {self.dt} days / frame")
-        self.time_speed_board.print_msg(f"Time Speed = {self.time_speed}x")
+        self.dt_board.print_msg(f"dt = {self.dt:g} days / frame")
+        self.time_speed_board.print_msg(f"Time Speed = {self.time_speed:d}x")
 
     def draw(self, grav_sim):
         self.print_msg()
@@ -94,7 +93,7 @@ class Stats:
 
         self.parameters_board.draw()
         self.star_img_scale_board.draw()
-        self.img_scale_board.draw()
+        self.planet_img_scale_board.draw()
         self.distance_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
@@ -107,7 +106,7 @@ class Stats:
         self.leapfrog_board.draw()
 
         # Visual indicator for currently changing parameter
-        match self.current_changing_parameter:
+        match self.settings.current_changing_parameter:
             case "star_img_scale":
                 pygame.draw.circle(
                     grav_sim.screen,
@@ -115,11 +114,11 @@ class Stats:
                     (280, self.star_img_scale_board.rect.centery + 5),
                     4,
                 )
-            case "img_scale":
+            case "planet_img_scale":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (280, self.img_scale_board.rect.centery + 5),
+                    (280, self.planet_img_scale_board.rect.centery + 5),
                     4,
                 )
             case "distance_scale":
@@ -176,20 +175,20 @@ class Stats:
     def check_button(self, grav_sim, mouse_pos):
         """Check if there is any click on the buttons"""
         if self.star_img_scale_board.rect.collidepoint(mouse_pos):
-            self.set_all_parameters_changing_false()
-            self.is_changing_star_img_scale = True
-        if self.img_scale_board.rect.collidepoint(mouse_pos):
-            self.set_all_parameters_changing_false()
-            self.is_changing_img_scale = True
+            self.settings.set_all_parameters_changing_false()
+            self.settings.is_changing_star_img_scale = True
+        if self.planet_img_scale_board.rect.collidepoint(mouse_pos):
+            self.settings.set_all_parameters_changing_false()
+            self.settings.is_changing_planet_img_scale = True
         if self.distance_scale_board.rect.collidepoint(mouse_pos):
-            self.set_all_parameters_changing_false()
-            self.is_changing_distance_scale = True
+            self.settings.set_all_parameters_changing_false()
+            self.settings.is_changing_distance_scale = True
         if self.dt_board.rect.collidepoint(mouse_pos):
-            self.set_all_parameters_changing_false()
-            self.is_changing_dt = True
+            self.settings.set_all_parameters_changing_false()
+            self.settings.is_changing_dt = True
         if self.time_speed_board.rect.collidepoint(mouse_pos):
-            self.set_all_parameters_changing_false()
-            self.is_changing_time_speed = True
+            self.settings.set_all_parameters_changing_false()
+            self.settings.is_changing_time_speed = True
 
         if self.euler_board.rect.collidepoint(mouse_pos):
             grav_sim.simulator.set_all_integrators_false()
@@ -207,25 +206,6 @@ class Stats:
             grav_sim.simulator.set_all_integrators_false()
             grav_sim.simulator.is_leapfrog = True
 
-    def check_current_changing_parameter(self):
-        if self.is_changing_star_img_scale == True:
-            self.current_changing_parameter = "star_img_scale"
-        elif self.is_changing_img_scale == True:
-            self.current_changing_parameter = "img_scale"
-        elif self.is_changing_distance_scale == True:
-            self.current_changing_parameter = "distance_scale"
-        elif self.is_changing_dt == True:
-            self.current_changing_parameter = "dt"
-        elif self.is_changing_time_speed == True:
-            self.current_changing_parameter = "time_speed"
-
-    def set_all_parameters_changing_false(self):
-        self.is_changing_star_img_scale = False
-        self.is_changing_img_scale = False
-        self.is_changing_distance_scale = False
-        self.is_changing_dt = False
-        self.is_changing_time_speed = False
-
     def _statsboard_init_print_msg(self):
         self.parameters_board.print_msg("Parameters: (Click to change)")
         self.integrators_board.print_msg(f"Integrators: (Click to switch)")
@@ -234,27 +214,6 @@ class Stats:
         self.rk2_board.print_msg(f"2nd order Runge-Kutta")
         self.rk4_board.print_msg(f"4th order Runge-Kutta")
         self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
-
-    def scroll_change_parameters(self, magnitude):
-        match self.current_changing_parameter:
-            case "star_img_scale":
-                self.settings.star_img_scale += (
-                    self.settings.CHANGE_STAR_IMG_SCALE_SPEED * magnitude
-                )
-            case "img_scale":
-                self.settings.img_scale += (
-                    self.settings.CHANGE_IMG_SCALE_SPEED * magnitude
-                )
-            case "distance_scale":
-                self.settings.distance_scale += (
-                    self.settings.CHANGE_DISTANCE_SCALE_SPEED * magnitude
-                )
-            case "dt":
-                self.settings.dt += self.settings.CHANGE_dt_SPEED * magnitude
-            case "time_speed":
-                self.settings.time_speed += (
-                    self.settings.CHANGE_TIME_SPEED_SPEED * magnitude
-                )
 
     @classmethod
     def create_statsboard(self, grav_sim):
@@ -316,7 +275,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 161),
         )
-        self.img_scale_board = Text_box(
+        self.planet_img_scale_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
