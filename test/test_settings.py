@@ -1,53 +1,87 @@
 from gravity_sim.settings import Settings
 
 
-def test_settings_screen_width():
-    settings1 = Settings(star_img_scale=10, img_scale=10, screen_width=1920, screen_height=1080)
+def test_settings_screen_size():
+    settings1 = Settings(screen_width=1920, screen_height=1080)
     assert settings1._screen_width == 1920
-    settings2 = Settings(star_img_scale=10, img_scale=10, screen_width=200.5, screen_height=1080)
-    assert settings2._screen_width == 200.5
-    settings3 = Settings(star_img_scale=10, img_scale=10, screen_width=-100, screen_height=1080)
-    assert settings3._screen_width == 0
-    settings4 = Settings(star_img_scale=10, img_scale=10, screen_width=0, screen_height=1080)
-    assert settings4._screen_width == 0
-
-def test_settings_screen_height():
-    settings1 = Settings(star_img_scale=10, img_scale=10, screen_width=1920, screen_height=1080)
     assert settings1._screen_height == 1080
-    settings2 = Settings(star_img_scale=10, img_scale=10, screen_width=1920, screen_height=200.5)
-    assert settings2._screen_height == 200.5
-    settings3 = Settings(star_img_scale=10, img_scale=10, screen_width=1920, screen_height=-100)
+    settings2 = Settings(screen_width=200.5, screen_height=201.5)
+    assert settings2._screen_width == 200.5
+    assert settings2._screen_height == 201.5
+    settings3 = Settings(screen_width=-100, screen_height=-101)
+    assert settings3._screen_width == 0
     assert settings3._screen_height == 0
-    settings4 = Settings(star_img_scale=10, img_scale=10, screen_width=1920, screen_height=0)
+    settings4 = Settings(screen_width=0, screen_height=0)
+    assert settings4._screen_width == 0
     assert settings4._screen_height == 0
 
-def test_settings_star_img_scale():
-    settings1 = Settings(star_img_scale=10.1, img_scale=10, screen_width=1920, screen_height=1080)
-    assert settings1._star_img_scale == 10.1
-    settings2 = Settings(star_img_scale=1000, img_scale=10, screen_width=1920, screen_height=1080)
-    assert settings2._star_img_scale == 100
-    settings3 = Settings(star_img_scale=0.1, img_scale=10, screen_width=1920, screen_height=1080)
-    assert settings3._star_img_scale == 0.1
-    settings4 = Settings(star_img_scale=-10, img_scale=10, screen_width=1920, screen_height=1080)
-    assert settings4._star_img_scale == 0
 
-def test_settings_img_scale():
-    settings1 = Settings(star_img_scale=10, img_scale=10.1, screen_width=1920, screen_height=1080)
-    assert settings1._img_scale == 10.1
-    settings2 = Settings(star_img_scale=10, img_scale=2000, screen_width=1920, screen_height=1080)
-    assert settings2._img_scale == 1000
-    settings3 = Settings(star_img_scale=10, img_scale=0.1, screen_width=1920, screen_height=1080)
-    assert settings3._img_scale == 0.1
-    settings4 = Settings(star_img_scale=-10, img_scale=-10, screen_width=1920, screen_height=1080)
-    assert settings4._img_scale == 0
+def test_settings_star_img_scale():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.star_img_scale == 5000
+    settings.star_img_scale = 1
+    assert settings.star_img_scale == 1
+    settings.star_img_scale = 0
+    assert settings.star_img_scale == 0
+    settings.star_img_scale = -10
+    assert settings.star_img_scale == 0
+    settings.star_img_scale = 150000
+    assert settings.star_img_scale == 100000
+
+
+def test_settings_planet_img_scale():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.planet_img_scale == 100000
+    settings.planet_img_scale = 1
+    assert settings.planet_img_scale == 1
+    settings.planet_img_scale = 0
+    assert settings.planet_img_scale == 0
+    settings.planet_img_scale = -10
+    assert settings.planet_img_scale == 0
+    settings.planet_img_scale = 1500000
+    assert settings.planet_img_scale == 1000000
+
 
 def test_settings_distance_scale():
-    settings = Settings(star_img_scale=10, img_scale=10.1, screen_width=1920, screen_height=1080)
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.distance_scale == 200
     settings.distance_scale = 1
     assert settings.distance_scale == 1
     settings.distance_scale = 1000
     assert settings.distance_scale == 1000
     settings.distance_scale = -10.5
-    assert settings.distance_scale == 0.1
+    assert settings.distance_scale == 0
     settings.distance_scale = 0
-    assert settings.distance_scale == 0.1
+    assert settings.distance_scale == 0
+    settings.distance_scale = 1500
+    assert settings.distance_scale == 1000
+
+
+def test_settings_dt():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.dt == 0.1
+    settings.dt = 10
+    assert settings.dt == 10
+    settings.dt = 0.00001
+    assert settings.dt == 0.00001
+    settings.dt = -10.5
+    assert settings.dt == 1e-10
+    settings.dt = 0
+    assert settings.dt == 1e-10
+    settings.dt = 150
+    assert settings.dt == 100
+
+
+def test_settings_time_speed():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.time_speed == 1
+    settings.time_speed = 10
+    assert settings.time_speed == 10
+    settings.time_speed = 1000
+    assert settings.time_speed == 1000
+    settings.time_speed = -10.5
+    assert settings.time_speed == 1
+    settings.time_speed = 0
+    assert settings.time_speed == 1
+    settings.time_speed = 15000
+    assert settings.time_speed == 10000

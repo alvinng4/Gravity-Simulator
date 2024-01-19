@@ -59,7 +59,7 @@ class GravitySimulator:
 
     def _check_events(self):
         self.simulator.check_current_integrator()
-        self.stats.check_current_changing_parameter()
+        self.settings.check_current_changing_parameter()
         for event in pygame.event.get():
             match event.type:
                 case pygame.KEYDOWN:
@@ -71,7 +71,7 @@ class GravitySimulator:
                 case pygame.MOUSEBUTTONUP:
                     self._check_mouse_button_up_events(event)
                 case pygame.MOUSEWHEEL:
-                    self.stats.scroll_change_parameters(event.y)
+                    self.settings.scroll_change_parameters(event.y)
                 case pygame.QUIT:
                     sys.exit()
 
