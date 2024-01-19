@@ -129,7 +129,7 @@ class GravitySimulator:
             mouse_pos = pygame.mouse.get_pos()
             self.stats.check_button(self, mouse_pos)
             if self.menu.menu_active == True:
-                self.menu.check_button(self, mouse_pos)  
+                self.menu.check_button(self, mouse_pos)
         elif event.button == 3:  # right click
             if self.menu.menu_active == False:
                 mouse_pos = pygame.mouse.get_pos()

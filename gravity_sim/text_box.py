@@ -1,3 +1,5 @@
+import os
+
 import pygame.font
 
 
@@ -8,10 +10,10 @@ class Text_box:
         self,
         grav_sim,
         font_size: int,
-        size_factor_x: float=None,
-        size_factor_y: float=None,
-        size_x: int=None,
-        size_y: int=None,
+        size_factor_x: float = None,
+        size_factor_y: float = None,
+        size_x: int = None,
+        size_y: int = None,
         font: str = None,
         msg: str = None,
         text_box_color: tuple = None,
@@ -26,16 +28,21 @@ class Text_box:
         # Set the dimensions and properties of the text box.
         if size_factor_x != None:
             self.width = size_factor_x * grav_sim.settings.screen_width
-        else: 
+        else:
             self.width = size_x
         if size_factor_y != None:
             self.height = size_factor_y * grav_sim.settings.screen_height
-        else: 
+        else:
             self.height = size_y
 
         self.textbox_color = text_box_color
         self.text_color = text_color
-        self.font = pygame.font.SysFont(font, font_size)
+        main_dir_path = os.path.dirname(__file__)
+        path_manrope = os.path.join(main_dir_path, "fonts/Manrope-Regular.ttf")
+        if font == "Manrope":
+            self.font = pygame.font.Font(path_manrope, font_size)
+        else:
+            self.font = pygame.font.SysFont(font, font_size)
 
         # Build the text box's rect object and center it.
         self.center = center

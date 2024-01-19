@@ -122,5 +122,3 @@ class Settings:
             self._time_speed = 1
         else:
             self._time_speed = int(value)
-
-

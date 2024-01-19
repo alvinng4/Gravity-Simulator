@@ -21,7 +21,7 @@ class Menu:
             0,
             0,
             msg="2D N-body Gravity Simulator",
-            font="Avenir",
+            font="Manrope",
             center=(
                 self.screen_rect.centerx,
                 self.screen_rect.centery - 0.3 * self.settings.screen_height,
