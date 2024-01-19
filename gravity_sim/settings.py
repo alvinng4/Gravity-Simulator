@@ -22,19 +22,17 @@ class Settings:
         self,
         screen_width: int,
         screen_height: int,
-        star_img_scale: float,
-        img_scale: float,
         time_speed: int = DEFAULT_TIME_SPEED,
         dt: float = DEFAULT_dt,
     ):
-        # To change the default settings of screen_width, screen_height, star_img_scale, img_scale, go to _read_command_line_arg function in __main__.py
+        # To change the default settings of screen_width and screen_height, go to _read_command_line_arg function in __main__.py
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.star_img_scale = star_img_scale
-        self.img_scale = img_scale
+        self.star_img_scale = self.DEFAULT_STAR_IMG_SCALE
+        self.img_scale = self.DEFAULT_PLANET_IMG_SCALE
         self.time_speed = time_speed
         self.dt = dt
-        self.distance_scale = Settings.DEFAULT_DISTANCE_SCALE
+        self.distance_scale = self.DEFAULT_DISTANCE_SCALE
 
     @property
     def screen_width(self):

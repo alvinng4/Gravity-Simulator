@@ -2,7 +2,6 @@ import time
 
 import pygame
 
-from settings import Settings
 from text_box import Text_box
 
 
@@ -240,157 +239,161 @@ class Stats:
         match self.current_changing_parameter:
             case "star_img_scale":
                 self.settings.star_img_scale += (
-                    Settings.CHANGE_STAR_IMG_SCALE_SPEED * magnitude
+                    self.settings.CHANGE_STAR_IMG_SCALE_SPEED * magnitude
                 )
             case "img_scale":
-                self.settings.img_scale += Settings.CHANGE_IMG_SCALE_SPEED * magnitude
+                self.settings.img_scale += (
+                    self.settings.CHANGE_IMG_SCALE_SPEED * magnitude
+                )
             case "distance_scale":
                 self.settings.distance_scale += (
-                    Settings.CHANGE_DISTANCE_SCALE_SPEED * magnitude
+                    self.settings.CHANGE_DISTANCE_SCALE_SPEED * magnitude
                 )
             case "dt":
-                self.settings.dt += Settings.CHANGE_dt_SPEED * magnitude
+                self.settings.dt += self.settings.CHANGE_dt_SPEED * magnitude
             case "time_speed":
-                self.settings.time_speed += Settings.CHANGE_TIME_SPEED_SPEED * magnitude
+                self.settings.time_speed += (
+                    self.settings.CHANGE_TIME_SPEED_SPEED * magnitude
+                )
 
     @classmethod
     def create_statsboard(self, grav_sim):
         self.fps_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 0),
         )
         self.obj_count_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 23),
         )
 
         self.simulation_time_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 46),
         )
         self.run_time_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 69),
         )
         self.total_energy_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 92),
         )
 
         self.parameters_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 138),
         )
         self.star_img_scale_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 161),
         )
         self.img_scale_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 184),
         )
         self.distance_scale_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 207),
         )
         self.dt_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 230),
         )
         self.time_speed_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 253),
         )
 
         self.integrators_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 299),
         )
         self.euler_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 322),
         )
         self.euler_cromer_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 345),
         )
         self.rk2_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 368),
         )
         self.rk4_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 391),
         )
         self.leapfrog_board = Text_box(
             grav_sim,
-            Stats.STATSBOARD_FONT_SIZE,
-            size_x=Stats.STATSBOARD_SIZE_X,
-            size_y=Stats.STATSBOARD_SIZE_Y,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 414),
         )
