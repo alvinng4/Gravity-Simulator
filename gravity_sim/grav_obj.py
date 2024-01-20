@@ -60,7 +60,7 @@ class Grav_obj(Sprite):
     def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "assets/images/sun.png")
-        m = 1 * 0.5 * grav_sim.stats.holding_rclick_time
+        m = 1 * 0.5 * grav_sim.stats.holding_rclick_time * grav_sim.settings.new_star_mass
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         grav_obj = Grav_obj(
             grav_sim,
@@ -78,13 +78,13 @@ class Grav_obj(Sprite):
                     (drag_mouse_pos[0] - mouse_pos[0])
                     + (drag_camera_pos[0] - camera_pos[0])
                 )
-                * Settings.DEFAULT_NEW_OBJECT_VELOCITY_SCALE
+                * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
                 / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
                 "v2": (
                     (drag_mouse_pos[1] - mouse_pos[1])
                     + (drag_camera_pos[1] - camera_pos[1])
                 )
-                * Settings.DEFAULT_NEW_OBJECT_VELOCITY_SCALE
+                * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
                 / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
                 "v3": 0.0,
                 "m": m,

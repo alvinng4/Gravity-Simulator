@@ -29,7 +29,7 @@ class Simulator:
         self.current_integrator = "leapfrog"
 
     def run_simulation(self, grav_sim):
-        self.stats.simulation_time += self.stats.dt
+        self.stats.simulation_time += self.settings.dt
         if self.is_initialize == True:
             self.initialize_problem(grav_sim)
 

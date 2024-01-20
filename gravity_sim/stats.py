@@ -1,5 +1,4 @@
 import time
-import math
 
 import pygame
 
@@ -18,8 +17,6 @@ class Stats:
         self.fps = grav_sim.clock.get_fps()
         self.total_energy = 0
         self.settings = grav_sim.settings
-        self.star_img_scale = grav_sim.settings.star_img_scale
-        self.planet_img_scale = grav_sim.settings.planet_img_scale
         self.is_paused = False
         self.is_holding_rclick = False
         self.create_statsboard(grav_sim)
@@ -28,9 +25,6 @@ class Stats:
     def update(self, grav_sim):
         self.fps = grav_sim.clock.get_fps()
         self.objects_count = len(grav_sim.grav_objs)
-        self.distance_scale = round(grav_sim.settings.distance_scale, 1)
-        self.dt = grav_sim.settings.dt
-        self.time_speed = grav_sim.settings.time_speed
 
         if grav_sim.menu.main_menu_active == True:
             self.start_time = time.time()
@@ -79,9 +73,11 @@ class Stats:
         self.planet_img_scale_board.print_msg(
             f"Planet Image Scale = {self.settings.planet_img_scale:d}"
         )
-        self.distance_scale_board.print_msg(f"Distance Scale = {self.distance_scale}")
-        self.dt_board.print_msg(f"dt = {self.dt:g} days / frame")
-        self.time_speed_board.print_msg(f"Time Speed = {self.time_speed:d}x")
+        self.distance_scale_board.print_msg(f"Distance Scale = {self.settings.distance_scale}")
+        self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
+        self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
+        self.epsilon_board.print_msg(f"Epsilon = {self.settings.epsilon:g}")
+        self.new_star_mass_board.print_msg(f"New star mass = {self.settings.new_star_mass:g}x")
 
     def draw(self, grav_sim):
         self.print_msg()
@@ -97,6 +93,8 @@ class Stats:
         self.distance_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
+        self.epsilon_board.draw()
+        self.new_star_mass_board.draw()
 
         self.integrators_board.draw()
         self.euler_board.draw()
@@ -137,6 +135,20 @@ class Stats:
                     grav_sim.screen,
                     "yellow",
                     (290, self.time_speed_board.rect.centery + 5),
+                    4,
+                )
+            case "epsilon":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "yellow",
+                    (290, self.epsilon_board.rect.centery + 5),
+                    4,
+                )
+            case "new_star_mass":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "yellow",
+                    (290, self.new_star_mass_board.rect.centery + 5),
                     4,
                 )
 
@@ -190,6 +202,12 @@ class Stats:
             if self.time_speed_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_time_speed = True
+            if self.epsilon_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_epsilon = True
+            if self.new_star_mass_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_new_star_mass = True
 
             if self.euler_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
@@ -308,8 +326,15 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 253),
         )
-
-        self.integrators_board = Text_box(
+        self.epsilon_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 276),
+        )
+        self.new_star_mass_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -317,15 +342,8 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 299),
         )
-        self.euler_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 322),
-        )
-        self.euler_cromer_board = Text_box(
+
+        self.integrators_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -333,7 +351,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 345),
         )
-        self.rk2_board = Text_box(
+        self.euler_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -341,7 +359,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 368),
         )
-        self.rk4_board = Text_box(
+        self.euler_cromer_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -349,11 +367,27 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 391),
         )
-        self.leapfrog_board = Text_box(
+        self.rk2_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 414),
+        )
+        self.rk4_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 437),
+        )
+        self.leapfrog_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 460),
         )
