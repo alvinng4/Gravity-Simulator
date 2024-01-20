@@ -64,7 +64,7 @@ class Grav_obj(Sprite):
             1
             * 0.5
             * grav_sim.stats.holding_rclick_time
-            * grav_sim.settings.new_star_mass
+            * grav_sim.settings.new_star_mass_scale
         )
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         grav_obj = Grav_obj(

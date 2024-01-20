@@ -15,11 +15,11 @@ class Settings:
     DEFAULT_dt = 0.1
     DEFAULT_TIME_SPEED = 1
     DEFAULT_EPSILON = 1e-2
-    DEFAULT_NEW_STAR_MASS = 1
+    DEFAULT_NEW_STAR_MASS_SCALE = 1
 
     MAX_STAR_IMG_SCALE = 100000
     MIN_STAR_IMG_SCALE = 0
-    MAX_PLANET_IMG_SCALE = 1000000
+    MAX_PLANET_IMG_SCALE = 500000
     MIN_PLANET_IMG_SCALE = 0
     MAX_DISTANCE_SCALE = 1000
     MIN_DISTANCE_SCALE = 0
@@ -29,8 +29,8 @@ class Settings:
     MIN_TIME_SPEED = 1
     MAX_EPSILON = 1e2
     MIN_EPSILON = 1e-15
-    MAX_NEW_STAR_MASS = 1e7
-    MIN_NEW_STAR_MASS = 1e-3
+    MAX_NEW_STAR_MASS_SCALE = 1000
+    MIN_NEW_STAR_MASS_SCALE = 1e-3
 
     DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED = 500
     DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED = 10000
@@ -52,7 +52,7 @@ class Settings:
         self.dt = self.DEFAULT_dt
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.epsilon = self.DEFAULT_EPSILON
-        self.new_star_mass = self.DEFAULT_NEW_STAR_MASS
+        self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
         self.set_all_parameters_changing_false()
         self.current_changing_parameter = None
         self.is_hide_gui = False
@@ -78,8 +78,8 @@ class Settings:
                 self.time_speed += self.change_time_speed_speed * magnitude
             case "epsilon":
                 self.epsilon += self.change_epsilon_speed * magnitude
-            case "new_star_mass":
-                self.new_star_mass += self.change_new_star_mass_speed * magnitude
+            case "new_star_mass_scale":
+                self.new_star_mass_scale += self.change_new_star_mass_scale_speed * magnitude
 
     def _update_parameter_changing_speed(self, magnitude):
         if magnitude > 0:
@@ -153,33 +153,33 @@ class Settings:
                                 self.change_epsilon_speed = self.round_up_base_10(
                                     self.epsilon
                                 )
-                case "new_star_mass":
+                case "new_star_mass_scale":
                     if not (
-                        self.new_star_mass < self.MIN_NEW_STAR_MASS
-                        or self.new_star_mass > self.MAX_NEW_STAR_MASS
+                        self.new_star_mass_scale < self.MIN_NEW_STAR_MASS_SCALE
+                        or self.new_star_mass_scale > self.MAX_NEW_STAR_MASS_SCALE
                     ):
-                        if self.new_star_mass != self.round_up_base_10(
-                            self.new_star_mass
+                        if self.new_star_mass_scale != self.round_up_base_10(
+                            self.new_star_mass_scale
                         ):
-                            if self.new_star_mass + (
-                                self.round_up_base_10(self.new_star_mass) / 10.0
-                            ) * magnitude > self.round_up_base_10(self.new_star_mass):
-                                self.change_new_star_mass_speed = (
-                                    self.round_up_base_10(self.new_star_mass)
-                                    - self.new_star_mass
+                            if self.new_star_mass_scale + (
+                                self.round_up_base_10(self.new_star_mass_scale) / 10.0
+                            ) * magnitude > self.round_up_base_10(self.new_star_mass_scale):
+                                self.change_new_star_mass_scale_speed = (
+                                    self.round_up_base_10(self.new_star_mass_scale)
+                                    - self.new_star_mass_scale
                                 ) / magnitude
                             else:
-                                self.change_new_star_mass_speed = (
-                                    self.round_up_base_10(self.new_star_mass) / 10
+                                self.change_new_star_mass_scale_speed = (
+                                    self.round_up_base_10(self.new_star_mass_scale) / 10
                                 )
                         else:
                             if magnitude > 10:
-                                self.change_new_star_mass_speed = self.round_up_base_10(
-                                    self.new_star_mass
+                                self.change_new_star_mass_scale_speed = self.round_up_base_10(
+                                    self.new_star_mass_scale
                                 ) * (10 / magnitude)
                             else:
-                                self.change_new_star_mass_speed = self.round_up_base_10(
-                                    self.new_star_mass
+                                self.change_new_star_mass_scale_speed = self.round_up_base_10(
+                                    self.new_star_mass_scale
                                 )
 
         elif magnitude < 0:
@@ -261,38 +261,38 @@ class Settings:
                                 self.change_epsilon_speed = (
                                     self.round_up_base_10(self.epsilon) / 10
                                 )
-                case "new_star_mass":
+                case "new_star_mass_scale":
                     if not (
-                        self.new_star_mass < self.MIN_NEW_STAR_MASS
-                        or self.new_star_mass > self.MAX_NEW_STAR_MASS
+                        self.new_star_mass_scale < self.MIN_NEW_STAR_MASS_SCALE
+                        or self.new_star_mass_scale > self.MAX_NEW_STAR_MASS_SCALE
                     ):
-                        if self.new_star_mass != self.round_up_base_10(
-                            self.new_star_mass
+                        if self.new_star_mass_scale != self.round_up_base_10(
+                            self.new_star_mass_scale
                         ):
                             if (
-                                self.new_star_mass
-                                + (self.round_up_base_10(self.new_star_mass) / 10)
+                                self.new_star_mass_scale
+                                + (self.round_up_base_10(self.new_star_mass_scale) / 10)
                                 * magnitude
-                                < self.round_up_base_10(self.new_star_mass) / 10
+                                < self.round_up_base_10(self.new_star_mass_scale) / 10
                             ):
-                                self.change_new_star_mass_speed = (
-                                    self.new_star_mass
-                                    - self.round_up_base_10(self.new_star_mass) / 10
+                                self.change_new_star_mass_scale_speed = (
+                                    self.new_star_mass_scale
+                                    - self.round_up_base_10(self.new_star_mass_scale) / 10
                                 ) / -magnitude
                             else:
-                                self.change_new_star_mass_speed = (
-                                    self.round_up_base_10(self.new_star_mass) / 10
+                                self.change_new_star_mass_scale_speed = (
+                                    self.round_up_base_10(self.new_star_mass_scale) / 10
                                 )
                         else:
                             if -magnitude >= 10:
-                                self.change_new_star_mass_speed = (
-                                    self.round_up_base_10(self.new_star_mass)
+                                self.change_new_star_mass_scale_speed = (
+                                    self.round_up_base_10(self.new_star_mass_scale)
                                     * (9 / 10)
                                     / -magnitude
                                 )
                             else:
-                                self.change_new_star_mass_speed = (
-                                    self.round_up_base_10(self.new_star_mass) / 10
+                                self.change_new_star_mass_scale_speed = (
+                                    self.round_up_base_10(self.new_star_mass_scale) / 10
                                 )
 
     @staticmethod
@@ -315,8 +315,8 @@ class Settings:
             self.current_changing_parameter = "time_speed"
         elif self.is_changing_epsilon == True:
             self.current_changing_parameter = "epsilon"
-        elif self.is_changing_new_star_mass == True:
-            self.current_changing_parameter = "new_star_mass"
+        elif self.is_changing_new_star_mass_scale == True:
+            self.current_changing_parameter = "new_star_mass_scale"
 
     def set_all_parameters_changing_false(self):
         self.is_changing_star_img_scale = False
@@ -325,7 +325,7 @@ class Settings:
         self.is_changing_dt = False
         self.is_changing_time_speed = False
         self.is_changing_epsilon = False
-        self.is_changing_new_star_mass = False
+        self.is_changing_new_star_mass_scale = False
 
     def reset_parameters(self):
         self.star_img_scale = self.DEFAULT_STAR_IMG_SCALE
@@ -334,7 +334,7 @@ class Settings:
         self.dt = self.DEFAULT_dt
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.epsilon = self.DEFAULT_EPSILON
-        self.new_star_mass = self.DEFAULT_NEW_STAR_MASS
+        self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
 
     @property
     def screen_width(self):
@@ -369,8 +369,8 @@ class Settings:
         return self._epsilon
 
     @property
-    def new_star_mass(self):
-        return self._new_star_mass
+    def new_star_mass_scale(self):
+        return self._new_star_mass_scale
 
     @screen_width.setter
     def screen_width(self, value):
@@ -442,11 +442,11 @@ class Settings:
         else:
             self._epsilon = round(value, ndigits=16)
 
-    @new_star_mass.setter
-    def new_star_mass(self, value):
-        if value > self.MAX_NEW_STAR_MASS:
-            self._new_star_mass = self.MAX_NEW_STAR_MASS
-        elif value < self.MIN_NEW_STAR_MASS:
-            self._new_star_mass = self.MIN_NEW_STAR_MASS
+    @new_star_mass_scale.setter
+    def new_star_mass_scale(self, value):
+        if value > self.MAX_NEW_STAR_MASS_SCALE:
+            self._new_star_mass_scale = self.MAX_NEW_STAR_MASS_SCALE
+        elif value < self.MIN_NEW_STAR_MASS_SCALE:
+            self._new_star_mass_scale = self.MIN_NEW_STAR_MASS_SCALE
         else:
-            self._new_star_mass = round(value, ndigits=16)
+            self._new_star_mass_scale = round(value, ndigits=16)

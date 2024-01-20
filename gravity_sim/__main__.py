@@ -188,7 +188,7 @@ class GravitySimulator:
             ),
             pygame.mouse.get_pos(),
         )
-        m = 1 * 0.5 * self.stats.holding_rclick_time * self.settings.new_star_mass
+        m = 1 * 0.5 * self.stats.holding_rclick_time * self.settings.new_star_mass_scale
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         img_R = (
             R
