@@ -1,9 +1,8 @@
 # TODO 
 1. More advanced algorithms
-2. Allow user to change stats parameters by clicking
-3. Add a info box for each mode
+2. Hide button to hide all boards + Reset button to reset parameters
+3. Add a info box for each mode (optional)
 4. Collision(After embedded RK)
-5. Hide button to hide all boards
 
 
 

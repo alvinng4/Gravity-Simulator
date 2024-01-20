@@ -38,7 +38,7 @@ class Text_box:
         self.textbox_color = text_box_color
         self.text_color = text_color
         main_dir_path = os.path.dirname(__file__)
-        path_manrope = os.path.join(main_dir_path, "fonts/Manrope-Regular.ttf")
+        path_manrope = os.path.join(main_dir_path, "assets/fonts/Manrope-Regular.ttf")
         if font == "Manrope":
             self.font = pygame.font.Font(path_manrope, font_size)
         else:
