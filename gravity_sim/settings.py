@@ -190,6 +190,13 @@ class Settings:
         self.is_changing_dt = False
         self.is_changing_time_speed = False
 
+    def reset_parameters(self):
+        self.star_img_scale = self.DEFAULT_STAR_IMG_SCALE
+        self.planet_img_scale = self.DEFAULT_PLANET_IMG_SCALE
+        self.time_speed = self.DEFAULT_TIME_SPEED
+        self.dt = self.DEFAULT_dt
+        self.distance_scale = self.DEFAULT_DISTANCE_SCALE
+
     @property
     def screen_width(self):
         return self._screen_width
