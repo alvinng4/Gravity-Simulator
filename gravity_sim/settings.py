@@ -5,6 +5,10 @@ class Settings:
     """A class to store all settings for gravity simulator."""
 
     DEFAULT_RESOLUTION = (1920, 1080)
+
+    MAX_FPS = 60
+    BG_COLOR = (0, 0, 0)  # Background color
+
     DEFAULT_STAR_IMG_SCALE = 5000
     DEFAULT_PLANET_IMG_SCALE = 100000
     DEFAULT_DISTANCE_SCALE = 200
@@ -12,14 +16,7 @@ class Settings:
     DEFAULT_TIME_SPEED = 1
     DEFAULT_EPSILON = 1e-2
     DEFAULT_NEW_STAR_MASS = 1
-    MAX_FPS = 60
-    BG_COLOR = (0, 0, 0)  # Background color
 
-    DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED = 500
-    DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED = 10000
-    DEFAULT_CHANGE_DISTANCE_SCALE_SPEED = 10
-
-    DEFAULT_NEW_STAR_VELOCITY_SCALE = 0.0001
     MAX_STAR_IMG_SCALE = 100000
     MIN_STAR_IMG_SCALE = 0
     MAX_PLANET_IMG_SCALE = 1000000
@@ -34,6 +31,12 @@ class Settings:
     MIN_EPSILON = 1e-15
     MAX_NEW_STAR_MASS = 1e7
     MIN_NEW_STAR_MASS = 1e-3
+
+    DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED = 500
+    DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED = 10000
+    DEFAULT_CHANGE_DISTANCE_SCALE_SPEED = 10
+
+    DEFAULT_NEW_STAR_VELOCITY_SCALE = 0.0001
 
     def __init__(
         self,
@@ -126,7 +129,10 @@ class Settings:
                     else:
                         self.change_time_speed_speed = 50
                 case "epsilon":
-                    if not (self.epsilon < self.MIN_EPSILON or self.epsilon > self.MAX_EPSILON):
+                    if not (
+                        self.epsilon < self.MIN_EPSILON
+                        or self.epsilon > self.MAX_EPSILON
+                    ):
                         if self.epsilon != self.round_up_base_10(self.epsilon):
                             if self.epsilon + (
                                 self.round_up_base_10(self.epsilon) / 10.0
@@ -144,15 +150,23 @@ class Settings:
                                     self.epsilon
                                 ) * (10 / magnitude)
                             else:
-                                self.change_epsilon_speed = self.round_up_base_10(self.epsilon)
+                                self.change_epsilon_speed = self.round_up_base_10(
+                                    self.epsilon
+                                )
                 case "new_star_mass":
-                    if not (self.new_star_mass < self.MIN_NEW_STAR_MASS or self.new_star_mass > self.MAX_NEW_STAR_MASS):
-                        if self.new_star_mass != self.round_up_base_10(self.new_star_mass):
+                    if not (
+                        self.new_star_mass < self.MIN_NEW_STAR_MASS
+                        or self.new_star_mass > self.MAX_NEW_STAR_MASS
+                    ):
+                        if self.new_star_mass != self.round_up_base_10(
+                            self.new_star_mass
+                        ):
                             if self.new_star_mass + (
                                 self.round_up_base_10(self.new_star_mass) / 10.0
                             ) * magnitude > self.round_up_base_10(self.new_star_mass):
                                 self.change_new_star_mass_speed = (
-                                    self.round_up_base_10(self.new_star_mass) - self.new_star_mass
+                                    self.round_up_base_10(self.new_star_mass)
+                                    - self.new_star_mass
                                 ) / magnitude
                             else:
                                 self.change_new_star_mass_speed = (
@@ -164,7 +178,9 @@ class Settings:
                                     self.new_star_mass
                                 ) * (10 / magnitude)
                             else:
-                                self.change_new_star_mass_speed = self.round_up_base_10(self.new_star_mass)
+                                self.change_new_star_mass_speed = self.round_up_base_10(
+                                    self.new_star_mass
+                                )
 
         elif magnitude < 0:
             match self.current_changing_parameter:
@@ -216,7 +232,10 @@ class Settings:
                     else:
                         self.change_time_speed_speed = 50
                 case "epsilon":
-                    if not (self.epsilon < self.MIN_EPSILON or self.epsilon > self.MAX_EPSILON):
+                    if not (
+                        self.epsilon < self.MIN_EPSILON
+                        or self.epsilon > self.MAX_EPSILON
+                    ):
                         if self.epsilon != self.round_up_base_10(self.epsilon):
                             if (
                                 self.epsilon
@@ -224,7 +243,8 @@ class Settings:
                                 < self.round_up_base_10(self.epsilon) / 10
                             ):
                                 self.change_epsilon_speed = (
-                                    self.epsilon - self.round_up_base_10(self.epsilon) / 10
+                                    self.epsilon
+                                    - self.round_up_base_10(self.epsilon) / 10
                                 ) / -magnitude
                             else:
                                 self.change_epsilon_speed = (
@@ -242,15 +262,22 @@ class Settings:
                                     self.round_up_base_10(self.epsilon) / 10
                                 )
                 case "new_star_mass":
-                    if not (self.new_star_mass < self.MIN_NEW_STAR_MASS or self.new_star_mass > self.MAX_NEW_STAR_MASS):
-                        if self.new_star_mass != self.round_up_base_10(self.new_star_mass):
+                    if not (
+                        self.new_star_mass < self.MIN_NEW_STAR_MASS
+                        or self.new_star_mass > self.MAX_NEW_STAR_MASS
+                    ):
+                        if self.new_star_mass != self.round_up_base_10(
+                            self.new_star_mass
+                        ):
                             if (
                                 self.new_star_mass
-                                + (self.round_up_base_10(self.new_star_mass) / 10) * magnitude
+                                + (self.round_up_base_10(self.new_star_mass) / 10)
+                                * magnitude
                                 < self.round_up_base_10(self.new_star_mass) / 10
                             ):
                                 self.change_new_star_mass_speed = (
-                                    self.new_star_mass - self.round_up_base_10(self.new_star_mass) / 10
+                                    self.new_star_mass
+                                    - self.round_up_base_10(self.new_star_mass) / 10
                                 ) / -magnitude
                             else:
                                 self.change_new_star_mass_speed = (
@@ -297,7 +324,7 @@ class Settings:
         self.is_changing_distance_scale = False
         self.is_changing_dt = False
         self.is_changing_time_speed = False
-        self.is_changing_epsilon = False 
+        self.is_changing_epsilon = False
         self.is_changing_new_star_mass = False
 
     def reset_parameters(self):
@@ -336,11 +363,11 @@ class Settings:
     @property
     def time_speed(self):
         return self._time_speed
-    
+
     @property
     def epsilon(self):
         return self._epsilon
-    
+
     @property
     def new_star_mass(self):
         return self._new_star_mass

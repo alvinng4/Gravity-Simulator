@@ -85,3 +85,33 @@ def test_settings_time_speed():
     assert settings.time_speed == 1
     settings.time_speed = 15000
     assert settings.time_speed == 10000
+
+
+def test_epsilon():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.epsilon == 1e-2
+    settings.epsilon = 1
+    assert settings.epsilon == 1
+    settings.epsilon = 10
+    assert settings.epsilon == 10
+    settings.epsilon = -10.5
+    assert settings.epsilon == 1e-15
+    settings.epsilon = 0
+    assert settings.epsilon == 1e-15
+    settings.epsilon = 150
+    assert settings.epsilon == 100
+
+
+def test_new_star_mass():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.new_star_mass == 1
+    settings.new_star_mass = 10
+    assert settings.new_star_mass == 10
+    settings.new_star_mass = 1000
+    assert settings.new_star_mass == 1000
+    settings.new_star_mass = -10.5
+    assert settings.new_star_mass == 1e-3
+    settings.new_star_mass = 0
+    assert settings.new_star_mass == 1e-3
+    settings.new_star_mass = 15000000
+    assert settings.new_star_mass == 10000000
