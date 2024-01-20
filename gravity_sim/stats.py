@@ -75,13 +75,14 @@ class Stats:
         )
         self.distance_scale_board.print_msg(
             f"Distance Scale = {self.settings.distance_scale}"
-        )
+        )        
+        self.new_star_mass_scale_board.print_msg(
+            f"New star mass scale = {self.settings.new_star_mass_scale:g}x"
+        )        
         self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
         self.epsilon_board.print_msg(f"Epsilon = {self.settings.epsilon:g}")
-        self.new_star_mass_board.print_msg(
-            f"New star mass = {self.settings.new_star_mass:g}x"
-        )
+
 
     def draw(self, grav_sim):
         self.print_msg()
@@ -95,10 +96,10 @@ class Stats:
         self.star_img_scale_board.draw()
         self.planet_img_scale_board.draw()
         self.distance_scale_board.draw()
+        self.new_star_mass_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
         self.epsilon_board.draw()
-        self.new_star_mass_board.draw()
 
         self.integrators_board.draw()
         self.euler_board.draw()
@@ -130,6 +131,13 @@ class Stats:
                     (290, self.distance_scale_board.rect.centery + 5),
                     4,
                 )
+            case "new_star_mass_scale":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "yellow",
+                    (290, self.new_star_mass_scale_board.rect.centery + 5),
+                    4,
+                )
             case "dt":
                 pygame.draw.circle(
                     grav_sim.screen, "yellow", (290, self.dt_board.rect.centery + 5), 4
@@ -146,13 +154,6 @@ class Stats:
                     grav_sim.screen,
                     "yellow",
                     (290, self.epsilon_board.rect.centery + 5),
-                    4,
-                )
-            case "new_star_mass":
-                pygame.draw.circle(
-                    grav_sim.screen,
-                    "yellow",
-                    (290, self.new_star_mass_board.rect.centery + 5),
                     4,
                 )
 
@@ -200,6 +201,9 @@ class Stats:
             if self.distance_scale_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_distance_scale = True
+            if self.new_star_mass_scale_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_new_star_mass_scale = True                
             if self.dt_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_dt = True
@@ -209,9 +213,6 @@ class Stats:
             if self.epsilon_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_epsilon = True
-            if self.new_star_mass_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_new_star_mass = True
 
             if self.euler_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
@@ -314,15 +315,15 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 207),
         )
-        self.dt_board = Text_box(
+        self.new_star_mass_scale_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 230),
-        )
-        self.time_speed_board = Text_box(
+        )        
+        self.dt_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -330,7 +331,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 253),
         )
-        self.epsilon_board = Text_box(
+        self.time_speed_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -338,7 +339,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 276),
         )
-        self.new_star_mass_board = Text_box(
+        self.epsilon_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,

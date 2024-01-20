@@ -38,8 +38,8 @@ def test_settings_planet_img_scale():
     assert settings.planet_img_scale == 0
     settings.planet_img_scale = -10
     assert settings.planet_img_scale == 0
-    settings.planet_img_scale = 1500000
-    assert settings.planet_img_scale == 1000000
+    settings.planet_img_scale = 550000
+    assert settings.planet_img_scale == 500000
 
 
 def test_settings_distance_scale():
@@ -56,6 +56,19 @@ def test_settings_distance_scale():
     settings.distance_scale = 1500
     assert settings.distance_scale == 1000
 
+def test_new_star_mass_scale():
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.new_star_mass_scale == 1
+    settings.new_star_mass_scale = 10
+    assert settings.new_star_mass_scale == 10
+    settings.new_star_mass_scale = 1000
+    assert settings.new_star_mass_scale == 1000
+    settings.new_star_mass_scale = -10.5
+    assert settings.new_star_mass_scale == 1e-3
+    settings.new_star_mass_scale = 0
+    assert settings.new_star_mass_scale == 1e-3
+    settings.new_star_mass_scale = 1500
+    assert settings.new_star_mass_scale == 1000
 
 def test_settings_dt():
     settings = Settings(screen_width=1920, screen_height=1080)
@@ -102,16 +115,4 @@ def test_epsilon():
     assert settings.epsilon == 100
 
 
-def test_new_star_mass():
-    settings = Settings(screen_width=1920, screen_height=1080)
-    assert settings.new_star_mass == 1
-    settings.new_star_mass = 10
-    assert settings.new_star_mass == 10
-    settings.new_star_mass = 1000
-    assert settings.new_star_mass == 1000
-    settings.new_star_mass = -10.5
-    assert settings.new_star_mass == 1e-3
-    settings.new_star_mass = 0
-    assert settings.new_star_mass == 1e-3
-    settings.new_star_mass = 15000000
-    assert settings.new_star_mass == 10000000
+
