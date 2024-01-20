@@ -174,37 +174,38 @@ class Stats:
 
     def check_button(self, grav_sim, mouse_pos):
         """Check if there is any click on the buttons"""
-        if self.star_img_scale_board.rect.collidepoint(mouse_pos):
-            self.settings.set_all_parameters_changing_false()
-            self.settings.is_changing_star_img_scale = True
-        if self.planet_img_scale_board.rect.collidepoint(mouse_pos):
-            self.settings.set_all_parameters_changing_false()
-            self.settings.is_changing_planet_img_scale = True
-        if self.distance_scale_board.rect.collidepoint(mouse_pos):
-            self.settings.set_all_parameters_changing_false()
-            self.settings.is_changing_distance_scale = True
-        if self.dt_board.rect.collidepoint(mouse_pos):
-            self.settings.set_all_parameters_changing_false()
-            self.settings.is_changing_dt = True
-        if self.time_speed_board.rect.collidepoint(mouse_pos):
-            self.settings.set_all_parameters_changing_false()
-            self.settings.is_changing_time_speed = True
+        if self.settings.is_hide_gui == False:
+            if self.star_img_scale_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_star_img_scale = True
+            if self.planet_img_scale_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_planet_img_scale = True
+            if self.distance_scale_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_distance_scale = True
+            if self.dt_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_dt = True
+            if self.time_speed_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_time_speed = True
 
-        if self.euler_board.rect.collidepoint(mouse_pos):
-            grav_sim.simulator.set_all_integrators_false()
-            grav_sim.simulator.is_euler = True
-        if self.euler_cromer_board.rect.collidepoint(mouse_pos):
-            grav_sim.simulator.set_all_integrators_false()
-            grav_sim.simulator.is_euler_cromer = True
-        if self.rk2_board.rect.collidepoint(mouse_pos):
-            grav_sim.simulator.set_all_integrators_false()
-            grav_sim.simulator.is_rk2 = True
-        if self.rk4_board.rect.collidepoint(mouse_pos):
-            grav_sim.simulator.set_all_integrators_false()
-            grav_sim.simulator.is_rk4 = True
-        if self.leapfrog_board.rect.collidepoint(mouse_pos):
-            grav_sim.simulator.set_all_integrators_false()
-            grav_sim.simulator.is_leapfrog = True
+            if self.euler_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_euler = True
+            if self.euler_cromer_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_euler_cromer = True
+            if self.rk2_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_rk2 = True
+            if self.rk4_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_rk4 = True
+            if self.leapfrog_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_leapfrog = True
 
     def _statsboard_init_print_msg(self):
         self.parameters_board.print_msg("Parameters: (Click to select)")

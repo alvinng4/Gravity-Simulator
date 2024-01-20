@@ -44,6 +44,7 @@ class Settings:
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.set_all_parameters_changing_false()
         self.current_changing_parameter = None
+        self.is_hide_gui = False
 
     def scroll_change_parameters(self, magnitude):
         self._update_parameter_changing_speed(magnitude)
