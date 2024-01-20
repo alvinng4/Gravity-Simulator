@@ -90,7 +90,8 @@ class GravitySimulator:
     def _update_screen(self):
         self.screen.fill(Settings.BG_COLOR)
         self.grav_objs.draw(self.screen)
-        self.stats.draw(self)
+        if self.settings.is_hide_gui == False:
+            self.stats.draw(self)
         if self.stats.is_holding_rclick == True:
             self._new_obj_draw_line_circle()
         if self.menu.menu_active == True:
@@ -125,6 +126,8 @@ class GravitySimulator:
                     self.stats.end_pause()
             case pygame.K_f:
                 pygame.display.toggle_fullscreen()
+            case pygame.K_h:
+                self.settings.is_hide_gui = not self.settings.is_hide_gui
             case pygame.K_ESCAPE:
                 if self.menu.main_menu_active == False:
                     self.menu.menu_active = not self.menu.menu_active
