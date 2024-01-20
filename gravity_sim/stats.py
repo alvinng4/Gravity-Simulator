@@ -73,11 +73,15 @@ class Stats:
         self.planet_img_scale_board.print_msg(
             f"Planet Image Scale = {self.settings.planet_img_scale:d}"
         )
-        self.distance_scale_board.print_msg(f"Distance Scale = {self.settings.distance_scale}")
+        self.distance_scale_board.print_msg(
+            f"Distance Scale = {self.settings.distance_scale}"
+        )
         self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
         self.epsilon_board.print_msg(f"Epsilon = {self.settings.epsilon:g}")
-        self.new_star_mass_board.print_msg(f"New star mass = {self.settings.new_star_mass:g}x")
+        self.new_star_mass_board.print_msg(
+            f"New star mass = {self.settings.new_star_mass:g}x"
+        )
 
     def draw(self, grav_sim):
         self.print_msg()

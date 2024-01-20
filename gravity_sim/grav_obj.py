@@ -60,7 +60,12 @@ class Grav_obj(Sprite):
     def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "assets/images/sun.png")
-        m = 1 * 0.5 * grav_sim.stats.holding_rclick_time * grav_sim.settings.new_star_mass
+        m = (
+            1
+            * 0.5
+            * grav_sim.stats.holding_rclick_time
+            * grav_sim.settings.new_star_mass
+        )
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
         grav_obj = Grav_obj(
             grav_sim,
@@ -209,7 +214,7 @@ class Grav_obj(Sprite):
                 "v2": 0.005143470425888,
                 "v3": -0.000161723590489,
                 "m": 0.00028579654259599,
-                "R": 3.89256877e-04 * (157 / 57), # Img scale for Saturn's ring
+                "R": 3.89256877e-04 * (157 / 57),  # Img scale for Saturn's ring
             },
             path_saturn,
         )
