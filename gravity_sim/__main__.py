@@ -128,6 +128,8 @@ class GravitySimulator:
                 pygame.display.toggle_fullscreen()
             case pygame.K_h:
                 self.settings.is_hide_gui = not self.settings.is_hide_gui
+            case pygame.K_r:
+                self.settings.reset_parameters()
             case pygame.K_ESCAPE:
                 if self.menu.main_menu_active == False:
                     self.menu.menu_active = not self.menu.menu_active
