@@ -111,32 +111,32 @@ class Stats:
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (280, self.star_img_scale_board.rect.centery + 5),
+                    (290, self.star_img_scale_board.rect.centery + 5),
                     4,
                 )
             case "planet_img_scale":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (280, self.planet_img_scale_board.rect.centery + 5),
+                    (290, self.planet_img_scale_board.rect.centery + 5),
                     4,
                 )
             case "distance_scale":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (280, self.distance_scale_board.rect.centery + 5),
+                    (290, self.distance_scale_board.rect.centery + 5),
                     4,
                 )
             case "dt":
                 pygame.draw.circle(
-                    grav_sim.screen, "yellow", (280, self.dt_board.rect.centery + 5), 4
+                    grav_sim.screen, "yellow", (290, self.dt_board.rect.centery + 5), 4
                 )
             case "time_speed":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (280, self.time_speed_board.rect.centery + 5),
+                    (290, self.time_speed_board.rect.centery + 5),
                     4,
                 )
 
@@ -207,8 +207,8 @@ class Stats:
             grav_sim.simulator.is_leapfrog = True
 
     def _statsboard_init_print_msg(self):
-        self.parameters_board.print_msg("Parameters: (Click to change)")
-        self.integrators_board.print_msg(f"Integrators: (Click to switch)")
+        self.parameters_board.print_msg("Parameters: (Click to select)")
+        self.integrators_board.print_msg(f"Integrators: (Click to select)")
         self.euler_board.print_msg(f"Euler")
         self.euler_cromer_board.print_msg(f"Euler-Cromer")
         self.rk2_board.print_msg(f"2nd order Runge-Kutta")
