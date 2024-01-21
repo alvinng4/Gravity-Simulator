@@ -36,7 +36,7 @@ class Simulator:
         match self.current_integrator:
             case "euler":
                 self.is_initialize = False
-                self.a = ode_n_body_first_order(
+                self.a = acceleration(
                     self.stats.objects_count, self.x, self.m
                 )
                 self.x, self.v = euler(
@@ -47,7 +47,7 @@ class Simulator:
                 )
             case "euler_cromer":
                 self.is_initialize = False
-                self.a = ode_n_body_first_order(
+                self.a = acceleration(
                     self.stats.objects_count, self.x, self.m
                 )
                 self.x, self.v = euler_cromer(
@@ -58,7 +58,7 @@ class Simulator:
                 )
             case "rk2":
                 self.is_initialize = False
-                self.a = ode_n_body_first_order(
+                self.a = acceleration(
                     self.stats.objects_count, self.x, self.m
                 )
                 self.x, self.v = rk2(
@@ -71,7 +71,7 @@ class Simulator:
                 )
             case "rk4":
                 self.is_initialize = False
-                self.a = ode_n_body_first_order(
+                self.a = acceleration(
                     self.stats.objects_count, self.x, self.m
                 )
                 self.x, self.v = rk4(
@@ -84,7 +84,7 @@ class Simulator:
                 )
             case "leapfrog":
                 if self.is_initialize == True:
-                    self.a = ode_n_body_first_order(
+                    self.a = acceleration(
                         self.stats.objects_count, self.x, self.m
                     )
                     self.is_initialize = False
@@ -146,7 +146,8 @@ class Simulator:
 
 # Note: jit cannot works on functions inside a class
 @nb.njit
-def ode_n_body_first_order(objects_count, x, m):
+def acceleration(objects_count, x, m):
+    """Calculate the acceleration"""
     # Allocating memory
     a = np.zeros((objects_count, 3))
 
@@ -176,7 +177,7 @@ def euler_cromer(x, v, a, dt=0.001):
 def rk2(objects_count, x, v, a, m, dt):
     x_half, v_half = euler(x, v, a, 0.5 * dt)
 
-    k2_v = ode_n_body_first_order(objects_count, x_half, m)
+    k2_v = acceleration(objects_count, x_half, m)
     k2_x = v_half
 
     v = v + dt * k2_v
@@ -190,20 +191,14 @@ def rk4(objects_count, x, v, a, m, dt):
     k1_v = a
     k1_x = v
 
-    v1 = v + 0.5 * k1_v * dt
-    x1 = x + 0.5 * k1_x * dt
-    k2_v = ode_n_body_first_order(objects_count, x1, m)
-    k2_x = v1
+    k2_v = acceleration(objects_count, x + 0.5 * k1_x * dt, m)
+    k2_x = v + 0.5 * k1_v * dt
 
-    v2 = v + 0.5 * k2_v * dt
-    x2 = x + 0.5 * k2_x * dt
-    k3_v = ode_n_body_first_order(objects_count, x2, m)
-    k3_x = v2
+    k3_v = acceleration(objects_count, x + 0.5 * k2_x * dt, m)
+    k3_x = v + 0.5 * k2_v * dt
 
-    v3 = v + k3_v * dt
-    x3 = x + k3_x * dt
-    k4_v = ode_n_body_first_order(objects_count, x3, m)
-    k4_x = v3
+    k4_v = acceleration(objects_count, x + k3_x * dt, m)
+    k4_x = v + k3_v * dt
 
     v = v + dt * (k1_v + 2 * k2_v + 2 * k3_v + k4_v) / 6.0
     x = x + dt * (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6.0
@@ -215,7 +210,7 @@ def rk4(objects_count, x, v, a, m, dt):
 def leapfrog(objects_count, x, v, a, m, dt):
     a_0 = a
     x = x + v * dt + a_0 * 0.5 * dt * dt
-    a_1 = ode_n_body_first_order(objects_count, x, m)
+    a_1 = acceleration(objects_count, x, m)
     v = v + (a_0 + a_1) * 0.5 * dt
 
     return x, v, a_1
