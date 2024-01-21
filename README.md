@@ -42,7 +42,7 @@ Move camera: `W` `A` `S` `D`\
 Menu: `Esc`\
 Pause: `P`\
 Toggle full-screen mode: `F`\
-Hide user interface: `h`\
+Hide user interface: `H`\
 Reset parameters: `R`\
 Create new star: 
 Hold the right mouse button to create a star + drag the mouse to give it an initial boost.\

@@ -58,7 +58,6 @@ class Settings:
         self.is_hide_gui = False
 
     def scroll_change_parameters(self, magnitude):
-        self._update_parameter_changing_speed(magnitude)
         match self.current_changing_parameter:
             case "star_img_scale":
                 self.star_img_scale += (
@@ -72,235 +71,49 @@ class Settings:
                 self.distance_scale += (
                     self.DEFAULT_CHANGE_DISTANCE_SCALE_SPEED * magnitude
                 )
-            case "dt":
-                self.dt += self.change_dt_speed * magnitude
-            case "time_speed":
-                self.time_speed += self.change_time_speed_speed * magnitude
-            case "epsilon":
-                self.epsilon += self.change_epsilon_speed * magnitude
             case "new_star_mass_scale":
-                self.new_star_mass_scale += self.change_new_star_mass_scale_speed * magnitude
-
-    def _update_parameter_changing_speed(self, magnitude):
-        if magnitude > 0:
-            match self.current_changing_parameter:
-                case "dt":
-                    if not (self.dt < self.MIN_DT or self.dt > self.MAX_DT):
-                        if self.dt != self.round_up_base_10(self.dt):
-                            if self.dt + (
-                                self.round_up_base_10(self.dt) / 10.0
-                            ) * magnitude > self.round_up_base_10(self.dt):
-                                self.change_dt_speed = (
-                                    self.round_up_base_10(self.dt) - self.dt
-                                ) / magnitude
-                            else:
-                                self.change_dt_speed = (
-                                    self.round_up_base_10(self.dt) / 10
-                                )
-                        else:
-                            if magnitude > 10:
-                                self.change_dt_speed = self.round_up_base_10(
-                                    self.dt
-                                ) * (10 / magnitude)
-                            else:
-                                self.change_dt_speed = self.round_up_base_10(self.dt)
-                case "time_speed":
-                    if self.time_speed < 10:
-                        if self.time_speed + 1 * magnitude > 10:
-                            self.change_time_speed_speed = (
-                                10 - self.time_speed
-                            ) / magnitude
-                        else:
-                            self.change_time_speed_speed = 1
-                    elif 10 <= self.time_speed < 100:
-                        if self.time_speed + 5 * magnitude > 100:
-                            self.change_time_speed_speed = (
-                                100 - self.time_speed
-                            ) / magnitude
-                        else:
-                            self.change_time_speed_speed = 5
-                    elif 100 <= self.time_speed < 1000:
-                        if self.time_speed + 10 * magnitude > 1000:
-                            self.change_time_speed_speed = (
-                                1000 - self.time_speed
-                            ) / magnitude
-                        else:
-                            self.change_time_speed_speed = 10
-                    else:
-                        self.change_time_speed_speed = 50
-                case "epsilon":
-                    if not (
-                        self.epsilon < self.MIN_EPSILON
-                        or self.epsilon > self.MAX_EPSILON
-                    ):
-                        if self.epsilon != self.round_up_base_10(self.epsilon):
-                            if self.epsilon + (
-                                self.round_up_base_10(self.epsilon) / 10.0
-                            ) * magnitude > self.round_up_base_10(self.epsilon):
-                                self.change_epsilon_speed = (
-                                    self.round_up_base_10(self.epsilon) - self.epsilon
-                                ) / magnitude
-                            else:
-                                self.change_epsilon_speed = (
-                                    self.round_up_base_10(self.epsilon) / 10
-                                )
-                        else:
-                            if magnitude > 10:
-                                self.change_epsilon_speed = self.round_up_base_10(
-                                    self.epsilon
-                                ) * (10 / magnitude)
-                            else:
-                                self.change_epsilon_speed = self.round_up_base_10(
-                                    self.epsilon
-                                )
-                case "new_star_mass_scale":
-                    if not (
-                        self.new_star_mass_scale < self.MIN_NEW_STAR_MASS_SCALE
-                        or self.new_star_mass_scale > self.MAX_NEW_STAR_MASS_SCALE
-                    ):
-                        if self.new_star_mass_scale != self.round_up_base_10(
+                if magnitude > 0:
+                    for _ in range(magnitude):
+                        self.new_star_mass_scale += self._inc_speed(
                             self.new_star_mass_scale
-                        ):
-                            if self.new_star_mass_scale + (
-                                self.round_up_base_10(self.new_star_mass_scale) / 10.0
-                            ) * magnitude > self.round_up_base_10(self.new_star_mass_scale):
-                                self.change_new_star_mass_scale_speed = (
-                                    self.round_up_base_10(self.new_star_mass_scale)
-                                    - self.new_star_mass_scale
-                                ) / magnitude
-                            else:
-                                self.change_new_star_mass_scale_speed = (
-                                    self.round_up_base_10(self.new_star_mass_scale) / 10
-                                )
-                        else:
-                            if magnitude > 10:
-                                self.change_new_star_mass_scale_speed = self.round_up_base_10(
-                                    self.new_star_mass_scale
-                                ) * (10 / magnitude)
-                            else:
-                                self.change_new_star_mass_scale_speed = self.round_up_base_10(
-                                    self.new_star_mass_scale
-                                )
-
-        elif magnitude < 0:
-            match self.current_changing_parameter:
-                case "dt":
-                    if not (self.dt < self.MIN_DT or self.dt > self.MAX_DT):
-                        if self.dt != self.round_up_base_10(self.dt):
-                            if (
-                                self.dt
-                                + (self.round_up_base_10(self.dt) / 10) * magnitude
-                                < self.round_up_base_10(self.dt) / 10
-                            ):
-                                self.change_dt_speed = (
-                                    self.dt - self.round_up_base_10(self.dt) / 10
-                                ) / -magnitude
-                            else:
-                                self.change_dt_speed = (
-                                    self.round_up_base_10(self.dt) / 10
-                                )
-                        else:
-                            if -magnitude >= 10:
-                                self.change_dt_speed = (
-                                    self.round_up_base_10(self.dt)
-                                    * (9 / 10)
-                                    / -magnitude
-                                )
-                            else:
-                                self.change_dt_speed = (
-                                    self.round_up_base_10(self.dt) / 10
-                                )
-                case "time_speed":
-                    if self.time_speed <= 10:
-                        self.change_time_speed_speed = 1
-                    elif 10 < self.time_speed < 15:
-                        self.change_time_speed_speed = (self.time_speed - 5) / (
-                            -magnitude
                         )
-                    elif 15 <= self.time_speed <= 100:
-                        self.change_time_speed_speed = 5
-                    elif 100 < self.time_speed < 110:
-                        self.change_time_speed_speed = (self.time_speed - 100) / (
-                            -magnitude
-                        )
-                    elif 110 <= self.time_speed <= 1000:
-                        self.change_time_speed_speed = 10
-                    elif 1000 < self.time_speed < 1050:
-                        self.change_time_speed_speed = (self.time_speed - 1050) / (
-                            -magnitude
-                        )
-                    else:
-                        self.change_time_speed_speed = 50
-                case "epsilon":
-                    if not (
-                        self.epsilon < self.MIN_EPSILON
-                        or self.epsilon > self.MAX_EPSILON
-                    ):
-                        if self.epsilon != self.round_up_base_10(self.epsilon):
-                            if (
-                                self.epsilon
-                                + (self.round_up_base_10(self.epsilon) / 10) * magnitude
-                                < self.round_up_base_10(self.epsilon) / 10
-                            ):
-                                self.change_epsilon_speed = (
-                                    self.epsilon
-                                    - self.round_up_base_10(self.epsilon) / 10
-                                ) / -magnitude
-                            else:
-                                self.change_epsilon_speed = (
-                                    self.round_up_base_10(self.epsilon) / 10
-                                )
-                        else:
-                            if -magnitude >= 10:
-                                self.change_epsilon_speed = (
-                                    self.round_up_base_10(self.epsilon)
-                                    * (9 / 10)
-                                    / -magnitude
-                                )
-                            else:
-                                self.change_epsilon_speed = (
-                                    self.round_up_base_10(self.epsilon) / 10
-                                )
-                case "new_star_mass_scale":
-                    if not (
-                        self.new_star_mass_scale < self.MIN_NEW_STAR_MASS_SCALE
-                        or self.new_star_mass_scale > self.MAX_NEW_STAR_MASS_SCALE
-                    ):
-                        if self.new_star_mass_scale != self.round_up_base_10(
+                elif magnitude < 0:
+                    for _ in range(-magnitude):
+                        self.new_star_mass_scale -= self._dec_speed(
                             self.new_star_mass_scale
-                        ):
-                            if (
-                                self.new_star_mass_scale
-                                + (self.round_up_base_10(self.new_star_mass_scale) / 10)
-                                * magnitude
-                                < self.round_up_base_10(self.new_star_mass_scale) / 10
-                            ):
-                                self.change_new_star_mass_scale_speed = (
-                                    self.new_star_mass_scale
-                                    - self.round_up_base_10(self.new_star_mass_scale) / 10
-                                ) / -magnitude
-                            else:
-                                self.change_new_star_mass_scale_speed = (
-                                    self.round_up_base_10(self.new_star_mass_scale) / 10
-                                )
-                        else:
-                            if -magnitude >= 10:
-                                self.change_new_star_mass_scale_speed = (
-                                    self.round_up_base_10(self.new_star_mass_scale)
-                                    * (9 / 10)
-                                    / -magnitude
-                                )
-                            else:
-                                self.change_new_star_mass_scale_speed = (
-                                    self.round_up_base_10(self.new_star_mass_scale) / 10
-                                )
+                        )
+            case "dt":
+                if magnitude > 0:
+                    for _ in range(magnitude):
+                        self.dt += self._inc_speed(self.dt)
+                elif magnitude < 0:
+                    for _ in range(-magnitude):
+                        self.dt -= self._dec_speed(self.dt)
+            case "time_speed":
+                if magnitude > 0:
+                    for _ in range(magnitude):
+                        self.time_speed += self._inc_speed(self.time_speed)
+                elif magnitude < 0:
+                    for _ in range(-magnitude):
+                        self.time_speed -= self._dec_speed(self.time_speed)
+            case "epsilon":
+                if magnitude > 0:
+                    for _ in range(magnitude):
+                        self.epsilon += self._inc_speed(self.epsilon)
+                elif magnitude < 0:
+                    for _ in range(-magnitude):
+                        self.epsilon -= self._dec_speed(self.epsilon)
 
     @staticmethod
-    def round_up_base_10(x: float) -> float:
-        if x <= 0:
-            return 0
+    def _inc_speed(x: float) -> float:
+        return 10 ** math.floor(math.log10(x))
+
+    @staticmethod
+    def _dec_speed(x: float) -> float:
+        if f"{x:e}"[0] == "1":
+            return x * 0.1
         else:
-            return 10 ** math.ceil(math.log10(x))
+            return 10 ** math.floor(math.log10(x))
 
     def check_current_changing_parameter(self):
         if self.is_changing_star_img_scale == True:
@@ -422,7 +235,7 @@ class Settings:
         elif value < self.MIN_DT:
             self._dt = self.MIN_DT
         else:
-            self._dt = round(value, ndigits=16)
+            self._dt = round(value, ndigits=15)
 
     @time_speed.setter
     def time_speed(self, value):
@@ -440,7 +253,7 @@ class Settings:
         elif value < self.MIN_EPSILON:
             self._epsilon = self.MIN_EPSILON
         else:
-            self._epsilon = round(value, ndigits=16)
+            self._epsilon = round(value, ndigits=15)
 
     @new_star_mass_scale.setter
     def new_star_mass_scale(self, value):
@@ -449,4 +262,4 @@ class Settings:
         elif value < self.MIN_NEW_STAR_MASS_SCALE:
             self._new_star_mass_scale = self.MIN_NEW_STAR_MASS_SCALE
         else:
-            self._new_star_mass_scale = round(value, ndigits=16)
+            self._new_star_mass_scale = round(value, ndigits=15)
