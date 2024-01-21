@@ -20,7 +20,7 @@ class Text_box:
         text_color: tuple = (255, 255, 255),
         center: tuple = None,
         text_box_left_top: tuple = (0, 0),
-    ):
+    ) -> None:
         """Initialize text box attributes."""
         self.screen = grav_sim.screen
         self.screen_rect = self.screen.get_rect()
@@ -60,7 +60,7 @@ class Text_box:
         if msg:
             self.print_msg(msg)
 
-    def print_msg(self, msg):
+    def print_msg(self, msg) -> None:
         """Turn msg into a rendered image and center text on the text box."""
         self.msg_image = self.font.render(
             msg, True, self.text_color, self.textbox_color
@@ -72,7 +72,7 @@ class Text_box:
             self.msg_image_rect.left = self.text_box_left_top[0]
             self.msg_image_rect.top = self.text_box_left_top[1]
 
-    def draw(self):
+    def draw(self) -> None:
         """Draw blank text box and then draw message."""
         if self.textbox_color:
             self.screen.fill(self.textbox_color, self.rect)
