@@ -75,14 +75,13 @@ class Stats:
         )
         self.distance_scale_board.print_msg(
             f"Distance Scale = {self.settings.distance_scale}"
-        )        
+        )
         self.new_star_mass_scale_board.print_msg(
             f"New star mass scale = {self.settings.new_star_mass_scale:g}x"
-        )        
+        )
         self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
         self.epsilon_board.print_msg(f"Epsilon = {self.settings.epsilon:g}")
-
 
     def draw(self, grav_sim):
         self.print_msg()
@@ -203,7 +202,7 @@ class Stats:
                 self.settings.is_changing_distance_scale = True
             if self.new_star_mass_scale_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_new_star_mass_scale = True                
+                self.settings.is_changing_new_star_mass_scale = True
             if self.dt_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_dt = True
@@ -322,7 +321,7 @@ class Stats:
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 230),
-        )        
+        )
         self.dt_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
