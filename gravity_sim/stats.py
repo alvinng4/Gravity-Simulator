@@ -12,7 +12,7 @@ class Stats:
     STATSBOARD_SIZE_X = 260
     STATSBOARD_SIZE_Y = 23
 
-    def __init__(self, grav_sim):
+    def __init__(self, grav_sim) -> None:
         self.simulation_time = 0
         self.fps = grav_sim.clock.get_fps()
         self.total_energy = 0
@@ -22,7 +22,7 @@ class Stats:
         self.create_statsboard(grav_sim)
         self._statsboard_init_print_msg()
 
-    def update(self, grav_sim):
+    def update(self, grav_sim) -> None:
         self.fps = grav_sim.clock.get_fps()
         self.objects_count = len(grav_sim.grav_objs)
 
@@ -35,7 +35,7 @@ class Stats:
         if self.is_holding_rclick == True:
             self.holding_rclick_time = time.time() - self.holding_rclick_start_time
 
-    def reset(self, grav_sim):
+    def reset(self, grav_sim) -> None:
         self.start_time = time.time()
         self.simulation_time = 0
         self.total_energy = 0
@@ -43,22 +43,22 @@ class Stats:
         grav_sim.camera._pos[0] = 0
         grav_sim.camera._pos[1] = 0
 
-    def start_pause(self):
+    def start_pause(self) -> None:
         self.paused_start_time = time.time()
         self.is_paused = True
 
-    def end_pause(self):
+    def end_pause(self) -> None:
         self.start_time -= self.paused_start_time - time.time()
         self.is_paused = False
 
-    def start_holding_rclick(self):
+    def start_holding_rclick(self) -> None:
         self.holding_rclick_start_time = time.time()
         self.is_holding_rclick = True
 
-    def end_holding_rclick(self):
+    def end_holding_rclick(self) -> None:
         self.is_holding_rclick = False
 
-    def print_msg(self):
+    def print_msg(self) -> None:
         self.fps_board.print_msg(f"FPS = {self.fps:2.1f}")
         self.obj_count_board.print_msg(f"Object = {self.objects_count}")
         self.simulation_time_board.print_msg(
@@ -83,7 +83,7 @@ class Stats:
         self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
         self.epsilon_board.print_msg(f"Epsilon = {self.settings.epsilon:g}")
 
-    def draw(self, grav_sim):
+    def draw(self, grav_sim) -> None:
         self.print_msg()
         self.fps_board.draw()
         self.obj_count_board.draw()
@@ -188,7 +188,7 @@ class Stats:
                     4,
                 )
 
-    def check_button(self, grav_sim, mouse_pos):
+    def check_button(self, grav_sim, mouse_pos) -> None:
         """Check if there is any click on the buttons"""
         if self.settings.is_hide_gui == False:
             if self.star_img_scale_board.rect.collidepoint(mouse_pos):
@@ -229,7 +229,7 @@ class Stats:
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_leapfrog = True
 
-    def _statsboard_init_print_msg(self):
+    def _statsboard_init_print_msg(self) -> None:
         self.parameters_board.print_msg("Parameters: (Click to select)")
         self.integrators_board.print_msg(f"Integrators: (Click to select)")
         self.euler_board.print_msg(f"Euler")
@@ -239,7 +239,7 @@ class Stats:
         self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
 
     @classmethod
-    def create_statsboard(self, grav_sim):
+    def create_statsboard(self, grav_sim) -> None:
         self.fps_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
