@@ -19,12 +19,12 @@ def test_settings_screen_size():
 def test_settings_star_img_scale():
     settings = Settings(screen_width=1920, screen_height=1080)
     assert settings.star_img_scale == 5000
-    settings.star_img_scale = 1
-    assert settings.star_img_scale == 1
+    settings.star_img_scale = 10
+    assert settings.star_img_scale == 10
     settings.star_img_scale = 0
-    assert settings.star_img_scale == 0
+    assert settings.star_img_scale == 1
     settings.star_img_scale = -10
-    assert settings.star_img_scale == 0
+    assert settings.star_img_scale == 1
     settings.star_img_scale = 150000
     assert settings.star_img_scale == 100000
 
@@ -32,12 +32,12 @@ def test_settings_star_img_scale():
 def test_settings_planet_img_scale():
     settings = Settings(screen_width=1920, screen_height=1080)
     assert settings.planet_img_scale == 100000
+    settings.planet_img_scale = 10
+    assert settings.planet_img_scale == 10
     settings.planet_img_scale = 1
     assert settings.planet_img_scale == 1
-    settings.planet_img_scale = 0
-    assert settings.planet_img_scale == 0
     settings.planet_img_scale = -10
-    assert settings.planet_img_scale == 0
+    assert settings.planet_img_scale == 1
     settings.planet_img_scale = 550000
     assert settings.planet_img_scale == 500000
 
@@ -45,14 +45,14 @@ def test_settings_planet_img_scale():
 def test_settings_distance_scale():
     settings = Settings(screen_width=1920, screen_height=1080)
     assert settings.distance_scale == 200
-    settings.distance_scale = 1
-    assert settings.distance_scale == 1
+    settings.distance_scale = 10
+    assert settings.distance_scale == 10
     settings.distance_scale = 1000
     assert settings.distance_scale == 1000
     settings.distance_scale = -10.5
-    assert settings.distance_scale == 0
+    assert settings.distance_scale == 1
     settings.distance_scale = 0
-    assert settings.distance_scale == 0
+    assert settings.distance_scale == 1
     settings.distance_scale = 1500
     assert settings.distance_scale == 1000
 
