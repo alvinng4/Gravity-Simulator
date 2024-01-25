@@ -63,35 +63,47 @@ class Settings:
                 for _ in range(abs(magnitude)):
                     if self.star_img_scale >= 10000:
                         if magnitude > 0:
-                            self.star_img_scale += self.DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED
+                            self.star_img_scale += (
+                                self.DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED
+                            )
                         elif magnitude < 0:
-                            self.star_img_scale -= self.DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED
+                            self.star_img_scale -= (
+                                self.DEFAULT_CHANGE_STAR_IMG_SCALE_SPEED
+                            )
                     else:
                         self.star_img_scale += self._rate_of_change(
-                        self.star_img_scale, magnitude
-                    )
+                            self.star_img_scale, magnitude
+                        )
             case "planet_img_scale":
                 for _ in range(abs(magnitude)):
                     if self.planet_img_scale >= 100000:
                         if magnitude > 0:
-                            self.planet_img_scale += self.DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED
+                            self.planet_img_scale += (
+                                self.DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED
+                            )
                         elif magnitude < 0:
-                            self.planet_img_scale -= self.DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED
+                            self.planet_img_scale -= (
+                                self.DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED
+                            )
                     else:
                         self.planet_img_scale += self._rate_of_change(
-                        self.planet_img_scale, magnitude
-                    )
+                            self.planet_img_scale, magnitude
+                        )
             case "distance_scale":
                 for _ in range(abs(magnitude)):
                     if self.distance_scale >= 100:
                         if magnitude > 0:
-                            self.distance_scale += self.DEFAULT_CHANGE_DISTANCE_SCALE_SPEED
+                            self.distance_scale += (
+                                self.DEFAULT_CHANGE_DISTANCE_SCALE_SPEED
+                            )
                         elif magnitude < 0:
-                            self.distance_scale -= self.DEFAULT_CHANGE_DISTANCE_SCALE_SPEED
+                            self.distance_scale -= (
+                                self.DEFAULT_CHANGE_DISTANCE_SCALE_SPEED
+                            )
                     else:
                         self.distance_scale += self._rate_of_change(
-                        self.distance_scale, magnitude
-                    )
+                            self.distance_scale, magnitude
+                        )
             case "new_star_mass_scale":
                 for _ in range(abs(magnitude)):
                     self.new_star_mass_scale += self._rate_of_change(
@@ -106,7 +118,6 @@ class Settings:
             case "epsilon":
                 for _ in range(abs(magnitude)):
                     self.epsilon += self._rate_of_change(self.epsilon, magnitude)
-
 
     @staticmethod
     def _rate_of_change(x: float, magnitude: int) -> float:

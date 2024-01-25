@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 
@@ -13,18 +14,19 @@ from gravity_sim import simulator
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
 
+
 @pytest.mark.skip(reason="For testing manually")
 def test():
-    #integrator = "euler"
-    #integrator = "euler_cromer"
-    #integrator = "rk2"
-    integrator = "rk4"
-    #integrator = "leapfrog"
-    #test_two_vectors(integrator)
-    test_sun_earth_system(integrator)
-    #test_solar_system(integrator)
-    #test_figure_8(integrator)
-
+    # integrator = "euler"
+    # integrator = "euler_cromer"
+    integrator = "rk2"
+    # integrator = "rk4"
+    # integrator = "leapfrog"
+    # integrator = "rkf45"
+    test_two_vectors(integrator)
+    # test_sun_earth_system(integrator)
+    # test_solar_system(integrator)
+    # test_figure_8(integrator)
 
 
 @pytest.mark.skip(reason="For testing manually")
@@ -47,41 +49,44 @@ def test_two_vectors(integrator):
 
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
-    #sol_state = np.zeros ((npts ,len(x)))
+    # sol_state = np.zeros ((npts ,len(x)))
     sol_time = np.linspace(t0, t0 + dt * (npts - 1), npts)
     energy = np.zeros(npts)
 
-    
     match integrator:
         case "euler":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(2, x, m)
                 x, v = simulator.euler(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
         case "euler_cromer":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(2, x, m)
                 x, v = simulator.euler_cromer(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
         case "rk2":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(2, x, m)
                 x, v = simulator.rk2(2, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(2, x, v, m)            
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
         case "rk4":
-              for count, t in enumerate(sol_time):
-                a = simulator.acceleration(2, x, m)
-                x, v = simulator.rk4(2, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(2, x, v, m)   
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk4(2, x, v, m, dt)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
         case "leapfrog":
             a = simulator.acceleration(2, x, m)
             for count, t in enumerate(sol_time):
                 x, v, a = simulator.leapfrog(2, x, v, a, m, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
+        case "rkf45":
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
 
     # Plotting
@@ -97,11 +102,12 @@ def test_two_vectors(integrator):
     plt.ylabel("E(t)")
     plt.show()
 
-    #fig = plt.figure()
-    #ax = fig.add_subplot (111, aspect='equal ')
-    #ax.plot(sol_state [:,0], sol_state [:,1],"b-")
-    #ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
-    #plt.show()
+    # fig = plt.figure()
+    # ax = fig.add_subplot (111, aspect='equal ')
+    # ax.plot(sol_state [:,0], sol_state [:,1],"b-")
+    # ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
+    # plt.show()
+
 
 @pytest.mark.skip(reason="For testing manually")
 def test_sun_earth_system(integrator):
@@ -119,41 +125,44 @@ def test_sun_earth_system(integrator):
 
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
-    #sol_state = np.zeros ((npts ,len(x)))
+    # sol_state = np.zeros ((npts ,len(x)))
     sol_time = np.linspace(t0, t0 + dt * (npts - 1), npts)
     energy = np.zeros(npts)
 
-    
     match integrator:
         case "euler":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(2, x, m)
                 x, v = simulator.euler(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
         case "euler_cromer":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(2, x, m)
                 x, v = simulator.euler_cromer(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
         case "rk2":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(2, x, m)
                 x, v = simulator.rk2(2, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(2, x, v, m)            
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
         case "rk4":
-              for count, t in enumerate(sol_time):
-                a = simulator.acceleration(2, x, m)
-                x, v = simulator.rk4(2, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(2, x, v, m)   
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk4(2, x, v, m, dt)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
         case "leapfrog":
             a = simulator.acceleration(2, x, m)
             for count, t in enumerate(sol_time):
                 x, v, a = simulator.leapfrog(2, x, v, a, m, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
+        case "rkf45":
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
 
     # Plotting
@@ -169,11 +178,12 @@ def test_sun_earth_system(integrator):
     plt.ylabel("E(t)")
     plt.show()
 
-    #fig = plt.figure()
-    #ax = fig.add_subplot (111, aspect='equal ')
-    #ax.plot(sol_state [:,0], sol_state [:,1],"b-")
-    #ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
-    #plt.show()
+    # fig = plt.figure()
+    # ax = fig.add_subplot (111, aspect='equal ')
+    # ax.plot(sol_state [:,0], sol_state [:,1],"b-")
+    # ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
+    # plt.show()
+
 
 @pytest.mark.skip(reason="For testing manually")
 def test_solar_system(integrator):
@@ -218,42 +228,45 @@ def test_solar_system(integrator):
 
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
-    #sol_state = np.zeros ((npts ,len(x)))
+    # sol_state = np.zeros ((npts ,len(x)))
     sol_time = np.linspace(t0, t0 + dt * (npts - 1), npts)
     energy = np.zeros(npts)
 
-    
     match integrator:
         case "euler":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(9, x, m)
                 x, v = simulator.euler(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(9, x, v, m)
         case "euler_cromer":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(9, x, m)
                 x, v = simulator.euler_cromer(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(9, x, v, m)
         case "rk2":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(9, x, m)
                 x, v = simulator.rk2(9, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(9, x, v, m)            
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(9, x, v, m)
         case "rk4":
-              for count, t in enumerate(sol_time):
-                a = simulator.acceleration(9, x, m)
-                x, v = simulator.rk4(9, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(9, x, v, m)   
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk4(9, x, v, m, dt)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(9, x, v, m)
         case "leapfrog":
             a = simulator.acceleration(9, x, m)
             for count, t in enumerate(sol_time):
                 x, v, a = simulator.leapfrog(9, x, v, a, m, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(9, x, v, m)
+        case "rkf45":
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
 
     # Plotting
     plt.figure()
@@ -268,11 +281,11 @@ def test_solar_system(integrator):
     plt.ylabel("E(t)")
     plt.show()
 
-    #fig = plt.figure()
-    #ax = fig.add_subplot (111, aspect='equal ')
-    #ax.plot(sol_state [:,0], sol_state [:,1],"b-")
-    #ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
-    #plt.show()
+    # fig = plt.figure()
+    # ax = fig.add_subplot (111, aspect='equal ')
+    # ax.plot(sol_state [:,0], sol_state [:,1],"b-")
+    # ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
+    # plt.show()
 
 
 @pytest.mark.skip(reason="For testing manually")
@@ -295,42 +308,45 @@ def test_figure_8(integrator):
 
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
-    #sol_state = np.zeros ((npts ,len(x)))
+    # sol_state = np.zeros ((npts ,len(x)))
     sol_time = np.linspace(t0, t0 + dt * (npts - 1), npts)
     energy = np.zeros(npts)
 
-    
     match integrator:
         case "euler":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(3, x, m)
                 x, v = simulator.euler(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(3, x, v, m)
         case "euler_cromer":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(3, x, m)
                 x, v = simulator.euler_cromer(x, v, a, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(3, x, v, m)
         case "rk2":
             for count, t in enumerate(sol_time):
                 a = simulator.acceleration(3, x, m)
                 x, v = simulator.rk2(3, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(3, x, v, m)            
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(3, x, v, m)
         case "rk4":
-              for count, t in enumerate(sol_time):
-                a = simulator.acceleration(3, x, m)
-                x, v = simulator.rk4(3, x, v, a, m, dt)
-                #sol_state[count,:] = x
-                energy[count] = simulator.total_energy(3, x, v, m)   
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk4(3, x, v, m, dt)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(3, x, v, m)
         case "leapfrog":
             a = simulator.acceleration(3, x, m)
             for count, t in enumerate(sol_time):
                 x, v, a = simulator.leapfrog(3, x, v, a, m, dt)
-                #sol_state[count,:] = x
+                # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(3, x, v, m)
+        case "rkf45":
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
 
     # Plotting
     plt.figure()
@@ -345,12 +361,11 @@ def test_figure_8(integrator):
     plt.ylabel("E(t)")
     plt.show()
 
-    #fig = plt.figure()
-    #ax = fig.add_subplot (111, aspect='equal ')
-    #ax.plot(sol_state [:,0], sol_state [:,1],"b-")
-    #ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
-    #plt.show()
-
+    # fig = plt.figure()
+    # ax = fig.add_subplot (111, aspect='equal ')
+    # ax.plot(sol_state [:,0], sol_state [:,1],"b-")
+    # ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
+    # plt.show()
 
 
 if __name__ == "__main__":
