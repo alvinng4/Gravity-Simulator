@@ -341,8 +341,8 @@ def rk_embedded(
     # fac_min = 0.33
     # fac = 0.38**(1.0 / (1.0 + min_power))
 
-    vk = np.zeros((max_power + 1, objects_count, 3))
-    xk = np.zeros((max_power + 1, objects_count, 3))
+    vk = np.zeros((stages, objects_count, 3))
+    xk = np.zeros((stages, objects_count, 3))
     integrate = True
     while integrate:
         for stage in range(stages):
