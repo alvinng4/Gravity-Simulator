@@ -116,6 +116,75 @@ class Simulator:
                     self.weights,
                     self.weights_test,
                 )
+            case "dopri":
+                if self.is_initialize == True and self.is_initialize_integrator == "dopri":
+                    (
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                    ) = butcher_tableaus_rk(order=54)
+                    self.is_initialize = False
+                self.x, self.v = rk_embedded(
+                    54,
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.settings.dt,
+                    self.power,
+                    self.power_test,
+                    self.coeff,
+                    self.weights,
+                    self.weights_test,
+                )
+            case "rkf78":
+                if self.is_initialize == True and self.is_initialize_integrator == "rkf78":
+                    (
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                    ) = butcher_tableaus_rk(order=78)
+                    self.is_initialize = False
+                self.x, self.v = rk_embedded(
+                    78,
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.settings.dt,
+                    self.power,
+                    self.power_test,
+                    self.coeff,
+                    self.weights,
+                    self.weights_test,
+                )
+            case "dverk":
+                if self.is_initialize == True and self.is_initialize_integrator == "dverk":
+                    (
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                    ) = butcher_tableaus_rk(order=65)
+                    self.is_initialize = False
+                self.x, self.v = rk_embedded(
+                    65,
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.settings.dt,
+                    self.power,
+                    self.power_test,
+                    self.coeff,
+                    self.weights,
+                    self.weights_test,
+                )
 
         self.stats.total_energy = total_energy(
             self.stats.objects_count, self.x, self.v, self.m
@@ -151,6 +220,9 @@ class Simulator:
         self.is_rk4 = False
         self.is_leapfrog = False
         self.is_rkf45 = False
+        self.is_dopri = False
+        self.is_rkf78 = False
+        self.is_dverk = False
 
     def check_current_integrator(self):
         if self.is_euler == True:
@@ -165,6 +237,12 @@ class Simulator:
             self.current_integrator = "leapfrog"
         elif self.is_rkf45 == True:
             self.current_integrator = "rkf45"
+        elif self.is_dopri == True:
+            self.current_integrator = "dopri"
+        elif self.is_rkf78 == True:
+            self.current_integrator = "rkf78"
+        elif self.is_dverk == True:
+            self.current_integrator = "dverk"
 
 
 # Note: jit cannot works on functions inside a class
