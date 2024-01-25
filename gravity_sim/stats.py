@@ -108,6 +108,9 @@ class Stats:
         self.rk4_board.draw()
         self.leapfrog_board.draw()
         self.rkf45_board.draw()
+        self.dopri_board.draw()
+        self.rkf78_board.draw()
+        self.dverk_board.draw()
 
         # Visual indicator for currently changing parameter
         match self.settings.current_changing_parameter:
@@ -164,36 +167,57 @@ class Stats:
                 pygame.draw.circle(
                     grav_sim.screen,
                     "green",
-                    (250, self.euler_board.rect.centery + 5),
+                    (290, self.euler_board.rect.centery + 5),
                     4,
                 )
             case "euler_cromer":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "green",
-                    (250, self.euler_cromer_board.rect.centery + 5),
+                    (290, self.euler_cromer_board.rect.centery + 5),
                     4,
                 )
             case "rk2":
                 pygame.draw.circle(
-                    grav_sim.screen, "green", (250, self.rk2_board.rect.centery + 5), 4
+                    grav_sim.screen, "green", (290, self.rk2_board.rect.centery + 5), 4
                 )
             case "rk4":
                 pygame.draw.circle(
-                    grav_sim.screen, "green", (250, self.rk4_board.rect.centery + 5), 4
+                    grav_sim.screen, "green", (290, self.rk4_board.rect.centery + 5), 4
                 )
             case "leapfrog":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "green",
-                    (250, self.leapfrog_board.rect.centery + 5),
+                    (290, self.leapfrog_board.rect.centery + 5),
                     4,
                 )
             case "rkf45":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "green",
-                    (250, self.rkf45_board.rect.centery + 5),
+                    (290, self.rkf45_board.rect.centery + 5),
+                    4,
+                )
+            case "dopri":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "green",
+                    (290, self.dopri_board.rect.centery + 5),
+                    4,
+                )
+            case "rkf78":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "green",
+                    (290, self.rkf78_board.rect.centery + 5),
+                    4,
+                )
+            case "dverk":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "green",
+                    (290, self.dverk_board.rect.centery + 5),
                     4,
                 )
 
@@ -252,6 +276,21 @@ class Stats:
                 grav_sim.simulator.is_rkf45 = True
                 grav_sim.simulator.is_initialize = True
                 grav_sim.simulator.is_initialize_integrator = "rkf45"
+            if self.dopri_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_dopri = True
+                grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "dopri"
+            if self.rkf78_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_rkf78 = True
+                grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "rkf78"
+            if self.dverk_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_dverk = True
+                grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "dverk"
 
     def _statsboard_init_print_msg(self) -> None:
         self.parameters_board.print_msg("Parameters: (Click to select)")
@@ -261,7 +300,10 @@ class Stats:
         self.rk2_board.print_msg(f"2nd order Runge-Kutta")
         self.rk4_board.print_msg(f"4th order Runge-Kutta")
         self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
-        self.rkf45_board.print_msg(f"RKF4(5)")
+        self.rkf45_board.print_msg(f"Runge-Kutta-Fehleberg 4(5)")
+        self.dopri_board.print_msg(f"Dormand-Prince 5(4)")
+        self.rkf78_board.print_msg(f"Runge-Kutta-Fehlberg 7(8)")
+        self.dverk_board.print_msg(f"Verner's method 6(5), DVERK")
 
     @classmethod
     def create_statsboard(self, grav_sim) -> None:
@@ -427,4 +469,28 @@ class Stats:
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 506),
+        )
+        self.dopri_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 529),
+        )
+        self.rkf78_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 552),
+        )
+        self.dverk_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 575),
         )

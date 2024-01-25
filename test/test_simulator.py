@@ -6,6 +6,7 @@ sys.path.insert(0, path)
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import pytest
 
 from gravity_sim.simulator import Simulator
@@ -19,10 +20,13 @@ G = 0.00029591220828559
 def test():
     # integrator = "euler"
     # integrator = "euler_cromer"
-    integrator = "rk2"
-    # integrator = "rk4"
+    #integrator = "rk2"
+    #integrator = "rk4"
     # integrator = "leapfrog"
-    # integrator = "rkf45"
+    #integrator = "rkf45"
+    #integrator = "dopri"
+    integrator = "rkf78"
+    #integrator = "dverk"
     test_two_vectors(integrator)
     # test_sun_earth_system(integrator)
     # test_solar_system(integrator)
@@ -84,23 +88,47 @@ def test_two_vectors(integrator):
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
         case "rkf45":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=45)
             for count, t in enumerate(sol_time):
-                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                x, v = simulator.rk_embedded(45, 2, x, v, m, dt, power, power_test, coeff, weights, weights_test)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
+        case "dopri":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=54)
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(54, 2, x, v, m, dt, power, power_test, coeff, weights, weights_test)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
+        case "rkf78":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=78)
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(78, 2, x, v, m, dt, power, power_test, coeff, weights, weights_test)
+                # sol_state[count,:] = x
+                energy[count] = simulator.total_energy(2, x, v, m)
+        case "dverk":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=65)
+            for count, t in enumerate(sol_time):
+                x, v = simulator.rk_embedded(65, 2, x, v, m, dt, power, power_test, coeff, weights, weights_test)
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
 
     # Plotting
-    plt.figure()
-    plt.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
-    plt.xlabel("Time")
-    plt.ylabel("|(E(t)-E0)/E0|")
+    fig1 = plt.figure()
+    ax1 = fig1.add_subplot(1, 1, 1)
+    ax1.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
+    ax1.set_xlabel("Time")
+    ax1.set_ylabel("|(E(t)-E0)/E0|")
     plt.show()
 
-    plt.figure()
-    plt.semilogy(sol_time, np.abs(energy))
-    plt.xlabel("Time")
-    plt.ylabel("E(t)")
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(1, 1, 1)
+    ax2.semilogy(sol_time, np.abs(energy))
+    ax2.set_xlabel("Time")
+    ax2.set_ylabel("E(t)")
+    #ax2.yaxis.set_major_formatter(plt.ScalarFormatter(useOffset=False))
+    #ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
     plt.show()
+
 
     # fig = plt.figure()
     # ax = fig.add_subplot (111, aspect='equal ')
@@ -160,8 +188,9 @@ def test_sun_earth_system(integrator):
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
         case "rkf45":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=45)
             for count, t in enumerate(sol_time):
-                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                x, v = simulator.rk_embedded(45, 2, x, v, m, dt, power, power_test, coeff, weights, weights_test)
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
 
@@ -263,10 +292,11 @@ def test_solar_system(integrator):
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(9, x, v, m)
         case "rkf45":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=45)
             for count, t in enumerate(sol_time):
-                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                x, v = simulator.rk_embedded(45, 9, x, v, m, dt, power, power_test, coeff, weights, weights_test)
                 # sol_state[count,:] = x
-                energy[count] = simulator.total_energy(2, x, v, m)
+                energy[count] = simulator.total_energy(9, x, v, m)
 
     # Plotting
     plt.figure()
@@ -343,10 +373,11 @@ def test_figure_8(integrator):
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(3, x, v, m)
         case "rkf45":
+            power, power_test, coeff, weights, weights_test = simulator.butcher_tableaus_rk(order=45)
             for count, t in enumerate(sol_time):
-                x, v = simulator.rk_embedded(45, 2, x, v, m, dt)
+                x, v = simulator.rk_embedded(45, 3, x, v, m, dt, power, power_test, coeff, weights, weights_test)
                 # sol_state[count,:] = x
-                energy[count] = simulator.total_energy(2, x, v, m)
+                energy[count] = simulator.total_energy(3, x, v, m)
 
     # Plotting
     plt.figure()
