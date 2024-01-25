@@ -303,7 +303,7 @@ class Stats:
         self.rkf45_board.print_msg(f"Runge-Kutta-Fehleberg 4(5)")
         self.dopri_board.print_msg(f"Dormand-Prince 5(4)")
         self.rkf78_board.print_msg(f"Runge-Kutta-Fehlberg 7(8)")
-        self.dverk_board.print_msg(f"Verner's method 6(5), DVERK")
+        self.dverk_board.print_msg(f"Verner's method 6(5) DVERK")
 
     @classmethod
     def create_statsboard(self, grav_sim) -> None:
