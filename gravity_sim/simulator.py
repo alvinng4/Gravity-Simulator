@@ -14,6 +14,9 @@ G = 0.00029591220828559
 
 
 class Simulator:
+
+    DEFAULT_INTEGRATOR = "leapfrog"
+
     def __init__(self, grav_sim):
         self.stats = grav_sim.stats
         self.settings = grav_sim.settings
@@ -26,7 +29,8 @@ class Simulator:
         self.is_initialize = True
         self.set_all_integrators_false()
         self.is_leapfrog = True  # Default integrator
-        self.current_integrator = "leapfrog"
+        self.current_integrator = self.DEFAULT_INTEGRATOR
+        self.is_initialize_integrator = self.DEFAULT_INTEGRATOR
 
     def run_simulation(self, grav_sim):
         self.stats.simulation_time += self.settings.dt
@@ -35,7 +39,8 @@ class Simulator:
 
         match self.current_integrator:
             case "euler":
-                self.is_initialize = False
+                if self.is_initialize == True and self.is_initialize_integrator == "euler":
+                    self.is_initialize = False
                 self.a = acceleration(self.stats.objects_count, self.x, self.m)
                 self.x, self.v = euler(
                     self.x,
@@ -44,7 +49,8 @@ class Simulator:
                     self.settings.dt,
                 )
             case "euler_cromer":
-                self.is_initialize = False
+                if self.is_initialize == True and self.is_initialize_integrator == "euler_cromer":
+                    self.is_initialize = False
                 self.a = acceleration(self.stats.objects_count, self.x, self.m)
                 self.x, self.v = euler_cromer(
                     self.x,
@@ -53,7 +59,8 @@ class Simulator:
                     self.settings.dt,
                 )
             case "rk2":
-                self.is_initialize = False
+                if self.is_initialize == True and self.is_initialize_integrator == "rk2":
+                    self.is_initialize = False
                 self.a = acceleration(self.stats.objects_count, self.x, self.m)
                 self.x, self.v = rk2(
                     self.stats.objects_count,
@@ -64,7 +71,8 @@ class Simulator:
                     self.settings.dt,
                 )
             case "rk4":
-                self.is_initialize = False
+                if self.is_initialize == True and self.is_initialize_integrator == "rk4":
+                    self.is_initialize = False
                 self.x, self.v = rk4(
                     self.stats.objects_count,
                     self.x,
@@ -73,7 +81,7 @@ class Simulator:
                     self.settings.dt,
                 )
             case "leapfrog":
-                if self.is_initialize == True:
+                if self.is_initialize == True and self.is_initialize_integrator == "leapfrog":
                     self.a = acceleration(self.stats.objects_count, self.x, self.m)
                     self.is_initialize = False
 
@@ -86,7 +94,7 @@ class Simulator:
                     self.settings.dt,
                 )
             case "rkf45":
-                if self.is_initialize == True:
+                if self.is_initialize == True and self.is_initialize_integrator == "rkf45":
                     (
                         self.power,
                         self.power_test,

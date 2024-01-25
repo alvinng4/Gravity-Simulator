@@ -100,6 +100,7 @@ class Grav_obj(Sprite):
         )
         grav_sim.grav_objs.add(grav_obj)
         grav_sim.simulator.is_initialize = True
+        grav_sim.simulator.is_initialize_integrator = grav_sim.simulator.current_integrator
 
     @staticmethod
     def create_solor_system(grav_sim):
