@@ -35,8 +35,7 @@ Once you have downloaded the source files, open a terminal window, navigate to t
 ```
 python3 gravity_sim
 ```
-Note: the buttons may need some time to react.
-
+Note: the buttons may react slowly sometimes.
 ## Control
 Move camera: `W` `A` `S` `D`\
 Menu: `Esc`\
@@ -49,6 +48,7 @@ Hold the right mouse button to create a star + drag the mouse to give it an init
 Adjust parameter values: Left-click on the parameters panel to select a parameter + scroll to change its value.\
 Switch integrators: Left-click the integrator on the integrators panel.
 
+Warning: switching integrators in the middle of simulation will cause noticeable error due to unknown reason.
 ## Changing the resolution
 The default resolution is set to 1920 x 1080. However, you can set your own resolution by the following command:
 ```

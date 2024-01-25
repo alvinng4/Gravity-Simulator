@@ -65,12 +65,10 @@ class Simulator:
                 )
             case "rk4":
                 self.is_initialize = False
-                self.a = acceleration(self.stats.objects_count, self.x, self.m)
                 self.x, self.v = rk4(
                     self.stats.objects_count,
                     self.x,
                     self.v,
-                    self.a,
                     self.m,
                     self.settings.dt,
                 )
@@ -87,6 +85,30 @@ class Simulator:
                     self.m,
                     self.settings.dt,
                 )
+            case "rkf45":
+                if self.is_initialize == True:
+                    (
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                    ) = butcher_tableaus_rk(order=45)
+                    self.is_initialize = False
+                self.x, self.v = rk_embedded(
+                    45,
+                    self.stats.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.settings.dt,
+                    self.power,
+                    self.power_test,
+                    self.coeff,
+                    self.weights,
+                    self.weights_test,
+                )
+
         self.stats.total_energy = total_energy(
             self.stats.objects_count, self.x, self.v, self.m
         )
@@ -120,6 +142,7 @@ class Simulator:
         self.is_rk2 = False
         self.is_rk4 = False
         self.is_leapfrog = False
+        self.is_rkf45 = False
 
     def check_current_integrator(self):
         if self.is_euler == True:
@@ -132,6 +155,8 @@ class Simulator:
             self.current_integrator = "rk4"
         elif self.is_leapfrog == True:
             self.current_integrator = "leapfrog"
+        elif self.is_rkf45 == True:
+            self.current_integrator = "rkf45"
 
 
 # Note: jit cannot works on functions inside a class
@@ -165,33 +190,31 @@ def euler_cromer(x, v, a, dt=0.001):
 
 @nb.njit
 def rk2(objects_count, x, v, a, m, dt):
-    x_half, v_half = euler(x, v, a, 0.5 * dt)
+    vk = acceleration(objects_count, x + 0.5 * v * dt, m)
+    xk = v + 0.5 * a * dt
 
-    k2_v = acceleration(objects_count, x_half, m)
-    k2_x = v_half
-
-    v = v + dt * k2_v
-    x = x + dt * k2_x
+    v = v + dt * vk
+    x = x + dt * xk
 
     return x, v
 
 
 @nb.njit
-def rk4(objects_count, x, v, a, m, dt):
-    k1_v = a
-    k1_x = v
+def rk4(objects_count, x, v, m, dt):
+    vk1 = acceleration(objects_count, x, m)
+    xk1 = v
 
-    k2_v = acceleration(objects_count, x + 0.5 * k1_x * dt, m)
-    k2_x = v + 0.5 * k1_v * dt
+    vk2 = acceleration(objects_count, x + 0.5 * xk1 * dt, m)
+    xk2 = v + 0.5 * vk1 * dt
 
-    k3_v = acceleration(objects_count, x + 0.5 * k2_x * dt, m)
-    k3_x = v + 0.5 * k2_v * dt
+    vk3 = acceleration(objects_count, x + 0.5 * xk2 * dt, m)
+    xk3 = v + 0.5 * vk2 * dt
 
-    k4_v = acceleration(objects_count, x + k3_x * dt, m)
-    k4_x = v + k3_v * dt
+    vk4 = acceleration(objects_count, x + xk3 * dt, m)
+    xk4 = v + vk3 * dt
 
-    v = v + dt * (k1_v + 2 * k2_v + 2 * k3_v + k4_v) / 6.0
-    x = x + dt * (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6.0
+    v = v + dt * (vk1 + 2 * vk2 + 2 * vk3 + vk4) / 6.0
+    x = x + dt * (xk1 + 2 * xk2 + 2 * xk3 + xk4) / 6.0
 
     return x, v
 
@@ -207,6 +230,56 @@ def leapfrog(objects_count, x, v, a, m, dt):
 
 
 @nb.njit
+def rk_embedded(
+    order,
+    objects_count,
+    x,
+    v,
+    m,
+    dt,
+    power,
+    power_test,
+    coeff,
+    weights,
+    weights_test,
+    abs_tolerance=None,
+    rel_tolerance=None,
+):
+    stages = len(weights)
+    min_power = min([power, power_test])
+    max_power = max([power, power_test])
+    delta_weights_error_estimation = weights - weights_test
+
+    # Safety factors for step-size control:
+    # fac_max = 6.0
+    # fac_min = 0.33
+    # fac = 0.38**(1.0 / (1.0 + min_power))
+
+    vk = np.zeros((max_power + 1, objects_count, 3))
+    xk = np.zeros((max_power + 1, objects_count, 3))
+    integrate = True
+    while integrate:
+        for stage in range(stages):
+            temp_v = v.copy()
+            temp_x = x.copy()
+            for i in range(stage):
+                temp_v += dt * coeff[stage - 1][i] * vk[i]
+                temp_x += dt * coeff[stage - 1][i] * xk[i]
+            vk[stage] = acceleration(objects_count, temp_x, m)
+            xk[stage] = temp_v
+
+        # error = 0
+        # for stage in range(stages):
+        #    error +=
+
+        for stage in range(stages):
+            v += dt * weights[stage] * vk[stage]
+            x += dt * weights[stage] * xk[stage]
+
+        return x, v
+
+
+@nb.njit
 def total_energy(objects_count, x, v, m):
     E = 0
     for j in range(0, objects_count):
@@ -218,9 +291,13 @@ def total_energy(objects_count, x, v, m):
     return E
 
 
-# Reference: see Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
-# Chapter 6, Page 100 - 101
+@nb.njit
 def butcher_tableaus_rk(order):
+    """
+    Butcher tableaus for embedded rk
+    Reference: see Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
+    Chapter 6, Page 100 - 101
+    """
     # Select integrator
     # 45) Runge-Kutta-Fehleberg 4(5)
     # 54) Dormand-Prince 5(4)
@@ -230,9 +307,10 @@ def butcher_tableaus_rk(order):
     # RUNGE-KUTTA-FEHLBERG 4(5)
     if order == 45:
         # Order
-        p = 4
-        pt = 5
-        a = np.array(
+        power = 4
+        power_test = 5
+        # nodes = np.array([1.0 / 4.0, 3.0 / 8.0, 12.0 / 13.0, 1.0, 0.5])
+        coeff = np.array(
             [
                 [1.0 / 4.0, 0.0, 0.0, 0.0, 0.0],
                 [3.0 / 32.0, 9.0 / 32.0, 0.0, 0.0, 0.0],
@@ -241,9 +319,11 @@ def butcher_tableaus_rk(order):
                 [-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0],
             ]
         )
-        c = np.array([1.0 / 4.0, 3.0 / 8.0, 12.0 / 13.0, 1.0, 0.5])
-        b = np.array([25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -0.2, 0])
-        bt = np.array(
+
+        weights = np.array(
+            [25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -0.2, 0]
+        )
+        weights_test = np.array(
             [
                 16.0 / 135.0,
                 0.0,
@@ -257,9 +337,10 @@ def butcher_tableaus_rk(order):
     # DORMAND-PRINCE 5(4)
     elif order == 54:
         # order
-        p = 5
-        pt = 4
-        a = np.array(
+        power = 5
+        power_test = 4
+        # nodes = np.array([1.0 / 5.0, 3.0 / 10.0, 4.0 / 5.0, 8.0 / 9.0, 1.0, 1.0])
+        coeff = np.array(
             [
                 [1.0 / 5.0, 0.0, 0.0, 0.0, 0.0, 0],
                 [3.0 / 40.0, 9.0 / 40.0, 0.0, 0.0, 0.0, 0],
@@ -290,8 +371,7 @@ def butcher_tableaus_rk(order):
                 ],
             ]
         )
-        c = np.array([1.0 / 5.0, 3.0 / 10.0, 4.0 / 5.0, 8.0 / 9.0, 1.0, 1.0])
-        b = np.array(
+        weights = np.array(
             [
                 35.0 / 384.0,
                 0.0,
@@ -302,7 +382,7 @@ def butcher_tableaus_rk(order):
                 0,
             ]
         )
-        bt = np.array(
+        weights_test = np.array(
             [
                 5179.0 / 57600.0,
                 0.0,
@@ -317,9 +397,25 @@ def butcher_tableaus_rk(order):
     # RUNGE-KUTTA-FEHLBERG 7(8)
     elif order == 78:
         # Order
-        p = 7
-        pt = 8
-        a = np.array(
+        power = 7
+        power_test = 8
+        # nodes = np.array(
+        #     [
+        #         2.0 / 27.0,
+        #         1.0 / 9.0,
+        #         1.0 / 6.0,
+        #         5.0 / 12.0,
+        #         1.0 / 2.0,
+        #         5.0 / 6.0,
+        #         1.0 / 6.0,
+        #         2.0 / 3.0,
+        #         1.0 / 3.0,
+        #         1.0,
+        #         0.0,
+        #         1.0,
+        #     ]
+        # )
+        coeff = np.array(
             [
                 [2.0 / 27.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 [
@@ -478,23 +574,8 @@ def butcher_tableaus_rk(order):
                 ],
             ]
         )
-        c = np.array(
-            [
-                2.0 / 27.0,
-                1.0 / 9.0,
-                1.0 / 6.0,
-                5.0 / 12.0,
-                1.0 / 2.0,
-                5.0 / 6.0,
-                1.0 / 6.0,
-                2.0 / 3.0,
-                1.0 / 3.0,
-                1.0,
-                0.0,
-                1.0,
-            ]
-        )
-        b = np.array(
+
+        weights = np.array(
             [
                 41.0 / 840.0,
                 0.0,
@@ -511,7 +592,7 @@ def butcher_tableaus_rk(order):
                 0.0,
             ]
         )
-        bt = np.array(
+        weights_test = np.array(
             [
                 0.0,
                 0.0,
@@ -532,9 +613,12 @@ def butcher_tableaus_rk(order):
     # VERNER 6(5) DVERK
     elif order == 65:
         # Order
-        p = 6
-        pt = 7
-        a = np.array(
+        power = 6
+        power_test = 7
+        # nodes = np.array(
+        #     [1.0 / 6.0, 4.0 / 15.0, 2.0 / 3.0, 5.0 / 6.0, 1.0, 1.0 / 15.0, 1.0]
+        # )
+        coeff = np.array(
             [
                 [1.0 / 6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 [4.0 / 75.0, 16.0 / 75.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -569,10 +653,8 @@ def butcher_tableaus_rk(order):
                 ],
             ]
         )
-        c = np.array(
-            [1.0 / 6.0, 4.0 / 15.0, 2.0 / 3.0, 5.0 / 6.0, 1.0, 1.0 / 15.0, 1.0]
-        )
-        b = np.array(
+
+        weights = np.array(
             [
                 3.0 / 40.0,
                 0.0,
@@ -584,7 +666,7 @@ def butcher_tableaus_rk(order):
                 43.0 / 616.0,
             ]
         )
-        bt = np.array(
+        weights_test = np.array(
             [
                 13.0 / 160.0,
                 0.0,
@@ -597,4 +679,4 @@ def butcher_tableaus_rk(order):
             ]
         )
 
-    return a, b, bt, c, p, pt
+    return power, power_test, coeff, weights, weights_test

@@ -106,6 +106,7 @@ class Stats:
         self.rk2_board.draw()
         self.rk4_board.draw()
         self.leapfrog_board.draw()
+        self.rkf45_board.draw()
 
         # Visual indicator for currently changing parameter
         match self.settings.current_changing_parameter:
@@ -187,6 +188,13 @@ class Stats:
                     (250, self.leapfrog_board.rect.centery + 5),
                     4,
                 )
+            case "rkf45":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "green",
+                    (250, self.rkf45_board.rect.centery + 5),
+                    4,
+                )
 
     def check_button(self, grav_sim, mouse_pos) -> None:
         """Check if there is any click on the buttons"""
@@ -216,18 +224,27 @@ class Stats:
             if self.euler_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_euler = True
+                grav_sim.simulator.is_initialize = True
             if self.euler_cromer_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_euler_cromer = True
+                grav_sim.simulator.is_initialize = True
             if self.rk2_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rk2 = True
+                grav_sim.simulator.is_initialize = True
             if self.rk4_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rk4 = True
+                grav_sim.simulator.is_initialize = True
             if self.leapfrog_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_leapfrog = True
+                grav_sim.simulator.is_initialize = True
+            if self.rkf45_board.rect.collidepoint(mouse_pos):
+                grav_sim.simulator.set_all_integrators_false()
+                grav_sim.simulator.is_rkf45 = True
+                grav_sim.simulator.is_initialize = True
 
     def _statsboard_init_print_msg(self) -> None:
         self.parameters_board.print_msg("Parameters: (Click to select)")
@@ -237,6 +254,7 @@ class Stats:
         self.rk2_board.print_msg(f"2nd order Runge-Kutta")
         self.rk4_board.print_msg(f"4th order Runge-Kutta")
         self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
+        self.rkf45_board.print_msg(f"RKF4(5)")
 
     @classmethod
     def create_statsboard(self, grav_sim) -> None:
@@ -394,4 +412,12 @@ class Stats:
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 460),
+        )
+        self.rkf45_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 506),
         )
