@@ -40,6 +40,7 @@ class Stats:
         self.simulation_time = 0
         self.total_energy = 0
         grav_sim.simulator.is_initialize = True
+        grav_sim.simulator.is_initialize_integrator = grav_sim.simulator.current_integrator
         grav_sim.camera._pos[0] = 0
         grav_sim.camera._pos[1] = 0
 
@@ -225,26 +226,32 @@ class Stats:
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_euler = True
                 grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "euler"
             if self.euler_cromer_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_euler_cromer = True
                 grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "euler_cromer"
             if self.rk2_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rk2 = True
                 grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "rk2"
             if self.rk4_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rk4 = True
                 grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "rk4"
             if self.leapfrog_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_leapfrog = True
                 grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "leapfrog"
             if self.rkf45_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rkf45 = True
                 grav_sim.simulator.is_initialize = True
+                grav_sim.simulator.is_initialize_integrator = "rkf45"
 
     def _statsboard_init_print_msg(self) -> None:
         self.parameters_board.print_msg("Parameters: (Click to select)")
