@@ -1,0 +1,5 @@
+llvmlite==0.41.1
+numba==0.58.1
+numpy==1.26.3
+pygame==2.5.2
+scipy==1.12.0
