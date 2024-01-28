@@ -463,10 +463,10 @@ def _initial_time_step_rk_embedded(
 
     tolerance_scale_x = abs_tolerance + rel_tolerance * np.abs(x)
     tolerance_scale_v = abs_tolerance + rel_tolerance * np.abs(v)
-    sum_1 = np.sum(x / tolerance_scale_x) + np.sum(v / tolerance_scale_v)
-    sum_0 = np.sum(v / tolerance_scale_x) + np.sum(a / tolerance_scale_v)
-    d_1 = np.sqrt(sum_1 * sum_1 / (objects_count * 3 * 2))
-    d_0 = np.sqrt(sum_0 * sum_0 / (objects_count * 3 * 2))
+    sum_1 = np.sum(np.square(x / tolerance_scale_x)) + np.sum(np.square(v / tolerance_scale_v))
+    sum_0 = np.sum(np.square(v / tolerance_scale_x)) + np.sum(np.square(a / tolerance_scale_v))
+    d_1 = np.sqrt(sum_1 / (objects_count * 3 * 2))
+    d_0 = np.sqrt(sum_0 / (objects_count * 3 * 2))
 
     if d_0 < 1e-5 or d_1 < 1e-5:
         dt_0 = 1e-5
@@ -478,17 +478,17 @@ def _initial_time_step_rk_embedded(
     a_1 = acceleration(objects_count, x_1, m)
 
     # Calculate d_2 to measure how much the derivatives have changed.
-    sum_2 = np.sum((v_1 - v) / tolerance_scale_x) + np.sum(
-        (a_1 - a) / tolerance_scale_v
+    sum_2 = np.sum(np.square((v_1 - v) / tolerance_scale_x)) + np.sum(
+        np.square((a_1 - a) / tolerance_scale_v)
     )
-    d_2 = np.sqrt(sum_2 * sum_2 / (objects_count * 3 * 2)) / dt_0
+    d_2 = np.sqrt(sum_2 / (objects_count * 3 * 2)) / dt_0
 
     if max(d_1, d_2) <= 1e-15:
         dt_1 = max([1e-6, dt_0 * 1e-3])
     else:
         dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
     dt = min([100 * dt_0, dt_1])
-    print(dt)
+
     return dt
 
 
@@ -564,11 +564,11 @@ def rk_embedded(
             abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
         )
         # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
-        sum = np.sum(error_estimation_delta_x / tolerance_scale_x) + np.sum(
-            error_estimation_delta_v / tolerance_scale_v
+        sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
+            np.square(error_estimation_delta_v / tolerance_scale_v)
         )
-        error = np.sqrt(sum * sum / (objects_count * 3 * 2))
-
+        error = np.sqrt(sum / (objects_count * 3 * 2))
+        print(error)
         if error <= 1 or actual_dt == apparent_dt * 1e-10:
             tf += actual_dt
             x = x_1
@@ -879,8 +879,8 @@ def butcher_tableaus_rk(order):
                     4496.0 / 1025.0,
                     -289.0 / 82.0,
                     2193.0 / 4100.0,
-                    51.0 / 82,
-                    33.0 / 164,
+                    51.0 / 82.0,
+                    33.0 / 164.0,
                     19.0 / 41.0,
                     0.0,
                     1.0,
