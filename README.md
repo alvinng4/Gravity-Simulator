@@ -3,6 +3,11 @@ Welcome to my Python project: N-body gravity simulator. This project is currentl
 
 ## Progress
 * Fixed step-size Euler, Euler-Cromer, RK2, RK4 and leapfrog methods for N-body are implemented.
+* Prototype: Embedded RK method with variable step size, including RKF4(5), DOPRI, RKF7(8) and DVERK.\
+WARNING: The embedded RK methods are very unstable at the moment and may cause the program to freeze.\
+Recommendation: 
+    1. DVERK is the most stable one. Use DVERK and avoid other embedded RK methods. 
+    2. Do not set tolerance below 1e-8.
 * 4 modes are available: Void, Solar System, Figure-8 Orbit and Pythagorean Three-Body Orbit.
 * Embedded RK method in development
 
@@ -11,7 +16,7 @@ Welcome to my Python project: N-body gravity simulator. This project is currentl
 This program requires Python version 3.11. 
 
 ### Installation
-Download the source file, or clone this repo by running the following command in terminal:
+Download the source file, or clone this repository by running the following command in terminal:
 ```
 git clone https://github.com/alvinng4/N-body-gravity-simulator
 ```

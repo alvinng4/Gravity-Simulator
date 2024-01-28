@@ -81,11 +81,9 @@ class GravitySimulator:
         self.stats.update(self)
 
     def _simulation(self):
-        if self.grav_objs:
-            if not self.stats.is_paused:
-                for _ in range(self.settings.time_speed):
-                    self.simulator.run_simulation(self)
-                self.simulator.unload_value(self)
+        if self.grav_objs and not self.stats.is_paused:
+            self.simulator.run_simulation(self)
+            self.simulator.unload_value(self)
 
     def _update_screen(self):
         self.screen.fill(Settings.BG_COLOR)

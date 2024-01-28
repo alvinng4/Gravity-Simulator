@@ -14,7 +14,6 @@ G = 0.00029591220828559
 
 
 class Simulator:
-
     DEFAULT_INTEGRATOR = "leapfrog"
 
     def __init__(self, grav_sim):
@@ -33,68 +32,114 @@ class Simulator:
         self.is_initialize_integrator = self.DEFAULT_INTEGRATOR
 
     def run_simulation(self, grav_sim):
-        self.stats.simulation_time += self.settings.dt
         if self.is_initialize == True:
             self.initialize_problem(grav_sim)
 
         match self.current_integrator:
             case "euler":
-                if self.is_initialize == True and self.is_initialize_integrator == "euler":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "euler"
+                ):
                     self.is_initialize = False
-                self.a = acceleration(self.stats.objects_count, self.x, self.m)
-                self.x, self.v = euler(
-                    self.x,
-                    self.v,
-                    self.a,
-                    self.settings.dt,
+
+                for _ in range(self.settings.time_speed):
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.x, self.v = euler(
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.settings.dt,
+                    )
+                self.stats.apparent_simulation_time += (
+                    self.settings.dt * self.settings.time_speed
                 )
+                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "euler_cromer":
-                if self.is_initialize == True and self.is_initialize_integrator == "euler_cromer":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "euler_cromer"
+                ):
                     self.is_initialize = False
-                self.a = acceleration(self.stats.objects_count, self.x, self.m)
-                self.x, self.v = euler_cromer(
-                    self.x,
-                    self.v,
-                    self.a,
-                    self.settings.dt,
+
+                for _ in range(self.settings.time_speed):
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.x, self.v = euler_cromer(
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.settings.dt,
+                    )
+                self.stats.apparent_simulation_time += (
+                    self.settings.dt * self.settings.time_speed
                 )
+                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "rk2":
-                if self.is_initialize == True and self.is_initialize_integrator == "rk2":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "rk2"
+                ):
                     self.is_initialize = False
-                self.a = acceleration(self.stats.objects_count, self.x, self.m)
-                self.x, self.v = rk2(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.a,
-                    self.m,
-                    self.settings.dt,
+
+                for _ in range(self.settings.time_speed):
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.x, self.v = rk2(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.m,
+                        self.settings.dt,
+                    )
+                self.stats.apparent_simulation_time += (
+                    self.settings.dt * self.settings.time_speed
                 )
+                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "rk4":
-                if self.is_initialize == True and self.is_initialize_integrator == "rk4":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "rk4"
+                ):
                     self.is_initialize = False
-                self.x, self.v = rk4(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.m,
-                    self.settings.dt,
+
+                for _ in range(self.settings.time_speed):
+                    self.x, self.v = rk4(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.m,
+                        self.settings.dt,
+                    )
+                self.stats.apparent_simulation_time += (
+                    self.settings.dt * self.settings.time_speed
                 )
+                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "leapfrog":
-                if self.is_initialize == True and self.is_initialize_integrator == "leapfrog":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "leapfrog"
+                ):
                     self.a = acceleration(self.stats.objects_count, self.x, self.m)
                     self.is_initialize = False
 
-                self.x, self.v, self.a = leapfrog(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.a,
-                    self.m,
-                    self.settings.dt,
+                for _ in range(self.settings.time_speed):
+                    self.x, self.v, self.a = leapfrog(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.m,
+                        self.settings.dt,
+                    )
+                self.stats.apparent_simulation_time += (
+                    self.settings.dt * self.settings.time_speed
                 )
+                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "rkf45":
-                if self.is_initialize == True and self.is_initialize_integrator == "rkf45":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "rkf45"
+                ):
                     (
                         self.power,
                         self.power_test,
@@ -102,22 +147,50 @@ class Simulator:
                         self.weights,
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=45)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.rk_dt = _initial_time_step_rk_embedded(
+                        self.stats.objects_count,
+                        4,
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.m,
+                        self.settings.tolerance,
+                        self.settings.tolerance,
+                    )
+                    print(self.rk_dt)
                     self.is_initialize = False
-                self.x, self.v = rk_embedded(
-                    45,
+                (
+                    self.x,
+                    self.v,
+                    self.stats.actual_simulation_time,
+                    self.rk_dt,
+                ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
+                    self.stats.apparent_simulation_time,
+                    self.stats.actual_simulation_time,
                     self.settings.dt,
+                    self.settings.time_speed,
+                    self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.tolerance,
+                    self.settings.tolerance,
+                )
+                self.stats.apparent_simulation_time += (
+                    self.settings.dt * self.settings.time_speed
                 )
             case "dopri":
-                if self.is_initialize == True and self.is_initialize_integrator == "dopri":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "dopri"
+                ):
                     (
                         self.power,
                         self.power_test,
@@ -126,21 +199,47 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=54)
                     self.is_initialize = False
-                self.x, self.v = rk_embedded(
-                    54,
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.rk_dt = _initial_time_step_rk_embedded(
+                        self.stats.objects_count,
+                        5,
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.m,
+                        self.settings.tolerance,
+                        self.settings.tolerance,
+                    )
+                    print(self.rk_dt)
+                    self.is_initialize = False
+                (
+                    self.x,
+                    self.v,
+                    self.stats.actual_simulation_time,
+                    self.rk_dt,
+                ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
+                    self.stats.apparent_simulation_time,
+                    self.stats.actual_simulation_time,
                     self.settings.dt,
+                    self.settings.time_speed,
+                    self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.tolerance,
+                    self.settings.tolerance,
                 )
             case "rkf78":
-                if self.is_initialize == True and self.is_initialize_integrator == "rkf78":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "rkf78"
+                ):
                     (
                         self.power,
                         self.power_test,
@@ -149,21 +248,47 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=78)
                     self.is_initialize = False
-                self.x, self.v = rk_embedded(
-                    78,
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.rk_dt = _initial_time_step_rk_embedded(
+                        self.stats.objects_count,
+                        7,
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.m,
+                        self.settings.tolerance,
+                        self.settings.tolerance,
+                    )
+                    print(self.rk_dt)
+                    self.is_initialize = False
+                (
+                    self.x,
+                    self.v,
+                    self.stats.actual_simulation_time,
+                    self.rk_dt,
+                ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
+                    self.stats.apparent_simulation_time,
+                    self.stats.actual_simulation_time,
                     self.settings.dt,
+                    self.settings.time_speed,
+                    self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.tolerance,
+                    self.settings.tolerance,
                 )
             case "dverk":
-                if self.is_initialize == True and self.is_initialize_integrator == "dverk":
+                if (
+                    self.is_initialize == True
+                    and self.is_initialize_integrator == "dverk"
+                ):
                     (
                         self.power,
                         self.power_test,
@@ -172,18 +297,40 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=65)
                     self.is_initialize = False
-                self.x, self.v = rk_embedded(
-                    65,
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.rk_dt = _initial_time_step_rk_embedded(
+                        self.stats.objects_count,
+                        6,
+                        self.x,
+                        self.v,
+                        self.a,
+                        self.m,
+                        self.settings.tolerance,
+                        self.settings.tolerance,
+                    )
+                    self.is_initialize = False
+                (
+                    self.x,
+                    self.v,
+                    self.stats.actual_simulation_time,
+                    self.rk_dt,
+                ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
+                    self.stats.apparent_simulation_time,
+                    self.stats.actual_simulation_time,
                     self.settings.dt,
+                    self.settings.time_speed,
+                    self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.tolerance,
+                    self.settings.tolerance,
                 )
 
         self.stats.total_energy = total_energy(
@@ -316,53 +463,143 @@ def leapfrog(objects_count, x, v, a, m, dt):
 
 
 @nb.njit
+def _initial_time_step_rk_embedded(
+    objects_count, power, x, v, a, m, abs_tolerance: float, rel_tolerance: float
+) -> float:
+    """
+    Calculate the initial time step for embedded rk method
+    Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
+    Chapter 6, Page 92 - 94
+    """
+    abs_tolerance = np.full((objects_count, 3), abs_tolerance)
+
+    tolerance_scale_x = abs_tolerance + rel_tolerance * np.abs(x)
+    tolerance_scale_v = abs_tolerance + rel_tolerance * np.abs(v)
+    sum_1 = np.sum(x / tolerance_scale_x) + np.sum(v / tolerance_scale_v)
+    sum_0 = np.sum(v / tolerance_scale_x) + np.sum(a / tolerance_scale_v)
+    d_1 = np.sqrt(sum_1 * sum_1 / (objects_count * 3 * 2))
+    d_0 = np.sqrt(sum_0 * sum_0 / (objects_count * 3 * 2))
+
+    if d_0 < 1e-5 or d_1 < 1e-5:
+        dt_0 = 1e-5
+    else:
+        dt_0 = d_0 / d_1
+
+    x_1 = x + (dt_0 / 100) * v
+    v_1 = v + (dt_0 / 100) * a
+    a_1 = acceleration(objects_count, x_1, m)
+
+    # Calculate d_2 to measure how much the derivatives have changed.
+    sum_2 = np.sum((v_1 - v) / tolerance_scale_x) + np.sum(
+        (a_1 - a) / tolerance_scale_v
+    )
+    d_2 = np.sqrt(sum_2 * sum_2 / (objects_count * 3 * 2)) / dt_0
+
+    if max(d_1, d_2) <= 1e-15:
+        dt_1 = max([1e-6, dt_0 * 1e-3])
+    else:
+        dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
+    dt = min([100 * dt_0, dt_1])
+
+    return dt
+
+
+@nb.njit
 def rk_embedded(
-    order,
     objects_count,
     x,
     v,
     m,
-    dt,
+    apparent_time,
+    actual_time,
+    apparent_dt,
+    time_speed,
+    actual_dt,
     power,
     power_test,
     coeff,
     weights,
     weights_test,
-    abs_tolerance=None,
-    rel_tolerance=None,
+    abs_tolerance: float = 1e-8,
+    rel_tolerance: float = 1e-8,
 ):
+    # Initializing
+    tf = actual_time
+    abs_tolerance = np.full((objects_count, 3), abs_tolerance)
+
     stages = len(weights)
     min_power = min([power, power_test])
-    max_power = max([power, power_test])
-    delta_weights_error_estimation = weights - weights_test
+    error_estimation_delta_weights = weights - weights_test
+    tolerance_scale_x = np.zeros((objects_count, 3))
+    tolerance_scale_v = np.zeros((objects_count, 3))
 
     # Safety factors for step-size control:
-    # fac_max = 6.0
-    # fac_min = 0.33
-    # fac = 0.38**(1.0 / (1.0 + min_power))
+    safety_fac_max = 6.0
+    safety_fac_min = 0.33
+    safety_fac = 0.38 ** (1.0 / (1.0 + min_power))
 
+    # Initialize vk and xk
     vk = np.zeros((stages, objects_count, 3))
     xk = np.zeros((stages, objects_count, 3))
-    integrate = True
-    while integrate:
+
+    while True:
+        error_estimation_delta_x = x * 0
+        error_estimation_delta_v = v * 0
+
+        # Calculate xk and vk
         for stage in range(stages):
             temp_v = v.copy()
             temp_x = x.copy()
             for i in range(stage):
-                temp_v += dt * coeff[stage - 1][i] * vk[i]
-                temp_x += dt * coeff[stage - 1][i] * xk[i]
+                temp_v += actual_dt * coeff[stage - 1][i] * vk[i]
+                temp_x += actual_dt * coeff[stage - 1][i] * xk[i]
             vk[stage] = acceleration(objects_count, temp_x, m)
             xk[stage] = temp_v
 
-        # error = 0
-        # for stage in range(stages):
-        #    error +=
-
+        # Calculate x_1, v_1 and also delta x, delta v for error estimation
+        v_1 = v.copy()
+        x_1 = x.copy()
         for stage in range(stages):
-            v += dt * weights[stage] * vk[stage]
-            x += dt * weights[stage] * xk[stage]
+            v_1 += actual_dt * weights[stage] * vk[stage]
+            x_1 += actual_dt * weights[stage] * xk[stage]
+            error_estimation_delta_v += (
+                error_estimation_delta_weights[stage] * vk[stage]
+            )
+            error_estimation_delta_x += (
+                error_estimation_delta_weights[stage] * xk[stage]
+            )
 
-        return x, v
+        # Error calculation
+        tolerance_scale_x = (
+            abs_tolerance + np.maximum(np.abs(x), np.abs(x_1)) * rel_tolerance
+        )
+        tolerance_scale_v = (
+            abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
+        )
+        # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
+        sum = np.sum(error_estimation_delta_x / tolerance_scale_x) + np.sum(
+            error_estimation_delta_v / tolerance_scale_v
+        )
+        error = np.sqrt(sum * sum / (objects_count * 3 * 2))
+
+        if error <= 1:
+            tf += actual_dt
+            x = x_1
+            v = v_1
+
+        dt_new = actual_dt * safety_fac / error ** (1.0 / (1.0 + min_power))
+        # Prevent dt to be too small or too large relative to the last time step
+        if dt_new > safety_fac_max * actual_dt:
+            actual_dt = safety_fac_max * actual_dt
+        elif dt_new < safety_fac_min * actual_dt:
+            actual_dt = safety_fac_min * actual_dt
+        elif dt_new / apparent_dt < 1e-7:
+            dt_new = apparent_dt * 1e-7
+        else:
+            actual_dt = dt_new
+
+        if tf > (apparent_time + apparent_dt * time_speed):
+            return x, v, tf, actual_dt
 
 
 @nb.njit
@@ -381,7 +618,7 @@ def total_energy(objects_count, x, v, m):
 def butcher_tableaus_rk(order):
     """
     Butcher tableaus for embedded rk
-    Reference: see Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
+    Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
     Chapter 6, Page 100 - 101
     """
     # Select integrator

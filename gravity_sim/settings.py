@@ -14,7 +14,7 @@ class Settings:
     DEFAULT_DISTANCE_SCALE = 200
     DEFAULT_dt = 0.1
     DEFAULT_TIME_SPEED = 1
-    DEFAULT_EPSILON = 1e-2
+    DEFAULT_TOLERANCE = 1e-6
     DEFAULT_NEW_STAR_MASS_SCALE = 1
 
     MAX_STAR_IMG_SCALE = 100000
@@ -27,8 +27,8 @@ class Settings:
     MIN_DT = 1e-10
     MAX_TIME_SPEED = 10000
     MIN_TIME_SPEED = 1
-    MAX_EPSILON = 1e2
-    MIN_EPSILON = 1e-15
+    MAX_TOLERANCE = 1e-4
+    MIN_TOLERANCE = 1e-15
     MAX_NEW_STAR_MASS_SCALE = 1000
     MIN_NEW_STAR_MASS_SCALE = 1e-3
 
@@ -51,7 +51,7 @@ class Settings:
         self.time_speed = self.DEFAULT_TIME_SPEED
         self.dt = self.DEFAULT_dt
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
-        self.epsilon = self.DEFAULT_EPSILON
+        self.tolerance = self.DEFAULT_TOLERANCE
         self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
         self.set_all_parameters_changing_false()
         self.current_changing_parameter = None
@@ -115,9 +115,9 @@ class Settings:
             case "time_speed":
                 for _ in range(abs(magnitude)):
                     self.time_speed += self._rate_of_change(self.time_speed, magnitude)
-            case "epsilon":
+            case "tolerance":
                 for _ in range(abs(magnitude)):
-                    self.epsilon += self._rate_of_change(self.epsilon, magnitude)
+                    self.tolerance += self._rate_of_change(self.tolerance, magnitude)
 
     @staticmethod
     def _rate_of_change(x: float, magnitude: int) -> float:
@@ -140,8 +140,8 @@ class Settings:
             self.current_changing_parameter = "dt"
         elif self.is_changing_time_speed == True:
             self.current_changing_parameter = "time_speed"
-        elif self.is_changing_epsilon == True:
-            self.current_changing_parameter = "epsilon"
+        elif self.is_changing_tolerance == True:
+            self.current_changing_parameter = "tolerance"
         elif self.is_changing_new_star_mass_scale == True:
             self.current_changing_parameter = "new_star_mass_scale"
 
@@ -151,7 +151,7 @@ class Settings:
         self.is_changing_distance_scale = False
         self.is_changing_dt = False
         self.is_changing_time_speed = False
-        self.is_changing_epsilon = False
+        self.is_changing_tolerance = False
         self.is_changing_new_star_mass_scale = False
 
     def reset_parameters(self):
@@ -160,7 +160,7 @@ class Settings:
         self.time_speed = self.DEFAULT_TIME_SPEED
         self.dt = self.DEFAULT_dt
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
-        self.epsilon = self.DEFAULT_EPSILON
+        self.tolerance = self.DEFAULT_TOLERANCE
         self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
 
     @property
@@ -192,8 +192,8 @@ class Settings:
         return self._time_speed
 
     @property
-    def epsilon(self):
-        return self._epsilon
+    def tolerance(self):
+        return self._tolerance
 
     @property
     def new_star_mass_scale(self):
@@ -260,14 +260,14 @@ class Settings:
         else:
             self._time_speed = int(value)
 
-    @epsilon.setter
-    def epsilon(self, value):
-        if value > self.MAX_EPSILON:
-            self._epsilon = self.MAX_EPSILON
-        elif value < self.MIN_EPSILON:
-            self._epsilon = self.MIN_EPSILON
+    @tolerance.setter
+    def tolerance(self, value):
+        if value > self.MAX_TOLERANCE:
+            self._tolerance = self.MAX_TOLERANCE
+        elif value < self.MIN_TOLERANCE:
+            self._tolerance = self.MIN_TOLERANCE
         else:
-            self._epsilon = round(value, ndigits=15)
+            self._tolerance = round(value, ndigits=15)
 
     @new_star_mass_scale.setter
     def new_star_mass_scale(self, value):
