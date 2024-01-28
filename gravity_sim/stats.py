@@ -13,8 +13,7 @@ class Stats:
     STATSBOARD_SIZE_Y = 23
 
     def __init__(self, grav_sim) -> None:
-        self.apparent_simulation_time = 0
-        self.actual_simulation_time = 0
+        self.simulation_time = 0
         self.fps = grav_sim.clock.get_fps()
         self.total_energy = 0
         self.settings = grav_sim.settings
@@ -38,8 +37,7 @@ class Stats:
 
     def reset(self, grav_sim) -> None:
         self.start_time = time.time()
-        self.apparent_simulation_time = 0
-        self.actual_simulation_time = 0
+        self.simulation_time = 0
         self.total_energy = 0
         grav_sim.simulator.is_initialize = True
         grav_sim.simulator.is_initialize_integrator = (
@@ -67,7 +65,7 @@ class Stats:
         self.fps_board.print_msg(f"FPS = {self.fps:2.1f}")
         self.obj_count_board.print_msg(f"Object = {self.objects_count}")
         self.simulation_time_board.print_msg(
-            f"Simulation Time = {self.apparent_simulation_time / 365.2425:.1e} years"
+            f"Simulation Time = {self.simulation_time / 365.2425:.1e} years"
         )
         self.run_time_board.print_msg(f"Run time = {self.run_time:.0f} seconds")
         self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
