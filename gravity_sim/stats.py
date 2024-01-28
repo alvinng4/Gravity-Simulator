@@ -13,7 +13,8 @@ class Stats:
     STATSBOARD_SIZE_Y = 23
 
     def __init__(self, grav_sim) -> None:
-        self.simulation_time = 0
+        self.apparent_simulation_time = 0
+        self.actual_simulation_time = 0
         self.fps = grav_sim.clock.get_fps()
         self.total_energy = 0
         self.settings = grav_sim.settings
@@ -37,10 +38,13 @@ class Stats:
 
     def reset(self, grav_sim) -> None:
         self.start_time = time.time()
-        self.simulation_time = 0
+        self.apparent_simulation_time = 0
+        self.actual_simulation_time = 0
         self.total_energy = 0
         grav_sim.simulator.is_initialize = True
-        grav_sim.simulator.is_initialize_integrator = grav_sim.simulator.current_integrator
+        grav_sim.simulator.is_initialize_integrator = (
+            grav_sim.simulator.current_integrator
+        )
         grav_sim.camera._pos[0] = 0
         grav_sim.camera._pos[1] = 0
 
@@ -63,7 +67,7 @@ class Stats:
         self.fps_board.print_msg(f"FPS = {self.fps:2.1f}")
         self.obj_count_board.print_msg(f"Object = {self.objects_count}")
         self.simulation_time_board.print_msg(
-            f"Simulation Time = {self.simulation_time / 365.2425:.1e} years"
+            f"Simulation Time = {self.apparent_simulation_time / 365.2425:.1e} years"
         )
         self.run_time_board.print_msg(f"Run time = {self.run_time:.0f} seconds")
         self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
@@ -82,7 +86,7 @@ class Stats:
         )
         self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
-        self.epsilon_board.print_msg(f"Epsilon = {self.settings.epsilon:g}")
+        self.tolerance_board.print_msg(f"Tolerance = {self.settings.tolerance:g}")
 
     def draw(self, grav_sim) -> None:
         self.print_msg()
@@ -99,7 +103,7 @@ class Stats:
         self.new_star_mass_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
-        self.epsilon_board.draw()
+        self.tolerance_board.draw()
 
         self.integrators_board.draw()
         self.euler_board.draw()
@@ -153,11 +157,11 @@ class Stats:
                     (290, self.time_speed_board.rect.centery + 5),
                     4,
                 )
-            case "epsilon":
+            case "tolerance":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (290, self.epsilon_board.rect.centery + 5),
+                    (290, self.tolerance_board.rect.centery + 5),
                     4,
                 )
 
@@ -242,9 +246,9 @@ class Stats:
             if self.time_speed_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_time_speed = True
-            if self.epsilon_board.rect.collidepoint(mouse_pos):
+            if self.tolerance_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_epsilon = True
+                self.settings.is_changing_tolerance = True
 
             if self.euler_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
@@ -405,7 +409,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 276),
         )
-        self.epsilon_board = Text_box(
+        self.tolerance_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
