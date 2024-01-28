@@ -51,10 +51,9 @@ class Simulator:
                         self.a,
                         self.settings.dt,
                     )
-                self.stats.apparent_simulation_time += (
+                self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
-                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "euler_cromer":
                 if (
                     self.is_initialize == True
@@ -70,10 +69,9 @@ class Simulator:
                         self.a,
                         self.settings.dt,
                     )
-                self.stats.apparent_simulation_time += (
+                self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
-                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "rk2":
                 if (
                     self.is_initialize == True
@@ -91,10 +89,9 @@ class Simulator:
                         self.m,
                         self.settings.dt,
                     )
-                self.stats.apparent_simulation_time += (
+                self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
-                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "rk4":
                 if (
                     self.is_initialize == True
@@ -110,10 +107,9 @@ class Simulator:
                         self.m,
                         self.settings.dt,
                     )
-                self.stats.apparent_simulation_time += (
+                self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
-                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "leapfrog":
                 if (
                     self.is_initialize == True
@@ -131,10 +127,9 @@ class Simulator:
                         self.m,
                         self.settings.dt,
                     )
-                self.stats.apparent_simulation_time += (
+                self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
-                self.stats.actual_simulation_time = self.stats.apparent_simulation_time
             case "rkf45":
                 if (
                     self.is_initialize == True
@@ -158,20 +153,19 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    print(self.rk_dt)
+                    self.rk_dt
                     self.is_initialize = False
                 (
                     self.x,
                     self.v,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.rk_dt,
                 ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
-                    self.stats.apparent_simulation_time,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.settings.dt,
                     self.settings.time_speed,
                     self.rk_dt,
@@ -182,9 +176,6 @@ class Simulator:
                     self.weights_test,
                     self.settings.tolerance,
                     self.settings.tolerance,
-                )
-                self.stats.apparent_simulation_time += (
-                    self.settings.dt * self.settings.time_speed
                 )
             case "dopri":
                 if (
@@ -210,20 +201,19 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    print(self.rk_dt)
+                    self.rk_dt
                     self.is_initialize = False
                 (
                     self.x,
                     self.v,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.rk_dt,
                 ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
-                    self.stats.apparent_simulation_time,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.settings.dt,
                     self.settings.time_speed,
                     self.rk_dt,
@@ -259,20 +249,19 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    print(self.rk_dt)
+                    self.rk_dt
                     self.is_initialize = False
                 (
                     self.x,
                     self.v,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.rk_dt,
                 ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
-                    self.stats.apparent_simulation_time,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.settings.dt,
                     self.settings.time_speed,
                     self.rk_dt,
@@ -296,7 +285,6 @@ class Simulator:
                         self.weights,
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=65)
-                    self.is_initialize = False
                     self.a = acceleration(self.stats.objects_count, self.x, self.m)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
@@ -308,19 +296,19 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
+                    self.rk_dt
                     self.is_initialize = False
                 (
                     self.x,
                     self.v,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.rk_dt,
                 ) = rk_embedded(
                     self.stats.objects_count,
                     self.x,
                     self.v,
                     self.m,
-                    self.stats.apparent_simulation_time,
-                    self.stats.actual_simulation_time,
+                    self.stats.simulation_time,
                     self.settings.dt,
                     self.settings.time_speed,
                     self.rk_dt,
@@ -500,7 +488,7 @@ def _initial_time_step_rk_embedded(
     else:
         dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
     dt = min([100 * dt_0, dt_1])
-
+    print(dt)
     return dt
 
 
@@ -510,8 +498,7 @@ def rk_embedded(
     x,
     v,
     m,
-    apparent_time,
-    actual_time,
+    simulation_time,
     apparent_dt,
     time_speed,
     actual_dt,
@@ -524,7 +511,7 @@ def rk_embedded(
     rel_tolerance: float = 1e-8,
 ):
     # Initializing
-    tf = actual_time
+    tf = simulation_time
     abs_tolerance = np.full((objects_count, 3), abs_tolerance)
 
     stages = len(weights)
@@ -541,15 +528,15 @@ def rk_embedded(
     # Initialize vk and xk
     vk = np.zeros((stages, objects_count, 3))
     xk = np.zeros((stages, objects_count, 3))
-
-    while True:
+    
+    for _ in range(30 * time_speed): #Return a value every at max 30 iterations
         error_estimation_delta_x = x * 0
         error_estimation_delta_v = v * 0
 
         # Calculate xk and vk
         for stage in range(stages):
-            temp_v = v.copy()
-            temp_x = x.copy()
+            temp_v = np.copy(v)
+            temp_x = np.copy(x)
             for i in range(stage):
                 temp_v += actual_dt * coeff[stage - 1][i] * vk[i]
                 temp_x += actual_dt * coeff[stage - 1][i] * xk[i]
@@ -557,8 +544,8 @@ def rk_embedded(
             xk[stage] = temp_v
 
         # Calculate x_1, v_1 and also delta x, delta v for error estimation
-        v_1 = v.copy()
-        x_1 = x.copy()
+        v_1 = np.copy(v)
+        x_1 = np.copy(x)
         for stage in range(stages):
             v_1 += actual_dt * weights[stage] * vk[stage]
             x_1 += actual_dt * weights[stage] * xk[stage]
@@ -582,7 +569,7 @@ def rk_embedded(
         )
         error = np.sqrt(sum * sum / (objects_count * 3 * 2))
 
-        if error <= 1:
+        if error <= 1 or actual_dt == apparent_dt * 1e-10:
             tf += actual_dt
             x = x_1
             v = v_1
@@ -593,13 +580,16 @@ def rk_embedded(
             actual_dt = safety_fac_max * actual_dt
         elif dt_new < safety_fac_min * actual_dt:
             actual_dt = safety_fac_min * actual_dt
-        elif dt_new / apparent_dt < 1e-7:
-            dt_new = apparent_dt * 1e-7
+        elif dt_new / apparent_dt < 1e-10:
+            actual_dt = apparent_dt * 1e-10
         else:
             actual_dt = dt_new
 
-        if tf > (apparent_time + apparent_dt * time_speed):
+        if tf > (simulation_time + apparent_dt * time_speed):
             return x, v, tf, actual_dt
+        
+
+    return x, v, tf, actual_dt
 
 
 @nb.njit
