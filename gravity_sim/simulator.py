@@ -165,15 +165,16 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    self.settings.expected_time_scale,
                     self.stats.simulation_time,
-                    self.settings.dt,
-                    self.settings.time_speed,
                     self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.rk_max_iteration,
+                    self.settings.rk_min_iteration,
                     self.settings.tolerance,
                     self.settings.tolerance,
                 )
@@ -213,15 +214,16 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    self.settings.expected_time_scale,
                     self.stats.simulation_time,
-                    self.settings.dt,
-                    self.settings.time_speed,
                     self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.rk_max_iteration,
+                    self.settings.rk_min_iteration,
                     self.settings.tolerance,
                     self.settings.tolerance,
                 )
@@ -261,15 +263,16 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    self.settings.expected_time_scale,
                     self.stats.simulation_time,
-                    self.settings.dt,
-                    self.settings.time_speed,
                     self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.rk_max_iteration,
+                    self.settings.rk_min_iteration,
                     self.settings.tolerance,
                     self.settings.tolerance,
                 )
@@ -308,15 +311,16 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    self.settings.expected_time_scale,
                     self.stats.simulation_time,
-                    self.settings.dt,
-                    self.settings.time_speed,
                     self.rk_dt,
                     self.power,
                     self.power_test,
                     self.coeff,
                     self.weights,
                     self.weights_test,
+                    self.settings.rk_max_iteration,
+                    self.settings.rk_min_iteration,
                     self.settings.tolerance,
                     self.settings.tolerance,
                 )
@@ -398,12 +402,12 @@ def acceleration(objects_count, x, m):
 
 
 @nb.njit
-def euler(x, v, a, dt=0.001):
+def euler(x, v, a, dt):
     return x + v * dt, v + a * dt
 
 
 @nb.njit
-def euler_cromer(x, v, a, dt=0.001):
+def euler_cromer(x, v, a, dt):
     v = v + a * dt
     x = x + v * dt
     return x, v
@@ -452,7 +456,14 @@ def leapfrog(objects_count, x, v, a, m, dt):
 
 @nb.njit
 def _initial_time_step_rk_embedded(
-    objects_count, power, x, v, a, m, abs_tolerance: float, rel_tolerance: float
+    objects_count: int,
+    power: int,
+    x,
+    v,
+    a,
+    m,
+    abs_tolerance: float,
+    rel_tolerance: float,
 ) -> float:
     """
     Calculate the initial time step for embedded rk method
@@ -463,8 +474,12 @@ def _initial_time_step_rk_embedded(
 
     tolerance_scale_x = abs_tolerance + rel_tolerance * np.abs(x)
     tolerance_scale_v = abs_tolerance + rel_tolerance * np.abs(v)
-    sum_1 = np.sum(np.square(x / tolerance_scale_x)) + np.sum(np.square(v / tolerance_scale_v))
-    sum_0 = np.sum(np.square(v / tolerance_scale_x)) + np.sum(np.square(a / tolerance_scale_v))
+    sum_1 = np.sum(np.square(x / tolerance_scale_x)) + np.sum(
+        np.square(v / tolerance_scale_v)
+    )
+    sum_0 = np.sum(np.square(v / tolerance_scale_x)) + np.sum(
+        np.square(a / tolerance_scale_v)
+    )
     d_1 = np.sqrt(sum_1 / (objects_count * 3 * 2))
     d_0 = np.sqrt(sum_0 / (objects_count * 3 * 2))
 
@@ -494,21 +509,22 @@ def _initial_time_step_rk_embedded(
 
 @nb.njit
 def rk_embedded(
-    objects_count,
+    objects_count: int,
     x,
     v,
     m,
+    expected_time_scale: float,
     simulation_time,
-    apparent_dt,
-    time_speed,
     actual_dt,
     power,
     power_test,
     coeff,
     weights,
     weights_test,
-    abs_tolerance: float = 1e-8,
-    rel_tolerance: float = 1e-8,
+    max_iteration: int,
+    min_iteration: int,
+    abs_tolerance: float,
+    rel_tolerance: float,
 ):
     # Initializing
     tf = simulation_time
@@ -528,8 +544,8 @@ def rk_embedded(
     # Initialize vk and xk
     vk = np.zeros((stages, objects_count, 3))
     xk = np.zeros((stages, objects_count, 3))
-    
-    for _ in range(30 * time_speed): #Return a value every at max 30 iterations
+
+    for i in range(max_iteration):
         error_estimation_delta_x = x * 0
         error_estimation_delta_v = v * 0
 
@@ -537,9 +553,9 @@ def rk_embedded(
         for stage in range(stages):
             temp_v = np.copy(v)
             temp_x = np.copy(x)
-            for i in range(stage):
-                temp_v += actual_dt * coeff[stage - 1][i] * vk[i]
-                temp_x += actual_dt * coeff[stage - 1][i] * xk[i]
+            for j in range(stage):
+                temp_v += actual_dt * coeff[stage - 1][j] * vk[j]
+                temp_x += actual_dt * coeff[stage - 1][j] * xk[j]
             vk[stage] = acceleration(objects_count, temp_x, m)
             xk[stage] = temp_v
 
@@ -568,8 +584,8 @@ def rk_embedded(
             np.square(error_estimation_delta_v / tolerance_scale_v)
         )
         error = np.sqrt(sum / (objects_count * 3 * 2))
-        print(error)
-        if error <= 1 or actual_dt == apparent_dt * 1e-10:
+
+        if error <= 1 or actual_dt == expected_time_scale * 1e-12:
             tf += actual_dt
             x = x_1
             v = v_1
@@ -580,15 +596,15 @@ def rk_embedded(
             actual_dt = safety_fac_max * actual_dt
         elif dt_new < safety_fac_min * actual_dt:
             actual_dt = safety_fac_min * actual_dt
-        elif dt_new / apparent_dt < 1e-10:
-            actual_dt = apparent_dt * 1e-10
+        elif dt_new / expected_time_scale < 1e-12:
+            actual_dt = expected_time_scale * 1e-12
         else:
             actual_dt = dt_new
 
-        if tf > (simulation_time + apparent_dt * time_speed):
+        if i >= min_iteration and tf > (simulation_time + expected_time_scale * 1e-5):
             return x, v, tf, actual_dt
-        
 
+    # Return values once it reaches max iterations
     return x, v, tf, actual_dt
 
 
@@ -634,7 +650,7 @@ def butcher_tableaus_rk(order):
         )
 
         weights = np.array(
-            [25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -0.2, 0]
+            [25.0 / 216.0, 0.0, 1408.0 / 2565.0, 2197.0 / 4104.0, -0.2, 0.0]
         )
         weights_test = np.array(
             [
@@ -655,16 +671,16 @@ def butcher_tableaus_rk(order):
         # nodes = np.array([1.0 / 5.0, 3.0 / 10.0, 4.0 / 5.0, 8.0 / 9.0, 1.0, 1.0])
         coeff = np.array(
             [
-                [1.0 / 5.0, 0.0, 0.0, 0.0, 0.0, 0],
-                [3.0 / 40.0, 9.0 / 40.0, 0.0, 0.0, 0.0, 0],
-                [44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0, 0.0, 0.0, 0],
+                [1.0 / 5.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [3.0 / 40.0, 9.0 / 40.0, 0.0, 0.0, 0.0, 0.0],
+                [44.0 / 45.0, -56.0 / 15.0, 32.0 / 9.0, 0.0, 0.0, 0.0],
                 [
                     19372.0 / 6561.0,
                     -25360.0 / 2187.0,
                     64448.0 / 6561.0,
                     -212.0 / 729.0,
                     0.0,
-                    0,
+                    0.0,
                 ],
                 [
                     9017.0 / 3168.0,
@@ -672,7 +688,7 @@ def butcher_tableaus_rk(order):
                     46732.0 / 5247.0,
                     49.0 / 176.0,
                     -5103.0 / 18656.0,
-                    0,
+                    0.0,
                 ],
                 [
                     35.0 / 384.0,
@@ -692,7 +708,7 @@ def butcher_tableaus_rk(order):
                 125.0 / 192.0,
                 -2187.0 / 6784.0,
                 11.0 / 84.0,
-                0,
+                0.0,
             ]
         )
         weights_test = np.array(
@@ -837,7 +853,7 @@ def butcher_tableaus_rk(order):
                     -976.0 / 135.0,
                     311.0 / 54.0,
                     -19.0 / 60.0,
-                    17.0 / 6,
+                    17.0 / 6.0,
                     -1.0 / 12.0,
                     0.0,
                     0.0,
