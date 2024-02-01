@@ -71,10 +71,10 @@ class Stats:
         self.total_energy_board.print_msg(f"Total Energy = {self.total_energy:.3e}")
 
         self.star_img_scale_board.print_msg(
-            f"Star Image Scale = {self.settings.star_img_scale:d}"
+            f"Star Image Scale = {self.settings.star_img_scale}"
         )
         self.planet_img_scale_board.print_msg(
-            f"Planet Image Scale = {self.settings.planet_img_scale:d}"
+            f"Planet Image Scale = {self.settings.planet_img_scale}"
         )
         self.distance_scale_board.print_msg(
             f"Distance Scale = {self.settings.distance_scale}"
@@ -83,7 +83,13 @@ class Stats:
             f"New star mass scale = {self.settings.new_star_mass_scale:g}x"
         )
         self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
-        self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed:d}x")
+        self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed}x")
+        self.rk_max_iteration_board.print_msg(
+            f"Max iterations / frame = {self.settings.rk_max_iteration}"
+        )
+        self.rk_min_iteration_board.print_msg(
+            f"Min iterations / frame = {self.settings.rk_min_iteration}"
+        )
         self.tolerance_board.print_msg(f"Tolerance = {self.settings.tolerance:g}")
 
     def draw(self, grav_sim) -> None:
@@ -99,9 +105,6 @@ class Stats:
         self.planet_img_scale_board.draw()
         self.distance_scale_board.draw()
         self.new_star_mass_scale_board.draw()
-        self.dt_board.draw()
-        self.time_speed_board.draw()
-        self.tolerance_board.draw()
 
         self.integrators_board.draw()
         self.euler_board.draw()
@@ -109,10 +112,16 @@ class Stats:
         self.rk2_board.draw()
         self.rk4_board.draw()
         self.leapfrog_board.draw()
+        self.dt_board.draw()
+        self.time_speed_board.draw()
+
         self.rkf45_board.draw()
         self.dopri_board.draw()
         self.rkf78_board.draw()
         self.dverk_board.draw()
+        self.rk_max_iteration_board.draw()
+        self.rk_min_iteration_board.draw()
+        self.tolerance_board.draw()
 
         # Visual indicator for currently changing parameter
         match self.settings.current_changing_parameter:
@@ -153,6 +162,20 @@ class Stats:
                     grav_sim.screen,
                     "yellow",
                     (290, self.time_speed_board.rect.centery + 5),
+                    4,
+                )
+            case "rk_max_iteration":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "yellow",
+                    (290, self.rk_max_iteration_board.rect.centery + 5),
+                    4,
+                )
+            case "rk_min_iteration":
+                pygame.draw.circle(
+                    grav_sim.screen,
+                    "yellow",
+                    (290, self.rk_min_iteration_board.rect.centery + 5),
                     4,
                 )
             case "tolerance":
@@ -238,15 +261,6 @@ class Stats:
             if self.new_star_mass_scale_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_new_star_mass_scale = True
-            if self.dt_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_dt = True
-            if self.time_speed_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_time_speed = True
-            if self.tolerance_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_tolerance = True
 
             if self.euler_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
@@ -273,6 +287,13 @@ class Stats:
                 grav_sim.simulator.is_leapfrog = True
                 grav_sim.simulator.is_initialize = True
                 grav_sim.simulator.is_initialize_integrator = "leapfrog"
+            if self.dt_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_dt = True
+            if self.time_speed_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_time_speed = True
+
             if self.rkf45_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rkf45 = True
@@ -293,6 +314,15 @@ class Stats:
                 grav_sim.simulator.is_dverk = True
                 grav_sim.simulator.is_initialize = True
                 grav_sim.simulator.is_initialize_integrator = "dverk"
+            if self.rk_max_iteration_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_rk_max_iteration = True
+            if self.rk_min_iteration_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_rk_min_iteration = True
+            if self.tolerance_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_tolerance = True
 
     def _statsboard_init_print_msg(self) -> None:
         self.parameters_board.print_msg("Parameters: (Click to select)")
@@ -391,30 +421,6 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 230),
         )
-        self.dt_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 253),
-        )
-        self.time_speed_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 276),
-        )
-        self.tolerance_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 299),
-        )
 
         self.integrators_board = Text_box(
             grav_sim,
@@ -422,7 +428,7 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 345),
+            text_box_left_top=(10, 276),
         )
         self.euler_board = Text_box(
             grav_sim,
@@ -430,7 +436,7 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 368),
+            text_box_left_top=(10, 299),
         )
         self.euler_cromer_board = Text_box(
             grav_sim,
@@ -438,7 +444,7 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 391),
+            text_box_left_top=(10, 322),
         )
         self.rk2_board = Text_box(
             grav_sim,
@@ -446,7 +452,7 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 414),
+            text_box_left_top=(10, 345),
         )
         self.rk4_board = Text_box(
             grav_sim,
@@ -454,7 +460,7 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 437),
+            text_box_left_top=(10, 368),
         )
         self.leapfrog_board = Text_box(
             grav_sim,
@@ -462,8 +468,25 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 460),
+            text_box_left_top=(10, 391),
         )
+        self.dt_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 414),
+        )
+        self.time_speed_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 437),
+        )
+
         self.rkf45_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
@@ -495,4 +518,28 @@ class Stats:
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 575),
+        )
+        self.rk_max_iteration_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 598),
+        )
+        self.rk_min_iteration_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 621),
+        )
+        self.tolerance_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 644),
         )
