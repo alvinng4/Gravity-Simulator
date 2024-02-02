@@ -11,6 +11,8 @@ class Stats:
     STATSBOARD_FONT_SIZE = 20
     STATSBOARD_SIZE_X = 260
     STATSBOARD_SIZE_Y = 23
+    FIXED_STEP_SIZE_INTEGRATORS_COLOR = (120, 233, 250)
+    ADAPTIVE_STEP_SIZE_INTEGRATORS_COLOR = (173, 255, 47)
 
     def __init__(self, grav_sim) -> None:
         self.simulation_time = 0
@@ -105,23 +107,25 @@ class Stats:
         self.planet_img_scale_board.draw()
         self.distance_scale_board.draw()
         self.new_star_mass_scale_board.draw()
+        self.dt_board.draw()
+        self.time_speed_board.draw()
+        self.rk_max_iteration_board.draw()
+        self.rk_min_iteration_board.draw()
+        self.tolerance_board.draw()
 
         self.integrators_board.draw()
+        self.fixed_step_size_board.draw()
         self.euler_board.draw()
         self.euler_cromer_board.draw()
         self.rk2_board.draw()
         self.rk4_board.draw()
         self.leapfrog_board.draw()
-        self.dt_board.draw()
-        self.time_speed_board.draw()
 
+        self.adaptive_step_size_board.draw()
         self.rkf45_board.draw()
         self.dopri_board.draw()
         self.rkf78_board.draw()
         self.dverk_board.draw()
-        self.rk_max_iteration_board.draw()
-        self.rk_min_iteration_board.draw()
-        self.tolerance_board.draw()
 
         # Visual indicator for currently changing parameter
         match self.settings.current_changing_parameter:
@@ -261,6 +265,21 @@ class Stats:
             if self.new_star_mass_scale_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_new_star_mass_scale = True
+            if self.dt_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_dt = True
+            if self.time_speed_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_time_speed = True
+            if self.rk_max_iteration_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_rk_max_iteration = True
+            if self.rk_min_iteration_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_rk_min_iteration = True
+            if self.tolerance_board.rect.collidepoint(mouse_pos):
+                self.settings.set_all_parameters_changing_false()
+                self.settings.is_changing_tolerance = True
 
             if self.euler_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
@@ -287,12 +306,6 @@ class Stats:
                 grav_sim.simulator.is_leapfrog = True
                 grav_sim.simulator.is_initialize = True
                 grav_sim.simulator.is_initialize_integrator = "leapfrog"
-            if self.dt_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_dt = True
-            if self.time_speed_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_time_speed = True
 
             if self.rkf45_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
@@ -314,28 +327,21 @@ class Stats:
                 grav_sim.simulator.is_dverk = True
                 grav_sim.simulator.is_initialize = True
                 grav_sim.simulator.is_initialize_integrator = "dverk"
-            if self.rk_max_iteration_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_rk_max_iteration = True
-            if self.rk_min_iteration_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_rk_min_iteration = True
-            if self.tolerance_board.rect.collidepoint(mouse_pos):
-                self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_tolerance = True
 
     def _statsboard_init_print_msg(self) -> None:
         self.parameters_board.print_msg("Parameters: (Click to select)")
-        self.integrators_board.print_msg(f"Integrators: (Click to select)")
-        self.euler_board.print_msg(f"Euler")
-        self.euler_cromer_board.print_msg(f"Euler-Cromer")
-        self.rk2_board.print_msg(f"2nd order Runge-Kutta")
-        self.rk4_board.print_msg(f"4th order Runge-Kutta")
-        self.leapfrog_board.print_msg(f"Leapfrog (Verlet)")
-        self.rkf45_board.print_msg(f"Runge-Kutta-Fehleberg 4(5)")
-        self.dopri_board.print_msg(f"Dormand-Prince 5(4)")
-        self.rkf78_board.print_msg(f"Runge-Kutta-Fehlberg 7(8)")
-        self.dverk_board.print_msg(f"Verner's method 6(5) DVERK")
+        self.integrators_board.print_msg("Integrators: (Click to select)")
+        self.fixed_step_size_board.print_msg("(Fixed Step Size)")
+        self.euler_board.print_msg("Euler")
+        self.euler_cromer_board.print_msg("Euler-Cromer")
+        self.rk2_board.print_msg("2nd order Runge-Kutta")
+        self.rk4_board.print_msg("4th order Runge-Kutta")
+        self.leapfrog_board.print_msg("Leapfrog (Verlet)")
+        self.adaptive_step_size_board.print_msg("(Adaptive Step Size)")
+        self.rkf45_board.print_msg("Runge-Kutta-Fehleberg 4(5)")
+        self.dopri_board.print_msg("Dormand-Prince 5(4)")
+        self.rkf78_board.print_msg("Runge-Kutta-Fehlberg 7(8)")
+        self.dverk_board.print_msg("Verner's method 6(5) DVERK")
 
     @classmethod
     def create_statsboard(self, grav_sim) -> None:
@@ -421,62 +427,14 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 230),
         )
-
-        self.integrators_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 276),
-        )
-        self.euler_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 299),
-        )
-        self.euler_cromer_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 322),
-        )
-        self.rk2_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 345),
-        )
-        self.rk4_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 368),
-        )
-        self.leapfrog_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 391),
-        )
         self.dt_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 414),
+            text_box_left_top=(10, 253),
+            text_color=self.FIXED_STEP_SIZE_INTEGRATORS_COLOR,
         )
         self.time_speed_board = Text_box(
             grav_sim,
@@ -484,40 +442,8 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 437),
-        )
-
-        self.rkf45_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 506),
-        )
-        self.dopri_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 529),
-        )
-        self.rkf78_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 552),
-        )
-        self.dverk_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 575),
+            text_box_left_top=(10, 276),
+            text_color=self.FIXED_STEP_SIZE_INTEGRATORS_COLOR,
         )
         self.rk_max_iteration_board = Text_box(
             grav_sim,
@@ -525,7 +451,8 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 598),
+            text_box_left_top=(10, 299),
+            text_color=self.ADAPTIVE_STEP_SIZE_INTEGRATORS_COLOR,
         )
         self.rk_min_iteration_board = Text_box(
             grav_sim,
@@ -533,9 +460,110 @@ class Stats:
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 621),
+            text_box_left_top=(10, 322),
+            text_color=self.ADAPTIVE_STEP_SIZE_INTEGRATORS_COLOR,
         )
         self.tolerance_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 345),
+            text_color=self.ADAPTIVE_STEP_SIZE_INTEGRATORS_COLOR,
+        )
+
+        self.integrators_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 391),
+        )
+        self.fixed_step_size_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 414),
+            text_color=self.FIXED_STEP_SIZE_INTEGRATORS_COLOR,
+        )
+        self.euler_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 437),
+        )
+        self.euler_cromer_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 460),
+        )
+        self.rk2_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 483),
+        )
+        self.rk4_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 506),
+        )
+        self.leapfrog_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 529),
+        )
+        self.adaptive_step_size_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 552),
+            text_color=self.ADAPTIVE_STEP_SIZE_INTEGRATORS_COLOR,
+        )
+        self.rkf45_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 575),
+        )
+        self.dopri_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 598),
+        )
+        self.rkf78_board = Text_box(
+            grav_sim,
+            self.STATSBOARD_FONT_SIZE,
+            size_x=self.STATSBOARD_SIZE_X,
+            size_y=self.STATSBOARD_SIZE_Y,
+            font="Manrope",
+            text_box_left_top=(10, 621),
+        )
+        self.dverk_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
