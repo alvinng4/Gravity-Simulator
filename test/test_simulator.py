@@ -342,7 +342,7 @@ def test_solar_system(integrator):
 
     stop = timeit.default_timer()
     print(stop - start)
-    # Plotting
+'''    # Plotting
     plt.figure()
     plt.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
     plt.xlabel("Time")
@@ -353,7 +353,7 @@ def test_solar_system(integrator):
     plt.semilogy(sol_time, np.abs(energy))
     plt.xlabel("Time")
     plt.ylabel("E(t)")
-    plt.show()
+    plt.show()'''
 
     # fig = plt.figure()
     # ax = fig.add_subplot (111, aspect='equal ')
