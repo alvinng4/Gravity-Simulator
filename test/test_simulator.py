@@ -1,8 +1,8 @@
 from pathlib import Path
 import sys
-
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
+import timeit
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,14 +22,14 @@ def test():
     # integrator = "euler_cromer"
     #integrator = "rk2"
     #integrator = "rk4"
-    #integrator = "leapfrog"
+    integrator = "leapfrog"
     #integrator = "rkf45"
     #integrator = "dopri"
     #integrator = "rkf78"
-    integrator = "dverk"
-    #test_two_vectors(integrator)
-    # test_sun_earth_system(integrator)
-    test_solar_system(integrator)
+    #integrator = "dverk"
+    test_two_vectors(integrator)
+    #test_sun_earth_system(integrator)
+    #test_solar_system(integrator)
     # test_figure_8(integrator)
 
 
@@ -48,9 +48,10 @@ def test_two_vectors(integrator):
     v[1] = V2
     m = [1.0 / G, 1.0 / G]
     t0 = 0.0
-    tf = 1000
+    tf = 100000
     dt = 0.01
 
+    start = timeit.default_timer()
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
     # sol_state = np.zeros ((npts ,len(x)))
@@ -111,7 +112,8 @@ def test_two_vectors(integrator):
                 x, v = simulator.rk_embedded(65, 2, x, v, m, dt, power, power_test, coeff, weights, weights_test)
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
-
+    stop = timeit.default_timer()
+    print(stop - start)
     # Plotting
     fig1 = plt.figure()
     ax1 = fig1.add_subplot(1, 1, 1)
@@ -148,9 +150,10 @@ def test_sun_earth_system(integrator):
     v[1] = np.array([-0.017230012325382, -0.002967721342619, 0.000000638212538])
     m = [1.0, 3.00329789031573e-06]
     t0 = 0.0
-    tf = 500
+    tf = 10000
     dt = 0.01
 
+    start = timeit.default_timer()
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
     # sol_state = np.zeros ((npts ,len(x)))
@@ -212,6 +215,8 @@ def test_sun_earth_system(integrator):
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(2, x, v, m)
 
+    stop = timeit.default_timer()
+    print(stop - start)
     # Plotting
     plt.figure()
     plt.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
@@ -270,9 +275,10 @@ def test_solar_system(integrator):
         5.1499991953912e-05,
     ]
     t0 = 0.0
-    tf = 5000.0
+    tf = 50000
     dt = 0.1
 
+    start = timeit.default_timer()
     # Simulation
     npts = int(np.floor((tf - t0) / dt)) + 1
     # sol_state = np.zeros ((npts ,len(x)))
@@ -334,6 +340,8 @@ def test_solar_system(integrator):
                 # sol_state[count,:] = x
                 energy[count] = simulator.total_energy(9, x, v, m)
 
+    stop = timeit.default_timer()
+    print(stop - start)
     # Plotting
     plt.figure()
     plt.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
