@@ -27,9 +27,9 @@ def test():
     #integrator = "dopri"
     #integrator = "rkf78"
     #integrator = "dverk"
-    test_two_vectors(integrator)
+    #test_two_vectors(integrator)
     #test_sun_earth_system(integrator)
-    #test_solar_system(integrator)
+    test_solar_system(integrator)
     # test_figure_8(integrator)
 
 
