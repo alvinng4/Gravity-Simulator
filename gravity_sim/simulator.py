@@ -387,16 +387,22 @@ class Simulator:
 # Note: jit cannot works on functions inside a class
 @nb.njit
 def acceleration(objects_count, x, m):
-    """Calculate the acceleration"""
+    """
+    Calculate acceleration by a = - GM/r^2
+    """
     # Allocating memory
     a = np.zeros((objects_count, 3))
-
+    temp_a = np.zeros((objects_count * objects_count, 3))
     # Differential equations:
-    for j in range(0, objects_count):
-        for k in range(0, objects_count):
-            if j != k:
-                R = x[j] - x[k]
-                a[j] += -G * m[k] * R / np.linalg.norm(R) ** 3
+    for j in range(objects_count):
+        for k in range(j + 1, objects_count):
+            R = x[j] - x[k]
+            temp_value = -G * R / np.linalg.norm(R) ** 3
+            temp_a[j * objects_count + k] = temp_value * m[k]
+            temp_a[k * objects_count + j] = - temp_value * m[j]
+
+    temp_a = temp_a.reshape((objects_count, objects_count, 3))
+    a = np.sum(temp_a, axis=1)
 
     return a
 

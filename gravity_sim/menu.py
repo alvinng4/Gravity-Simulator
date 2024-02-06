@@ -20,7 +20,7 @@ class Menu:
             72,
             0,
             0,
-            msg="N-body Gravity Simulator",
+            msg="N-Body Gravity Simulator",
             font="Manrope",
             center=(
                 self.screen_rect.centerx,
