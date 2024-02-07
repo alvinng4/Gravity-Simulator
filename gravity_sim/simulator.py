@@ -510,7 +510,7 @@ def _initial_time_step_rk_embedded(
     else:
         dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
     dt = min([100 * dt_0, dt_1])
-
+    
     return dt
 
 
@@ -557,27 +557,33 @@ def rk_embedded(
         error_estimation_delta_v = v * 0
 
         # Calculate xk and vk
-        for stage in range(stages):
-            temp_v = np.copy(v)
-            temp_x = np.copy(x)
+        vk[0] = acceleration(objects_count, x, m)
+        xk[0] = np.copy(v)
+        for stage in range(1, stages):
+            temp_v = np.zeros((objects_count, 3))
+            temp_x = np.zeros((objects_count, 3))
             for j in range(stage):
-                temp_v += actual_dt * coeff[stage - 1][j] * vk[j]
-                temp_x += actual_dt * coeff[stage - 1][j] * xk[j]
-            vk[stage] = acceleration(objects_count, temp_x, m)
-            xk[stage] = temp_v
+                temp_v += coeff[stage - 1][j] * vk[j]
+                temp_x += coeff[stage - 1][j] * xk[j]
+            vk[stage] = acceleration(objects_count, x + actual_dt * temp_x, m)
+            xk[stage] = v + actual_dt * temp_v
 
         # Calculate x_1, v_1 and also delta x, delta v for error estimation
-        v_1 = np.copy(v)
-        x_1 = np.copy(x)
+        temp_v = np.zeros((objects_count, 3))
+        temp_x = np.zeros((objects_count, 3))
         for stage in range(stages):
-            v_1 += actual_dt * weights[stage] * vk[stage]
-            x_1 += actual_dt * weights[stage] * xk[stage]
+            temp_v += weights[stage] * vk[stage]
+            temp_x += weights[stage] * xk[stage]
             error_estimation_delta_v += (
                 error_estimation_delta_weights[stage] * vk[stage]
             )
             error_estimation_delta_x += (
                 error_estimation_delta_weights[stage] * xk[stage]
             )
+        v_1 = v + actual_dt * temp_v
+        x_1 = x + actual_dt * temp_x
+        error_estimation_delta_v *= actual_dt
+        error_estimation_delta_x *= actual_dt
 
         # Error calculation
         tolerance_scale_x = (
@@ -586,11 +592,12 @@ def rk_embedded(
         tolerance_scale_v = (
             abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
         )
+        
         # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
         sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
             np.square(error_estimation_delta_v / tolerance_scale_v)
         )
-        error = np.sqrt(sum / (objects_count * 3 * 2))
+        error = np.sqrt(sum / (objects_count * 3 * 2)) 
 
         if error <= 1 or actual_dt == expected_time_scale * 1e-12:
             tf += actual_dt
