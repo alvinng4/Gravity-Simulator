@@ -1,10 +1,9 @@
 import math
 
+import pygame
 
 class Settings:
     """A class to store all settings for gravity simulator."""
-
-    DEFAULT_RESOLUTION = (1920, 1080)
 
     MAX_FPS = 60
     BG_COLOR = (0, 0, 0)  # Background color

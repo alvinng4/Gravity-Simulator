@@ -31,10 +31,16 @@ class GravitySimulator:
         """
         self._read_command_line_arg()
         pygame.init()
-        self.settings = Settings(
-            screen_width=self.args.resolution[0],
-            screen_height=self.args.resolution[1],
-        )
+        if self.args.resolution == None:
+            self.settings = Settings(
+                pygame.display.Info().current_w,
+                pygame.display.Info().current_h,
+            )
+        else:
+            self.settings = Settings(
+                screen_width=self.args.resolution[0],
+                screen_height=self.args.resolution[1],
+            )
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height),
             pygame.SCALED,
@@ -166,13 +172,14 @@ class GravitySimulator:
             "--resolution",
             "-r",
             nargs=2,
-            default=Settings.DEFAULT_RESOLUTION,
+            default=None,
             type=float,
             help="Usage: --resolution <width>, <height>",
         )
         self.args = parser.parse_args()
-        if not (self.args.resolution[0] > 0 and self.args.resolution[1] > 0):
-            sys.exit("Invalid resolution")
+        if self.args.resolution != None:
+            if not (self.args.resolution[0] > 0 and self.args.resolution[1] > 0):
+                sys.exit("Invalid resolution")
 
     def _new_star_draw_line_circle(self):
         pygame.draw.line(
