@@ -7,7 +7,6 @@ import timeit
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-import pytest
 
 from gravity_sim.simulator import Simulator
 from gravity_sim import simulator
@@ -15,8 +14,6 @@ from gravity_sim import simulator
 # Gravitational constant (AU ^3/d^2/ M_sun):
 G = 0.00029591220828559
 
-
-@pytest.mark.skip(reason="For testing manually")
 def test():
     # integrator = "euler"
     # integrator = "euler_cromer"
@@ -33,7 +30,6 @@ def test():
     # test_figure_8(integrator)
 
 
-@pytest.mark.skip(reason="For testing manually")
 def test_two_vectors(integrator):
     # Initialize
     R1 = np.array([1.0, 0.0, 0.0])
@@ -139,7 +135,6 @@ def test_two_vectors(integrator):
     # plt.show()
 
 
-@pytest.mark.skip(reason="For testing manually")
 def test_sun_earth_system(integrator):
     # Initialize
     x = np.zeros((2, 3))
@@ -237,7 +232,6 @@ def test_sun_earth_system(integrator):
     # plt.show()
 
 
-@pytest.mark.skip(reason="For testing manually")
 def test_solar_system(integrator):
     # Initialize
     x = np.zeros((9, 3))
@@ -362,7 +356,6 @@ def test_solar_system(integrator):
     # plt.show()
 
 
-@pytest.mark.skip(reason="For testing manually")
 def test_figure_8(integrator):
     # Initialize
     R1 = np.array([1.0, 0.0, 0.0])

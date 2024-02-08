@@ -14,7 +14,7 @@ G = 0.00029591220828559
 
 
 class Simulator:
-    DEFAULT_INTEGRATOR = "leapfrog"
+    DEFAULT_INTEGRATOR = "rkf78"
 
     def __init__(self, grav_sim):
         self.stats = grav_sim.stats
@@ -27,7 +27,7 @@ class Simulator:
 
         self.is_initialize = True
         self.set_all_integrators_false()
-        self.is_leapfrog = True  # Default integrator
+        self.is_rkf78 = True  # Default integrator
         self.current_integrator = self.DEFAULT_INTEGRATOR
         self.is_initialize_integrator = self.DEFAULT_INTEGRATOR
 
@@ -593,7 +593,7 @@ def rk_embedded(
             np.square(error_estimation_delta_v / tolerance_scale_v)
         )
         error = np.sqrt(sum / (objects_count * 3 * 2))
-        print(error)
+
         if error <= 1 or actual_dt == expected_time_scale * 1e-12:
             tf += actual_dt
             x = x_1
