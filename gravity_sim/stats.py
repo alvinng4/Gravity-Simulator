@@ -117,7 +117,6 @@ class Stats:
         self.fixed_step_size_board.draw()
         self.euler_board.draw()
         self.euler_cromer_board.draw()
-        self.rk2_board.draw()
         self.rk4_board.draw()
         self.leapfrog_board.draw()
 
@@ -206,10 +205,6 @@ class Stats:
                     (290, self.euler_cromer_board.rect.centery + 5),
                     4,
                 )
-            case "rk2":
-                pygame.draw.circle(
-                    grav_sim.screen, "green", (290, self.rk2_board.rect.centery + 5), 4
-                )
             case "rk4":
                 pygame.draw.circle(
                     grav_sim.screen, "green", (290, self.rk4_board.rect.centery + 5), 4
@@ -291,11 +286,6 @@ class Stats:
                 grav_sim.simulator.is_euler_cromer = True
                 grav_sim.simulator.is_initialize = True
                 grav_sim.simulator.is_initialize_integrator = "euler_cromer"
-            if self.rk2_board.rect.collidepoint(mouse_pos):
-                grav_sim.simulator.set_all_integrators_false()
-                grav_sim.simulator.is_rk2 = True
-                grav_sim.simulator.is_initialize = True
-                grav_sim.simulator.is_initialize_integrator = "rk2"
             if self.rk4_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rk4 = True
@@ -334,7 +324,6 @@ class Stats:
         self.fixed_step_size_board.print_msg("(Fixed Step Size)")
         self.euler_board.print_msg("Euler")
         self.euler_cromer_board.print_msg("Euler-Cromer")
-        self.rk2_board.print_msg("2nd order Runge-Kutta")
         self.rk4_board.print_msg("4th order Runge-Kutta")
         self.leapfrog_board.print_msg("Leapfrog (Verlet)")
         self.adaptive_step_size_board.print_msg("(Adaptive Step Size)")
@@ -506,7 +495,7 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 460),
         )
-        self.rk2_board = Text_box(
+        self.rk4_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -514,21 +503,13 @@ class Stats:
             font="Manrope",
             text_box_left_top=(10, 483),
         )
-        self.rk4_board = Text_box(
-            grav_sim,
-            self.STATSBOARD_FONT_SIZE,
-            size_x=self.STATSBOARD_SIZE_X,
-            size_y=self.STATSBOARD_SIZE_Y,
-            font="Manrope",
-            text_box_left_top=(10, 506),
-        )
         self.leapfrog_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
-            text_box_left_top=(10, 529),
+            text_box_left_top=(10, 506),
         )
         self.adaptive_step_size_board = Text_box(
             grav_sim,
