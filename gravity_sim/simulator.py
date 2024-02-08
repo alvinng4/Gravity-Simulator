@@ -72,26 +72,6 @@ class Simulator:
                 self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
-            case "rk2":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "rk2"
-                ):
-                    self.is_initialize = False
-
-                for _ in range(self.settings.time_speed):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
-                    self.x, self.v = rk2(
-                        self.stats.objects_count,
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.m,
-                        self.settings.dt,
-                    )
-                self.stats.simulation_time += (
-                    self.settings.dt * self.settings.time_speed
-                )
             case "rk4":
                 if (
                     self.is_initialize == True
@@ -355,7 +335,6 @@ class Simulator:
     def set_all_integrators_false(self):
         self.is_euler = False
         self.is_euler_cromer = False
-        self.is_rk2 = False
         self.is_rk4 = False
         self.is_leapfrog = False
         self.is_rkf45 = False
@@ -368,8 +347,6 @@ class Simulator:
             self.current_integrator = "euler"
         elif self.is_euler_cromer == True:
             self.current_integrator = "euler_cromer"
-        elif self.is_rk2 == True:
-            self.current_integrator = "rk2"
         elif self.is_rk4 == True:
             self.current_integrator = "rk4"
         elif self.is_leapfrog == True:
@@ -417,17 +394,6 @@ def euler(x, v, a, dt):
 def euler_cromer(x, v, a, dt):
     v = v + a * dt
     x = x + v * dt
-    return x, v
-
-
-@nb.njit
-def rk2(objects_count, x, v, a, m, dt):
-    vk = acceleration(objects_count, x + 0.5 * v * dt, m)
-    xk = v + 0.5 * a * dt
-
-    v = v + dt * vk
-    x = x + dt * xk
-
     return x, v
 
 
