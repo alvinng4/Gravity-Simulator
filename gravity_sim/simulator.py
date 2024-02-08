@@ -477,8 +477,6 @@ def _initial_time_step_rk_embedded(
     Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
     Chapter 6, Page 92 - 94
     """
-    abs_tolerance = np.full((objects_count, 3), abs_tolerance)
-
     tolerance_scale_x = abs_tolerance + rel_tolerance * np.abs(x)
     tolerance_scale_v = abs_tolerance + rel_tolerance * np.abs(v)
     sum_1 = np.sum(np.square(x / tolerance_scale_x)) + np.sum(
@@ -491,7 +489,7 @@ def _initial_time_step_rk_embedded(
     d_0 = np.sqrt(sum_0 / (objects_count * 3 * 2))
 
     if d_0 < 1e-5 or d_1 < 1e-5:
-        dt_0 = 1e-5
+        dt_0 = 1e-4
     else:
         dt_0 = d_0 / d_1
 
@@ -540,8 +538,6 @@ def rk_embedded(
     stages = len(weights)
     min_power = min([power, power_test])
     error_estimation_delta_weights = weights - weights_test
-    tolerance_scale_x = np.zeros((objects_count, 3))
-    tolerance_scale_v = np.zeros((objects_count, 3))
 
     # Safety factors for step-size control:
     safety_fac_max = 6.0
@@ -553,9 +549,6 @@ def rk_embedded(
     xk = np.zeros((stages, objects_count, 3))
 
     for i in range(max_iteration):
-        error_estimation_delta_x = x * 0
-        error_estimation_delta_v = v * 0
-
         # Calculate xk and vk
         vk[0] = acceleration(objects_count, x, m)
         xk[0] = np.copy(v)
@@ -571,6 +564,8 @@ def rk_embedded(
         # Calculate x_1, v_1 and also delta x, delta v for error estimation
         temp_v = np.zeros((objects_count, 3))
         temp_x = np.zeros((objects_count, 3))
+        error_estimation_delta_x = np.zeros((objects_count, 3))
+        error_estimation_delta_v = np.zeros((objects_count, 3))
         for stage in range(stages):
             temp_v += weights[stage] * vk[stage]
             temp_x += weights[stage] * xk[stage]
@@ -586,19 +581,19 @@ def rk_embedded(
         error_estimation_delta_x *= actual_dt
 
         # Error calculation
+        tolerance_scale_v = (
+            abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
+        )        
         tolerance_scale_x = (
             abs_tolerance + np.maximum(np.abs(x), np.abs(x_1)) * rel_tolerance
         )
-        tolerance_scale_v = (
-            abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
-        )
-        
+
         # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
         sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
             np.square(error_estimation_delta_v / tolerance_scale_v)
         )
-        error = np.sqrt(sum / (objects_count * 3 * 2)) 
-
+        error = np.sqrt(sum / (objects_count * 3 * 2))
+        print(error)
         if error <= 1 or actual_dt == expected_time_scale * 1e-12:
             tf += actual_dt
             x = x_1
@@ -882,7 +877,7 @@ def butcher_tableaus_rk(order):
                     -301.0 / 82.0,
                     2133.0 / 4100.0,
                     45.0 / 82.0,
-                    45.0 / 164,
+                    45.0 / 164.0,
                     18.0 / 41.0,
                     0.0,
                     0.0,
