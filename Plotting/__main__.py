@@ -1,6 +1,6 @@
+import math
 from pathlib import Path
 import sys
-
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 import timeit
@@ -44,15 +44,6 @@ class Plotter:
             break
 
         while True:
-            try:
-                self.tf = float(input("Enter tf (days): "))
-                if self.tf <= 0:
-                    raise ValueError
-                break
-            except ValueError:
-                print("Invalid value. Please try again.")
-
-        while True:
             print("Available systems:")
             print(self.available_systems)
             self.system = input("Enter a system: ").strip().lower()
@@ -60,6 +51,15 @@ class Plotter:
                 print("Invalid system. Please try again.")
                 continue
             break
+
+        while True:
+            try:
+                self.tf = float(input("Enter tf (days): "))
+                if self.tf <= 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print("Invalid value. Please try again.")
 
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             while True:
@@ -230,6 +230,7 @@ class Plotter:
                 self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
             )
             self.energy = np.zeros(self.npts)
+            self.progress_percentage = 0
 
         match self.integrator:
             case "euler":
@@ -245,6 +246,9 @@ class Plotter:
                     self.energy[count] = simulator.total_energy(
                         self.objects_count, self.x, self.v, self.m
                     )
+                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
+                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
+                        self._progress_bar(self.progress_percentage)
             case "euler_cromer":
                 for count in range(self.npts):
                     self.a = simulator.acceleration(self.objects_count, self.x, self.m)
@@ -260,6 +264,9 @@ class Plotter:
                     self.energy[count] = simulator.total_energy(
                         self.objects_count, self.x, self.v, self.m
                     )
+                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
+                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
+                        self._progress_bar(self.progress_percentage)
             case "rk4":
                 for count in range(self.npts):
                     self.x, self.v = simulator.rk4(
@@ -274,6 +281,9 @@ class Plotter:
                     self.energy[count] = simulator.total_energy(
                         self.objects_count, self.x, self.v, self.m
                     )
+                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
+                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
+                        self._progress_bar(self.progress_percentage)
             case "leapfrog":
                 self.a = simulator.acceleration(self.objects_count, self.x, self.m)
                 for count in range(self.npts):
@@ -289,6 +299,9 @@ class Plotter:
                     self.energy[count] = simulator.total_energy(
                         self.objects_count, self.x, self.v, self.m
                     )
+                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
+                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
+                        self._progress_bar(self.progress_percentage)
 
             case "rkf45" | "dopri" | "rkf78" | "dverk":
                 (
@@ -309,7 +322,7 @@ class Plotter:
                     self.tolerance,
                     self.tolerance,
                 )
-                self.sol_state, self.sol_time = plotting_rk_embedded(
+                self.sol_state, self.sol_time = self._plotting_rk_embedded(
                     self.objects_count,
                     self.x,
                     self.v,
@@ -347,6 +360,163 @@ class Plotter:
         ax.set_ylabel("Y")
         plt.show()
 
+    @staticmethod
+    def _progress_bar(percentage):
+        if percentage != 100:
+            fill = "█" * int(percentage / 2)
+            bar = fill + "-" * (50 - int(percentage / 2))
+            print(f"\r|{bar}| {percentage} % Complete", end="")
+        else:
+            bar = "█" * 50
+            print(f"\r|{bar}| 100 % Complete")
+
+
+    @staticmethod
+    def _plotting_rk_embedded(
+        objects_count: int,
+        x,
+        v,
+        m,
+        tf: float,
+        initial_dt,
+        power,
+        power_test,
+        coeff,
+        weights,
+        weights_test,
+        abs_tolerance: float,
+        rel_tolerance: float,
+    ):
+        """
+        Perform simulation using rk_embedded methods
+        Modified for plotting
+
+        :return: sol_state, sol_time
+        :rtype: numpy.array
+        """
+        # Initializing
+        t = 0.0
+        dt = initial_dt
+        stages = len(weights)
+        min_power = min([power, power_test])
+        error_estimation_delta_weights = weights - weights_test
+
+        # Progress percentage for progress bar
+        # Type: int
+        progress_percentage = 0
+
+        # Safety factors for step-size control:
+        safety_fac_max = 6.0
+        safety_fac_min = 0.33
+        safety_fac = 0.38 ** (1.0 / (1.0 + min_power))
+
+        # Initialize vk and xk
+        vk = np.zeros((stages, objects_count, 3))
+        xk = np.zeros((stages, objects_count, 3))
+
+        # Allocate for dense output:
+        npts = 100000
+        sol_state = np.zeros((npts, objects_count * 2 * 3))
+        sol_time = np.zeros(npts)
+
+        # Initial values
+        sol_state[0] = np.concatenate(
+            (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+        )
+        sol_time[0] = t
+
+        # Launch integration:
+        count = 0
+        while True:
+            # Calculate xk and vk
+            vk[0] = simulator.acceleration(objects_count, x, m)
+            xk[0] = np.copy(v)
+            for stage in range(1, stages):
+                temp_v = np.zeros((objects_count, 3))
+                temp_x = np.zeros((objects_count, 3))
+                for j in range(stage):
+                    temp_v += coeff[stage - 1][j] * vk[j]
+                    temp_x += coeff[stage - 1][j] * xk[j]
+                vk[stage] = simulator.acceleration(objects_count, x + dt * temp_x, m)
+                xk[stage] = v + dt * temp_v
+
+            # Calculate x_1, v_1 and also delta x, delta v for error estimation
+            temp_v = np.zeros((objects_count, 3))
+            temp_x = np.zeros((objects_count, 3))
+            error_estimation_delta_x = np.zeros((objects_count, 3))
+            error_estimation_delta_v = np.zeros((objects_count, 3))
+            for stage in range(stages):
+                temp_v += weights[stage] * vk[stage]
+                temp_x += weights[stage] * xk[stage]
+                error_estimation_delta_v += (
+                    error_estimation_delta_weights[stage] * vk[stage]
+                )
+                error_estimation_delta_x += (
+                    error_estimation_delta_weights[stage] * xk[stage]
+                )
+            v_1 = v + dt * temp_v
+            x_1 = x + dt * temp_x
+            error_estimation_delta_v *= dt
+            error_estimation_delta_x *= dt
+
+            # Error calculation
+            tolerance_scale_v = (
+                abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
+            )
+            tolerance_scale_x = (
+                abs_tolerance + np.maximum(np.abs(x), np.abs(x_1)) * rel_tolerance
+            )
+
+            # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
+            sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
+                np.square(error_estimation_delta_v / tolerance_scale_v)
+            )
+            error = np.sqrt(sum / (objects_count * 3 * 2))
+
+            if error <= 1 or dt == tf * 1e-12:
+                t += dt
+                x = x_1
+                v = v_1
+                count += 1
+
+                # Store step:
+                sol_state[count] = np.concatenate(
+                    (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                )
+                sol_time[count] = t
+
+                # Check buffer size and extend if needed :
+                if (count + 1) == len(sol_state):
+                    sol_state = np.concatenate((sol_state, np.zeros((npts, objects_count * 2 * 3))))
+                    sol_time = np.concatenate((sol_time, np.zeros(npts)))
+
+            dt_new = dt * safety_fac / error ** (1.0 / (1.0 + min_power))
+            # Prevent dt to be too small or too large relative to the last time step
+            if dt_new > safety_fac_max * dt:
+                dt = safety_fac_max * dt
+            elif dt_new < safety_fac_min * dt:
+                dt = safety_fac_min * dt
+            elif dt_new / tf < 1e-12:
+                dt = tf * 1e-12
+            else:
+                dt = dt_new
+
+            # Correct overshooting:
+            if t + dt > tf:
+                dt = tf - t
+            
+            if (t / tf * 100) > (progress_percentage + 1):
+                progress_percentage = math.floor(t/tf * 100)
+                Plotter._progress_bar(progress_percentage)
+
+            if t >= tf:
+                Plotter._progress_bar(100)
+                return sol_state[0:count], sol_time[0:count]
+
+
+if __name__ == "__main__":
+    plotter = Plotter()
+    plotter.run_prog()
 
 # def test_two_vectors(integrator: str, tf: float, dt: float = None, tolerance:float = None):
 # fig1 = plt.figure()
@@ -370,142 +540,3 @@ class Plotter:
 # ax.plot(sol_state [:,0], sol_state [:,1],"b-")
 # ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
 # plt.show()
-
-
-@nb.njit
-def plotting_rk_embedded(
-    objects_count: int,
-    x,
-    v,
-    m,
-    tf: float,
-    initial_dt,
-    power,
-    power_test,
-    coeff,
-    weights,
-    weights_test,
-    abs_tolerance: float,
-    rel_tolerance: float,
-):
-    """
-    Perform simulation using rk_embedded methods
-    Modified for plotting
-
-    :return: sol_state, sol_time
-    :rtype: numpy.array
-    """
-    # Initializing
-    t = 0.0
-    dt = initial_dt
-    stages = len(weights)
-    min_power = min([power, power_test])
-    error_estimation_delta_weights = weights - weights_test
-
-    # Safety factors for step-size control:
-    safety_fac_max = 6.0
-    safety_fac_min = 0.33
-    safety_fac = 0.38 ** (1.0 / (1.0 + min_power))
-
-    # Initialize vk and xk
-    vk = np.zeros((stages, objects_count, 3))
-    xk = np.zeros((stages, objects_count, 3))
-
-    # Allocate for dense output:
-    npts = 100000
-    sol_state = np.zeros((npts, objects_count * 2 * 3))
-    sol_time = np.zeros(npts)
-
-    # Initial values
-    sol_state[0] = np.concatenate(
-        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
-    )
-    sol_time[0] = t
-
-    # Launch integration:
-    count = 0
-    while True:
-        # Calculate xk and vk
-        vk[0] = simulator.acceleration(objects_count, x, m)
-        xk[0] = np.copy(v)
-        for stage in range(1, stages):
-            temp_v = np.zeros((objects_count, 3))
-            temp_x = np.zeros((objects_count, 3))
-            for j in range(stage):
-                temp_v += coeff[stage - 1][j] * vk[j]
-                temp_x += coeff[stage - 1][j] * xk[j]
-            vk[stage] = simulator.acceleration(objects_count, x + dt * temp_x, m)
-            xk[stage] = v + dt * temp_v
-
-        # Calculate x_1, v_1 and also delta x, delta v for error estimation
-        temp_v = np.zeros((objects_count, 3))
-        temp_x = np.zeros((objects_count, 3))
-        error_estimation_delta_x = np.zeros((objects_count, 3))
-        error_estimation_delta_v = np.zeros((objects_count, 3))
-        for stage in range(stages):
-            temp_v += weights[stage] * vk[stage]
-            temp_x += weights[stage] * xk[stage]
-            error_estimation_delta_v += (
-                error_estimation_delta_weights[stage] * vk[stage]
-            )
-            error_estimation_delta_x += (
-                error_estimation_delta_weights[stage] * xk[stage]
-            )
-        v_1 = v + dt * temp_v
-        x_1 = x + dt * temp_x
-        error_estimation_delta_v *= dt
-        error_estimation_delta_x *= dt
-
-        # Error calculation
-        tolerance_scale_v = (
-            abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
-        )
-        tolerance_scale_x = (
-            abs_tolerance + np.maximum(np.abs(x), np.abs(x_1)) * rel_tolerance
-        )
-
-        # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
-        sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
-            np.square(error_estimation_delta_v / tolerance_scale_v)
-        )
-        error = np.sqrt(sum / (objects_count * 3 * 2))
-
-        if error <= 1 or dt == tf * 1e-12:
-            t += dt
-            x = x_1
-            v = v_1
-            count += 1
-
-            # Store step:
-            sol_state[count] = np.concatenate(
-                (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
-            )
-            sol_time[count] = t
-
-            # Check buffer size and extend if needed :
-            if (count + 1) == len(sol_state):
-                sol_state = np.concatenate((sol_state, np.zeros((npts, objects_count * 2 * 3))))
-                sol_time = np.concatenate((sol_time, np.zeros(npts)))
-
-        dt_new = dt * safety_fac / error ** (1.0 / (1.0 + min_power))
-        # Prevent dt to be too small or too large relative to the last time step
-        if dt_new > safety_fac_max * dt:
-            dt = safety_fac_max * dt
-        elif dt_new < safety_fac_min * dt:
-            dt = safety_fac_min * dt
-        elif dt_new / tf < 1e-12:
-            dt = tf * 1e-12
-        else:
-            dt = dt_new
-
-        # Correct overshooting:
-        if t + dt > tf:
-            dt = tf - t
-
-        if t >= tf:
-            return sol_state[0:count], sol_time[0:count]
-
-
-if __name__ == "__main__":
-    plotter = Plotter()
-    plotter.run_prog()
