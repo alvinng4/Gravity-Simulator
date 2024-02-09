@@ -29,6 +29,7 @@ class Plotter:
         ]
         self.available_systems = [
             "circular_binary_orbit",
+            "3d_helix",
             "sun_earth_moon",
             "figure-8",
             "pyth-3-body",
@@ -116,6 +117,19 @@ class Plotter:
                 self.v = np.array([V1, V2])
                 self.m = [1.0 / Grav_obj.G, 1.0 / Grav_obj.G]
                 self.objects_count = 2
+
+            case "3d_helix":
+                R1 = np.array([0.0, 0.0, -1.0])
+                R2 = np.array([-math.sqrt(3.0) / 2.0, 0.0, 0.5])
+                R3 = np.array([math.sqrt(3.0) / 2.0, 0.0, 0.5])
+                v0 = math.sqrt(1.0 / math.sqrt(3))
+                V1 = np.array([-v0, 0.5, 0.0])
+                V2 = np.array([0.5 * v0, 0.5, (math.sqrt(3.0) / 2.0) * v0])
+                V3 = np.array([0.5 * v0, 0.5, -(math.sqrt(3.0) / 2.0) * v0])
+                self.x = np.array([R1, R2, R3])
+                self.v = np.array([V1, V2, V3])
+                self.m = [1.0 / Grav_obj.G, 1.0 / Grav_obj.G, 1.0 / Grav_obj.G]
+                self.objects_count = 3
 
             case "sun_earth_moon":
                 self.m = [
@@ -211,7 +225,7 @@ class Plotter:
                     Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
                 ]
                 self.objects_count = 9
-            
+
             case "solar_system_plus":
                 R1 = Grav_obj.SOLAR_SYSTEM_POS["Sun"]
                 R2 = Grav_obj.SOLAR_SYSTEM_POS["Mercury"]
@@ -253,7 +267,7 @@ class Plotter:
                     Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
                     Grav_obj.SOLAR_SYSTEM_MASSES["Pluto"],
                     Grav_obj.SOLAR_SYSTEM_MASSES["Ceres"],
-                    Grav_obj.SOLAR_SYSTEM_MASSES["Vesta"], 
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Vesta"],
                 ]
                 self.objects_count = 12
 
