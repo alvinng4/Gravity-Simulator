@@ -1,11 +1,11 @@
 import math
 from pathlib import Path
 import sys
-
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/gravity_sim")
 import timeit
+import re
 
 import matplotlib.pyplot as plt
 import numba as nb
@@ -36,43 +36,62 @@ class Plotter:
             "solar_system",
             "solar_system_plus",
         ]
-        while True:
-            print("Available integrators: ")
-            for i, integrator in enumerate(self.available_integrators):
-                print(f"{i + 1}. {integrator}")
-            self.integrator = (
-                input("Enter integrator (Number or full name): ").strip().lower()
-            )
-            check_result, check_type = self._check_input(
-                self.integrator, self.available_integrators
-            )
-            if check_result == True:
-                if check_type == str:
-                    break
-                if check_type == int:
-                    self.integrator = self.available_integrators[
-                        int(self.integrator) - 1
-                    ]
-                    break
 
         while True:
             print("Available systems:")
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
-            self.system = input("Enter system (Number or full name): ").strip().lower()
-            check_result, check_type = self._check_input(
-                self.system, self.available_systems
+            self.system = input("Enter system (Number or full name): ")
+            if matches := re.search(r"([1-9]*)?(?:\.|\W*)?\s*(circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system|solar_system_plus)?", self.system, re.IGNORECASE):
+                if matches.group(1):
+                    if (int(matches.group(1)) - 1) not in range(len(self.available_systems)):
+                        print("Invalid input. Please try again.")
+                        continue
+                    else:
+                        self.system = self.available_systems[int(matches.group(1)) - 1]
+
+                    if matches.group(2) and self.system != matches.group(2):
+                        print("Invalid input. Please try again.")
+                        continue
+                    else:
+                        break
+
+                elif matches.group(2):
+                    break
+
+            else:
+                print("Invalid input. Please try again.")
+
+        while True:
+            print("Available integrators: ")
+            for i, integrator in enumerate(self.available_integrators):
+                print(f"{i + 1}. {integrator}")
+            self.integrator = (
+                input("Enter integrator (Number or full name): ")
             )
-            if check_result == True:
-                if check_type == str:
+            if matches := re.search(r"([1-9]*)?(?:\.|\W*)?\s*(euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)?", self.integrator, re.IGNORECASE):
+                if matches.group(1):
+                    if (int(matches.group(1)) - 1) not in range(len(self.available_integrators)):
+                        print("Invalid input. Please try again.")
+                        continue
+                    else:
+                        self.integrator = self.available_integrators[int(matches.group(1)) - 1]
+
+                    if matches.group(2) and self.integrator != matches.group(2):
+                        print("Invalid input. Please try again.")
+                        continue
+                    else:
+                        break
+
+                elif matches.group(2):
                     break
-                if check_type == int:
-                    self.system = self.available_systems[int(self.system) - 1]
-                    break
+
+            else:
+                print("Invalid input. Please try again.")
 
         while True:
             try:
-                self.tf = float(input("Enter tf (days): "))
+                self.tf = float(input("Enter tf (d/yr): "))
                 if self.tf <= 0:
                     raise ValueError
                 break
@@ -478,25 +497,6 @@ class Plotter:
             if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                 self.progress_percentage = int(((count + 1) / self.npts) * 100)
                 self._progress_bar(self.progress_percentage)
-
-    @staticmethod
-    def _check_input(text: str, list: list) -> tuple[bool, type]:
-        try:
-            value = int(text)
-        except ValueError:
-            pass
-        else:
-            if value > len(list) or value <= 0:
-                print("Invalid input. Please try again.")
-                return False, None
-            else:
-                return True, int
-
-        if text not in list:
-            print("Invalid input. Please try again.")
-            return False, None
-        else:
-            return True, str
 
     @staticmethod
     def _progress_bar(percentage):
