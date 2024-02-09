@@ -2,7 +2,7 @@ import time
 
 import pygame
 
-from gravity_sim.text_box import Text_box
+from text_box import Text_box
 
 
 class Stats:

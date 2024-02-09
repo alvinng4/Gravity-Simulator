@@ -1,8 +1,8 @@
 import numba as nb  # Note: nb.njit cannot works on functions inside a class
 import numpy as np
 
-from gravity_sim.grav_obj import Grav_obj
-from gravity_sim.settings import Settings
+from grav_obj import Grav_obj
+from settings import Settings
 
 G = Grav_obj.G  # For numba njit
 

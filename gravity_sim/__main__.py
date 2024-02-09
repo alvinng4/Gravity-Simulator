@@ -7,12 +7,12 @@ environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import pygame
 
-from gravity_sim.camera import Camera
-from gravity_sim.grav_obj import Grav_obj
-from gravity_sim.menu import Menu
-from gravity_sim.settings import Settings
-from gravity_sim.simulator import Simulator
-from gravity_sim.stats import Stats
+from camera import Camera
+from grav_obj import Grav_obj
+from menu import Menu
+from settings import Settings
+from simulator import Simulator
+from stats import Stats
 
 
 class GravitySimulator:
