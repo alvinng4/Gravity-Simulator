@@ -1,17 +1,61 @@
-import sys
 import os
+import sys
 
 import pygame
 from pygame.sprite import Sprite
 
-from settings import Settings
+from gravity_sim.settings import Settings
 
 
 class Grav_obj(Sprite):
-    # Gravitational constant (AU^3 / d^2 / M_sun):
-    G = 0.00029591220828559
+    # Conversion factor from km^3 s^-2 to AU^3 d^-2
+    CONVERSION_FACTOR = (86400**2) / (149597870.7**3)
+    # GM values (km^3 s^-2)
+    # ref: https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf
+    GM_SI = {
+        "Sun": 132712440041.279419,
+        "Mercury": 22031.868551,
+        "Venus": 324858.592000,
+        "Earth": 398600.435507,
+        "Mars": 42828.375816,
+        "Jupiter": 126712764.100000,
+        "Saturn": 37940584.841800,
+        "Uranus": 5794556.400000,
+        "Neptune": 6836527.100580,
+        "Moon": 4902.800118,
+    }
+    # GM values (AU^3 d^-2)
+    GM = {
+        "Sun": 132712440041.279419 * CONVERSION_FACTOR,
+        "Mercury": 22031.868551 * CONVERSION_FACTOR,
+        "Venus": 324858.592000 * CONVERSION_FACTOR,
+        "Earth": 398600.435507 * CONVERSION_FACTOR,
+        "Mars": 42828.375816 * CONVERSION_FACTOR,
+        "Jupiter": 126712764.100000 * CONVERSION_FACTOR,
+        "Saturn": 37940584.841800 * CONVERSION_FACTOR,
+        "Uranus": 5794556.400000 * CONVERSION_FACTOR,
+        "Neptune": 6836527.100580 * CONVERSION_FACTOR,
+        "Moon": 4902.800118 * CONVERSION_FACTOR,
+    }
+    # Solar system masses (M_sun^-1)
+    SOLAR_SYSTEM_MASSES = {
+        "Sun": 1.0,
+        "Mercury": GM_SI["Mercury"] / GM_SI["Sun"],
+        "Venus": GM_SI["Venus"] / GM_SI["Sun"],
+        "Earth": GM_SI["Earth"] / GM_SI["Sun"],
+        "Mars": GM_SI["Mars"] / GM_SI["Sun"],
+        "Jupiter": GM_SI["Jupiter"] / GM_SI["Sun"],
+        "Saturn": GM_SI["Saturn"] / GM_SI["Sun"],
+        "Uranus": GM_SI["Uranus"] / GM_SI["Sun"],
+        "Neptune": GM_SI["Neptune"] / GM_SI["Sun"],
+        "Moon": GM_SI["Moon"] / GM_SI["Sun"],
+    }
+    # Gravitational constant (kg^-1 m^3 s^-2):
+    G_SI = 6.67430e-11
+    # Gravitational constant (M_sun^-1 AU^3 d^-2):
+    G = GM["Sun"]
 
-    # Solar radius in AU
+    # Solar radius (AU)
     SOLAR_RADIUS = 0.004650467261
 
     def __init__(
@@ -131,7 +175,7 @@ class Grav_obj(Sprite):
                 "v1": 0.000004875094764,
                 "v2": -0.000007057133214,
                 "v3": -0.000000045734537,
-                "m": 1.0,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Sun"],
                 "R": Grav_obj.SOLAR_RADIUS,
             },
             path_sun,
@@ -146,7 +190,7 @@ class Grav_obj(Sprite):
                 "v1": -0.022321659001897,
                 "v2": -0.021572071031763,
                 "v3": 0.000285519341050,
-                "m": 1.66051140935277e-07,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Mercury"],
                 "R": 1.63083872e-05,
             },
             path_mercury,
@@ -160,7 +204,7 @@ class Grav_obj(Sprite):
                 "v1": 0.002034068201002,
                 "v2": -0.020208286265930,
                 "v3": -0.000394563984386,
-                "m": 2.44827371182131e-06,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Venus"],
                 "R": 4.04537843e-05,
             },
             path_venus,
@@ -174,7 +218,7 @@ class Grav_obj(Sprite):
                 "v1": -0.017230012325382,
                 "v2": -0.002967721342619,
                 "v3": 0.000000638212538,
-                "m": 3.00329789031573e-06,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Earth"],
                 "R": 4.25875046e-05,
             },
             path_earth,
@@ -188,7 +232,7 @@ class Grav_obj(Sprite):
                 "v1": 0.014248322593453,
                 "v2": -0.001579236181581,
                 "v3": -0.000382372279616,
-                "m": 3.22773848604808e-07,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Mars"],
                 "R": 2.26574081e-05,
             },
             path_mars,
@@ -202,7 +246,7 @@ class Grav_obj(Sprite):
                 "v1": -0.005470970658852,
                 "v2": 0.005642487338479,
                 "v3": 0.000098961906021,
-                "m": 0.000954532562518104,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Jupiter"],
                 "R": 4.6732617e-04,
             },
             path_jupiter,
@@ -216,7 +260,7 @@ class Grav_obj(Sprite):
                 "v1": 0.001822013845554,
                 "v2": 0.005143470425888,
                 "v3": -0.000161723590489,
-                "m": 0.00028579654259599,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Saturn"],
                 "R": 3.89256877e-04 * (157 / 57),  # Img scale for Saturn's ring
             },
             path_saturn,
@@ -230,7 +274,7 @@ class Grav_obj(Sprite):
                 "v1": -0.003097615358317,
                 "v2": 0.002276781932346,
                 "v3": 0.000048604332222,
-                "m": 4.3655207025844e-05,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Uranus"],
                 "R": 1.69534499e-04,
             },
             path_uranus,
@@ -244,7 +288,7 @@ class Grav_obj(Sprite):
                 "v1": 0.000167653661182,
                 "v2": 0.003152098732862,
                 "v3": -0.000068775010957,
-                "m": 5.1499991953912e-05,
+                "m": Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
                 "R": 1.64587904e-04,
             },
             path_neptune,

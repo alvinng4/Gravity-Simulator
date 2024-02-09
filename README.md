@@ -47,6 +47,10 @@ The default resolution is set to the user's screen size. However, you can set yo
 ```
 python3 gravity_sim -r <width> <height>
 ```
+## Data References
+1. Park, R.S., et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, *Astronomical Journal*, 161:105.
+2. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
+
 ## Bibliography
 1. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
 2. Matthes, Eric. *Python Crash Course, 3rd Edition: A Hands-On, Project-Based Introduction to Programming*, No Starch Press, 2023
