@@ -31,6 +31,7 @@ class Plotter:
             "circular_binary_orbit",
             "sun_earth_moon",
             "figure-8",
+            "pyth-3-body",
             "solar_system",
             "solar_system_plus",
         ]
@@ -161,6 +162,18 @@ class Plotter:
                 self.x = np.array([R1, R2, R3])
                 self.v = np.array([V1, V2, V3])
                 self.m = [1.0 / Grav_obj.G, 1.0 / Grav_obj.G, 1.0 / Grav_obj.G]
+                self.objects_count = 3
+
+            case "pyth-3-body":
+                R1 = np.array([1.0, 3.0, 0.0])
+                R2 = np.array([-2.0, -1.0, 0.0])
+                R3 = np.array([1.0, -1.0, 0.0])
+                V1 = np.array([0.0, 0.0, 0.0])
+                V2 = np.array([0.0, 0.0, 0.0])
+                V3 = np.array([0.0, 0.0, 0.0])
+                self.x = np.array([R1, R2, R3])
+                self.v = np.array([V1, V2, V3])
+                self.m = [3.0 / Grav_obj.G, 4.0 / Grav_obj.G, 5.0 / Grav_obj.G]
                 self.objects_count = 3
 
             case "solar_system":
