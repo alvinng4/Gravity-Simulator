@@ -1,6 +1,7 @@
 import math
 from pathlib import Path
 import sys
+
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 import timeit
@@ -83,8 +84,14 @@ class Plotter:
 
     def run_prog(self):
         self._initialize_system()
+        print("Simulating the system...")
         self._simulation()
+        print("Computing energy...")
+        self._compute_energy()
+        print("Plotting...")
         self._plot_trajectory()
+        self._plot_rel_energy()
+        self._plot_tot_energy()
 
     def _initialize_system(self):
         self.t0 = 0.0
@@ -112,13 +119,21 @@ class Plotter:
 
             case "sun_earth":
                 R1 = np.array(
-                    [4.980992013803802e-07, -2.910880021966631e-06, 1.649263431256283e-10]
+                    [
+                        4.980992013803802e-07,
+                        -2.910880021966631e-06,
+                        1.649263431256283e-10,
+                    ]
                 )
                 R2 = np.array(
                     [-0.165850747934970, 0.969227871585065, -0.000054915079739]
                 )
                 V1 = np.array(
-                    [5.176134557401363e-08, 8.891729869525767e-09, -2.054090638389034e-12]
+                    [
+                        5.176134557401363e-08,
+                        8.891729869525767e-09,
+                        -2.054090638389034e-12,
+                    ]
                 )
                 V2 = np.array(
                     [-0.017234835658800, -0.002960655317675, 0.000000683945021]
@@ -229,7 +244,6 @@ class Plotter:
             self.sol_time = np.linspace(
                 self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
             )
-            self.energy = np.zeros(self.npts)
             self.progress_percentage = 0
 
         match self.integrator:
@@ -242,9 +256,6 @@ class Plotter:
                             np.reshape(self.x, self.objects_count * 3),
                             np.reshape(self.v, self.objects_count * 3),
                         )
-                    )
-                    self.energy[count] = simulator.total_energy(
-                        self.objects_count, self.x, self.v, self.m
                     )
                     if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                         self.progress_percentage = int(((count + 1) / self.npts) * 100)
@@ -261,9 +272,6 @@ class Plotter:
                             np.reshape(self.v, self.objects_count * 3),
                         )
                     )
-                    self.energy[count] = simulator.total_energy(
-                        self.objects_count, self.x, self.v, self.m
-                    )
                     if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                         self.progress_percentage = int(((count + 1) / self.npts) * 100)
                         self._progress_bar(self.progress_percentage)
@@ -277,9 +285,6 @@ class Plotter:
                             np.reshape(self.x, self.objects_count * 3),
                             np.reshape(self.v, self.objects_count * 3),
                         )
-                    )
-                    self.energy[count] = simulator.total_energy(
-                        self.objects_count, self.x, self.v, self.m
                     )
                     if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                         self.progress_percentage = int(((count + 1) / self.npts) * 100)
@@ -295,9 +300,6 @@ class Plotter:
                             np.reshape(self.x, self.objects_count * 3),
                             np.reshape(self.v, self.objects_count * 3),
                         )
-                    )
-                    self.energy[count] = simulator.total_energy(
-                        self.objects_count, self.x, self.v, self.m
                     )
                     if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                         self.progress_percentage = int(((count + 1) / self.npts) * 100)
@@ -337,39 +339,89 @@ class Plotter:
                     self.tolerance,
                     self.tolerance,
                 )
-
         stop = timeit.default_timer()
         print(f"Run time: {stop - start:.3f} s")
-        print("Plotting...")
 
     def _plot_trajectory(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
+        fig1 = plt.figure()
+        ax1 = fig1.add_subplot(111, aspect="equal")
         # Plot trajectory and initial positions with the same color:
-        for ibody in range(self.objects_count):
-            traj = ax.plot(
-                self.sol_state[:, ibody * 3], self.sol_state[:, 1 + ibody * 3]
-            )
-            ax.plot(
-                self.sol_state[-1, ibody * 3],
-                self.sol_state[-1, 1 + ibody * 3],
+        for i in range(self.objects_count):
+            traj = ax1.plot(self.sol_state[:, i * 3], self.sol_state[:, 1 + i * 3])
+            ax1.plot(
+                self.sol_state[-1, i * 3],
+                self.sol_state[-1, 1 + i * 3],
                 "o",
                 color=traj[0].get_color(),
             )
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
+        ax1.set_xlabel("X")
+        ax1.set_ylabel("Y")
         plt.show()
+
+    def _plot_rel_energy(self):
+        fig2 = plt.figure()
+        ax2 = fig2.add_subplot(111)
+        ax2.semilogy(
+            self.sol_time, np.abs((self.energy - self.energy[0]) / self.energy[0])
+        )
+        ax2.set_xlabel("Time (days)")
+        ax2.set_ylabel("|(E(t)-E0)/E0|")
+        plt.show()
+
+    def _plot_tot_energy(self):
+        fig3 = plt.figure()
+        ax3 = fig3.add_subplot(111)
+        ax3.semilogy(self.sol_time, np.abs(self.energy))
+        ax3.set_xlabel("Time (days)")
+        ax3.set_ylabel("E(t)")
+        plt.show()
+
+    def _compute_energy(self):
+        self.energy = np.zeros(len(self.sol_state))
+        self.progress_percentage = 0
+        self.npts = len(self.sol_state)
+
+        for count in range(self.npts):
+            x = self.sol_state[count]
+            for i in range(self.objects_count):
+                # KE
+                self.energy[count] += (
+                    0.5
+                    * self.m[i]
+                    * np.linalg.norm(
+                        x[
+                            (self.objects_count + i)
+                            * 3 : (self.objects_count + 1 + i)
+                            * 3
+                        ]
+                    )
+                    ** 2
+                )
+                # PE
+                for j in range(self.objects_count):
+                    if i < j:
+                        self.energy[count] -= (
+                            G
+                            * self.m[i]
+                            * self.m[j]
+                            / np.linalg.norm(
+                                x[i * 3 : (i + 1) * 3] - x[j * 3 : (j + 1) * 3]
+                            )
+                        )
+
+            if ((count + 1) / self.npts) * 100 > self.progress_percentage:
+                self.progress_percentage = int(((count + 1) / self.npts) * 100)
+                self._progress_bar(self.progress_percentage)
 
     @staticmethod
     def _progress_bar(percentage):
         if percentage != 100:
             fill = "█" * int(percentage / 2)
             bar = fill + "-" * (50 - int(percentage / 2))
-            print(f"\r|{bar}| {percentage} % Complete", end="")
+            print(f"\r|{bar}| {percentage} % Completed ", end="")
         else:
             bar = "█" * 50
-            print(f"\r|{bar}| 100 % Complete")
-
+            print(f"\r|{bar}| 100 % Completed ")
 
     @staticmethod
     def _plotting_rk_embedded(
@@ -468,9 +520,9 @@ class Plotter:
             )
 
             # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
-            sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
-                np.square(error_estimation_delta_v / tolerance_scale_v)
-            )
+            sum = np.sum(
+                np.square(error_estimation_delta_x / tolerance_scale_x)
+            ) + np.sum(np.square(error_estimation_delta_v / tolerance_scale_v))
             error = np.sqrt(sum / (objects_count * 3 * 2))
 
             if error <= 1 or dt == tf * 1e-12:
@@ -487,7 +539,9 @@ class Plotter:
 
                 # Check buffer size and extend if needed :
                 if (count + 1) == len(sol_state):
-                    sol_state = np.concatenate((sol_state, np.zeros((npts, objects_count * 2 * 3))))
+                    sol_state = np.concatenate(
+                        (sol_state, np.zeros((npts, objects_count * 2 * 3)))
+                    )
                     sol_time = np.concatenate((sol_time, np.zeros(npts)))
 
             dt_new = dt * safety_fac / error ** (1.0 / (1.0 + min_power))
@@ -504,9 +558,9 @@ class Plotter:
             # Correct overshooting:
             if t + dt > tf:
                 dt = tf - t
-            
+
             if (t / tf * 100) > (progress_percentage + 1):
-                progress_percentage = math.floor(t/tf * 100)
+                progress_percentage = math.floor(t / tf * 100)
                 Plotter._progress_bar(progress_percentage)
 
             if t >= tf:
@@ -517,26 +571,3 @@ class Plotter:
 if __name__ == "__main__":
     plotter = Plotter()
     plotter.run_prog()
-
-# def test_two_vectors(integrator: str, tf: float, dt: float = None, tolerance:float = None):
-# fig1 = plt.figure()
-# ax1 = fig1.add_subplot(1, 1, 1)
-# ax1.semilogy(sol_time, np.abs((energy - energy[0]) / energy[0]))
-# ax1.set_xlabel("Time")
-# ax1.set_ylabel("|(E(t)-E0)/E0|")
-# plt.show()
-
-# fig2 = plt.figure()
-# ax2 = fig2.add_subplot(1, 1, 1)
-# ax2.semilogy(sol_time, np.abs(energy))
-# ax2.set_xlabel("Time")
-# ax2.set_ylabel("E(t)")
-# ax2.yaxis.set_major_formatter(plt.ScalarFormatter(useOffset=False))
-# ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
-# plt.show()
-
-# fig = plt.figure()
-# ax = fig.add_subplot (111, aspect='equal ')
-# ax.plot(sol_state [:,0], sol_state [:,1],"b-")
-# ax.plot(sol_state [:,0 + 3], sol_state [:,1 + 3],"g-")
-# plt.show()

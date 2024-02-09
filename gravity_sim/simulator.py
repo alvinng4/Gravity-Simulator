@@ -587,9 +587,9 @@ def total_energy(objects_count, x, v, m):
     for j in range(0, objects_count):
         E += 0.5 * m[j] * np.linalg.norm(v[j]) ** 2
         for k in range(0, objects_count):
-            if j != k:
+            if j < k:
                 R = x[j] - x[k]
-                E += -G * m[j] * m[k] / np.linalg.norm(R)
+                E -= G * m[j] * m[k] / np.linalg.norm(R)
     return E
 
 
