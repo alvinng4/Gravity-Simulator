@@ -81,25 +81,20 @@ class Plotter:
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
             self.system = input("Enter system (Number or name): ")
-            if matches := re.search(r"(?:\s*)?([1-9]*)?(?:\.|\W*)*(circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)?", self.system, re.IGNORECASE):
+            if matches := re.search(r"^\s*([1-9]|circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)\s*$", self.system, re.IGNORECASE):
                 if matches.group(1):
-                    if (int(matches.group(1)) - 1) not in range(len(self.available_systems)):
-                        print("Invalid input. Please try again.")
-                        continue
+                    try:
+                        int(matches.group(1))
+                    except ValueError:
+                        if matches.group(1).lower() in self.available_systems:
+                            self.system = matches.group(1).lower()
+                            break
                     else:
-                        self.system = self.available_systems[int(matches.group(1)) - 1]
+                        if (int(matches.group(1)) - 1) in range(len(self.available_systems)):
+                            self.system = self.available_systems[int(matches.group(1)) - 1]
+                            break
 
-                    if matches.group(2) and self.system != matches.group(2):
-                        print("Invalid input. Please try again.")
-                        continue
-                    else:
-                        break
-
-                elif matches.group(2):
-                    break
-
-            else:
-                print("Invalid input. Please try again.")
+            print("Invalid input. Please try again.")
 
         while True:
             print("")
@@ -109,25 +104,20 @@ class Plotter:
             self.integrator = (
                 input("Enter integrator (Number or name): ")
             )
-            if matches := re.search(r"(?:\s*)?([1-9]*)?(?:\.|\W*)*(euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)?", self.integrator, re.IGNORECASE):
+            if matches := re.search(r"^\s*([1-9]|euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)\s*$", self.integrator, re.IGNORECASE):
                 if matches.group(1):
-                    if (int(matches.group(1)) - 1) not in range(len(self.available_integrators)):
-                        print("Invalid input. Please try again.")
-                        continue
+                    try:
+                        int(matches.group(1))
+                    except ValueError:
+                        if matches.group(1).lower() in self.available_integrators:
+                            self.integrator = matches.group(1).lower()
+                            break
                     else:
-                        self.integrator = self.available_integrators[int(matches.group(1)) - 1]
+                        if (int(matches.group(1)) - 1) in range(len(self.available_integrators)):
+                            self.integrator = self.available_integrators[int(matches.group(1)) - 1]
+                            break
 
-                    if matches.group(2) and self.integrator != matches.group(2):
-                        print("Invalid input. Please try again.")
-                        continue
-                    else:
-                        break
-
-                elif matches.group(2):
-                    break
-
-            else:
-                print("Invalid input. Please try again.")
+            print("Invalid input. Please try again.")
 
         while True:
             print("")
@@ -179,8 +169,8 @@ class Plotter:
 
     def _print_user_input(self):
         print("")
-        print(f"Integrator: {self.integrator}")
         print(f"System: {self.system}")
+        print(f"Integrator: {self.integrator}")
         if self.unit == "years":
             print(f"tf: {self.tf / 365.24} years")
         else:
@@ -532,6 +522,7 @@ class Plotter:
         self.progress_percentage = 0
         self.npts = len(self.sol_state)
 
+        start = timeit.default_timer()
         for count in range(self.npts):
             x = self.sol_state[count]
             for i in range(self.objects_count):
@@ -563,16 +554,19 @@ class Plotter:
             if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                 self.progress_percentage = int(((count + 1) / self.npts) * 100)
                 self._progress_bar(self.progress_percentage)
+        stop = timeit.default_timer()
+        print(f"Run time:{(stop - start):.3f} s")
+        
 
     @staticmethod
     def _progress_bar(percentage):
         if percentage != 100:
             fill = "█" * int(percentage / 2)
             bar = fill + "-" * (50 - int(percentage / 2))
-            print(f"\r|{bar}| {percentage:3} % Completed ", end="")
+            print(f"\r|{bar}| {percentage:3}% Completed ", end="")
         else:
             bar = "█" * 50
-            print(f"\r|{bar}| 100 % Completed ")
+            print(f"\r|{bar}| 100% Completed ")
 
     @staticmethod
     def _plotting_rk_embedded(
