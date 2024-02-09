@@ -112,16 +112,16 @@ class Plotter:
 
             case "sun_earth":
                 R1 = np.array(
-                    [-0.007967955691534, -0.002906227441573, 0.000210305430155]
+                    [4.980992013803802e-07, -2.910880021966631e-06, 1.649263431256283e-10]
                 )
                 R2 = np.array(
-                    [-0.173819201725705, 0.966324555023514, 0.000155390185490]
+                    [-0.165850747934970, 0.969227871585065, -0.000054915079739]
                 )
                 V1 = np.array(
-                    [0.000004875094764, -0.000007057133214, -0.000000045734537]
+                    [5.176134557401363e-08, 8.891729869525767e-09, -2.054090638389034e-12]
                 )
                 V2 = np.array(
-                    [-0.017230012325382, -0.002967721342619, 0.000000638212538]
+                    [-0.017234835658800, -0.002960655317675, 0.000000683945021]
                 )
                 self.x = np.array([R1, R2])
                 self.v = np.array([V1, V2])
@@ -326,7 +326,8 @@ class Plotter:
                 )
 
         stop = timeit.default_timer()
-        print(stop - start)
+        print(f"Run time: {stop - start:.3f} s")
+        print("Plotting...")
 
     def _plot_trajectory(self):
         fig = plt.figure()
@@ -337,8 +338,8 @@ class Plotter:
                 self.sol_state[:, ibody * 3], self.sol_state[:, 1 + ibody * 3]
             )
             ax.plot(
-                self.sol_state[0, ibody * 3],
-                self.sol_state[0, 1 + ibody * 3],
+                self.sol_state[-1, ibody * 3],
+                self.sol_state[-1, 1 + ibody * 3],
                 "o",
                 color=traj[0].get_color(),
             )
@@ -482,8 +483,8 @@ def plotting_rk_embedded(
             sol_time[count] = t
 
             # Check buffer size and extend if needed :
-            if count == sol_state.shape[0]:
-                sol_state = np.concatenate((sol_state, sol_state[0:npts]))
+            if (count + 1) == len(sol_state):
+                sol_state = np.concatenate((sol_state, np.zeros((npts, objects_count * 2 * 3))))
                 sol_time = np.concatenate((sol_time, np.zeros(npts)))
 
         dt_new = dt * safety_fac / error ** (1.0 / (1.0 + min_power))
