@@ -1,3 +1,6 @@
+from os import environ
+# Remove the "Hello from the pygame community." message when starting the program.
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import math
 from pathlib import Path
 import sys
@@ -37,11 +40,47 @@ class Plotter:
             "solar_system_plus",
         ]
 
+    def run_prog(self):
+        try:
+            while True:
+                while True:
+                    print("N-Body gravity simulator")
+                    print("Exit the program anytime by hitting Ctrl + C")
+                    self._read_user_input()
+                    self._print_user_input()
+                    if self._ask_user_permission("Proceed?"):
+                        break 
+
+                self._initialize_system()   
+                print("")             
+                print("Simulating the system...")
+                self._simulation()
+                print("")
+                print("Computing energy...")
+                self._compute_energy()
+                print("")
+                print("Plotting...")
+                if self.unit == "years":
+                    self.sol_time /= 365.24
+                self._plot_trajectory()
+                self._plot_rel_energy()
+                self._plot_tot_energy()
+
+                if not self._ask_user_permission("All plotting is done. Restart simulation?"):
+                    print("Exiting the program...")
+                    break
+
+        except KeyboardInterrupt:
+            print("")
+            print("Keyboard Interrupt detected (Cltr + C). Exiting the program...")
+
+    def _read_user_input(self):
         while True:
+            print("")
             print("Available systems:")
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
-            self.system = input("Enter system (Number or full name): ")
+            self.system = input("Enter system (Number or name): ")
             if matches := re.search(r"(?:\s*)?([1-9]*)?(?:\.|\W*)*(circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)?", self.system, re.IGNORECASE):
                 if matches.group(1):
                     if (int(matches.group(1)) - 1) not in range(len(self.available_systems)):
@@ -63,11 +102,12 @@ class Plotter:
                 print("Invalid input. Please try again.")
 
         while True:
+            print("")
             print("Available integrators: ")
             for i, integrator in enumerate(self.available_integrators):
                 print(f"{i + 1}. {integrator}")
             self.integrator = (
-                input("Enter integrator (Number or full name): ")
+                input("Enter integrator (Number or name): ")
             )
             if matches := re.search(r"(?:\s*)?([1-9]*)?(?:\.|\W*)*(euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)?", self.integrator, re.IGNORECASE):
                 if matches.group(1):
@@ -90,6 +130,7 @@ class Plotter:
                 print("Invalid input. Please try again.")
 
         while True:
+            print("")
             self.tf = input("Enter tf (d/yr): ")
             if matches := re.search(r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.tf, re.IGNORECASE):
                 if matches.group(1):
@@ -108,6 +149,7 @@ class Plotter:
 
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             while True:
+                print("")
                 self.dt = input("Enter dt (d/yr): ")
                 if matches := re.search(r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.dt, re.IGNORECASE):
                     if matches.group(1):
@@ -127,6 +169,7 @@ class Plotter:
         elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
             while True:
                 try:
+                    print("")
                     self.tolerance = float(input("Enter tolerance: "))
                     if self.tolerance <= 0:
                         raise ValueError
@@ -134,10 +177,8 @@ class Plotter:
                 except ValueError:
                     print("Invalid value. Please try again.")
 
+    def _print_user_input(self):
         print("")
-
-    def run_prog(self):
-        self._initialize_system()
         print(f"Integrator: {self.integrator}")
         print(f"System: {self.system}")
         if self.unit == "years":
@@ -151,16 +192,17 @@ class Plotter:
                 print(f"dt: {self.dt} days")
         elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
             print(f"tolerance: {self.tolerance}")
-        print("Simulating the system...")
-        self._simulation()
-        print("Computing energy...")
-        self._compute_energy()
-        print("Plotting...")
-        if self.unit == "years":
-            self.sol_time /= 365.24
-        self._plot_trajectory()
-        self._plot_rel_energy()
-        self._plot_tot_energy()
+
+    @staticmethod
+    def _ask_user_permission(msg):
+        while True:
+            if matches := re.search(r"^\s*(yes|no|y|n)$", input(f"{msg} (Y/N): "), re.IGNORECASE):
+                if matches.group(1).lower() in ["y", "yes"]:
+                    return True
+                elif matches.group(1).lower() in ["n", "no"]:
+                    return False
+                
+            print("Invalid input. Please try again.")
 
     def _initialize_system(self):
         self.t0 = 0.0
@@ -527,7 +569,7 @@ class Plotter:
         if percentage != 100:
             fill = "█" * int(percentage / 2)
             bar = fill + "-" * (50 - int(percentage / 2))
-            print(f"\r|{bar}| {percentage} % Completed ", end="")
+            print(f"\r|{bar}| {percentage:3} % Completed ", end="")
         else:
             bar = "█" * 50
             print(f"\r|{bar}| 100 % Completed ")
