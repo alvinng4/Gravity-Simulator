@@ -4,6 +4,7 @@ import sys
 
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
+sys.path.insert(0, path + "/gravity_sim")
 import timeit
 
 import matplotlib.pyplot as plt
@@ -28,9 +29,10 @@ class Plotter:
         ]
         self.available_systems = [
             "circular_binary_orbit",
-            "sun_earth",
+            "sun_earth_moon",
             "figure-8",
             "solar_system",
+            "solar_system_plus",
         ]
         while True:
             print("Available integrators: ")
@@ -114,34 +116,40 @@ class Plotter:
                 self.m = [1.0 / Grav_obj.G, 1.0 / Grav_obj.G]
                 self.objects_count = 2
 
-            case "sun_earth":
-                R1 = np.array(
-                    [
-                        4.980992013803802e-07,
-                        -2.910880021966631e-06,
-                        1.649263431256283e-10,
-                    ]
-                )
-                R2 = np.array(
-                    [-0.165850747934970, 0.969227871585065, -0.000054915079739]
-                )
-                V1 = np.array(
-                    [
-                        5.176134557401363e-08,
-                        8.891729869525767e-09,
-                        -2.054090638389034e-12,
-                    ]
-                )
-                V2 = np.array(
-                    [-0.017234835658800, -0.002960655317675, 0.000000683945021]
-                )
-                self.x = np.array([R1, R2])
-                self.v = np.array([V1, V2])
+            case "sun_earth_moon":
                 self.m = [
                     Grav_obj.SOLAR_SYSTEM_MASSES["Sun"],
                     Grav_obj.SOLAR_SYSTEM_MASSES["Earth"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Moon"],
                 ]
-                self.objects_count = 2
+                R_CM = (
+                    1
+                    / np.sum(self.m)
+                    * (
+                        self.m[0] * np.array(Grav_obj.SOLAR_SYSTEM_POS["Sun"])
+                        + self.m[1] * np.array(Grav_obj.SOLAR_SYSTEM_POS["Earth"])
+                        + self.m[2] * np.array(Grav_obj.SOLAR_SYSTEM_POS["Moon"])
+                    )
+                )
+                V_CM = (
+                    1
+                    / np.sum(self.m)
+                    * (
+                        self.m[0] * np.array(Grav_obj.SOLAR_SYSTEM_VEC["Sun"])
+                        + self.m[1] * np.array(Grav_obj.SOLAR_SYSTEM_VEC["Earth"])
+                        + self.m[2] * np.array(Grav_obj.SOLAR_SYSTEM_VEC["Moon"])
+                    )
+                )
+                R1 = np.array(Grav_obj.SOLAR_SYSTEM_POS["Sun"] - R_CM)
+                R2 = np.array(Grav_obj.SOLAR_SYSTEM_POS["Earth"] - R_CM)
+                R3 = np.array(Grav_obj.SOLAR_SYSTEM_POS["Moon"] - R_CM)
+                V1 = np.array(Grav_obj.SOLAR_SYSTEM_VEC["Sun"] - V_CM)
+                V2 = np.array(Grav_obj.SOLAR_SYSTEM_VEC["Earth"] - V_CM)
+                V3 = np.array(Grav_obj.SOLAR_SYSTEM_VEC["Moon"] - V_CM)
+                self.x = np.array([R1, R2, R3])
+                self.v = np.array([V1, V2, V3])
+
+                self.objects_count = 3
 
             case "figure-8":
                 R1 = np.array([0.970043, -0.24308753, 0.0])
@@ -156,61 +164,25 @@ class Plotter:
                 self.objects_count = 3
 
             case "solar_system":
-                R1 = np.array(
-                    [-0.007967955691534, -0.002906227441573, 0.000210305430155]
-                )
-                R2 = np.array(
-                    [-0.282598326953863, 0.197455979595808, 0.041774335580637]
-                )
-                R3 = np.array(
-                    [-0.723210370166638, -0.079483020263124, 0.040428714281743]
-                )
-                R4 = np.array(
-                    [-0.173819201725705, 0.966324555023514, 0.000155390185490]
-                )
-                R5 = np.array(
-                    [-0.301326239258265, -1.454029331393295, -0.023005314339914]
-                )
-                R6 = np.array(
-                    [3.485202469657675, 3.552136904413157, -0.092710354427984]
-                )
-                R7 = np.array(
-                    [8.988104223143450, -3.719064854634689, -0.293193777732359]
-                )
-                R8 = np.array(
-                    [12.263024178975050, 15.297387924805450, -0.102054902688356]
-                )
-                R9 = np.array(
-                    [29.835014609847410, -1.793812957956852, -0.650640113225459]
-                )
+                R1 = Grav_obj.SOLAR_SYSTEM_POS["Sun"]
+                R2 = Grav_obj.SOLAR_SYSTEM_POS["Mercury"]
+                R3 = Grav_obj.SOLAR_SYSTEM_POS["Venus"]
+                R4 = Grav_obj.SOLAR_SYSTEM_POS["Earth"]
+                R5 = Grav_obj.SOLAR_SYSTEM_POS["Mars"]
+                R6 = Grav_obj.SOLAR_SYSTEM_POS["Jupiter"]
+                R7 = Grav_obj.SOLAR_SYSTEM_POS["Saturn"]
+                R8 = Grav_obj.SOLAR_SYSTEM_POS["Uranus"]
+                R9 = Grav_obj.SOLAR_SYSTEM_POS["Neptune"]
 
-                V1 = np.array(
-                    [0.000004875094764, -0.000007057133214, -0.000000045734537]
-                )
-                V2 = np.array(
-                    [-0.022321659001897, -0.021572071031763, 0.000285519341050]
-                )
-                V3 = np.array(
-                    [0.002034068201002, -0.020208286265930, -0.000394563984386]
-                )
-                V4 = np.array(
-                    [-0.017230012325382, -0.002967721342619, 0.000000638212538]
-                )
-                V5 = np.array(
-                    [0.014248322593453, -0.001579236181581, -0.000382372279616]
-                )
-                V6 = np.array(
-                    [-0.005470970658852, 0.005642487338479, 0.000098961906021]
-                )
-                V7 = np.array(
-                    [0.001822013845554, 0.005143470425888, -0.000161723590489]
-                )
-                V8 = np.array(
-                    [-0.003097615358317, 0.002276781932346, 0.000048604332222]
-                )
-                V9 = np.array(
-                    [0.000167653661182, 0.003152098732862, -0.000068775010957]
-                )
+                V1 = Grav_obj.SOLAR_SYSTEM_VEC["Sun"]
+                V2 = Grav_obj.SOLAR_SYSTEM_VEC["Mercury"]
+                V3 = Grav_obj.SOLAR_SYSTEM_VEC["Venus"]
+                V4 = Grav_obj.SOLAR_SYSTEM_VEC["Earth"]
+                V5 = Grav_obj.SOLAR_SYSTEM_VEC["Mars"]
+                V6 = Grav_obj.SOLAR_SYSTEM_VEC["Jupiter"]
+                V7 = Grav_obj.SOLAR_SYSTEM_VEC["Saturn"]
+                V8 = Grav_obj.SOLAR_SYSTEM_VEC["Uranus"]
+                V9 = Grav_obj.SOLAR_SYSTEM_VEC["Neptune"]
 
                 self.x = np.array([R1, R2, R3, R4, R5, R6, R7, R8, R9])
                 self.v = np.array([V1, V2, V3, V4, V5, V6, V7, V8, V9])
@@ -226,6 +198,51 @@ class Plotter:
                     Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
                 ]
                 self.objects_count = 9
+            
+            case "solar_system_plus":
+                R1 = Grav_obj.SOLAR_SYSTEM_POS["Sun"]
+                R2 = Grav_obj.SOLAR_SYSTEM_POS["Mercury"]
+                R3 = Grav_obj.SOLAR_SYSTEM_POS["Venus"]
+                R4 = Grav_obj.SOLAR_SYSTEM_POS["Earth"]
+                R5 = Grav_obj.SOLAR_SYSTEM_POS["Mars"]
+                R6 = Grav_obj.SOLAR_SYSTEM_POS["Jupiter"]
+                R7 = Grav_obj.SOLAR_SYSTEM_POS["Saturn"]
+                R8 = Grav_obj.SOLAR_SYSTEM_POS["Uranus"]
+                R9 = Grav_obj.SOLAR_SYSTEM_POS["Neptune"]
+                R10 = Grav_obj.SOLAR_SYSTEM_POS["Pluto"]
+                R11 = Grav_obj.SOLAR_SYSTEM_POS["Ceres"]
+                R12 = Grav_obj.SOLAR_SYSTEM_POS["Vesta"]
+
+                V1 = Grav_obj.SOLAR_SYSTEM_VEC["Sun"]
+                V2 = Grav_obj.SOLAR_SYSTEM_VEC["Mercury"]
+                V3 = Grav_obj.SOLAR_SYSTEM_VEC["Venus"]
+                V4 = Grav_obj.SOLAR_SYSTEM_VEC["Earth"]
+                V5 = Grav_obj.SOLAR_SYSTEM_VEC["Mars"]
+                V6 = Grav_obj.SOLAR_SYSTEM_VEC["Jupiter"]
+                V7 = Grav_obj.SOLAR_SYSTEM_VEC["Saturn"]
+                V8 = Grav_obj.SOLAR_SYSTEM_VEC["Uranus"]
+                V9 = Grav_obj.SOLAR_SYSTEM_VEC["Neptune"]
+                V10 = Grav_obj.SOLAR_SYSTEM_VEC["Pluto"]
+                V11 = Grav_obj.SOLAR_SYSTEM_VEC["Ceres"]
+                V12 = Grav_obj.SOLAR_SYSTEM_VEC["Vesta"]
+
+                self.x = np.array([R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12])
+                self.v = np.array([V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12])
+                self.m = [
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Sun"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Mercury"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Venus"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Earth"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Mars"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Jupiter"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Saturn"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Uranus"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Pluto"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Ceres"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Vesta"], 
+                ]
+                self.objects_count = 12
 
         # Prevent the error message from numba package:
         # "Encountered the use of a type that is scheduled for deprecation: type 'reflected list' found for argument 'm' of function '...'."
