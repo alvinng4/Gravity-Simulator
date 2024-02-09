@@ -38,21 +38,37 @@ class Plotter:
         ]
         while True:
             print("Available integrators: ")
-            print(self.available_integrators)
-            self.integrator = input("Enter integrator: ").strip().lower()
-            if self.integrator not in self.available_integrators:
-                print("Invalid integrator. Please try again.")
-                continue
-            break
+            for i, integrator in enumerate(self.available_integrators):
+                print(f"{i + 1}. {integrator}")
+            self.integrator = (
+                input("Enter integrator (Number or full name): ").strip().lower()
+            )
+            check_result, check_type = self._check_input(
+                self.integrator, self.available_integrators
+            )
+            if check_result == True:
+                if check_type == str:
+                    break
+                if check_type == int:
+                    self.integrator = self.available_integrators[
+                        int(self.integrator) - 1
+                    ]
+                    break
 
         while True:
             print("Available systems:")
-            print(self.available_systems)
-            self.system = input("Enter a system: ").strip().lower()
-            if self.system not in self.available_systems:
-                print("Invalid system. Please try again.")
-                continue
-            break
+            for i, system in enumerate(self.available_systems):
+                print(f"{i + 1}. {system}")
+            self.system = input("Enter system (Number or full name): ").strip().lower()
+            check_result, check_type = self._check_input(
+                self.system, self.available_systems
+            )
+            if check_result == True:
+                if check_type == str:
+                    break
+                if check_type == int:
+                    self.system = self.available_systems[int(self.system) - 1]
+                    break
 
         while True:
             try:
@@ -83,8 +99,17 @@ class Plotter:
                 except ValueError:
                     print("Invalid value. Please try again.")
 
+        print("")
+
     def run_prog(self):
         self._initialize_system()
+        print(f"Integrator: {self.integrator}")
+        print(f"System: {self.system}")
+        print(f"tf: {self.tf}")
+        if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
+            print(f"dt: {self.dt}")
+        elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
+            print(f"tolerance: {self.tolerance}")
         print("Simulating the system...")
         self._simulation()
         print("Computing energy...")
@@ -453,6 +478,25 @@ class Plotter:
             if ((count + 1) / self.npts) * 100 > self.progress_percentage:
                 self.progress_percentage = int(((count + 1) / self.npts) * 100)
                 self._progress_bar(self.progress_percentage)
+
+    @staticmethod
+    def _check_input(text: str, list: list) -> tuple[bool, type]:
+        try:
+            value = int(text)
+        except ValueError:
+            pass
+        else:
+            if value > len(list) or value <= 0:
+                print("Invalid input. Please try again.")
+                return False, None
+            else:
+                return True, int
+
+        if text not in list:
+            print("Invalid input. Please try again.")
+            return False, None
+        else:
+            return True, str
 
     @staticmethod
     def _progress_bar(percentage):
