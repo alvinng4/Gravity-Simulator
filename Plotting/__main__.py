@@ -6,15 +6,12 @@ path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 import timeit
 
+import matplotlib.pyplot as plt
 import numba as nb
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
 
 from gravity_sim import simulator
-
-# Gravitational constant (AU ^3/d^2/ M_sun):
-G = 0.00029591220828559
+from gravity_sim.grav_obj import Grav_obj
 
 
 class Plotter:
@@ -114,7 +111,7 @@ class Plotter:
                 V2 = np.array([0.0, -0.5, 0.0])
                 self.x = np.array([R1, R2])
                 self.v = np.array([V1, V2])
-                self.m = [1.0 / G, 1.0 / G]
+                self.m = [1.0 / Grav_obj.G, 1.0 / Grav_obj.G]
                 self.objects_count = 2
 
             case "sun_earth":
@@ -141,8 +138,8 @@ class Plotter:
                 self.x = np.array([R1, R2])
                 self.v = np.array([V1, V2])
                 self.m = [
-                    1.0,
-                    3.00329789031573e-06,
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Sun"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Earth"],
                 ]
                 self.objects_count = 2
 
@@ -155,7 +152,7 @@ class Plotter:
                 V3 = np.array([-0.93240737, -0.86473146, 0.0])
                 self.x = np.array([R1, R2, R3])
                 self.v = np.array([V1, V2, V3])
-                self.m = [1.0 / G, 1.0 / G, 1.0 / G]
+                self.m = [1.0 / Grav_obj.G, 1.0 / Grav_obj.G, 1.0 / Grav_obj.G]
                 self.objects_count = 3
 
             case "solar_system":
@@ -218,15 +215,15 @@ class Plotter:
                 self.x = np.array([R1, R2, R3, R4, R5, R6, R7, R8, R9])
                 self.v = np.array([V1, V2, V3, V4, V5, V6, V7, V8, V9])
                 self.m = [
-                    1.0,
-                    1.66051140935277e-07,
-                    2.44827371182131e-06,
-                    3.00329789031573e-06,
-                    3.22773848604808e-07,
-                    0.000954532562518104,
-                    0.00028579654259599,
-                    4.3655207025844e-05,
-                    5.1499991953912e-05,
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Sun"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Mercury"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Venus"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Earth"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Mars"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Jupiter"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Saturn"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Uranus"],
+                    Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
                 ]
                 self.objects_count = 9
 
@@ -401,7 +398,7 @@ class Plotter:
                 for j in range(self.objects_count):
                     if i < j:
                         self.energy[count] -= (
-                            G
+                            Grav_obj.G
                             * self.m[i]
                             * self.m[j]
                             / np.linalg.norm(

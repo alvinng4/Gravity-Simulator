@@ -1,21 +1,13 @@
 import numba as nb  # Note: nb.njit cannot works on functions inside a class
 import numpy as np
 
-# Gravitational constant (AU ^3/d^2/ M_sun):
-G = 0.00029591220828559
-# G = 1.0  # For Testing
+from gravity_sim.grav_obj import Grav_obj
+from gravity_sim.settings import Settings
 
-
-# dt: Simulation time (days)
-# r1 - r3: Positions (AU)
-# v1 - v3: Velocities (AU/d)
-# m: Mass (Solar masses)
-# a_i = - G M_j (ri - rj) / |r_ij|^3
+G = Grav_obj.G  # For numba njit
 
 
 class Simulator:
-    DEFAULT_INTEGRATOR = "rkf78"
-
     def __init__(self, grav_sim):
         self.stats = grav_sim.stats
         self.settings = grav_sim.settings
@@ -28,8 +20,8 @@ class Simulator:
         self.is_initialize = True
         self.set_all_integrators_false()
         self.is_rkf78 = True  # Default integrator
-        self.current_integrator = self.DEFAULT_INTEGRATOR
-        self.is_initialize_integrator = self.DEFAULT_INTEGRATOR
+        self.current_integrator = Settings.DEFAULT_INTEGRATOR
+        self.is_initialize_integrator = Settings.DEFAULT_INTEGRATOR
 
     def run_simulation(self, grav_sim):
         if self.is_initialize == True:
@@ -365,7 +357,7 @@ class Simulator:
 @nb.njit
 def acceleration(objects_count, x, m):
     """
-    Calculate acceleration by a = - GM/r^2
+    Calculate acceleration by a = - GM/r^3 vec{r}
     """
     # Allocate memory
     temp_a = np.zeros((objects_count * objects_count, 3))
@@ -376,7 +368,7 @@ def acceleration(objects_count, x, m):
             R = x[j] - x[k]
             R_norm = np.linalg.norm(R)
             temp_value = G * R / (R_norm * R_norm * R_norm)
-            temp_a[j * objects_count + k] = - temp_value * m[k]
+            temp_a[j * objects_count + k] = -temp_value * m[k]
             temp_a[k * objects_count + j] = temp_value * m[j]
 
     temp_a = temp_a.reshape((objects_count, objects_count, 3))
@@ -474,7 +466,7 @@ def _initial_time_step_rk_embedded(
     else:
         dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
     dt = min([100 * dt_0, dt_1])
-    
+
     return dt
 
 
@@ -547,7 +539,7 @@ def rk_embedded(
         # Error calculation
         tolerance_scale_v = (
             abs_tolerance + np.maximum(np.abs(v), np.abs(v_1)) * rel_tolerance
-        )        
+        )
         tolerance_scale_x = (
             abs_tolerance + np.maximum(np.abs(x), np.abs(x_1)) * rel_tolerance
         )
@@ -611,9 +603,8 @@ def butcher_tableaus_rk(order):
     # 78) Runge-Kutta-Fehlberg 7(8)
     # 65) Verner's method 6(5), DVERK
 
-    
     match order:
-        # RUNGE-KUTTA-FEHLBERG 4(5)    
+        # RUNGE-KUTTA-FEHLBERG 4(5)
         case 45:
             # Order
             power = 4
@@ -642,7 +633,7 @@ def butcher_tableaus_rk(order):
                     2.0 / 55.0,
                 ]
             )
-        
+
         # DORMAND-PRINCE 5(4)
         case 54:
             # order
@@ -932,7 +923,15 @@ def butcher_tableaus_rk(order):
                     [1.0 / 6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     [4.0 / 75.0, 16.0 / 75.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     [5.0 / 6.0, -8.0 / 3.0, 5.0 / 2.0, 0.0, 0.0, 0.0, 0.0],
-                    [-165.0 / 64.0, 55.0 / 6.0, -425.0 / 64.0, 85.0 / 96.0, 0.0, 0.0, 0.0],
+                    [
+                        -165.0 / 64.0,
+                        55.0 / 6.0,
+                        -425.0 / 64.0,
+                        85.0 / 96.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                    ],
                     [
                         12.0 / 5.0,
                         -8.0,
@@ -990,5 +989,5 @@ def butcher_tableaus_rk(order):
 
         case _:
             raise ValueError
-        
+
     return power, power_test, coeff, weights, weights_test

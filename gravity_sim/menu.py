@@ -1,7 +1,7 @@
 import sys
 
-from text_box import Text_box
-from grav_obj import Grav_obj
+from gravity_sim.grav_obj import Grav_obj
+from gravity_sim.text_box import Text_box
 
 
 class Menu:
