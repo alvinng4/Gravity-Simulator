@@ -42,7 +42,7 @@ class Plotter:
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
             self.system = input("Enter system (Number or full name): ")
-            if matches := re.search(r"([1-9]*)?(?:\.|\W*)?\s*(circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system|solar_system_plus)?", self.system, re.IGNORECASE):
+            if matches := re.search(r"(?:\s*)?([1-9]*)?(?:\.|\W*)*(circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)?", self.system, re.IGNORECASE):
                 if matches.group(1):
                     if (int(matches.group(1)) - 1) not in range(len(self.available_systems)):
                         print("Invalid input. Please try again.")
@@ -69,7 +69,7 @@ class Plotter:
             self.integrator = (
                 input("Enter integrator (Number or full name): ")
             )
-            if matches := re.search(r"([1-9]*)?(?:\.|\W*)?\s*(euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)?", self.integrator, re.IGNORECASE):
+            if matches := re.search(r"(?:\s*)?([1-9]*)?(?:\.|\W*)*(euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)?", self.integrator, re.IGNORECASE):
                 if matches.group(1):
                     if (int(matches.group(1)) - 1) not in range(len(self.available_integrators)):
                         print("Invalid input. Please try again.")
@@ -90,23 +90,39 @@ class Plotter:
                 print("Invalid input. Please try again.")
 
         while True:
-            try:
-                self.tf = float(input("Enter tf (d/yr): "))
-                if self.tf <= 0:
-                    raise ValueError
-                break
-            except ValueError:
-                print("Invalid value. Please try again.")
+            self.tf = input("Enter tf (d/yr): ")
+            if matches := re.search(r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.tf, re.IGNORECASE):
+                if matches.group(1):
+                    self.tf = float(matches.group(1))
+                else:
+                    print("Invalid input. Please try again.")
+                    continue
+
+                if matches.group(2) not in ["year", "y"]:
+                    self.unit = "days"
+                    break
+                else:
+                    self.unit = "years"
+                    self.tf *= 365.24
+                    break
 
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             while True:
-                try:
-                    self.dt = float(input("Enter dt (days): "))
-                    if self.dt <= 0:
-                        raise ValueError
-                    break
-                except ValueError:
-                    print("Invalid value. Please try again.")
+                self.dt = input("Enter dt (d/yr): ")
+                if matches := re.search(r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.dt, re.IGNORECASE):
+                    if matches.group(1):
+                        self.dt = float(matches.group(1))
+                    else:
+                        print("Invalid input. Please try again.")
+                        continue
+
+                    if matches.group(2) not in ["year", "y"]:
+                        self.dt_unit = "days"
+                        break
+                    else:
+                        self.dt_unit = "years"
+                        self.dt *= 365.24
+                        break
 
         elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
             while True:
@@ -124,9 +140,15 @@ class Plotter:
         self._initialize_system()
         print(f"Integrator: {self.integrator}")
         print(f"System: {self.system}")
-        print(f"tf: {self.tf}")
+        if self.unit == "years":
+            print(f"tf: {self.tf / 365.24} years")
+        else:
+            print(f"tf: {self.tf} days")
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
-            print(f"dt: {self.dt}")
+            if self.dt_unit == "years":
+                print(f"dt: {self.dt / 365.24} years")
+            else:
+                print(f"dt: {self.dt} days")
         elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
             print(f"tolerance: {self.tolerance}")
         print("Simulating the system...")
@@ -134,6 +156,8 @@ class Plotter:
         print("Computing energy...")
         self._compute_energy()
         print("Plotting...")
+        if self.unit == "years":
+            self.sol_time /= 365.24
         self._plot_trajectory()
         self._plot_rel_energy()
         self._plot_tot_energy()
@@ -449,7 +473,7 @@ class Plotter:
         ax2.semilogy(
             self.sol_time, np.abs((self.energy - self.energy[0]) / self.energy[0])
         )
-        ax2.set_xlabel("Time (days)")
+        ax2.set_xlabel(f"Time ({self.unit})")
         ax2.set_ylabel("|(E(t)-E0)/E0|")
         plt.show()
 
@@ -457,7 +481,7 @@ class Plotter:
         fig3 = plt.figure()
         ax3 = fig3.add_subplot(111)
         ax3.semilogy(self.sol_time, np.abs(self.energy))
-        ax3.set_xlabel("Time (days)")
+        ax3.set_xlabel(f"Time ({self.unit})")
         ax3.set_ylabel("E(t)")
         plt.show()
 
