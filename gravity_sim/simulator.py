@@ -199,10 +199,10 @@ class Simulator:
                     self.settings.tolerance,
                     self.settings.tolerance,
                 )
-            case "rkf78":
+            case "dverk":
                 if (
                     self.is_initialize == True
-                    and self.is_initialize_integrator == "rkf78"
+                    and self.is_initialize_integrator == "dverk"
                 ):
                     (
                         self.power,
@@ -210,12 +210,11 @@ class Simulator:
                         self.coeff,
                         self.weights,
                         self.weights_test,
-                    ) = butcher_tableaus_rk(order=78)
-                    self.is_initialize = False
+                    ) = butcher_tableaus_rk(order=65)
                     self.a = acceleration(self.stats.objects_count, self.x, self.m)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
-                        7,
+                        6,
                         self.x,
                         self.v,
                         self.a,
@@ -248,10 +247,10 @@ class Simulator:
                     self.settings.tolerance,
                     self.settings.tolerance,
                 )
-            case "dverk":
+            case "rkf78":
                 if (
                     self.is_initialize == True
-                    and self.is_initialize_integrator == "dverk"
+                    and self.is_initialize_integrator == "rkf78"
                 ):
                     (
                         self.power,
@@ -259,11 +258,12 @@ class Simulator:
                         self.coeff,
                         self.weights,
                         self.weights_test,
-                    ) = butcher_tableaus_rk(order=65)
+                    ) = butcher_tableaus_rk(order=78)
+                    self.is_initialize = False
                     self.a = acceleration(self.stats.objects_count, self.x, self.m)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
-                        6,
+                        7,
                         self.x,
                         self.v,
                         self.a,
@@ -331,8 +331,8 @@ class Simulator:
         self.is_leapfrog = False
         self.is_rkf45 = False
         self.is_dopri = False
+        self.is_dverk = False        
         self.is_rkf78 = False
-        self.is_dverk = False
 
     def check_current_integrator(self):
         if self.is_euler == True:
@@ -347,10 +347,11 @@ class Simulator:
             self.current_integrator = "rkf45"
         elif self.is_dopri == True:
             self.current_integrator = "dopri"
-        elif self.is_rkf78 == True:
-            self.current_integrator = "rkf78"
         elif self.is_dverk == True:
             self.current_integrator = "dverk"
+        elif self.is_rkf78 == True:
+            self.current_integrator = "rkf78"
+
 
 
 # Note: jit cannot works on functions inside a class
