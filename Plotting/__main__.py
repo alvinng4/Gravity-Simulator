@@ -66,7 +66,7 @@ class Plotter:
         try:
             while True:
                 while True:
-                    print("\nN-Body gravity simulator")
+                    print("\nGravity simulator")
                     print("Exit the program anytime by hitting Ctrl + C")
                     self._read_user_input()
                     self._print_user_input()

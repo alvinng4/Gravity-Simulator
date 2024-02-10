@@ -1,6 +1,8 @@
 # N-body-gravity-simulator
 Welcome to my Python project: N-body gravity simulator. This project is currently under development.
 
+![Screenshot](plotting/examples/solar_system.png)
+
 ## Progress
 * Fixed step-size and variable step-size methods for N-body are implemented.
 * 4 modes are available: Void, Solar System, Figure-8 Orbit and Pythagorean Three-Body Orbit.
@@ -18,6 +20,7 @@ Install the required packages by
 ```
 pip install -r requirements.txt
 ```
+
 ### Running the program
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run the following commands.
 
@@ -53,4 +56,3 @@ python3 gravity_sim -r <width> <height>
 
 ## Bibliography
 1. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
-2. Matthes, Eric. *Python Crash Course, 3rd Edition: A Hands-On, Project-Based Introduction to Programming*, No Starch Press, 2023
