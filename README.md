@@ -1,5 +1,5 @@
-# N-body-gravity-simulator
-Welcome to my Python project: N-body gravity simulator. This project is currently under development.
+# Graavity Simulator
+Welcome to my computational physics project: gravity simulator. This project is currently under development.
 
 ![Screenshot](plotting/examples/solar_system.png)
 
@@ -14,7 +14,7 @@ This program requires Python version 3.11.
 ### Installation
 Download the source file, or clone this repository by running the following command in terminal:
 ```
-git clone https://github.com/alvinng4/N-body-gravity-simulator
+git clone https://github.com/alvinng4/Gravity-Simulator
 ```
 Install the required packages by
 ```
@@ -32,7 +32,9 @@ Interactive simulator module:
 ```
 python gravity_sim
 ```
-## Control
+
+## Interactive module
+### Control
 Move camera: `W` `A` `S` `D`\
 Menu: `Esc`\
 Pause: `P`\
@@ -45,7 +47,7 @@ Adjust parameter values: Left-click on the parameters panel to select a paramete
 Switch integrators: Left-click the integrator on the integrators panel.
 
 Warning: switching integrators in the middle of simulation may produce numerical error.
-## Changing the resolution
+### Changing the resolution
 The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
 ```
 python3 gravity_sim -r <width> <height>
