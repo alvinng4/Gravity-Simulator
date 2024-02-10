@@ -1,9 +1,11 @@
 from os import environ
+
 # Remove the "Hello from the pygame community." message when starting the program.
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import math
 from pathlib import Path
 import sys
+
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/gravity_sim")
@@ -39,20 +41,40 @@ class Plotter:
             "solar_system",
             "solar_system_plus",
         ]
+        self.solar_like_systems = [
+            "sun_earth_moon",
+            "solar_system",
+            "solar_system_plus",
+        ]
+        self.solar_like_systems_colors = {
+            "Sun": "orange",
+            "Mercury": "slategrey",
+            "Venus": "wheat",
+            "Earth": "skyblue",
+            "Mars": "red",
+            "Jupiter": None,
+            "Saturn": None,
+            "Uranus": "paleturquoise",
+            "Neptune": "blue",
+            "Moon": "grey",
+            "Pluto": None,
+            "Ceres": None,
+            "Vesta": None,
+        }
 
     def run_prog(self):
         try:
             while True:
                 while True:
-                    print("N-Body gravity simulator")
+                    print("\nN-Body gravity simulator")
                     print("Exit the program anytime by hitting Ctrl + C")
                     self._read_user_input()
                     self._print_user_input()
                     if self._ask_user_permission("Proceed?"):
-                        break 
+                        break
 
-                self._initialize_system()   
-                print("")             
+                self._initialize_system()
+                print("")
                 print("Simulating the system...")
                 self._simulation()
                 print("")
@@ -66,7 +88,9 @@ class Plotter:
                 self._plot_rel_energy()
                 self._plot_tot_energy()
 
-                if not self._ask_user_permission("All plotting is done. Restart simulation?"):
+                if not self._ask_user_permission(
+                    "All plotting is done. Restart simulation?"
+                ):
                     print("Exiting the program...")
                     break
 
@@ -81,7 +105,11 @@ class Plotter:
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
             self.system = input("Enter system (Number or name): ")
-            if matches := re.search(r"^\s*([1-9]|circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)\s*$", self.system, re.IGNORECASE):
+            if matches := re.search(
+                r"^\s*([1-9]|circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)\s*$",
+                self.system,
+                re.IGNORECASE,
+            ):
                 if matches.group(1):
                     try:
                         int(matches.group(1))
@@ -90,8 +118,12 @@ class Plotter:
                             self.system = matches.group(1).lower()
                             break
                     else:
-                        if (int(matches.group(1)) - 1) in range(len(self.available_systems)):
-                            self.system = self.available_systems[int(matches.group(1)) - 1]
+                        if (int(matches.group(1)) - 1) in range(
+                            len(self.available_systems)
+                        ):
+                            self.system = self.available_systems[
+                                int(matches.group(1)) - 1
+                            ]
                             break
 
             print("Invalid input. Please try again.")
@@ -101,10 +133,12 @@ class Plotter:
             print("Available integrators: ")
             for i, integrator in enumerate(self.available_integrators):
                 print(f"{i + 1}. {integrator}")
-            self.integrator = (
-                input("Enter integrator (Number or name): ")
-            )
-            if matches := re.search(r"^\s*([1-9]|euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)\s*$", self.integrator, re.IGNORECASE):
+            self.integrator = input("Enter integrator (Number or name): ")
+            if matches := re.search(
+                r"^\s*([1-9]|euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)\s*$",
+                self.integrator,
+                re.IGNORECASE,
+            ):
                 if matches.group(1):
                     try:
                         int(matches.group(1))
@@ -113,8 +147,12 @@ class Plotter:
                             self.integrator = matches.group(1).lower()
                             break
                     else:
-                        if (int(matches.group(1)) - 1) in range(len(self.available_integrators)):
-                            self.integrator = self.available_integrators[int(matches.group(1)) - 1]
+                        if (int(matches.group(1)) - 1) in range(
+                            len(self.available_integrators)
+                        ):
+                            self.integrator = self.available_integrators[
+                                int(matches.group(1)) - 1
+                            ]
                             break
 
             print("Invalid input. Please try again.")
@@ -122,7 +160,9 @@ class Plotter:
         while True:
             print("")
             self.tf = input("Enter tf (d/yr): ")
-            if matches := re.search(r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.tf, re.IGNORECASE):
+            if matches := re.search(
+                r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.tf, re.IGNORECASE
+            ):
                 if matches.group(1):
                     self.tf = float(matches.group(1))
                 else:
@@ -141,7 +181,11 @@ class Plotter:
             while True:
                 print("")
                 self.dt = input("Enter dt (d/yr): ")
-                if matches := re.search(r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.dt, re.IGNORECASE):
+                if matches := re.search(
+                    r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?",
+                    self.dt,
+                    re.IGNORECASE,
+                ):
                     if matches.group(1):
                         self.dt = float(matches.group(1))
                     else:
@@ -186,12 +230,14 @@ class Plotter:
     @staticmethod
     def _ask_user_permission(msg):
         while True:
-            if matches := re.search(r"^\s*(yes|no|y|n)$", input(f"{msg} (Y/N): "), re.IGNORECASE):
+            if matches := re.search(
+                r"^\s*(yes|no|y|n)$", input(f"{msg} (Y/N): "), re.IGNORECASE
+            ):
                 if matches.group(1).lower() in ["y", "yes"]:
                     return True
                 elif matches.group(1).lower() in ["n", "no"]:
                     return False
-                
+
             print("Invalid input. Please try again.")
 
     def _initialize_system(self):
@@ -265,6 +311,7 @@ class Plotter:
                 self.v = np.array([V1, V2, V3])
 
                 self.objects_count = 3
+                self.objs_name = ["Sun", "Earth", "Moon"]
 
             case "figure-8":
                 R1 = np.array([0.970043, -0.24308753, 0.0])
@@ -325,6 +372,17 @@ class Plotter:
                     Grav_obj.SOLAR_SYSTEM_MASSES["Neptune"],
                 ]
                 self.objects_count = 9
+                self.objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                ]
 
             case "solar_system_plus":
                 R1 = Grav_obj.SOLAR_SYSTEM_POS["Sun"]
@@ -370,6 +428,20 @@ class Plotter:
                     Grav_obj.SOLAR_SYSTEM_MASSES["Vesta"],
                 ]
                 self.objects_count = 12
+                self.objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                    "Pluto",
+                    "Ceres",
+                    "Vesta",
+                ]
 
         # Prevent the error message from numba package:
         # "Encountered the use of a type that is scheduled for deprecation: type 'reflected list' found for argument 'm' of function '...'."
@@ -465,7 +537,7 @@ class Plotter:
                     self.tolerance,
                     self.tolerance,
                 )
-                self.sol_state, self.sol_time = self._plotting_rk_embedded(
+                self.sol_state, self.sol_time = self._rk_embedded(
                     self.objects_count,
                     self.x,
                     self.v,
@@ -486,17 +558,42 @@ class Plotter:
     def _plot_trajectory(self):
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(111, aspect="equal")
-        # Plot trajectory and initial positions with the same color:
-        for i in range(self.objects_count):
-            traj = ax1.plot(self.sol_state[:, i * 3], self.sol_state[:, 1 + i * 3])
-            ax1.plot(
-                self.sol_state[-1, i * 3],
-                self.sol_state[-1, 1 + i * 3],
-                "o",
-                color=traj[0].get_color(),
-            )
-        ax1.set_xlabel("X")
-        ax1.set_ylabel("Y")
+        if self.system in self.solar_like_systems:
+            # Plot trajectory and initial positions with the same color:
+            for i in range(self.objects_count):
+                traj = ax1.plot(
+                    self.sol_state[:, i * 3],
+                    self.sol_state[:, 1 + i * 3],
+                    color=self.solar_like_systems_colors[self.objs_name[i]],
+                )
+                # Check if the system have names for individual objects
+                ax1.plot(
+                    self.sol_state[-1, i * 3],
+                    self.sol_state[-1, 1 + i * 3],
+                    "o",
+                    color=traj[0].get_color(),
+                    label=self.objs_name[i],
+                )
+        else:
+            # Plot trajectory and initial positions with the same color:
+            for i in range(self.objects_count):
+                traj = ax1.plot(self.sol_state[:, i * 3], self.sol_state[:, 1 + i * 3])
+                # Check if the system have names for individual objects
+                ax1.plot(
+                    self.sol_state[-1, i * 3],
+                    self.sol_state[-1, 1 + i * 3],
+                    "o",
+                    color=traj[0].get_color(),
+                )
+
+        ax1.set_xlabel("X (AU)")
+        ax1.set_ylabel("Y (AU)")
+
+        if self.system in self.solar_like_systems:
+            fig1.legend(loc=7)
+            fig1.tight_layout()
+            fig1.subplots_adjust(right=0.8)
+
         plt.show()
 
     def _plot_rel_energy(self):
@@ -556,7 +653,6 @@ class Plotter:
                 self._progress_bar(self.progress_percentage)
         stop = timeit.default_timer()
         print(f"Run time:{(stop - start):.3f} s")
-        
 
     @staticmethod
     def _progress_bar(percentage):
@@ -569,7 +665,7 @@ class Plotter:
             print(f"\r|{bar}| 100% Completed ")
 
     @staticmethod
-    def _plotting_rk_embedded(
+    def _rk_embedded(
         objects_count: int,
         x,
         v,
