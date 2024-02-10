@@ -29,8 +29,8 @@ class Plotter:
             "leapfrog",
             "rkf45",
             "dopri",
+            "dverk",            
             "rkf78",
-            "dverk",
         ]
         self.available_systems = [
             "circular_binary_orbit",
@@ -108,8 +108,12 @@ class Plotter:
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
             self.system = input("Enter system (Number or name): ")
+            # Temporary string
+            temp_str = ""
+            for i in range(len(self.available_systems)):
+                temp_str += "|" + self.available_systems[i]
             if matches := re.search(
-                r"^\s*([1-9]|circular_binary_orbit|3d_helix|sun_earth_moon|figure-8|pyth-3-body|solar_system_plus|solar_system)\s*$",
+                fr"^\s*([1-9]|{temp_str})\s*$",
                 self.system,
                 re.IGNORECASE,
             ):
@@ -129,7 +133,7 @@ class Plotter:
                             ]
                             break
 
-            print("Invalid input. Please try again.\n")
+            print("\nInvalid input. Please try again.\n")
 
         print("")
         if self._ask_user_permission("Do you want to use the recommended settings for this system?"):
@@ -146,8 +150,12 @@ class Plotter:
                 for i, integrator in enumerate(self.available_integrators):
                     print(f"{i + 1}. {integrator}")
                 self.integrator = input("Enter integrator (Number or name): ")
+                # Temporary string
+                temp_str = ""
+                for i in range(len(self.available_integrators)):
+                    temp_str += "|" + self.available_integrators[i]
                 if matches := re.search(
-                    r"^\s*([1-9]|euler_cromer|euler|rk4|leapfrog|rkf45|dopri|rkf78|dverk)\s*$",
+                    fr"^\s*([1-9]{temp_str})\s*$",
                     self.integrator,
                     re.IGNORECASE,
                 ):
@@ -167,7 +175,7 @@ class Plotter:
                                 ]
                                 break
 
-                print("Invalid input. Please try again.\n")
+                print("\nInvalid input. Please try again.\n")
 
             while True:
                 print("")
@@ -194,14 +202,14 @@ class Plotter:
                     print("")
                     self.dt = input("Enter dt (d/yr): ")
                     if matches := re.search(
-                        r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?",
+                        r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?\s*",
                         self.dt,
                         re.IGNORECASE,
                     ):
                         if matches.group(1):
                             self.dt = float(matches.group(1))
                         else:
-                            print("Invalid input. Please try again.")
+                            print("\nInvalid input. Please try again.")
                             continue
 
                         if matches.group(2) not in ["year", "y"]:
@@ -212,7 +220,7 @@ class Plotter:
                             self.dt *= 365.24
                             break
 
-            elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
+            elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
                 while True:
                     try:
                         print("")
@@ -236,7 +244,7 @@ class Plotter:
                 print(f"dt: {self.dt / 365.24} years")
             else:
                 print(f"dt: {self.dt} days")
-        elif self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
+        elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
             print(f"tolerance: {self.tolerance}")
         print("")
 
@@ -255,16 +263,16 @@ class Plotter:
 
     def _initialize_system(self):
         self.t0 = 0.0
-        if self.integrator in ["rkf45", "dopri", "rkf78", "dverk"]:
+        if self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
             match self.integrator:
                 case "rkf45":
                     self.order = 45
                 case "dopri":
                     self.order = 54
-                case "rkf78":
-                    self.order = 78
                 case "dverk":
                     self.order = 65
+                case "rkf78":
+                    self.order = 78
 
         match self.system:
             case "circular_binary_orbit":
@@ -532,7 +540,7 @@ class Plotter:
                         self.progress_percentage = int(((count + 1) / self.npts) * 100)
                         self._progress_bar(self.progress_percentage)
 
-            case "rkf45" | "dopri" | "rkf78" | "dverk":
+            case "rkf45" | "dopri" | "dverk" | "rkf78":
                 (
                     self.power,
                     self.power_test,
