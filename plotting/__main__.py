@@ -49,14 +49,15 @@ class Plotter:
             "Ceres": None,
             "Vesta": None,
         }
-        self.recommended_settings_tf = {
-            "circular_binary_orbit": [1, "years"],
-            "3d_helix": [20, "days"],
-            "sun_earth_moon": [1, "years"],
-            "figure-8": [20, "days"],
-            "pyth-3-body": [70, "days"],
-            "solar_system": [200, "years"],
-            "solar_system_plus": [250, "years"],
+        self.recommended_settings = {
+            "template": ["tf", "tf unit", "tolerance"], 
+            "circular_binary_orbit": [1, "years", 1e-6],
+            "3d_helix": [20, "days", 1e-6],
+            "sun_earth_moon": [1, "years", 1e-9],
+            "figure-8": [20, "days", 1e-6],
+            "pyth-3-body": [70, "days", 1e-6],
+            "solar_system": [200, "years", 1e-6],
+            "solar_system_plus": [250, "years", 1e-6],
         }
 
     def run_prog(self):
@@ -128,8 +129,7 @@ class Plotter:
         if self.ask_user_permission("Do you want to use the recommended settings for this system?"):
             print("")
             self.integrator = "rkf78"
-            self.tolerance = 1e-6
-            self.tf, self.unit = self.recommended_settings_tf[self.system]
+            self.tf, self.unit, self.tolerance = self.recommended_settings[self.system]
             if self.unit == "years":
                 self.tf *= 365.24
         else:
@@ -241,7 +241,7 @@ class Plotter:
     def ask_user_permission(msg):
         while True:
             if matches := re.search(
-                r"^\s*(yes|no|y|n)$", input(f"{msg} (y/n): "), re.IGNORECASE
+                r"^\s*(yes|no|y|n)\s*$", input(f"{msg} (y/n): "), re.IGNORECASE
             ):
                 if matches.group(1).lower() in ["y", "yes"]:
                     return True
