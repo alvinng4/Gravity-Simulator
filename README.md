@@ -1,7 +1,7 @@
 # Gravity Simulator
-This is a 3D N-body gravity simulator projected on the xy plane.
-* With the plotting module, you may setup your own system and plot the simulation results.
-* With the interactive module, you may interact with the real-time gravity simulator.
+This is a Newtonian 3D N-body gravity simulator program which project the results on the xy plane.
+* With the plotting module, you may set up your own system and generate a plot easily.
+* The interactive module enables real-time interaction with the gravity simulator.
 
 Available integrators:
 * Euler
@@ -13,7 +13,7 @@ Available integrators:
 * Verner's method (DVERK)
 * Runge–Kutta–Fehlberg 7(8)
 
-![Screenshot](gravity_plot/examples/solar_system.png)
+<img src="gravity_plot/examples/solar_system.png" alt="Image" width="600">
 
 ## Quick Start
 ### Python version
@@ -38,6 +38,8 @@ Note that the default unit is in one solar mass, AU and day.
 
 The system data will be saved once all the required information has been entered.
 If you wish to make any changes, you can access the file at gravity_sim/gravity_plot/customized_systems.csv and edit it accordingly.
+<img src="gravity_plot/examples/pyth-3-body.png" alt="Image" width="400">
+<img src="gravity_plot/examples/solar_system_rel_energy.png" alt="Image" width="400">
 ## Interactive module
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
