@@ -9,8 +9,8 @@ Available integrators:
 * Fourth Order Runge-Kutta
 * Leapfrog
 * Runge–Kutta–Fehlberg 4(5)
-* Dormand–Prince method (DOPRI)
-* Verner's method (DVERK)
+* Dormand–Prince method (DOPRI) 5(4)
+* Verner's method (DVERK) 6(5)
 * Runge–Kutta–Fehlberg 7(8)
 
 <img src="gravity_plot/examples/solar_system.png" alt="Image" width="600">
@@ -37,7 +37,7 @@ If you want to setup your own system, choose the "custom" option.
 Note that the default unit is in one solar mass, AU and day.
 
 The system data will be saved once all the required information has been entered.
-If you wish to make any changes, you can access the file at gravity-simulator/gravity_plot/customized_systems.csv and edit it accordingly.
+If you wish to make any changes, you can access the file at gravity_simulator/gravity_plot/customized_systems.csv and edit it accordingly.
 
 <img src="gravity_plot/examples/pyth-3-body.png" alt="Image" width="400">
 <img src="gravity_plot/examples/solar_system_rel_energy.png" alt="Image" width="400">
