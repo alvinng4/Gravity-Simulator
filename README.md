@@ -37,9 +37,11 @@ If you want to setup your own system, choose the "custom" option.
 Note that the default unit is in one solar mass, AU and day.
 
 The system data will be saved once all the required information has been entered.
-If you wish to make any changes, you can access the file at gravity_sim/gravity_plot/customized_systems.csv and edit it accordingly.
+If you wish to make any changes, you can access the file at gravity-simulator/gravity_plot/customized_systems.csv and edit it accordingly.
+
 <img src="gravity_plot/examples/pyth-3-body.png" alt="Image" width="400">
 <img src="gravity_plot/examples/solar_system_rel_energy.png" alt="Image" width="400">
+
 ## Interactive module
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
