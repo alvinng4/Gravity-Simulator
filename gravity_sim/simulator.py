@@ -4,8 +4,6 @@ import numpy as np
 from grav_obj import Grav_obj
 from settings import Settings
 
-G = Grav_obj.G  # For numba njit
-
 
 class Simulator:
     def __init__(self, grav_sim):
@@ -36,7 +34,7 @@ class Simulator:
                     self.is_initialize = False
 
                 for _ in range(self.settings.time_speed):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.x, self.v = euler(
                         self.x,
                         self.v,
@@ -54,7 +52,7 @@ class Simulator:
                     self.is_initialize = False
 
                 for _ in range(self.settings.time_speed):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.x, self.v = euler_cromer(
                         self.x,
                         self.v,
@@ -78,6 +76,7 @@ class Simulator:
                         self.v,
                         self.m,
                         self.settings.dt,
+                        Grav_obj.G,
                     )
                 self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
@@ -87,7 +86,7 @@ class Simulator:
                     self.is_initialize == True
                     and self.is_initialize_integrator == "leapfrog"
                 ):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.is_initialize = False
 
                 for _ in range(self.settings.time_speed):
@@ -98,6 +97,7 @@ class Simulator:
                         self.a,
                         self.m,
                         self.settings.dt,
+                        Grav_obj.G,
                     )
                 self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
@@ -114,7 +114,7 @@ class Simulator:
                         self.weights,
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=45)
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         4,
@@ -122,6 +122,7 @@ class Simulator:
                         self.v,
                         self.a,
                         self.m,
+                        Grav_obj.G,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
@@ -137,6 +138,7 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    Grav_obj.G,
                     self.settings.expected_time_scale,
                     self.stats.simulation_time,
                     self.rk_dt,
@@ -163,7 +165,7 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=54)
                     self.is_initialize = False
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         5,
@@ -171,6 +173,7 @@ class Simulator:
                         self.v,
                         self.a,
                         self.m,
+                        Grav_obj.G,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
@@ -186,6 +189,7 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    Grav_obj.G,
                     self.settings.expected_time_scale,
                     self.stats.simulation_time,
                     self.rk_dt,
@@ -211,7 +215,7 @@ class Simulator:
                         self.weights,
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=65)
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         6,
@@ -219,6 +223,7 @@ class Simulator:
                         self.v,
                         self.a,
                         self.m,
+                        Grav_obj.G,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
@@ -234,6 +239,7 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    Grav_obj.G,
                     self.settings.expected_time_scale,
                     self.stats.simulation_time,
                     self.rk_dt,
@@ -260,7 +266,7 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=78)
                     self.is_initialize = False
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m)
+                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         7,
@@ -268,6 +274,7 @@ class Simulator:
                         self.v,
                         self.a,
                         self.m,
+                        Grav_obj.G,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
@@ -283,6 +290,7 @@ class Simulator:
                     self.x,
                     self.v,
                     self.m,
+                    Grav_obj.G,
                     self.settings.expected_time_scale,
                     self.stats.simulation_time,
                     self.rk_dt,
@@ -298,7 +306,7 @@ class Simulator:
                 )
 
         self.stats.total_energy = total_energy(
-            self.stats.objects_count, self.x, self.v, self.m
+            self.stats.objects_count, self.x, self.v, self.m, Grav_obj.G
         )
 
     def initialize_problem(self, grav_sim):
@@ -356,7 +364,7 @@ class Simulator:
 
 # Note: jit cannot works on functions inside a class
 @nb.njit
-def acceleration(objects_count, x, m):
+def acceleration(objects_count, x, m, G):
     """
     Calculate acceleration by a = - GM/r^3 vec{r}
     """
@@ -391,17 +399,17 @@ def euler_cromer(x, v, a, dt):
 
 
 @nb.njit
-def rk4(objects_count, x, v, m, dt):
-    vk1 = acceleration(objects_count, x, m)
+def rk4(objects_count, x, v, m, dt, G):
+    vk1 = acceleration(objects_count, x, m, G)
     xk1 = v
 
-    vk2 = acceleration(objects_count, x + 0.5 * xk1 * dt, m)
+    vk2 = acceleration(objects_count, x + 0.5 * xk1 * dt, m, G)
     xk2 = v + 0.5 * vk1 * dt
 
-    vk3 = acceleration(objects_count, x + 0.5 * xk2 * dt, m)
+    vk3 = acceleration(objects_count, x + 0.5 * xk2 * dt, m, G)
     xk3 = v + 0.5 * vk2 * dt
 
-    vk4 = acceleration(objects_count, x + xk3 * dt, m)
+    vk4 = acceleration(objects_count, x + xk3 * dt, m, G)
     xk4 = v + vk3 * dt
 
     v = v + dt * (vk1 + 2 * vk2 + 2 * vk3 + vk4) / 6.0
@@ -411,10 +419,10 @@ def rk4(objects_count, x, v, m, dt):
 
 
 @nb.njit
-def leapfrog(objects_count, x, v, a, m, dt):
+def leapfrog(objects_count, x, v, a, m, dt, G):
     a_0 = a
     x = x + v * dt + a_0 * 0.5 * dt * dt
-    a_1 = acceleration(objects_count, x, m)
+    a_1 = acceleration(objects_count, x, m, G)
     v = v + (a_0 + a_1) * 0.5 * dt
 
     return x, v, a_1
@@ -428,6 +436,7 @@ def _initial_time_step_rk_embedded(
     v,
     a,
     m,
+    G,
     abs_tolerance: float,
     rel_tolerance: float,
 ) -> float:
@@ -454,7 +463,7 @@ def _initial_time_step_rk_embedded(
 
     x_1 = x + (dt_0 / 100) * v
     v_1 = v + (dt_0 / 100) * a
-    a_1 = acceleration(objects_count, x_1, m)
+    a_1 = acceleration(objects_count, x_1, m, G)
 
     # Calculate d_2 to measure how much the derivatives have changed.
     sum_2 = np.sum(np.square((v_1 - v) / tolerance_scale_x)) + np.sum(
@@ -477,6 +486,7 @@ def rk_embedded(
     x,
     v,
     m,
+    G,
     expected_time_scale: float,
     simulation_time,
     actual_dt,
@@ -507,7 +517,7 @@ def rk_embedded(
 
     for i in range(max_iteration):
         # Calculate xk and vk
-        vk[0] = acceleration(objects_count, x, m)
+        vk[0] = acceleration(objects_count, x, m, G)
         xk[0] = np.copy(v)
         for stage in range(1, stages):
             temp_v = np.zeros((objects_count, 3))
@@ -515,7 +525,7 @@ def rk_embedded(
             for j in range(stage):
                 temp_v += coeff[stage - 1][j] * vk[j]
                 temp_x += coeff[stage - 1][j] * xk[j]
-            vk[stage] = acceleration(objects_count, x + actual_dt * temp_x, m)
+            vk[stage] = acceleration(objects_count, x + actual_dt * temp_x, m, G)
             xk[stage] = v + actual_dt * temp_v
 
         # Calculate x_1, v_1 and also delta x, delta v for error estimation
@@ -575,7 +585,7 @@ def rk_embedded(
 
 
 @nb.njit
-def total_energy(objects_count, x, v, m):
+def total_energy(objects_count, x, v, m, G):
     E = 0
     for j in range(0, objects_count):
         E += 0.5 * m[j] * np.linalg.norm(v[j]) ** 2
