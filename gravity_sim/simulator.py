@@ -34,7 +34,9 @@ class Simulator:
                     self.is_initialize = False
 
                 for _ in range(self.settings.time_speed):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.x, self.v = euler(
                         self.x,
                         self.v,
@@ -52,7 +54,9 @@ class Simulator:
                     self.is_initialize = False
 
                 for _ in range(self.settings.time_speed):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.x, self.v = euler_cromer(
                         self.x,
                         self.v,
@@ -86,7 +90,9 @@ class Simulator:
                     self.is_initialize == True
                     and self.is_initialize_integrator == "leapfrog"
                 ):
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.is_initialize = False
 
                 for _ in range(self.settings.time_speed):
@@ -114,7 +120,9 @@ class Simulator:
                         self.weights,
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=45)
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         4,
@@ -165,7 +173,9 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=54)
                     self.is_initialize = False
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         5,
@@ -215,7 +225,9 @@ class Simulator:
                         self.weights,
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=65)
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         6,
@@ -266,7 +278,9 @@ class Simulator:
                         self.weights_test,
                     ) = butcher_tableaus_rk(order=78)
                     self.is_initialize = False
-                    self.a = acceleration(self.stats.objects_count, self.x, self.m, Grav_obj.G)
+                    self.a = acceleration(
+                        self.stats.objects_count, self.x, self.m, Grav_obj.G
+                    )
                     self.rk_dt = _initial_time_step_rk_embedded(
                         self.stats.objects_count,
                         7,
@@ -339,7 +353,7 @@ class Simulator:
         self.is_leapfrog = False
         self.is_rkf45 = False
         self.is_dopri = False
-        self.is_dverk = False        
+        self.is_dverk = False
         self.is_rkf78 = False
 
     def check_current_integrator(self):
@@ -359,7 +373,6 @@ class Simulator:
             self.current_integrator = "dverk"
         elif self.is_rkf78 == True:
             self.current_integrator = "rkf78"
-
 
 
 # Note: jit cannot works on functions inside a class

@@ -123,7 +123,7 @@ class Stats:
         self.adaptive_step_size_board.draw()
         self.rkf45_board.draw()
         self.dopri_board.draw()
-        self.dverk_board.draw()        
+        self.dverk_board.draw()
         self.rkf78_board.draw()
 
         # Visual indicator for currently changing parameter
@@ -236,7 +236,7 @@ class Stats:
                     "green",
                     (290, self.dverk_board.rect.centery + 5),
                     4,
-                )                
+                )
             case "rkf78":
                 pygame.draw.circle(
                     grav_sim.screen,
@@ -311,7 +311,7 @@ class Stats:
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_dverk = True
                 grav_sim.simulator.is_initialize = True
-                grav_sim.simulator.is_initialize_integrator = "dverk"                
+                grav_sim.simulator.is_initialize_integrator = "dverk"
             if self.rkf78_board.rect.collidepoint(mouse_pos):
                 grav_sim.simulator.set_all_integrators_false()
                 grav_sim.simulator.is_rkf78 = True
@@ -329,7 +329,7 @@ class Stats:
         self.adaptive_step_size_board.print_msg("(Adaptive Step Size)")
         self.rkf45_board.print_msg("Runge-Kutta-Fehleberg 4(5)")
         self.dopri_board.print_msg("Dormand-Prince 5(4)")
-        self.dverk_board.print_msg("Verner's method 6(5) DVERK")        
+        self.dverk_board.print_msg("Verner's method 6(5) DVERK")
         self.rkf78_board.print_msg("Runge-Kutta-Fehlberg 7(8)")
 
     @classmethod
@@ -543,7 +543,7 @@ class Stats:
             size_y=self.STATSBOARD_SIZE_Y,
             font="Manrope",
             text_box_left_top=(10, 621),
-        )        
+        )
         self.rkf78_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
