@@ -86,7 +86,7 @@ class Plotter:
                 self._plot_trajectory()
                 self.simulator.compute_energy()
                 self._plot_rel_energy()
-                self._plot_tot_energy()
+                # self._plot_tot_energy()
 
                 if not self.ask_user_permission(
                     "All plotting is done. Restart simulation?"

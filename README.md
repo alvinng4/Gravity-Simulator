@@ -1,11 +1,19 @@
-# Graavity Simulator
-Welcome to my computational physics project: gravity simulator. This project is currently under development.
+# Gravity Simulator
+This is a 3D N-body gravity simulator projected on the xy plane.
+* With the plotting module, you may setup your own system and plot the simulation results.
+* With the interactive module, you may interact with the real-time gravity simulator.
 
-![Screenshot](plotting/examples/solar_system.png)
+Available integrators:
+* Euler
+* Euler_cromer
+* Fourth Order Runge-Kutta
+* Leapfrog
+* Runge–Kutta–Fehlberg 4(5)
+* Dormand–Prince method (DOPRI)
+* Verner's method (DVERK)
+* Runge–Kutta–Fehlberg 7(8)
 
-## Progress
-* Fixed step-size and variable step-size methods for N-body are implemented.
-* 4 modes are available: Void, Solar System, Figure-8 Orbit and Pythagorean Three-Body Orbit.
+![Screenshot](gravity_plot/examples/solar_system.png)
 
 ## Quick Start
 ### Python version
@@ -20,20 +28,17 @@ Install the required packages by
 ```
 pip install -r requirements.txt
 ```
-
-### Running the program
-Once you have downloaded the source files, navigate to the directory of the source files in terminal and run the following commands.
-
-Plotting module:
+## Plotting module
+Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
-python plotting
+python gravity_plot
 ```
-Interactive simulator module:
+Note: the default unit is in one solar mass, AU and day.
+## Interactive module
+Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
 python gravity_sim
 ```
-
-## Interactive module
 ### Control
 Move camera: `W` `A` `S` `D`\
 Menu: `Esc`\
