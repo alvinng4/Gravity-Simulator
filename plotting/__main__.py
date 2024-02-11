@@ -10,6 +10,16 @@ class Plotter:
     def __init__(self):
         self.tolerance = None 
         self.dt = None
+        self.available_systems = [
+            "circular_binary_orbit",
+            "eccentric_binary_orbit",
+            "3d_helix",
+            "sun_earth_moon",
+            "figure-8",
+            "pyth-3-body",
+            "solar_system",
+            "solar_system_plus",
+        ]        
         self.available_integrators = [
             "euler",
             "euler_cromer",
@@ -19,15 +29,6 @@ class Plotter:
             "dopri",
             "dverk",            
             "rkf78",
-        ]
-        self.available_systems = [
-            "circular_binary_orbit",
-            "3d_helix",
-            "sun_earth_moon",
-            "figure-8",
-            "pyth-3-body",
-            "solar_system",
-            "solar_system_plus",
         ]
         self.solar_like_systems = [
             "sun_earth_moon",
@@ -51,7 +52,8 @@ class Plotter:
         }
         self.recommended_settings = {
             "template": ["tf", "tf unit", "tolerance"], 
-            "circular_binary_orbit": [1, "years", 1e-6],
+            "circular_binary_orbit": [50, "days", 1e-6],
+            "eccentric_binary_orbit": [2.6, "years", 1e-6],
             "3d_helix": [20, "days", 1e-6],
             "sun_earth_moon": [1, "years", 1e-9],
             "figure-8": [20, "days", 1e-6],

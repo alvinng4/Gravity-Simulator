@@ -184,6 +184,16 @@ class Simulator:
                 self.m = [1.0 / self.G, 1.0 / self.G]
                 self.objects_count = 2
 
+            case "eccentric_binary_orbit":
+                R1 = np.array([1.0, 0.0, 0.0])
+                R2 = np.array([-1.25, 0.0, 0.0])
+                V1 = np.array([0.0, 0.5, 0.0])
+                V2 = np.array([0.0, -0.625, 0.0])
+                self.x = np.array([R1, R2])
+                self.v = np.array([V1, V2])
+                self.m = [1.0 / self.G, 0.8 / self.G]
+                self.objects_count = 2
+
             case "3d_helix":
                 R1 = np.array([0.0, 0.0, -1.0])
                 R2 = np.array([-math.sqrt(3.0) / 2.0, 0.0, 0.5])
