@@ -33,7 +33,11 @@ Once you have downloaded the source files, navigate to the directory of the sour
 ```
 python gravity_plot
 ```
-Note: the default unit is in one solar mass, AU and day.
+If you want to setup your own system, choose the "custom" option.
+Note that the default unit is in one solar mass, AU and day.
+
+The system data will be saved once all the required information has been entered.
+If you wish to make any changes, you can access the file at gravity_sim/gravity_plot/customized_systems.csv and edit it accordingly.
 ## Interactive module
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
