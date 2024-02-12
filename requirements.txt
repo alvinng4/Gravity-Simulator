@@ -3,13 +3,17 @@ cycler==0.12.1
 fonttools==4.48.1
 kiwisolver==1.4.5
 llvmlite==0.41.1
+markdown-it-py==3.0.0
 matplotlib==3.8.2
+mdurl==0.1.2
 numba==0.58.1
 numpy==1.26.3
 packaging==23.2
 pillow==10.2.0
 pygame==2.5.2
+Pygments==2.17.2
 pyparsing==3.1.1
 python-dateutil==2.8.2
+rich==13.7.0
 scipy==1.12.0
 six==1.16.0
