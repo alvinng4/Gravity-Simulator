@@ -13,7 +13,7 @@ Available integrators:
 * Verner's method (DVERK) 6(5)
 * Runge–Kutta–Fehlberg 7(8)
 
-<img src="gravity_plot/examples/solar_system.png" alt="Image" width="600">
+<img src="gravity_plot/examples/solar_system.svg" alt="Image" width="600">
 
 ## Quick Start
 ### Python version
@@ -39,8 +39,8 @@ Note that the default unit is in one solar mass, AU and day.
 The system data will be saved once all the required information has been entered.
 If you wish to make any changes, you can access the file at gravity_simulator/gravity_plot/customized_systems.csv and edit it accordingly.
 
-<img src="gravity_plot/examples/pyth-3-body.png" alt="Image" width="400">
-<img src="gravity_plot/examples/solar_system_rel_energy.png" alt="Image" width="400">
+<img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
+<img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
 
 ## Interactive module
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
