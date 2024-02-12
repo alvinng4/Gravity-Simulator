@@ -1,7 +1,9 @@
 import csv
 import math
 from pathlib import Path
+import rich.progress
 import timeit
+
 
 import numba as nb  # Note: nb.njit cannot works on functions inside a class
 import numpy as np
@@ -158,7 +160,6 @@ class Simulator:
         self.tf = plotter.tf
         self.tolerance = plotter.tolerance
         self.dt = plotter.dt
-        self.progress_bar = plotter.progress_bar
         self.G = self.CONSTANT_G
 
     def initialize_system(self, plotter):
@@ -449,112 +450,113 @@ class Simulator:
             self.sol_time = np.linspace(
                 self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
             )
-            self.progress_percentage = 0
 
-        match self.integrator:
-            case "euler":
-                for count in range(self.npts):
+        progress_bar = rich.progress.Progress(
+        rich.progress.BarColumn(),
+        rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+        rich.progress.TextColumn("•"),
+        rich.progress.TimeElapsedColumn(),
+        rich.progress.TextColumn("•"),
+        rich.progress.TimeRemainingColumn(),
+        )
+
+        with progress_bar as pb:
+            match self.integrator:
+                case "euler":
+                    for count in pb.track(range(self.npts)):
+                        self.a = acceleration(self.objects_count, self.x, self.m, self.G)
+                        self.x, self.v = euler(self.x, self.v, self.a, self.dt)
+                        self.sol_state[count] = np.concatenate(
+                            (
+                                np.reshape(self.x, self.objects_count * 3),
+                                np.reshape(self.v, self.objects_count * 3),
+                            )
+                        )
+                case "euler_cromer":
+                    for count in pb.track(range(self.npts)):
+                        self.a = acceleration(self.objects_count, self.x, self.m, self.G)
+                        self.x, self.v = euler_cromer(self.x, self.v, self.a, self.dt)
+                        self.sol_state[count] = np.concatenate(
+                            (
+                                np.reshape(self.x, self.objects_count * 3),
+                                np.reshape(self.v, self.objects_count * 3),
+                            )
+                        )
+
+                case "rk4":
+                    for count in pb.track(range(self.npts)):
+                        self.x, self.v = rk4(
+                            self.objects_count,
+                            self.x,
+                            self.v,
+                            self.m,
+                            self.G,
+                            self.dt,
+                        )
+                        self.sol_state[count] = np.concatenate(
+                            (
+                                np.reshape(self.x, self.objects_count * 3),
+                                np.reshape(self.v, self.objects_count * 3),
+                            )
+                        )
+
+                case "leapfrog":
                     self.a = acceleration(self.objects_count, self.x, self.m, self.G)
-                    self.x, self.v = euler(self.x, self.v, self.a, self.dt)
-                    self.sol_state[count] = np.concatenate(
-                        (
-                            np.reshape(self.x, self.objects_count * 3),
-                            np.reshape(self.v, self.objects_count * 3),
+                    for count in pb.track(range(self.npts)):
+                        self.x, self.v, self.a = leapfrog(
+                            self.objects_count,
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.m,
+                            self.G,
+                            self.dt,
                         )
-                    )
-                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
-                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
-                        self.progress_bar(self.progress_percentage)
-            case "euler_cromer":
-                for count in range(self.npts):
+                        self.sol_state[count] = np.concatenate(
+                            (
+                                np.reshape(self.x, self.objects_count * 3),
+                                np.reshape(self.v, self.objects_count * 3),
+                            )
+                        )
+
+                case "rkf45" | "dopri" | "dverk" | "rkf78":
+                    (
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                    ) = butcher_tableaus_rk(self.order)
                     self.a = acceleration(self.objects_count, self.x, self.m, self.G)
-                    self.x, self.v = euler_cromer(self.x, self.v, self.a, self.dt)
-                    self.sol_state[count] = np.concatenate(
-                        (
-                            np.reshape(self.x, self.objects_count * 3),
-                            np.reshape(self.v, self.objects_count * 3),
-                        )
-                    )
-                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
-                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
-                        self.progress_bar(self.progress_percentage)
-            case "rk4":
-                for count in range(self.npts):
-                    self.x, self.v = rk4(
+                    self.initial_dt = initial_time_step_rk_embedded(
                         self.objects_count,
-                        self.x,
-                        self.v,
-                        self.m,
-                        self.G,
-                        self.dt,
-                    )
-                    self.sol_state[count] = np.concatenate(
-                        (
-                            np.reshape(self.x, self.objects_count * 3),
-                            np.reshape(self.v, self.objects_count * 3),
-                        )
-                    )
-                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
-                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
-                        self.progress_bar(self.progress_percentage)
-            case "leapfrog":
-                self.a = acceleration(self.objects_count, self.x, self.m, self.G)
-                for count in range(self.npts):
-                    self.x, self.v, self.a = leapfrog(
-                        self.objects_count,
+                        self.power,
                         self.x,
                         self.v,
                         self.a,
                         self.m,
                         self.G,
-                        self.dt,
+                        self.tolerance,
+                        self.tolerance,
                     )
-                    self.sol_state[count] = np.concatenate(
-                        (
-                            np.reshape(self.x, self.objects_count * 3),
-                            np.reshape(self.v, self.objects_count * 3),
-                        )
+                    self.sol_state, self.sol_time = self.rk_embedded(
+                        pb,
+                        self.objects_count,
+                        self.x,
+                        self.v,
+                        self.m,
+                        self.G,
+                        self.tf,
+                        self.initial_dt,
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                        self.tolerance,
+                        self.tolerance,
                     )
-                    if ((count + 1) / self.npts) * 100 > self.progress_percentage:
-                        self.progress_percentage = int(((count + 1) / self.npts) * 100)
-                        self.progress_bar(self.progress_percentage)
 
-            case "rkf45" | "dopri" | "dverk" | "rkf78":
-                (
-                    self.power,
-                    self.power_test,
-                    self.coeff,
-                    self.weights,
-                    self.weights_test,
-                ) = butcher_tableaus_rk(self.order)
-                self.a = acceleration(self.objects_count, self.x, self.m, self.G)
-                self.initial_dt = initial_time_step_rk_embedded(
-                    self.objects_count,
-                    self.power,
-                    self.x,
-                    self.v,
-                    self.a,
-                    self.m,
-                    self.G,
-                    self.tolerance,
-                    self.tolerance,
-                )
-                self.sol_state, self.sol_time = self.rk_embedded(
-                    self.objects_count,
-                    self.x,
-                    self.v,
-                    self.m,
-                    self.G,
-                    self.tf,
-                    self.initial_dt,
-                    self.power,
-                    self.power_test,
-                    self.coeff,
-                    self.weights,
-                    self.weights_test,
-                    self.tolerance,
-                    self.tolerance,
-                )
         stop = timeit.default_timer()
         print(f"Run time: {stop - start:.3f} s")
         print("")
@@ -565,44 +567,52 @@ class Simulator:
         self.progress_percentage = 0
         self.npts = len(self.sol_state)
 
-        start = timeit.default_timer()
-        for count in range(self.npts):
-            x = self.sol_state[count]
-            for i in range(self.objects_count):
-                # KE
-                self.energy[count] += (
-                    0.5
-                    * self.m[i]
-                    * np.linalg.norm(
-                        x[
-                            (self.objects_count + i)
-                            * 3 : (self.objects_count + 1 + i)
-                            * 3
-                        ]
-                    )
-                    ** 2
-                )
-                # PE
-                for j in range(self.objects_count):
-                    if i < j:
-                        self.energy[count] -= (
-                            self.G
-                            * self.m[i]
-                            * self.m[j]
-                            / np.linalg.norm(
-                                x[i * 3 : (i + 1) * 3] - x[j * 3 : (j + 1) * 3]
-                            )
-                        )
+        progress_bar = rich.progress.Progress(
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
+        )
 
-            if ((count + 1) / self.npts) * 100 > self.progress_percentage:
-                self.progress_percentage = int(((count + 1) / self.npts) * 100)
-                self.progress_bar(self.progress_percentage)
+        start = timeit.default_timer()
+        with progress_bar as pb:
+            for count in pb.track(range(self.npts), description=""):
+                x = self.sol_state[count]
+                for i in range(self.objects_count):
+                    # KE
+                    self.energy[count] += (
+                        0.5
+                        * self.m[i]
+                        * np.linalg.norm(
+                            x[
+                                (self.objects_count + i)
+                                * 3 : (self.objects_count + 1 + i)
+                                * 3
+                            ]
+                        )
+                        ** 2
+                    )
+                    # PE
+                    for j in range(self.objects_count):
+                        if i < j:
+                            self.energy[count] -= (
+                                self.G
+                                * self.m[i]
+                                * self.m[j]
+                                / np.linalg.norm(
+                                    x[i * 3 : (i + 1) * 3] - x[j * 3 : (j + 1) * 3]
+                                )
+                            )
+
         stop = timeit.default_timer()
         print(f"Run time:{(stop - start):.3f} s")
         print("")
 
     def rk_embedded(
         self,
+        progress_bar,
         objects_count: int,
         x,
         v,
@@ -632,10 +642,6 @@ class Simulator:
         min_power = min([power, power_test])
         error_estimation_delta_weights = weights - weights_test
 
-        # Progress percentage for progress bar
-        # Type: int
-        progress_percentage = 0
-
         # Safety factors for step-size control:
         safety_fac_max = 6.0
         safety_fac_min = 0.33
@@ -658,6 +664,7 @@ class Simulator:
 
         # Launch integration:
         count = 0
+        task = progress_bar.add_task("", total=tf)
         while True:
             # Calculate xk and vk
             vk[0] = acceleration(objects_count, x, m, G)
@@ -715,6 +722,7 @@ class Simulator:
                     (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
                 )
                 sol_time[count] = t
+                progress_bar.update(task, advance=dt)
 
                 # Check buffer size and extend if needed :
                 if (count + 1) == len(sol_state):
@@ -738,12 +746,9 @@ class Simulator:
             if t + dt > tf:
                 dt = tf - t
 
-            if (t / tf * 100) > (progress_percentage + 1):
-                progress_percentage = math.floor(t / tf * 100)
-                self.progress_bar(progress_percentage)
 
             if t >= tf:
-                self.progress_bar(100)
+                progress_bar.stop()
                 return sol_state[0:count], sol_time[0:count]
 
 
