@@ -91,20 +91,25 @@ class Plotter:
 
                 # Plot the result
                 if self.ask_user_permission("Plot trajectory?"):
+                    print("")
                     self._plot_trajectory()
 
                 self.is_compute_energy = False
                 if self.ask_user_permission("Compute energy ?"):
+                    print("")
                     self.is_compute_energy = True
                     self.simulator.compute_energy()
 
                     if self.ask_user_permission("Plot relative energy error?"):
+                        print("")
                         self._plot_rel_energy()
                 # self._plot_tot_energy() # Warnings: The unit is in solar masses, AU and day.
 
                 # Store data
-                if self.ask_user_permission("Store simulation data?"):
-                    self.simulator.store_result(self.is_compute_energy)
+                print(f"Lines of data = {len(self.simulator.sol_time)}")
+                if self.ask_user_permission("Save simulation data?"):
+                    print("")
+                    self.simulator.save_result(self.is_compute_energy)
 
                 # Ask permission to restart the whole program
                 if not self.ask_user_permission(
