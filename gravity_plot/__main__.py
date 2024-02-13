@@ -89,7 +89,7 @@ class Plotter:
                 if self.unit == "years":
                     self.simulator.sol_time /= 365.24
 
-                if len(self.simulator.sol_time) > 1000:
+                if len(self.simulator.sol_time) > 20000:
                     if self.ask_user_permission(f"There are {len(self.simulator.sol_time)} lines of data. Do you want to trim the data?"):
                         self.simulator.trim_data()
 
@@ -99,7 +99,7 @@ class Plotter:
                     self._plot_trajectory()
 
                 self.is_compute_energy = False
-                if self.ask_user_permission("Compute energy ?"):
+                if self.ask_user_permission("Compute energy?"):
                     print("")
                     self.is_compute_energy = True
                     self.simulator.compute_energy()
