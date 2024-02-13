@@ -34,7 +34,7 @@ Once you have downloaded the source files, navigate to the directory of the sour
 python gravity_plot
 ```
 If you want to setup your own system, choose the "custom" option.
-Note that the default unit is in one solar mass, AU and day.
+Note that the default unit is in solar masses, AU and days.
 
 The system data will be saved once all the required information has been entered.
 If you wish to make any changes, you can access the file at 
@@ -43,11 +43,12 @@ gravity_simulator/gravity_plot/customized_systems.csv
 ``` 
 and edit it accordingly. 
 
-After each simulation, the numerical data is automatically stored in 
+After each simulation, the program would ask your permission to store the data.
+If you choose to do so, the numerical data will be stored in the following folder:
 ```
 gravity_simulator/gravity_plot/results
 ```
-Note that the data is in the unit AU, day and in the following format:
+The data will be in the unit of AU, days, and follow this format:
 ```
 time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
 ```
