@@ -37,7 +37,20 @@ If you want to setup your own system, choose the "custom" option.
 Note that the default unit is in one solar mass, AU and day.
 
 The system data will be saved once all the required information has been entered.
-If you wish to make any changes, you can access the file at gravity_simulator/gravity_plot/customized_systems.csv and edit it accordingly.
+If you wish to make any changes, you can access the file at 
+```
+gravity_simulator/gravity_plot/customized_systems.csv
+``` 
+and edit it accordingly.
+
+The simulation data is stored in 
+```
+gravity_simulator/gravity_plot/results
+```
+automatically. Note that it is in the format
+```
+time(day), x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+```
 
 <img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
 <img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
