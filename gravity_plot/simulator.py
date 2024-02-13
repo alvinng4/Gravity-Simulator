@@ -685,10 +685,12 @@ class Simulator:
             with open(file_path, "w") as file:
                 writer = csv.writer(file)
                 for count in pb.track(range(len(self.sol_time))):
+                    row = np.insert(
+                            self.sol_state[count], 0, self.energy[count]
+                        )
+                    row = np.insert(row, 0, self.sol_time[count])
                     writer.writerow(
-                        np.insert(
-                            self.sol_state[count], 0, self.sol_time[count]
-                        ).tolist()
+                        row.tolist()
                     )
 
         print(f"Storing completed. Please check {file_path}")
