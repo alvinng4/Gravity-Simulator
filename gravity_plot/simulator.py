@@ -193,8 +193,8 @@ class Simulator:
                         x_vec = []
                         v_vec = []
                         for i in range(self.objects_count):
-                            x_vec.append([state_vec[i * 6 + j] for j in range(3)])
-                            v_vec.append([state_vec[i * 6 + j + 3] for j in range(3)])
+                            x_vec.append([state_vec[i * 3 + j] for j in range(3)])
+                            v_vec.append([state_vec[self.objects_count * 3 + i * 3 + j] for j in range(3)])
                         self.x = np.array(x_vec)
                         self.v = np.array(v_vec)
 
