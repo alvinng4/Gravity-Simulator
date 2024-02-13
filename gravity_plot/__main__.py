@@ -66,8 +66,13 @@ class Plotter:
         }
 
     def run_prog(self):
+        # Catch KeyboardInterrupt
         try:
+            # Restart once all the progress is finished
             while True:
+                # Main program
+
+                # Read user input
                 while True:
                     print("\nGravity simulator")
                     print("Exit the program anytime by hitting Ctrl + C\n")
@@ -77,21 +82,25 @@ class Plotter:
                         print("")
                         break
 
+                # Launch simulation
                 self.simulator = Simulator(self)
                 self.simulator.initialize_system(self)
                 self.simulator.simulation()
                 if self.unit == "years":
                     self.simulator.sol_time /= 365.24
 
+                # Plot the result
                 self._plot_trajectory()
                 self.simulator.compute_energy()
                 self._plot_rel_energy()
-                # self._plot_tot_energy()
+                # self._plot_tot_energy() # Warnings: The unit is in solar masses, AU and day.
 
+                # Store data
                 if self.ask_user_permission("Store simulation data?"):
                     self.simulator.store_result()
                     print("")
 
+                # Ask permission to restart the whole program
                 if not self.ask_user_permission(
                     "All plotting is done. Restart simulation?"
                 ):
@@ -100,6 +109,91 @@ class Plotter:
 
         except KeyboardInterrupt:
             print("\nKeyboard Interrupt detected (Cltr + C). Exiting the program...")
+
+    def _plot_trajectory(self):
+        """
+        Plot the trajectory
+        """
+        print("Plotting trajectory...(Please check the window)\n")
+        fig1 = plt.figure()
+        ax1 = fig1.add_subplot(111, aspect="equal")
+        if self.system in self.solar_like_systems:
+            # Plot trajectory and initial positions with the same color:
+            for i in range(self.simulator.objects_count):
+                traj = ax1.plot(
+                    self.simulator.sol_state[:, i * 3],
+                    self.simulator.sol_state[:, 1 + i * 3],
+                    color=self.solar_like_systems_colors[self.simulator.objs_name[i]],
+                )
+                # Check if the system have names for individual objects
+                ax1.plot(
+                    self.simulator.sol_state[-1, i * 3],
+                    self.simulator.sol_state[-1, 1 + i * 3],
+                    "o",
+                    color=traj[0].get_color(),
+                    label=self.simulator.objs_name[i],
+                )
+        else:
+            # Plot trajectory and initial positions with the same color:
+            for i in range(self.simulator.objects_count):
+                traj = ax1.plot(
+                    self.simulator.sol_state[:, i * 3],
+                    self.simulator.sol_state[:, 1 + i * 3],
+                )
+                # Check if the system have names for individual objects
+                ax1.plot(
+                    self.simulator.sol_state[-1, i * 3],
+                    self.simulator.sol_state[-1, 1 + i * 3],
+                    "o",
+                    color=traj[0].get_color(),
+                )
+
+            ax1.set_title("Trajectory")
+            ax1.set_xlabel("X (AU)")
+            ax1.set_ylabel("Y (AU)")
+
+        if self.system in self.solar_like_systems:
+            fig1.legend(loc=7)
+            fig1.tight_layout()
+            fig1.subplots_adjust(right=0.8)
+
+        plt.show()
+
+    def _plot_rel_energy(self):
+        """
+        Plot the relative energy error
+        """
+        print("Plotting relative energy error...(Please check the window)")
+        fig2 = plt.figure()
+        ax2 = fig2.add_subplot(111)
+        ax2.semilogy(
+            self.simulator.sol_time,
+            np.abs(
+                (self.simulator.energy - self.simulator.energy[0])
+                / self.simulator.energy[0]
+            ),
+        )
+        ax2.set_title("Relative energy error against time")
+        ax2.set_xlabel(f"Time ({self.unit})")
+        ax2.set_ylabel("|(E(t)-E0)/E0|")
+
+        plt.show()
+        print("")
+
+    def _plot_tot_energy(self):
+        """
+        Plot the total energy
+        Warning: The unit is in solar masses, AU and day
+        """
+        print("Plotting total energy...(Please check the window)")
+        fig3 = plt.figure()
+        ax3 = fig3.add_subplot(111)
+        ax3.semilogy(self.simulator.sol_time, np.abs(self.simulator.energy))
+        ax3.set_title("Total energy against time")
+        ax3.set_xlabel(f"Time ({self.unit})")
+        ax3.set_ylabel("E(t)")
+
+        plt.show()
 
     def _read_user_input(self):
         while True:
@@ -365,88 +459,6 @@ class Plotter:
                     return False
 
             print("Invalid input. Please try again.\n")
-
-    def _plot_trajectory(self):
-        print("Plotting trajectory...(Please check the window)\n")
-        fig1 = plt.figure()
-        ax1 = fig1.add_subplot(111, aspect="equal")
-        if self.system in self.solar_like_systems:
-            # Plot trajectory and initial positions with the same color:
-            for i in range(self.simulator.objects_count):
-                traj = ax1.plot(
-                    self.simulator.sol_state[:, i * 3],
-                    self.simulator.sol_state[:, 1 + i * 3],
-                    color=self.solar_like_systems_colors[self.simulator.objs_name[i]],
-                )
-                # Check if the system have names for individual objects
-                ax1.plot(
-                    self.simulator.sol_state[-1, i * 3],
-                    self.simulator.sol_state[-1, 1 + i * 3],
-                    "o",
-                    color=traj[0].get_color(),
-                    label=self.simulator.objs_name[i],
-                )
-        else:
-            # Plot trajectory and initial positions with the same color:
-            for i in range(self.simulator.objects_count):
-                traj = ax1.plot(
-                    self.simulator.sol_state[:, i * 3],
-                    self.simulator.sol_state[:, 1 + i * 3],
-                )
-                # Check if the system have names for individual objects
-                ax1.plot(
-                    self.simulator.sol_state[-1, i * 3],
-                    self.simulator.sol_state[-1, 1 + i * 3],
-                    "o",
-                    color=traj[0].get_color(),
-                )
-
-            ax1.set_xlabel("X (AU)")
-            ax1.set_ylabel("Y (AU)")
-
-        if self.system in self.solar_like_systems:
-            fig1.legend(loc=7)
-            fig1.tight_layout()
-            fig1.subplots_adjust(right=0.8)
-
-        plt.show()
-
-    def _plot_rel_energy(self):
-        print("Plotting relative energy error...(Please check the window)")
-        fig2 = plt.figure()
-        ax2 = fig2.add_subplot(111)
-        ax2.semilogy(
-            self.simulator.sol_time,
-            np.abs(
-                (self.simulator.energy - self.simulator.energy[0])
-                / self.simulator.energy[0]
-            ),
-        )
-        ax2.set_xlabel(f"Time ({self.unit})")
-        ax2.set_ylabel("|(E(t)-E0)/E0|")
-
-        plt.show()
-        print("")
-
-    def _plot_tot_energy(self):
-        print("Plotting total energy...(Please check the window)")
-        fig3 = plt.figure()
-        ax3 = fig3.add_subplot(111)
-        ax3.semilogy(self.simulator.sol_time, np.abs(self.simulator.energy))
-        ax3.set_xlabel(f"Time ({self.unit})")
-        ax3.set_ylabel("E(t)")
-
-        plt.show()
-
-    @staticmethod
-    def progress_bar(percentage):
-        if percentage != 100:
-            fill = "█" * int(percentage / 2)
-            bar = fill + "-" * (50 - int(percentage / 2))
-            print(f"\r|{bar}| {percentage:3}% Completed ", end="")
-        else:
-            bar = "█" * 50
-            print(f"\r|{bar}| 100% Completed ")
 
 
 if __name__ == "__main__":
