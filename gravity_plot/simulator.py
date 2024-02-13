@@ -667,7 +667,7 @@ class Simulator:
         print(f"Run time: {(stop - start):.3f} s")
         print("")
 
-    def store_result(self):
+    def store_result(self, is_compute_energy):
         """
         Store the result in a csv file
         Unit: Solar masses, AU, day
@@ -700,8 +700,12 @@ class Simulator:
             with open(file_path, "w") as file:
                 writer = csv.writer(file)
                 for count in pb.track(range(len(self.sol_time))):
-                    row = np.insert(self.sol_state[count], 0, self.energy[count])
-                    row = np.insert(row, 0, self.sol_time[count])
+                    if is_compute_energy:
+                        row = np.insert(self.sol_state[count], 0, self.energy[count])
+                        row = np.insert(row, 0, self.sol_time[count])
+                    else:
+                        row = np.insert(self.sol_state[count], 0, 0)
+                        row = np.insert(row, 0, self.sol_time[count])
                     writer.writerow(row.tolist())
 
         print(f"Storing completed. Please check {file_path}")
