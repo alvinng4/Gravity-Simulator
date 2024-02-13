@@ -628,7 +628,7 @@ class Simulator:
                 pass 
             
         self.trim_size = math.ceil(len(self.sol_time) / math.ceil(len(self.sol_time) / trim_size))
-        if len(self.sol_time) % self.trim_size == 0:
+        if len(self.sol_time) % self.trim_size != 0:
             self.trim_size += 1
         self.trimmed_sol_time = np.zeros(self.trim_size)
         self.trimmed_sol_state = np.zeros((self.trim_size, self.objects_count * 3 * 2))
