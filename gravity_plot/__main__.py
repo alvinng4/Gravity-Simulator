@@ -88,6 +88,8 @@ class Plotter:
                 self._plot_rel_energy()
                 # self._plot_tot_energy()
 
+                self.simulator.store_result()
+
                 if not self.ask_user_permission(
                     "All plotting is done. Restart simulation?"
                 ):

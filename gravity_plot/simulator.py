@@ -1,4 +1,5 @@
 import csv
+import datetime
 import math
 from pathlib import Path
 import rich.progress
@@ -158,6 +159,7 @@ class Simulator:
         self.system = plotter.system
         self.integrator = plotter.integrator
         self.tf = plotter.tf
+        self.unit = plotter.unit
         self.tolerance = plotter.tolerance
         self.dt = plotter.dt
         self.G = self.CONSTANT_G
@@ -303,29 +305,33 @@ class Simulator:
                         self.SOLAR_SYSTEM_MASSES["Neptune"],
                     ]
                     R_CM = (
-                        1 / np.sum(self.m) * (
-                            self.m[0] * np.array(self.SOLAR_SYSTEM_POS["Sun"]) +
-                            self.m[1] * np.array(self.SOLAR_SYSTEM_POS["Mercury"]) +
-                            self.m[2] * np.array(self.SOLAR_SYSTEM_POS["Venus"]) +
-                            self.m[3] * np.array(self.SOLAR_SYSTEM_POS["Earth"]) +
-                            self.m[4] * np.array(self.SOLAR_SYSTEM_POS["Mars"]) +
-                            self.m[5] * np.array(self.SOLAR_SYSTEM_POS["Jupiter"]) +
-                            self.m[6] * np.array(self.SOLAR_SYSTEM_POS["Saturn"]) +
-                            self.m[7] * np.array(self.SOLAR_SYSTEM_POS["Uranus"]) +
-                            self.m[8] * np.array(self.SOLAR_SYSTEM_POS["Neptune"])
+                        1
+                        / np.sum(self.m)
+                        * (
+                            self.m[0] * np.array(self.SOLAR_SYSTEM_POS["Sun"])
+                            + self.m[1] * np.array(self.SOLAR_SYSTEM_POS["Mercury"])
+                            + self.m[2] * np.array(self.SOLAR_SYSTEM_POS["Venus"])
+                            + self.m[3] * np.array(self.SOLAR_SYSTEM_POS["Earth"])
+                            + self.m[4] * np.array(self.SOLAR_SYSTEM_POS["Mars"])
+                            + self.m[5] * np.array(self.SOLAR_SYSTEM_POS["Jupiter"])
+                            + self.m[6] * np.array(self.SOLAR_SYSTEM_POS["Saturn"])
+                            + self.m[7] * np.array(self.SOLAR_SYSTEM_POS["Uranus"])
+                            + self.m[8] * np.array(self.SOLAR_SYSTEM_POS["Neptune"])
                         )
                     )
                     V_CM = (
-                        1 / np.sum(self.m) * (
-                            self.m[0] * np.array(self.SOLAR_SYSTEM_VEL["Sun"]) +
-                            self.m[1] * np.array(self.SOLAR_SYSTEM_VEL["Mercury"]) +
-                            self.m[2] * np.array(self.SOLAR_SYSTEM_VEL["Venus"]) +
-                            self.m[3] * np.array(self.SOLAR_SYSTEM_VEL["Earth"]) +
-                            self.m[4] * np.array(self.SOLAR_SYSTEM_VEL["Mars"]) +
-                            self.m[5] * np.array(self.SOLAR_SYSTEM_VEL["Jupiter"]) +
-                            self.m[6] * np.array(self.SOLAR_SYSTEM_VEL["Saturn"]) +
-                            self.m[7] * np.array(self.SOLAR_SYSTEM_VEL["Uranus"]) +
-                            self.m[8] * np.array(self.SOLAR_SYSTEM_VEL["Neptune"])
+                        1
+                        / np.sum(self.m)
+                        * (
+                            self.m[0] * np.array(self.SOLAR_SYSTEM_VEL["Sun"])
+                            + self.m[1] * np.array(self.SOLAR_SYSTEM_VEL["Mercury"])
+                            + self.m[2] * np.array(self.SOLAR_SYSTEM_VEL["Venus"])
+                            + self.m[3] * np.array(self.SOLAR_SYSTEM_VEL["Earth"])
+                            + self.m[4] * np.array(self.SOLAR_SYSTEM_VEL["Mars"])
+                            + self.m[5] * np.array(self.SOLAR_SYSTEM_VEL["Jupiter"])
+                            + self.m[6] * np.array(self.SOLAR_SYSTEM_VEL["Saturn"])
+                            + self.m[7] * np.array(self.SOLAR_SYSTEM_VEL["Uranus"])
+                            + self.m[8] * np.array(self.SOLAR_SYSTEM_VEL["Neptune"])
                         )
                     )
 
@@ -338,7 +344,7 @@ class Simulator:
                     R7 = np.array(self.SOLAR_SYSTEM_POS["Saturn"] - R_CM)
                     R8 = np.array(self.SOLAR_SYSTEM_POS["Uranus"] - R_CM)
                     R9 = np.array(self.SOLAR_SYSTEM_POS["Neptune"] - R_CM)
-                    
+
                     V1 = np.array(self.SOLAR_SYSTEM_VEL["Sun"] - V_CM)
                     V2 = np.array(self.SOLAR_SYSTEM_VEL["Mercury"] - V_CM)
                     V3 = np.array(self.SOLAR_SYSTEM_VEL["Venus"] - V_CM)
@@ -348,11 +354,21 @@ class Simulator:
                     V7 = np.array(self.SOLAR_SYSTEM_VEL["Saturn"] - V_CM)
                     V8 = np.array(self.SOLAR_SYSTEM_VEL["Uranus"] - V_CM)
                     V9 = np.array(self.SOLAR_SYSTEM_VEL["Neptune"] - V_CM)
-                    
+
                     self.x = np.array([R1, R2, R3, R4, R5, R6, R7, R8, R9])
                     self.v = np.array([V1, V2, V3, V4, V5, V6, V7, V8, V9])
                     self.objects_count = 9
-                    self.objs_name = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
+                    self.objs_name = [
+                        "Sun",
+                        "Mercury",
+                        "Venus",
+                        "Earth",
+                        "Mars",
+                        "Jupiter",
+                        "Saturn",
+                        "Uranus",
+                        "Neptune",
+                    ]
 
                 case "solar_system_plus":
                     self.m = [
@@ -367,43 +383,47 @@ class Simulator:
                         self.SOLAR_SYSTEM_MASSES["Neptune"],
                         self.SOLAR_SYSTEM_MASSES["Pluto"],
                         self.SOLAR_SYSTEM_MASSES["Ceres"],
-                        self.SOLAR_SYSTEM_MASSES["Vesta"]
+                        self.SOLAR_SYSTEM_MASSES["Vesta"],
                     ]
-                    
+
                     R_CM = (
-                        1 / np.sum(self.m) * (
-                            self.m[0] * np.array(self.SOLAR_SYSTEM_POS["Sun"]) +
-                            self.m[1] * np.array(self.SOLAR_SYSTEM_POS["Mercury"]) +
-                            self.m[2] * np.array(self.SOLAR_SYSTEM_POS["Venus"]) +
-                            self.m[3] * np.array(self.SOLAR_SYSTEM_POS["Earth"]) +
-                            self.m[4] * np.array(self.SOLAR_SYSTEM_POS["Mars"]) +
-                            self.m[5] * np.array(self.SOLAR_SYSTEM_POS["Jupiter"]) +
-                            self.m[6] * np.array(self.SOLAR_SYSTEM_POS["Saturn"]) +
-                            self.m[7] * np.array(self.SOLAR_SYSTEM_POS["Uranus"]) +
-                            self.m[8] * np.array(self.SOLAR_SYSTEM_POS["Neptune"]) +
-                            self.m[9] * np.array(self.SOLAR_SYSTEM_POS["Pluto"]) +
-                            self.m[10] * np.array(self.SOLAR_SYSTEM_POS["Ceres"]) +
-                            self.m[11] * np.array(self.SOLAR_SYSTEM_POS["Vesta"])
+                        1
+                        / np.sum(self.m)
+                        * (
+                            self.m[0] * np.array(self.SOLAR_SYSTEM_POS["Sun"])
+                            + self.m[1] * np.array(self.SOLAR_SYSTEM_POS["Mercury"])
+                            + self.m[2] * np.array(self.SOLAR_SYSTEM_POS["Venus"])
+                            + self.m[3] * np.array(self.SOLAR_SYSTEM_POS["Earth"])
+                            + self.m[4] * np.array(self.SOLAR_SYSTEM_POS["Mars"])
+                            + self.m[5] * np.array(self.SOLAR_SYSTEM_POS["Jupiter"])
+                            + self.m[6] * np.array(self.SOLAR_SYSTEM_POS["Saturn"])
+                            + self.m[7] * np.array(self.SOLAR_SYSTEM_POS["Uranus"])
+                            + self.m[8] * np.array(self.SOLAR_SYSTEM_POS["Neptune"])
+                            + self.m[9] * np.array(self.SOLAR_SYSTEM_POS["Pluto"])
+                            + self.m[10] * np.array(self.SOLAR_SYSTEM_POS["Ceres"])
+                            + self.m[11] * np.array(self.SOLAR_SYSTEM_POS["Vesta"])
                         )
                     )
-                    
+
                     V_CM = (
-                        1 / np.sum(self.m) * (
-                            self.m[0] * np.array(self.SOLAR_SYSTEM_VEL["Sun"]) +
-                            self.m[1] * np.array(self.SOLAR_SYSTEM_VEL["Mercury"]) +
-                            self.m[2] * np.array(self.SOLAR_SYSTEM_VEL["Venus"]) +
-                            self.m[3] * np.array(self.SOLAR_SYSTEM_VEL["Earth"]) +
-                            self.m[4] * np.array(self.SOLAR_SYSTEM_VEL["Mars"]) +
-                            self.m[5] * np.array(self.SOLAR_SYSTEM_VEL["Jupiter"]) +
-                            self.m[6] * np.array(self.SOLAR_SYSTEM_VEL["Saturn"]) +
-                            self.m[7] * np.array(self.SOLAR_SYSTEM_VEL["Uranus"]) +
-                            self.m[8] * np.array(self.SOLAR_SYSTEM_VEL["Neptune"]) +
-                            self.m[9] * np.array(self.SOLAR_SYSTEM_VEL["Pluto"]) +
-                            self.m[10] * np.array(self.SOLAR_SYSTEM_VEL["Ceres"]) +
-                            self.m[11] * np.array(self.SOLAR_SYSTEM_VEL["Vesta"])
+                        1
+                        / np.sum(self.m)
+                        * (
+                            self.m[0] * np.array(self.SOLAR_SYSTEM_VEL["Sun"])
+                            + self.m[1] * np.array(self.SOLAR_SYSTEM_VEL["Mercury"])
+                            + self.m[2] * np.array(self.SOLAR_SYSTEM_VEL["Venus"])
+                            + self.m[3] * np.array(self.SOLAR_SYSTEM_VEL["Earth"])
+                            + self.m[4] * np.array(self.SOLAR_SYSTEM_VEL["Mars"])
+                            + self.m[5] * np.array(self.SOLAR_SYSTEM_VEL["Jupiter"])
+                            + self.m[6] * np.array(self.SOLAR_SYSTEM_VEL["Saturn"])
+                            + self.m[7] * np.array(self.SOLAR_SYSTEM_VEL["Uranus"])
+                            + self.m[8] * np.array(self.SOLAR_SYSTEM_VEL["Neptune"])
+                            + self.m[9] * np.array(self.SOLAR_SYSTEM_VEL["Pluto"])
+                            + self.m[10] * np.array(self.SOLAR_SYSTEM_VEL["Ceres"])
+                            + self.m[11] * np.array(self.SOLAR_SYSTEM_VEL["Vesta"])
                         )
                     )
-                    
+
                     R1 = np.array(self.SOLAR_SYSTEM_POS["Sun"] - R_CM)
                     R2 = np.array(self.SOLAR_SYSTEM_POS["Mercury"] - R_CM)
                     R3 = np.array(self.SOLAR_SYSTEM_POS["Venus"] - R_CM)
@@ -416,7 +436,7 @@ class Simulator:
                     R10 = np.array(self.SOLAR_SYSTEM_POS["Pluto"] - R_CM)
                     R11 = np.array(self.SOLAR_SYSTEM_POS["Ceres"] - R_CM)
                     R12 = np.array(self.SOLAR_SYSTEM_POS["Vesta"] - R_CM)
-                    
+
                     V1 = np.array(self.SOLAR_SYSTEM_VEL["Sun"] - V_CM)
                     V2 = np.array(self.SOLAR_SYSTEM_VEL["Mercury"] - V_CM)
                     V3 = np.array(self.SOLAR_SYSTEM_VEL["Venus"] - V_CM)
@@ -430,10 +450,27 @@ class Simulator:
                     V11 = np.array(self.SOLAR_SYSTEM_VEL["Ceres"] - V_CM)
                     V12 = np.array(self.SOLAR_SYSTEM_VEL["Vesta"] - V_CM)
 
-                    self.x = np.array([R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12])
-                    self.v = np.array([V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12])
+                    self.x = np.array(
+                        [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]
+                    )
+                    self.v = np.array(
+                        [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12]
+                    )
                     self.objects_count = 12
-                    self.objs_name = ["Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Ceres", "Vesta"]
+                    self.objs_name = [
+                        "Sun",
+                        "Mercury",
+                        "Venus",
+                        "Earth",
+                        "Mars",
+                        "Jupiter",
+                        "Saturn",
+                        "Uranus",
+                        "Neptune",
+                        "Pluto",
+                        "Ceres",
+                        "Vesta",
+                    ]
 
         # Prevent the error message from numba package:
         # "Encountered the use of a type that is scheduled for deprecation: type 'reflected list' found for argument 'm' of function '...'."
@@ -447,36 +484,46 @@ class Simulator:
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             self.npts = int(np.floor((self.tf - self.t0) / self.dt)) + 1
             self.sol_state = np.zeros((self.npts, self.objects_count * 3 * 2))
+            self.sol_state[0] = np.concatenate(
+                (
+                    np.reshape(self.x, self.objects_count * 3),
+                    np.reshape(self.v, self.objects_count * 3),
+                )
+            )
             self.sol_time = np.linspace(
                 self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
             )
 
         progress_bar = rich.progress.Progress(
-        rich.progress.BarColumn(),
-        rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-        rich.progress.TextColumn("•"),
-        rich.progress.TimeElapsedColumn(),
-        rich.progress.TextColumn("•"),
-        rich.progress.TimeRemainingColumn(),
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
         )
 
         with progress_bar as pb:
             match self.integrator:
                 case "euler":
-                    for count in pb.track(range(self.npts)):
-                        self.a = acceleration(self.objects_count, self.x, self.m, self.G)
+                    for count in pb.track(range(self.npts - 1)):
+                        self.a = acceleration(
+                            self.objects_count, self.x, self.m, self.G
+                        )
                         self.x, self.v = euler(self.x, self.v, self.a, self.dt)
-                        self.sol_state[count] = np.concatenate(
+                        self.sol_state[count + 1] = np.concatenate(
                             (
                                 np.reshape(self.x, self.objects_count * 3),
                                 np.reshape(self.v, self.objects_count * 3),
                             )
                         )
                 case "euler_cromer":
-                    for count in pb.track(range(self.npts)):
-                        self.a = acceleration(self.objects_count, self.x, self.m, self.G)
+                    for count in pb.track(range(self.npts - 1)):
+                        self.a = acceleration(
+                            self.objects_count, self.x, self.m, self.G
+                        )
                         self.x, self.v = euler_cromer(self.x, self.v, self.a, self.dt)
-                        self.sol_state[count] = np.concatenate(
+                        self.sol_state[count + 1] = np.concatenate(
                             (
                                 np.reshape(self.x, self.objects_count * 3),
                                 np.reshape(self.v, self.objects_count * 3),
@@ -484,7 +531,7 @@ class Simulator:
                         )
 
                 case "rk4":
-                    for count in pb.track(range(self.npts)):
+                    for count in pb.track(range(self.npts - 1)):
                         self.x, self.v = rk4(
                             self.objects_count,
                             self.x,
@@ -493,7 +540,7 @@ class Simulator:
                             self.G,
                             self.dt,
                         )
-                        self.sol_state[count] = np.concatenate(
+                        self.sol_state[count + 1] = np.concatenate(
                             (
                                 np.reshape(self.x, self.objects_count * 3),
                                 np.reshape(self.v, self.objects_count * 3),
@@ -502,7 +549,7 @@ class Simulator:
 
                 case "leapfrog":
                     self.a = acceleration(self.objects_count, self.x, self.m, self.G)
-                    for count in pb.track(range(self.npts)):
+                    for count in pb.track(range(self.npts - 1)):
                         self.x, self.v, self.a = leapfrog(
                             self.objects_count,
                             self.x,
@@ -512,7 +559,7 @@ class Simulator:
                             self.G,
                             self.dt,
                         )
-                        self.sol_state[count] = np.concatenate(
+                        self.sol_state[count + 1] = np.concatenate(
                             (
                                 np.reshape(self.x, self.objects_count * 3),
                                 np.reshape(self.v, self.objects_count * 3),
@@ -607,7 +654,44 @@ class Simulator:
                             )
 
         stop = timeit.default_timer()
-        print(f"Run time:{(stop - start):.3f} s")
+        print(f"Run time: {(stop - start):.3f} s")
+        print("")
+
+    def store_result(self):
+        print("Storing simulation results...")
+        file_path = str(Path(__file__).parent) + "/results/"
+        Path(file_path).mkdir(parents=True, exist_ok=True)
+        if self.unit == "years":
+            self.tf /= 365.24
+        file_path = (
+            str(Path(__file__).parent)
+            + "/results/"
+            + str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+            + f"_{self.system}_"
+            + f"{self.tf}{self.unit[0]}_"
+            + f"{self.integrator}"
+            + ".csv"
+        )
+
+        progress_bar = rich.progress.Progress(
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
+        )
+        with progress_bar as pb:
+            with open(file_path, "w") as file:
+                writer = csv.writer(file)
+                for count in pb.track(range(len(self.sol_time))):
+                    writer.writerow(
+                        np.insert(
+                            self.sol_state[count], 0, self.sol_time[count]
+                        ).tolist()
+                    )
+
+        print(f"Storing completed. Please check {file_path}")
         print("")
 
     def rk_embedded(
@@ -746,10 +830,9 @@ class Simulator:
             if t + dt > tf:
                 dt = tf - t
 
-
             if t >= tf:
                 progress_bar.stop()
-                return sol_state[0:count], sol_time[0:count]
+                return sol_state[0 : count + 1], sol_time[0 : count + 1]
 
 
 # Note: jit cannot works on functions inside a class
