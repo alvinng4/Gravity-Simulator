@@ -41,15 +41,15 @@ If you wish to make any changes, you can access the file at
 ```
 gravity_simulator/gravity_plot/customized_systems.csv
 ``` 
-and edit it accordingly.
+and edit it accordingly. 
 
-The simulation data is stored in 
+After each simulation, the numerical data is automatically stored in 
 ```
 gravity_simulator/gravity_plot/results
 ```
-automatically. Note that it is in the format
+Note that the data is in the unit AU, day and in the following format:
 ```
-time(day), x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
 ```
 
 <img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
