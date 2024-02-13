@@ -33,6 +33,7 @@ Once you have downloaded the source files, navigate to the directory of the sour
 ```
 python gravity_plot
 ```
+### Customizing system
 If you want to setup your own system, choose the "custom" option.
 Note that the default unit is in solar masses, AU and days.
 
@@ -41,8 +42,11 @@ If you wish to make any changes, you can access the file at
 ```
 gravity_simulator/gravity_plot/customized_systems.csv
 ``` 
-and edit it accordingly. 
-
+The data follow the format
+```
+Name, Number of objects, [m1, m2], [x1, y1, z1, ..., vx1, vy1, vz1, ...]
+```
+### Saving the data
 After each simulation, the program would ask if you want to save the data.
 If you choose to do so, the numerical data will be stored in the following folder:
 ```
