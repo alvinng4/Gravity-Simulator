@@ -52,6 +52,7 @@ The data will be in the unit of AU, days, and follow this format:
 ```
 time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
 ```
+Total energy will be stored as 0 if user chose not to compute energy.
 
 <img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
 <img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
