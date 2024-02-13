@@ -43,7 +43,7 @@ gravity_simulator/gravity_plot/customized_systems.csv
 ``` 
 and edit it accordingly. 
 
-After each simulation, the program would ask your permission to store the data.
+After each simulation, the program would ask if you want to store the data.
 If you choose to do so, the numerical data will be stored in the following folder:
 ```
 gravity_simulator/gravity_plot/results
