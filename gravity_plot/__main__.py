@@ -88,7 +88,9 @@ class Plotter:
                 self._plot_rel_energy()
                 # self._plot_tot_energy()
 
-                self.simulator.store_result()
+                if self.ask_user_permission("Store simulation data?"):
+                    self.simulator.store_result()
+                    print("")
 
                 if not self.ask_user_permission(
                     "All plotting is done. Restart simulation?"
@@ -424,6 +426,7 @@ class Plotter:
         ax2.set_ylabel("|(E(t)-E0)/E0|")
 
         plt.show()
+        print("")
 
     def _plot_tot_energy(self):
         print("Plotting total energy...(Please check the window)")
