@@ -89,6 +89,10 @@ class Plotter:
                 if self.unit == "years":
                     self.simulator.sol_time /= 365.24
 
+                if len(self.simulator.sol_time) > 1000:
+                    if self.ask_user_permission(f"There are {len(self.simulator.sol_time)} lines of data. Do you want to trim the data?"):
+                        self.simulator.trim_data()
+
                 # Plot the result
                 if self.ask_user_permission("Plot trajectory?"):
                     print("")

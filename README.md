@@ -48,9 +48,9 @@ If you choose to do so, the numerical data will be stored in the following folde
 ```
 gravity_simulator/gravity_plot/results
 ```
-The data will be in the unit of AU, days, and follow this format:
+The data except time will be in the unit of AU, days, and follow this format:
 ```
-time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+time(days/years), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
 Total energy will be stored as 0 if user chose not to compute energy.
 

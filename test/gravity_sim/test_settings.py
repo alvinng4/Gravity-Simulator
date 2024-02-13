@@ -1,4 +1,9 @@
-from gravity_sim.settings import Settings
+from pathlib import Path
+import sys
+path = str(Path(Path(Path(__file__).parent.absolute()).parent.absolute()).parent.absolute()) + "/gravity_sim/"
+sys.path.insert(0, path)
+
+from settings import Settings
 
 
 def test_settings_screen_size():

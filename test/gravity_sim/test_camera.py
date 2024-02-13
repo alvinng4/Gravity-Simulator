@@ -1,4 +1,9 @@
-from gravity_sim.camera import Camera
+from pathlib import Path
+import sys
+path = str(Path(Path(Path(__file__).parent.absolute()).parent.absolute()).parent.absolute()) + "/gravity_sim/"
+sys.path.insert(0, path)
+
+from camera import Camera
 
 
 def test_camera_movement():
