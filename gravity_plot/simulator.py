@@ -177,6 +177,7 @@ class Simulator:
                 case "rkf78":
                     self.order = 78
 
+        # Read information of the customized system
         if self.system not in plotter.default_systems:
             file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
             with open(file_path, "r") as file:
@@ -194,11 +195,17 @@ class Simulator:
                         v_vec = []
                         for i in range(self.objects_count):
                             x_vec.append([state_vec[i * 3 + j] for j in range(3)])
-                            v_vec.append([state_vec[self.objects_count * 3 + i * 3 + j] for j in range(3)])
+                            v_vec.append(
+                                [
+                                    state_vec[self.objects_count * 3 + i * 3 + j]
+                                    for j in range(3)
+                                ]
+                            )
                         self.x = np.array(x_vec)
                         self.v = np.array(v_vec)
 
         else:
+            # Pre-defined systems
             match self.system:
                 case "circular_binary_orbit":
                     R1 = np.array([1.0, 0.0, 0.0])
@@ -480,7 +487,7 @@ class Simulator:
         print("Simulating the system...")
         start = timeit.default_timer()
 
-        # Simulation
+        # Initializing
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             self.npts = int(np.floor((self.tf - self.t0) / self.dt)) + 1
             self.sol_state = np.zeros((self.npts, self.objects_count * 3 * 2))
@@ -609,6 +616,9 @@ class Simulator:
         print("")
 
     def compute_energy(self):
+        """
+        Compute the total energy using the sol_state array
+        """
         print("Computing energy...")
         self.energy = np.zeros(len(self.sol_state))
         self.progress_percentage = 0
@@ -658,6 +668,11 @@ class Simulator:
         print("")
 
     def store_result(self):
+        """
+        Store the result in a csv file
+        Unit: Solar masses, AU, day
+        Format: time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+        """
         print("Storing simulation results...")
         file_path = Path(str(Path(__file__).parent) + "/results/")
         file_path.mkdir(parents=True, exist_ok=True)
@@ -685,13 +700,9 @@ class Simulator:
             with open(file_path, "w") as file:
                 writer = csv.writer(file)
                 for count in pb.track(range(len(self.sol_time))):
-                    row = np.insert(
-                            self.sol_state[count], 0, self.energy[count]
-                        )
+                    row = np.insert(self.sol_state[count], 0, self.energy[count])
                     row = np.insert(row, 0, self.sol_time[count])
-                    writer.writerow(
-                        row.tolist()
-                    )
+                    writer.writerow(row.tolist())
 
         print(f"Storing completed. Please check {file_path}")
         print("")
