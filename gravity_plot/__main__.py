@@ -104,7 +104,7 @@ class Plotter:
     def _read_user_input(self):
         while True:
             self.available_systems = self.default_systems.copy()
-            file_path = str(Path(__file__).parent) + "/customized_systems.csv"
+            file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
             try:
                 with open(file_path, "r") as file:
                     reader = csv.reader(file)
@@ -219,7 +219,7 @@ class Plotter:
                             break
                         except ValueError:
                             print("Invalid input! Please try again.")
-            file_path = str(Path(__file__).parent) + "/customized_systems.csv"
+            file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
             with open(file_path, "a") as file:
                 writer = csv.DictWriter(
                     file,

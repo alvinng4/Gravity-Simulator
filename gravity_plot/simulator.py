@@ -178,7 +178,7 @@ class Simulator:
                     self.order = 78
 
         if self.system not in plotter.default_systems:
-            file_path = str(Path(__file__).parent) + "/customized_systems.csv"
+            file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
             with open(file_path, "r") as file:
                 reader = csv.reader(file)
                 for row in reader:
@@ -659,11 +659,11 @@ class Simulator:
 
     def store_result(self):
         print("Storing simulation results...")
-        file_path = str(Path(__file__).parent) + "/results/"
-        Path(file_path).mkdir(parents=True, exist_ok=True)
+        file_path = Path(str(Path(__file__).parent) + "/results/")
+        file_path.mkdir(parents=True, exist_ok=True)
         if self.unit == "years":
             self.tf /= 365.24
-        file_path = (
+        file_path = Path(
             str(Path(__file__).parent)
             + "/results/"
             + str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
