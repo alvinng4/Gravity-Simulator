@@ -666,7 +666,7 @@ class Simulator:
         file_path = Path(
             str(Path(__file__).parent)
             + "/results/"
-            + str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+            + str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
             + f"_{self.system}_"
             + f"{self.tf}{self.unit[0]}_"
             + f"{self.integrator}"

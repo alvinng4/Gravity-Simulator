@@ -13,7 +13,6 @@ class Plotter:
         self.tolerance = None
         self.dt = None
         self.default_systems = [
-            "custom",
             "circular_binary_orbit",
             "eccentric_binary_orbit",
             "3d_helix",
@@ -22,6 +21,7 @@ class Plotter:
             "pyth-3-body",
             "solar_system",
             "solar_system_plus",
+            "custom",
         ]
         self.available_integrators = [
             "euler",
