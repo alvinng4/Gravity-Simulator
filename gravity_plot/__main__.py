@@ -203,6 +203,7 @@ class Plotter:
                             break
                         except ValueError:
                             print("Invalid input! Please try again.")
+            for i in range(objects_count):
                 for j in range(3):
                     while True:
                         try:
