@@ -667,9 +667,9 @@ class Simulator:
         print(f"Run time: {(stop - start):.3f} s")
         print("")
 
-    def store_result(self, is_compute_energy):
+    def save_result(self, is_compute_energy):
         """
-        Store the result in a csv file
+        Save the result in a csv file
         Unit: Solar masses, AU, day
         Format: time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
