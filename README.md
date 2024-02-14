@@ -98,8 +98,11 @@ python gravity_sim
 |:-------|:------------| 
 | Void | Emptiness |
 | figure-8 | A "figure-8" orbit involving three stars  |
-| pyth-3-body | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
+| pyth-3-body* | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
 | solar_system | A simple version of the solar system |
+
+*Use adaptive integrator for pyth-3-body. Fixed step size integrators do not have enough accuracy. See [Adaptive step size integrators](#adaptive-step-size-integrators).
+
 ### Control
 Move camera: `W` `A` `S` `D`\
 Menu: `Esc`\
@@ -132,14 +135,14 @@ Fixed step size integrators are simple methods to simulate the system with the g
 ### Adaptive step size integrators
 Adaptive step size integrators are efficient and accurate methods that decides the step size automatically based on the estimated error. The system would adopt smaller step size for smaller tolerance.
 
-| Adaptive step size integrators | Recommended tolerance* |
+| Adaptive step size integrators | Recommended tolerance** |
 |:-----------|:-------------|
 | Runge–Kutta–Fehlberg 4(5) | 1e-8 to 1e-14 |
 | Dormand–Prince method (DOPRI) 5(4) | 1e-8 to 1e-14 |
 | Verner's method (DVERK) 6(5) | 1e-8 to 1e-14 |
 | Runge–Kutta–Fehlberg 7(8) | 1e-4 to 1e-8 |
 
-*For reference only
+**For reference only
 
 ## Feedback and Bugs
 If you find any bugs or want to give me your feedback, please feel free to let me know by sending an email to alvinng324@gmail.com or open an issue.
