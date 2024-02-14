@@ -214,14 +214,10 @@ class Plotter:
         while True:
             self.available_systems = self.default_systems.copy()
             file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
-            try:
-                with open(file_path, "r") as file:
-                    reader = csv.reader(file)
-                    for row in reader:
-                        self.available_systems.append(row[0])
-            except FileNotFoundError:
-                with open(file_path, "w") as file:
-                    pass
+            with open(file_path, "w+") as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    self.available_systems.append(row[0])
 
             print("Available systems:")
             for i, system in enumerate(self.available_systems):
@@ -343,7 +339,7 @@ class Plotter:
                         except ValueError:
                             print("Invalid input! Please try again.")
             file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
-            with open(file_path, "a") as file:
+            with open(file_path, "a", newline="") as file:
                 writer = csv.DictWriter(
                     file,
                     fieldnames=["system_name", "objects_count", "masses", "state_vec"],
