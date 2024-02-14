@@ -17,15 +17,16 @@ class Simulator:
 
         self.is_initialize = True
         self.set_all_integrators_false()
-        self.is_rkf78 = True  # Default integrator
-        self.current_integrator = Settings.DEFAULT_INTEGRATOR
-        self.is_initialize_integrator = Settings.DEFAULT_INTEGRATOR
+        self.is_rk4 = True  # Default integrator
+        self.current_integrator = "rk4"
+        self.is_initialize_integrator = "rk4"
 
     def run_simulation(self, grav_sim):
         if self.is_initialize == True:
             self.initialize_problem(grav_sim)
 
         match self.current_integrator:
+            # Fixed step size integrators
             case "euler":
                 if (
                     self.is_initialize == True
@@ -108,8 +109,10 @@ class Simulator:
                 self.stats.simulation_time += (
                     self.settings.dt * self.settings.time_speed
                 )
+            # Adaptive step size integrators
             case "rkf45":
-                if self.stats.objects_count == 1:            
+                # Simple euler is enough when there is no interaction    
+                if self.stats.objects_count == 1:       
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
@@ -175,6 +178,7 @@ class Simulator:
                         self.settings.tolerance,
                     )
             case "dopri":
+                # Simple euler is enough when there is no interaction    
                 if self.stats.objects_count == 1:            
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
@@ -241,6 +245,7 @@ class Simulator:
                         self.settings.tolerance,
                     )
             case "dverk":
+                # Simple euler is enough when there is no interaction    
                 if self.stats.objects_count == 1:            
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
@@ -307,6 +312,7 @@ class Simulator:
                         self.settings.tolerance,
                     )
             case "rkf78":
+                # Simple euler is enough when there is no interaction    
                 if self.stats.objects_count == 1:            
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
@@ -378,6 +384,9 @@ class Simulator:
         )
 
     def initialize_problem(self, grav_sim):
+        """
+        Initialize x, v and m
+        """
         objects_count = grav_sim.stats.objects_count
         self.x = np.zeros((objects_count, 3))
         self.v = np.zeros((objects_count, 3))
@@ -392,6 +401,9 @@ class Simulator:
             self.m[j] = grav_sim.grav_objs.sprites()[j].params["m"]
 
     def unload_value(self, grav_sim):
+        """
+        Unload the position and velocity values back the to main system
+        """
         for j in range(self.stats.objects_count):
             grav_sim.grav_objs.sprites()[j].params["r1"] = self.x[j][0]
             grav_sim.grav_objs.sprites()[j].params["r2"] = self.x[j][1]
@@ -411,6 +423,9 @@ class Simulator:
         self.is_rkf78 = False
 
     def check_current_integrator(self):
+        """
+        Check what integrators are currently chosen
+        """
         if self.is_euler == True:
             self.current_integrator = "euler"
         elif self.is_euler_cromer == True:

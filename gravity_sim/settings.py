@@ -4,8 +4,7 @@ import math
 class Settings:
     """A class to store all settings for gravity simulator."""
 
-    DEFAULT_INTEGRATOR = "rkf78"
-
+    # If you want to change the default integrator, go to simulator.py __init__
     MAX_FPS = 60
     BG_COLOR = (0, 0, 0)  # Background color
 
