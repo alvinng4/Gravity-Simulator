@@ -22,7 +22,7 @@ This is a Newtonian 3D N-body gravity simulator program which project the result
 * [Available integrators](#available-integrators)
     - [Fixed step size integrators](#fixed-step-size-integrators)
     - [Adaptive step size integrators](#adaptive-step-size-integrators)
-* [Bugs](#bugs)
+* [Feedback and Bugs](#feedback-and-bugs)
 * [Data references](#data-references)
 * [Bibliography](#bibliography)
 
