@@ -141,8 +141,9 @@ Adaptive step size integrators are efficient and accurate methods that decides t
 
 *For reference only
 
-## Bugs
-If you find any bugs, please feel free to contact me at alvinng324@gmail.com or open an issue.
+## Feedback and Bugs
+If you find any bugs or want to give me your feedback, please feel free to let me know by sending an email to alvinng324@gmail.com or open an issue.
+
 ## Data References
 1. Park, R.S., et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, *Astronomical Journal*, 161:105.
 2. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
