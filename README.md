@@ -78,7 +78,7 @@ If you choose to do so, the numerical data will be stored in the following folde
 ```
 gravity_simulator/gravity_plot/results
 ```
-The data except time will be in the unit of AU, days, and follow this format:
+The data except time will be in the default unit (solar masses, AU and days), and follow this format:
 ```
 time(days/years), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
