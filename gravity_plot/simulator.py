@@ -627,22 +627,22 @@ class Simulator:
                 print("Invalid input! Please try again.")
                 pass 
             
-        self.trim_size = math.ceil(len(self.sol_time) / math.ceil(len(self.sol_time) / trim_size))
-        if len(self.sol_time) % self.trim_size != 0:
+        self.trim_size = math.floor(len(self.sol_time) / math.ceil(len(self.sol_time) / trim_size))
+        if len(self.sol_time) % self.trim_size == 0:
             self.trim_size += 1
         self.trimmed_sol_time = np.zeros(self.trim_size)
         self.trimmed_sol_state = np.zeros((self.trim_size, self.objects_count * 3 * 2))
 
         j = 0
         for i in range(len(self.sol_time)):
-            if i % math.ceil(len(self.sol_time) / trim_size) == 0:
+            if i % math.ceil(len(self.sol_time) / self.trim_size) == 0:
                 self.trimmed_sol_time[j] = self.sol_time[i]
                 self.trimmed_sol_state[j] = self.sol_state[i]
                 j += 1
 
         if self.trimmed_sol_time[-1] != self.sol_time[-1]:
-            self.trimmed_sol_time[j] = self.sol_time[-1]
-            self.trimmed_sol_state[j] = self.sol_state[-1]
+            self.trimmed_sol_time[-1] = self.sol_time[-1]
+            self.trimmed_sol_state[-1] = self.sol_state[-1]
         
         print(f"Trimmed data size = {len(self.trimmed_sol_time)}")
 
