@@ -622,8 +622,8 @@ class Simulator:
     def trim_data(self):
         while True:
             try:
-                trim_size = int(input("Enter desired number of lines: "))
-                if trim_size >= len(self.sol_time):
+                desired_trim_size = int(input("Enter desired number of lines: "))
+                if desired_trim_size >= len(self.sol_time):
                     raise ValueError
                 else:
                     break
@@ -631,7 +631,7 @@ class Simulator:
                 print("Invalid input! Please try again.")
                 pass 
             
-        self.trim_size = math.floor(len(self.sol_time) / math.ceil(len(self.sol_time) / trim_size))
+        self.trim_size = math.ceil(len(self.sol_time) / math.ceil(len(self.sol_time) / desired_trim_size))
         if len(self.sol_time) % self.trim_size == 0:
             self.trim_size += 1
         self.trimmed_sol_time = np.zeros(self.trim_size)
@@ -639,7 +639,7 @@ class Simulator:
 
         j = 0
         for i in range(len(self.sol_time)):
-            if i % math.ceil(len(self.sol_time) / self.trim_size) == 0:
+            if i % round(len(self.sol_time) / self.trim_size) == 0:
                 self.trimmed_sol_time[j] = self.sol_time[i]
                 self.trimmed_sol_state[j] = self.sol_state[i]
                 j += 1
