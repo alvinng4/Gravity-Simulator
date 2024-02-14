@@ -292,7 +292,7 @@ class Plotter:
                         masses.append(
                             float(
                                 input(
-                                    f"Please enter m{i + 1} for object {i + 1}: "
+                                    f"Please enter the mass for object {i + 1}: "
                                 ).strip()
                             )
                         )
@@ -302,12 +302,19 @@ class Plotter:
             state_vec = []
             for i in range(objects_count):
                 for j in range(3):
+                    match j:
+                        case 0:
+                            variable = "x"
+                        case 1:
+                            variable = "y"
+                        case 2:
+                            variable = "z"
                     while True:
                         try:
                             state_vec.append(
                                 float(
                                     input(
-                                        f"Please enter x{j + 1} for object {i + 1}: "
+                                        f"Please enter {variable} for object {i + 1}: "
                                     ).strip()
                                 )
                             )
@@ -316,12 +323,19 @@ class Plotter:
                             print("Invalid input! Please try again.")
             for i in range(objects_count):
                 for j in range(3):
+                    match j:
+                        case 0:
+                            variable = "x"
+                        case 1:
+                            variable = "y"
+                        case 2:
+                            variable = "z"
                     while True:
                         try:
                             state_vec.append(
                                 float(
                                     input(
-                                        f"Please enter v{j + 1} for object {i + 1}: "
+                                        f"Please enter v{variable} for object {i + 1}: "
                                     ).strip()
                                 )
                             )
