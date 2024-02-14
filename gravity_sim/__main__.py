@@ -64,7 +64,8 @@ class GravitySimulator:
                 self._update_screen()
                 self.clock.tick(self.settings.MAX_FPS)
         except TypeError:
-            print("Error: object is out of range (|x| > 2147483647)")
+            print("Error: object is out of range |x| > 2147483647.")
+            print("To avoid this, consider using more accurate integrators or use smaller step size.")
 
     def _check_events(self):
         self.simulator.check_current_integrator()
