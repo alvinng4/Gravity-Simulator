@@ -74,7 +74,7 @@ Name, Number of objects, [m1, m2], [x1, y1, z1, ..., vx1, vy1, vz1, ...]
 ```
 ### Saving the data
 After each simulation, the program would ask if you want to save the data.
-If you choose to do so, the numerical data will be stored in the following folder:
+If you chose to do so, the numerical data will be stored in the following folder:
 ```
 gravity_simulator/gravity_plot/results
 ```
@@ -101,7 +101,7 @@ python gravity_sim
 | pyth-3-body* | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
 | solar_system | A simple version of the solar system |
 
-*Use adaptive integrator for pyth-3-body. Fixed step size integrators do not have enough accuracy. See [Adaptive step size integrators](#adaptive-step-size-integrators).
+*Use adaptive step size integrators for pyth-3-body. Fixed step size integrators do not have enough accuracy. See [Adaptive step size integrators](#adaptive-step-size-integrators).
 
 ### Control
 Move camera: `W` `A` `S` `D`\
