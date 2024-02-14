@@ -109,215 +109,269 @@ class Simulator:
                     self.settings.dt * self.settings.time_speed
                 )
             case "rkf45":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "rkf45"
-                ):
+                if self.stats.objects_count == 1:            
+                    for _ in range(self.settings.time_speed):
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.x, self.v = euler(
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.settings.dt,
+                        )
+                    self.stats.simulation_time += (
+                        self.settings.dt * self.settings.time_speed
+                    )
+                else:
+                    if (
+                        self.is_initialize == True
+                        and self.is_initialize_integrator == "rkf45"
+                    ):
+                        (
+                            self.power,
+                            self.power_test,
+                            self.coeff,
+                            self.weights,
+                            self.weights_test,
+                        ) = butcher_tableaus_rk(order=45)
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.rk_dt = _initial_time_step_rk_embedded(
+                            self.stats.objects_count,
+                            4,
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.m,
+                            Grav_obj.G,
+                            self.settings.tolerance,
+                            self.settings.tolerance,
+                        )
+                        self.is_initialize = False
                     (
+                        self.x,
+                        self.v,
+                        self.stats.simulation_time,
+                        self.rk_dt,
+                    ) = rk_embedded(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.m,
+                        Grav_obj.G,
+                        self.settings.expected_time_scale,
+                        self.stats.simulation_time,
+                        self.rk_dt,
                         self.power,
                         self.power_test,
                         self.coeff,
                         self.weights,
                         self.weights_test,
-                    ) = butcher_tableaus_rk(order=45)
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.rk_dt = _initial_time_step_rk_embedded(
-                        self.stats.objects_count,
-                        4,
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.m,
-                        Grav_obj.G,
+                        self.settings.rk_max_iteration,
+                        self.settings.rk_min_iteration,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    self.rk_dt
-                    self.is_initialize = False
-                (
-                    self.x,
-                    self.v,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                ) = rk_embedded(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.m,
-                    Grav_obj.G,
-                    self.settings.expected_time_scale,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                    self.power,
-                    self.power_test,
-                    self.coeff,
-                    self.weights,
-                    self.weights_test,
-                    self.settings.rk_max_iteration,
-                    self.settings.rk_min_iteration,
-                    self.settings.tolerance,
-                    self.settings.tolerance,
-                )
             case "dopri":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "dopri"
-                ):
+                if self.stats.objects_count == 1:            
+                    for _ in range(self.settings.time_speed):
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.x, self.v = euler(
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.settings.dt,
+                        )
+                    self.stats.simulation_time += (
+                        self.settings.dt * self.settings.time_speed
+                    )
+                else:
+                    if (
+                        self.is_initialize == True
+                        and self.is_initialize_integrator == "dopri"
+                    ):
+                        (
+                            self.power,
+                            self.power_test,
+                            self.coeff,
+                            self.weights,
+                            self.weights_test,
+                        ) = butcher_tableaus_rk(order=54)
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.rk_dt = _initial_time_step_rk_embedded(
+                            self.stats.objects_count,
+                            5,
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.m,
+                            Grav_obj.G,
+                            self.settings.tolerance,
+                            self.settings.tolerance,
+                        )
+                        self.is_initialize = False
                     (
+                        self.x,
+                        self.v,
+                        self.stats.simulation_time,
+                        self.rk_dt,
+                    ) = rk_embedded(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.m,
+                        Grav_obj.G,
+                        self.settings.expected_time_scale,
+                        self.stats.simulation_time,
+                        self.rk_dt,
                         self.power,
                         self.power_test,
                         self.coeff,
                         self.weights,
                         self.weights_test,
-                    ) = butcher_tableaus_rk(order=54)
-                    self.is_initialize = False
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.rk_dt = _initial_time_step_rk_embedded(
-                        self.stats.objects_count,
-                        5,
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.m,
-                        Grav_obj.G,
+                        self.settings.rk_max_iteration,
+                        self.settings.rk_min_iteration,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    self.rk_dt
-                    self.is_initialize = False
-                (
-                    self.x,
-                    self.v,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                ) = rk_embedded(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.m,
-                    Grav_obj.G,
-                    self.settings.expected_time_scale,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                    self.power,
-                    self.power_test,
-                    self.coeff,
-                    self.weights,
-                    self.weights_test,
-                    self.settings.rk_max_iteration,
-                    self.settings.rk_min_iteration,
-                    self.settings.tolerance,
-                    self.settings.tolerance,
-                )
             case "dverk":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "dverk"
-                ):
+                if self.stats.objects_count == 1:            
+                    for _ in range(self.settings.time_speed):
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.x, self.v = euler(
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.settings.dt,
+                        )
+                    self.stats.simulation_time += (
+                        self.settings.dt * self.settings.time_speed
+                    )
+                else:
+                    if (
+                        self.is_initialize == True
+                        and self.is_initialize_integrator == "dverk"
+                    ):
+                        (
+                            self.power,
+                            self.power_test,
+                            self.coeff,
+                            self.weights,
+                            self.weights_test,
+                        ) = butcher_tableaus_rk(order=65)
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.rk_dt = _initial_time_step_rk_embedded(
+                            self.stats.objects_count,
+                            6,
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.m,
+                            Grav_obj.G,
+                            self.settings.tolerance,
+                            self.settings.tolerance,
+                        )
+                        self.is_initialize = False
                     (
+                        self.x,
+                        self.v,
+                        self.stats.simulation_time,
+                        self.rk_dt,
+                    ) = rk_embedded(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.m,
+                        Grav_obj.G,
+                        self.settings.expected_time_scale,
+                        self.stats.simulation_time,
+                        self.rk_dt,
                         self.power,
                         self.power_test,
                         self.coeff,
                         self.weights,
                         self.weights_test,
-                    ) = butcher_tableaus_rk(order=65)
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.rk_dt = _initial_time_step_rk_embedded(
-                        self.stats.objects_count,
-                        6,
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.m,
-                        Grav_obj.G,
+                        self.settings.rk_max_iteration,
+                        self.settings.rk_min_iteration,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    self.rk_dt
-                    self.is_initialize = False
-                (
-                    self.x,
-                    self.v,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                ) = rk_embedded(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.m,
-                    Grav_obj.G,
-                    self.settings.expected_time_scale,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                    self.power,
-                    self.power_test,
-                    self.coeff,
-                    self.weights,
-                    self.weights_test,
-                    self.settings.rk_max_iteration,
-                    self.settings.rk_min_iteration,
-                    self.settings.tolerance,
-                    self.settings.tolerance,
-                )
             case "rkf78":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "rkf78"
-                ):
+                if self.stats.objects_count == 1:            
+                    for _ in range(self.settings.time_speed):
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.x, self.v = euler(
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.settings.dt,
+                        )
+                    self.stats.simulation_time += (
+                        self.settings.dt * self.settings.time_speed
+                    )
+                else:
+                    if (
+                        self.is_initialize == True
+                        and self.is_initialize_integrator == "rkf78"
+                    ):
+                        (
+                            self.power,
+                            self.power_test,
+                            self.coeff,
+                            self.weights,
+                            self.weights_test,
+                        ) = butcher_tableaus_rk(order=78)
+                        self.a = acceleration(
+                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        )
+                        self.rk_dt = _initial_time_step_rk_embedded(
+                            self.stats.objects_count,
+                            7,
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.m,
+                            Grav_obj.G,
+                            self.settings.tolerance,
+                            self.settings.tolerance,
+                        )
+                        self.is_initialize = False
                     (
+                        self.x,
+                        self.v,
+                        self.stats.simulation_time,
+                        self.rk_dt,
+                    ) = rk_embedded(
+                        self.stats.objects_count,
+                        self.x,
+                        self.v,
+                        self.m,
+                        Grav_obj.G,
+                        self.settings.expected_time_scale,
+                        self.stats.simulation_time,
+                        self.rk_dt,
                         self.power,
                         self.power_test,
                         self.coeff,
                         self.weights,
                         self.weights_test,
-                    ) = butcher_tableaus_rk(order=78)
-                    self.is_initialize = False
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.rk_dt = _initial_time_step_rk_embedded(
-                        self.stats.objects_count,
-                        7,
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.m,
-                        Grav_obj.G,
+                        self.settings.rk_max_iteration,
+                        self.settings.rk_min_iteration,
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-                    self.rk_dt
-                    self.is_initialize = False
-                (
-                    self.x,
-                    self.v,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                ) = rk_embedded(
-                    self.stats.objects_count,
-                    self.x,
-                    self.v,
-                    self.m,
-                    Grav_obj.G,
-                    self.settings.expected_time_scale,
-                    self.stats.simulation_time,
-                    self.rk_dt,
-                    self.power,
-                    self.power_test,
-                    self.coeff,
-                    self.weights,
-                    self.weights_test,
-                    self.settings.rk_max_iteration,
-                    self.settings.rk_min_iteration,
-                    self.settings.tolerance,
-                    self.settings.tolerance,
-                )
 
         self.stats.total_energy = total_energy(
             self.stats.objects_count, self.x, self.v, self.m, Grav_obj.G
