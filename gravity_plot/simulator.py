@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 import rich.progress
 import timeit
+import sys
 
 
 import numba as nb  # Note: nb.njit cannot works on functions inside a class
@@ -180,29 +181,32 @@ class Simulator:
         # Read information of the customized system
         if self.system not in plotter.default_systems:
             file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
-            with open(file_path, "r") as file:
-                reader = csv.reader(file)
-                for row in reader:
-                    if self.system == row[0]:
-                        self.objects_count = int(row[1])
-                        self.m = row[2].strip("[]")
-                        self.m = np.array([float(item) for item in self.m.split(", ")])
-                        state_vec = row[3].strip("[]")
-                        state_vec = np.array(
-                            [float(item) for item in state_vec.split(", ")]
-                        )
-                        x_vec = []
-                        v_vec = []
-                        for i in range(self.objects_count):
-                            x_vec.append([state_vec[i * 3 + j] for j in range(3)])
-                            v_vec.append(
-                                [
-                                    state_vec[self.objects_count * 3 + i * 3 + j]
-                                    for j in range(3)
-                                ]
+            try:
+                with open(file_path, "r") as file:
+                    reader = csv.reader(file)
+                    for row in reader:
+                        if self.system == row[0]:
+                            self.objects_count = int(row[1])
+                            self.m = row[2].strip("[]")
+                            self.m = np.array([float(item) for item in self.m.split(", ")])
+                            state_vec = row[3].strip("[]")
+                            state_vec = np.array(
+                                [float(item) for item in state_vec.split(", ")]
                             )
-                        self.x = np.array(x_vec)
-                        self.v = np.array(v_vec)
+                            x_vec = []
+                            v_vec = []
+                            for i in range(self.objects_count):
+                                x_vec.append([state_vec[i * 3 + j] for j in range(3)])
+                                v_vec.append(
+                                    [
+                                        state_vec[self.objects_count * 3 + i * 3 + j]
+                                        for j in range(3)
+                                    ]
+                                )
+                            self.x = np.array(x_vec)
+                            self.v = np.array(v_vec)
+            except FileNotFoundError:
+                sys.exit("Warning: customized_systems.csv not found in gravity_plot. Terminating program.")
 
         else:
             # Pre-defined systems
@@ -731,7 +735,7 @@ class Simulator:
             rich.progress.TimeRemainingColumn(),
         )
         with progress_bar as pb:
-            with open(file_path, "w") as file:
+            with open(file_path, "w", newline="") as file:
                 writer = csv.writer(file)
                 for count in pb.track(range(len(self.sol_time))):
                     if is_compute_energy:
