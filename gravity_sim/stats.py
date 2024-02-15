@@ -319,8 +319,8 @@ class Stats:
                 grav_sim.simulator.is_initialize_integrator = "rkf78"
 
     def _statsboard_init_print_msg(self) -> None:
-        self.parameters_board.print_msg("Parameters: (Click to select)")
-        self.integrators_board.print_msg("Integrators: (Click to select)")
+        self.parameters_board.print_msg("Parameters: (Click below to select)")
+        self.integrators_board.print_msg("Integrators: (Click below to select)")
         self.fixed_step_size_board.print_msg("(Fixed Step Size)")
         self.euler_board.print_msg("Euler")
         self.euler_cromer_board.print_msg("Euler-Cromer")
