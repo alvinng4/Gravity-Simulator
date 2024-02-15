@@ -12,7 +12,7 @@ class Settings:
     DEFAULT_PLANET_IMG_SCALE = 100000
     DEFAULT_DISTANCE_SCALE = 150
     DEFAULT_NEW_STAR_MASS_SCALE = 1
-    DEFAULT_dt = 0.1
+    DEFAULT_DT = 0.1
     DEFAULT_TIME_SPEED = 1
     DEFAULT_RK_MAX_ITERATION = 10
     DEFAULT_RK_MIN_ITERATION = 1
@@ -58,7 +58,7 @@ class Settings:
         self.planet_img_scale = self.DEFAULT_PLANET_IMG_SCALE
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
-        self.dt = self.DEFAULT_dt
+        self.dt = self.DEFAULT_DT
         self.time_speed = self.DEFAULT_TIME_SPEED
         # Initializing internal variable directly because rk_min_iteration.setter and rk_max_iteration.setter depends on each other
         self._rk_max_iteration = self.DEFAULT_RK_MAX_ITERATION
@@ -187,7 +187,7 @@ class Settings:
         self.planet_img_scale = self.DEFAULT_PLANET_IMG_SCALE
         self.time_speed = self.DEFAULT_TIME_SPEED
         self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
-        self.dt = self.DEFAULT_dt
+        self.dt = self.DEFAULT_DT
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.rk_max_iteration = self.DEFAULT_RK_MAX_ITERATION
         self.rk_min_iteration = self.DEFAULT_RK_MIN_ITERATION
@@ -349,4 +349,4 @@ class Settings:
         elif value < self.MIN_EXPECTED_TIME_SCALE:
             self._expected_time_scale = self.MIN_EXPECTED_TIME_SCALE
         else:
-            self._expected_time_scale = int(value)
+            self._expected_time_scale = value
