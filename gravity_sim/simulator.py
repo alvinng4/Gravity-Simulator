@@ -111,8 +111,8 @@ class Simulator:
                 )
             # Adaptive step size integrators
             case "rkf45":
-                # Simple euler is enough when there is no interaction    
-                if self.stats.objects_count == 1:       
+                # Simple euler is enough when there is no interaction
+                if self.stats.objects_count == 1:
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
@@ -178,8 +178,8 @@ class Simulator:
                         self.settings.tolerance,
                     )
             case "dopri":
-                # Simple euler is enough when there is no interaction    
-                if self.stats.objects_count == 1:            
+                # Simple euler is enough when there is no interaction
+                if self.stats.objects_count == 1:
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
@@ -245,8 +245,8 @@ class Simulator:
                         self.settings.tolerance,
                     )
             case "dverk":
-                # Simple euler is enough when there is no interaction    
-                if self.stats.objects_count == 1:            
+                # Simple euler is enough when there is no interaction
+                if self.stats.objects_count == 1:
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
@@ -312,8 +312,8 @@ class Simulator:
                         self.settings.tolerance,
                     )
             case "rkf78":
-                # Simple euler is enough when there is no interaction    
-                if self.stats.objects_count == 1:            
+                # Simple euler is enough when there is no interaction
+                if self.stats.objects_count == 1:
                     for _ in range(self.settings.time_speed):
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
