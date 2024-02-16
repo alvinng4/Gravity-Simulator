@@ -29,7 +29,7 @@ This is a Newtonian 3D N-body gravity simulator program which project the result
 ## Quick Start
 
 ### Python version
-This program requires Python version 3.11. 
+This program requires Python version 3.10 or higher. 
 
 ### Installation
 Download the source file, or clone this repository by running the following command in terminal:
