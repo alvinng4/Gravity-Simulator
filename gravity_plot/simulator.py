@@ -180,7 +180,7 @@ class Simulator:
 
         # Read information of the customized system
         if self.system not in plotter.default_systems:
-            file_path = Path(str(Path(__file__).parent) + "/customized_systems.csv")
+            file_path = Path(__file__).parent / "customized_systems.csv"
             try:
                 with open(file_path, "r") as file:
                     reader = csv.reader(file)
@@ -188,7 +188,9 @@ class Simulator:
                         if self.system == row[0]:
                             self.objects_count = int(row[1])
                             self.m = row[2].strip("[]")
-                            self.m = np.array([float(item) for item in self.m.split(", ")])
+                            self.m = np.array(
+                                [float(item) for item in self.m.split(", ")]
+                            )
                             state_vec = row[3].strip("[]")
                             state_vec = np.array(
                                 [float(item) for item in state_vec.split(", ")]
@@ -206,7 +208,9 @@ class Simulator:
                             self.x = np.array(x_vec)
                             self.v = np.array(v_vec)
             except FileNotFoundError:
-                sys.exit("Warning: customized_systems.csv not found in gravity_plot. Terminating program.")
+                sys.exit(
+                    "Warning: customized_systems.csv not found in gravity_plot. Terminating program."
+                )
 
         else:
             # Pre-defined systems
@@ -629,9 +633,11 @@ class Simulator:
                     break
             except ValueError:
                 print("Invalid input! Please try again.")
-                pass 
-            
-        self.trim_size = math.ceil(len(self.sol_time) / math.ceil(len(self.sol_time) / desired_trim_size))
+                pass
+
+        self.trim_size = math.ceil(
+            len(self.sol_time) / math.ceil(len(self.sol_time) / desired_trim_size)
+        )
         if len(self.sol_time) % self.trim_size == 0:
             self.trim_size += 1
         self.trimmed_sol_time = np.zeros(self.trim_size)
@@ -647,7 +653,7 @@ class Simulator:
         if self.trimmed_sol_time[-1] != self.sol_time[-1]:
             self.trimmed_sol_time[-1] = self.sol_time[-1]
             self.trimmed_sol_state[-1] = self.sol_state[-1]
-        
+
         print(f"Trimmed data size = {len(self.trimmed_sol_time)}")
 
         self.sol_time = self.trimmed_sol_time
@@ -712,18 +718,20 @@ class Simulator:
         Format: time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
         print("Storing simulation results...")
-        file_path = Path(str(Path(__file__).parent) + "/results/")
+        file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
         if self.unit == "years":
             self.tf /= 365.24
-        file_path = Path(
-            str(Path(__file__).parent)
-            + "/results/"
-            + str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-            + f"_{self.system}_"
-            + f"{self.tf}{self.unit[0]}_"
-            + f"{self.integrator}"
-            + ".csv"
+        file_path = (
+            Path(__file__).parent
+            / "results"
+            / (
+                str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                + f"_{self.system}_"
+                + f"{self.tf}{self.unit[0]}_"
+                + f"{self.integrator}"
+                + ".csv"
+            )
         )
 
         progress_bar = rich.progress.Progress(
