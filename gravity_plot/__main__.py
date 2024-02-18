@@ -216,6 +216,8 @@ class Plotter:
         while True:
             self.available_systems = self.default_systems.copy()
             file_path = Path(__file__).parent / "customized_systems.csv"
+            with open(file_path, "a"): # Create file if not exist
+                pass 
             with open(file_path, "r+") as file:
                 reader = csv.reader(file)
                 for row in reader:
