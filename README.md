@@ -14,6 +14,7 @@ This is a Newtonian 3D N-body gravity simulator program which project the result
     - [Available systems](#available-systems)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
+    - [Comparing relative energy error of multiple simulations (Additional)](#comparing-relative-energy-error-of-multiple-simulations-additional)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program)
     - [Available systems](#available-systems-1)
@@ -41,6 +42,10 @@ Install the required packages by
 pip install -r requirements.txt
 ```
 ## Plotting module
+
+<img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
+<img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
+
 ### Running the program
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
@@ -84,8 +89,11 @@ time(days/years), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
 Total energy will be stored as `0.0` if user chose not to compute energy.
 
-<img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
-<img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
+### Comparing relative energy error of multiple simulations (Additional)
+To compare the relative energy error of multiple simulations, 
+You can run `compare.py` inside the `gravity_plot` folder.
+The chosen data inside the `gravity_plot/results` folder would be read to generate a plot. 
+This module is not included in the main program.
 
 ## Interactive module
 ### Running the program
