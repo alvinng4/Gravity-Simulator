@@ -136,6 +136,7 @@ class Comparer:
         )
         self.args = parser.parse_args()
 
+
 if __name__ == "__main__":
     comparer = Comparer()
     comparer.run_prog()
