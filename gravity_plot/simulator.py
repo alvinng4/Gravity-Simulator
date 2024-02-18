@@ -567,8 +567,8 @@ class Simulator:
                             self.v,
                             self.a,
                             self.m,
-                            self.G,
                             self.dt,
+                            self.G,
                         )
                         self.sol_state[count + 1] = np.concatenate(
                             (
