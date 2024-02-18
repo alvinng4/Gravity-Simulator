@@ -1,25 +1,30 @@
-import csv 
+"""
+Compare the energy of the data inside the gravity_plot/results file
+
+IMPORTANT: matplotlib cannot be interrupted by input() 
+"""
+import csv
 from pathlib import Path
 import re
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-np.set_printoptions(precision=15)
-class Comparer:
 
+class Comparer:
     def __init__(self):
         self.read_folder_path = str(Path(__file__).parent) + "/results/"
+        self.file_names_labels = {}
 
     def run_prog(self):
-        self.ask_number_of_files()
         self.ask_unit()
+        self.ask_files_info()
         self.initialize_graph()
-        for i in range(self.number_of_files):
+        for file_name in self.file_names_labels:
             while True:
-                self.ask_name_of_files(i + 1)
                 try:
-                    with open(self.read_folder_path + self.file_name, "r") as file:
+                    with open(self.read_folder_path + file_name, "r") as file:
                         reader = csv.reader(file)
 
                         # Allocate memory
@@ -34,31 +39,28 @@ class Comparer:
 
                             # Extending memory buffer
                             if i % 50000 == 0:
-                                self.sol_time = np.concatenate(self.sol_time, np.zeros(50000))
-                                self.energy = np.concatenate(self.energy, np.zeros(50000))
+                                self.sol_time = np.concatenate(
+                                    self.sol_time, np.zeros(50000)
+                                )
+                                self.energy = np.concatenate(
+                                    self.energy, np.zeros(50000)
+                                )
 
                         self.sol_time = self.sol_time[:i]
                         self.energy = self.energy[:i]
 
-
-                        self.ask_label_name()
-                        self.plot_rel_energy()
+                        self.plot_rel_energy(self.file_names_labels[file_name])
                         break
 
                 except FileNotFoundError:
-                    print("File does not exit. Please try again.")
+                    sys.exit("Error: file is not found. Exiting the program")
 
         self.show_plot()
 
-    def ask_number_of_files(self):
-        while True:
-            try:
-                self.number_of_files = int(input("Enter number of files you want to compare: ").strip())
-                break
-            except ValueError:
-                print("Invalid input. Please try again.")
-
     def ask_unit(self):
+        """
+        Ask user the time unit (day/year) of all the data.
+        """
         while True:
             self.unit = input("Enter the unit of time (day/year): ")
             if matches := re.search(
@@ -81,25 +83,37 @@ class Comparer:
         self.ax.set_xlabel(f"Time ({self.unit})")
         self.ax.set_ylabel("|(E(t)-E0)/E0|")
 
-    def ask_name_of_files(self, file_number):
+    def ask_files_info(self):
+        """
+        Ask user the number of files, all the file names and their respective labels
+        """
         while True:
             try:
-                self.file_name = input(f"Enter the full name of file {file_number}(including .csv): ").strip()
+                self.number_of_files = int(
+                    input("Enter number of files you want to compare: ").strip()
+                )
                 break
             except ValueError:
                 print("Invalid input. Please try again.")
 
-    def ask_label_name(self):
-        self.label_name = input("Enter the label for this data: ").strip()
+        for i in range(self.number_of_files):
+            while True:
+                self.file_name = input(
+                    f"Enter the full name of file {i + 1}(including .csv): "
+                ).strip()
+                self.file_path = Path(self.read_folder_path + self.file_name)
+                if self.file_path.is_file():
+                    self.label_name = input("Enter the label for this data: ").strip()
+                    self.file_names_labels[self.file_name] = self.label_name
+                    break
+                else:
+                    print("File does not exist! Please try again.")
 
-    def plot_rel_energy(self):
+    def plot_rel_energy(self, label_name):
         self.ax.semilogy(
             self.sol_time,
-            np.abs(
-                (self.energy - self.energy[0])
-                / self.energy[0]
-            ),
-            label=self.label_name,
+            np.abs((self.energy - self.energy[0]) / self.energy[0]),
+            label=label_name,
         )
 
     def show_plot(self):
