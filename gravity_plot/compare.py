@@ -3,6 +3,7 @@ Compare the energy of the data inside the gravity_plot/results file
 
 IMPORTANT: matplotlib cannot be interrupted by input() 
 """
+import argparse
 import csv
 from pathlib import Path
 import re
@@ -15,6 +16,8 @@ import matplotlib.pyplot as plt
 class Comparer:
     def __init__(self):
         self.read_folder_path = str(Path(__file__).parent) + "/results/"
+        self.read_command_line_arg()
+        self.title = self.args.title
         self.file_names_labels = {}
 
     def run_prog(self):
@@ -79,7 +82,7 @@ class Comparer:
     def initialize_graph(self):
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
-        self.ax.set_title("Relative energy error against time")
+        self.ax.set_title(self.title)
         self.ax.set_xlabel(f"Time ({self.unit})")
         self.ax.set_ylabel("|(E(t)-E0)/E0|")
 
@@ -122,6 +125,16 @@ class Comparer:
         self.fig.subplots_adjust(right=0.8)
         plt.show()
 
+    def read_command_line_arg(self):
+        parser = argparse.ArgumentParser(description="N-body gravity simulator")
+        parser.add_argument(
+            "--title",
+            "-t",
+            default="Relative energy error against time",
+            type=str,
+            help="Usage: --title <title>",
+        )
+        self.args = parser.parse_args()
 
 if __name__ == "__main__":
     comparer = Comparer()
