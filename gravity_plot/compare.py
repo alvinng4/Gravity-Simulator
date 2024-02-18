@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 class Comparer:
     def __init__(self):
-        self.read_folder_path = str(Path(__file__).parent) + "/results/"
+        self.read_folder_path = Path(__file__).parent / "results"
         self.read_command_line_arg()
         self.title = self.args.title
         self.file_names_labels = {}
@@ -27,7 +27,7 @@ class Comparer:
         for file_name in self.file_names_labels:
             while True:
                 try:
-                    with open(self.read_folder_path + file_name, "r") as file:
+                    with open(self.read_folder_path / file_name, "r") as file:
                         reader = csv.reader(file)
 
                         # Allocate memory
@@ -104,7 +104,7 @@ class Comparer:
                 self.file_name = input(
                     f"Enter the full name of file {i + 1}(including .csv): "
                 ).strip()
-                self.file_path = Path(self.read_folder_path + self.file_name)
+                self.file_path = self.read_folder_path / self.file_name
                 if self.file_path.is_file():
                     self.label_name = input("Enter the label for this data: ").strip()
                     self.file_names_labels[self.file_name] = self.label_name
