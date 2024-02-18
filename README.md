@@ -95,6 +95,8 @@ You can run `compare.py` inside the `gravity_plot` folder.
 The chosen data inside the `gravity_plot/results` folder would be read to generate a plot. 
 This module is not included in the main program.
 
+<img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.svg" alt="Image" width="500">
+
 ## Interactive module
 ### Running the program
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
