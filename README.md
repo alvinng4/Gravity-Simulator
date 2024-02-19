@@ -43,9 +43,6 @@ pip install -r requirements.txt
 ```
 ## Plotting module
 
-<img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
-<img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
-
 ### Running the program
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
@@ -100,7 +97,7 @@ If you want to customize the title of the graph, run the program with the follow
 python compare.py -t <title>
 ```
 
-<img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.svg" alt="Image" width="500">
+<img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.svg" alt="Image" width="400">
 
 ## Interactive module
 ### Running the program
