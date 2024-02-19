@@ -44,6 +44,10 @@ pip install -r requirements.txt
 ## Plotting module
 
 ### Running the program
+
+<img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="400">
+<img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="400">
+
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
 python gravity_plot
