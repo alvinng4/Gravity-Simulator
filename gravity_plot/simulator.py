@@ -1,4 +1,5 @@
 import csv
+import ctypes
 import datetime
 import math
 from pathlib import Path
@@ -157,6 +158,7 @@ class Simulator:
     }
 
     def __init__(self, plotter):
+        self.c_lib = ctypes.cdll.LoadLibrary(Path(__file__).parent / "c_lib.so")
         self.system = plotter.system
         self.integrator = plotter.integrator
         self.tf = plotter.tf
@@ -222,7 +224,7 @@ class Simulator:
                     V2 = np.array([0.0, -0.5, 0.0])
                     self.x = np.array([R1, R2])
                     self.v = np.array([V1, V2])
-                    self.m = [1.0 / self.G, 1.0 / self.G]
+                    self.m = np.array([1.0 / self.G, 1.0 / self.G])
                     self.objects_count = 2
 
                 case "eccentric_binary_orbit":
@@ -232,7 +234,7 @@ class Simulator:
                     V2 = np.array([0.0, -0.625, 0.0])
                     self.x = np.array([R1, R2])
                     self.v = np.array([V1, V2])
-                    self.m = [1.0 / self.G, 0.8 / self.G]
+                    self.m = np.array([1.0 / self.G, 0.8 / self.G])
                     self.objects_count = 2
 
                 case "3d_helix":
@@ -245,15 +247,15 @@ class Simulator:
                     V3 = np.array([0.5 * v0, 0.5, -(math.sqrt(3.0) / 2.0) * v0])
                     self.x = np.array([R1, R2, R3])
                     self.v = np.array([V1, V2, V3])
-                    self.m = [1.0 / self.G, 1.0 / self.G, 1.0 / self.G]
+                    self.m = np.array([1.0 / self.G, 1.0 / self.G, 1.0 / self.G])
                     self.objects_count = 3
 
                 case "sun_earth_moon":
-                    self.m = [
+                    self.m = np.array([
                         self.SOLAR_SYSTEM_MASSES["Sun"],
                         self.SOLAR_SYSTEM_MASSES["Earth"],
                         self.SOLAR_SYSTEM_MASSES["Moon"],
-                    ]
+                    ])
                     R_CM = (
                         1
                         / np.sum(self.m)
@@ -292,7 +294,7 @@ class Simulator:
                     V3 = np.array([-0.93240737, -0.86473146, 0.0])
                     self.x = np.array([R1, R2, R3])
                     self.v = np.array([V1, V2, V3])
-                    self.m = [1.0 / self.G, 1.0 / self.G, 1.0 / self.G]
+                    self.m = np.array([1.0 / self.G, 1.0 / self.G, 1.0 / self.G])
                     self.objects_count = 3
 
                 case "pyth-3-body":
@@ -304,11 +306,11 @@ class Simulator:
                     V3 = np.array([0.0, 0.0, 0.0])
                     self.x = np.array([R1, R2, R3])
                     self.v = np.array([V1, V2, V3])
-                    self.m = [3.0 / self.G, 4.0 / self.G, 5.0 / self.G]
+                    self.m = np.array([3.0 / self.G, 4.0 / self.G, 5.0 / self.G])
                     self.objects_count = 3
 
                 case "solar_system":
-                    self.m = [
+                    self.m = np.array([
                         self.SOLAR_SYSTEM_MASSES["Sun"],
                         self.SOLAR_SYSTEM_MASSES["Mercury"],
                         self.SOLAR_SYSTEM_MASSES["Venus"],
@@ -318,7 +320,7 @@ class Simulator:
                         self.SOLAR_SYSTEM_MASSES["Saturn"],
                         self.SOLAR_SYSTEM_MASSES["Uranus"],
                         self.SOLAR_SYSTEM_MASSES["Neptune"],
-                    ]
+                    ])
                     R_CM = (
                         1
                         / np.sum(self.m)
@@ -386,7 +388,7 @@ class Simulator:
                     ]
 
                 case "solar_system_plus":
-                    self.m = [
+                    self.m = np.array([
                         self.SOLAR_SYSTEM_MASSES["Sun"],
                         self.SOLAR_SYSTEM_MASSES["Mercury"],
                         self.SOLAR_SYSTEM_MASSES["Venus"],
@@ -399,7 +401,7 @@ class Simulator:
                         self.SOLAR_SYSTEM_MASSES["Pluto"],
                         self.SOLAR_SYSTEM_MASSES["Ceres"],
                         self.SOLAR_SYSTEM_MASSES["Vesta"],
-                    ]
+                    ])
 
                     R_CM = (
                         1
@@ -487,11 +489,59 @@ class Simulator:
                         "Vesta",
                     ]
 
-        # Prevent the error message from numba package:
-        # "Encountered the use of a type that is scheduled for deprecation: type 'reflected list' found for argument 'm' of function '...'."
-        self.m = nb.typed.List(self.m)
+    def simulation_ctypes(self):
+        print("Simulating the system...")
+        start = timeit.default_timer()
 
-    def simulation(self):
+        # Initializing
+        if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
+            self.t = ctypes.c_double(0.0)
+            self.npts = int(np.floor((self.tf - self.t0) / self.dt)) + 1
+            self.sol_state = np.zeros((self.npts, self.objects_count * 3 * 2))
+            self.sol_state[0] = np.concatenate(
+                (
+                    np.reshape(self.x, self.objects_count * 3),
+                    np.reshape(self.v, self.objects_count * 3),
+                )
+            )
+            self.sol_time = np.linspace(
+                self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
+            )
+
+        progress_bar = rich.progress.Progress(
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
+        )
+
+        with progress_bar as pb:
+            match self.integrator:
+                case "euler":
+                    task = pb.add_task("", total=self.tf)
+                    while self.t.value <= self.sol_time[-1]:
+                        self.c_lib.euler(
+                            ctypes.c_int(self.objects_count),
+                            self.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.byref(self.t),
+                            ctypes.c_double(self.dt),
+                            ctypes.c_double(self.tf),
+                            ctypes.c_int(self.npts),
+                            self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_double(self.G),
+                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        )
+                        pb.update(task, completed=self.t.value)
+                    pb.stop()
+
+        stop = timeit.default_timer()
+        print(f"Run time: {stop - start:.3f} s")
+        print("")
+
+    def simulation_numpy(self):
         print("Simulating the system...")
         start = timeit.default_timer()
 
@@ -869,7 +919,7 @@ class Simulator:
                     (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
                 )
                 sol_time[count] = t
-                progress_bar.update(task, advance=dt)
+                progress_bar.update(task, completed=t)
 
                 # Check buffer size and extend if needed :
                 if (count + 1) == len(sol_state):
