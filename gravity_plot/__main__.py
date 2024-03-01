@@ -11,7 +11,7 @@ from simulator import Simulator
 class Plotter:
     def __init__(self):
         # Use c library to perform simulation
-        self.is_ctypes = False
+        self.is_ctypes = True
 
         self.tolerance = None
         self.dt = None
