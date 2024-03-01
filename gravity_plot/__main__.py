@@ -11,7 +11,7 @@ from simulator import Simulator
 class Plotter:
     def __init__(self):
         # Use c library to perform simulation
-        self.is_ctypes = False
+        self.is_c_lib = True
 
         self.tolerance = None
         self.dt = None
@@ -88,8 +88,8 @@ class Plotter:
                 # Launch simulation
                 self.simulator = Simulator(self)
                 self.simulator.initialize_system(self)
-                if self.is_ctypes == True:
-                    self.simulator.simulation_ctypes()
+                if self.is_c_lib == True:
+                    self.simulator.simulation_c_lib()
                 else:
                     self.simulator.simulation_numpy()
                 if self.unit == "years":
