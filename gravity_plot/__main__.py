@@ -10,6 +10,9 @@ from simulator import Simulator
 
 class Plotter:
     def __init__(self):
+        # Use c library to perform simulation
+        self.is_ctypes = False
+
         self.tolerance = None
         self.dt = None
         self.default_systems = [
@@ -85,7 +88,10 @@ class Plotter:
                 # Launch simulation
                 self.simulator = Simulator(self)
                 self.simulator.initialize_system(self)
-                self.simulator.simulation()
+                if self.is_ctypes == True:
+                    self.simulator.simulation_ctypes()
+                else:
+                    self.simulator.simulation_numpy()
                 if self.unit == "years":
                     self.simulator.sol_time /= 365.24
 
@@ -216,8 +222,8 @@ class Plotter:
         while True:
             self.available_systems = self.default_systems.copy()
             file_path = Path(__file__).parent / "customized_systems.csv"
-            with open(file_path, "a"): # Create file if not exist
-                pass 
+            with open(file_path, "a"):  # Create file if not exist
+                pass
             with open(file_path, "r+") as file:
                 reader = csv.reader(file)
                 for row in reader:
