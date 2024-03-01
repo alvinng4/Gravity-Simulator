@@ -4,12 +4,34 @@
 
 #define real double
 
-void acceleration(int objects_count, real (*x)[3], real (*a)[3], real *m, real G);
-void euler(int objects_count, real (*x)[3], real (*v)[3], real *t, real dt, real tf, int npts, real *m, real G, real (*sol_state)[6]);
-void euler_cromer(int objects_count, real (*x)[3], real (*v)[3], real *t, real dt, real tf, int npts, real *m, real G, real (*sol_state)[6]);
+void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G);
+void euler(
+    int objects_count, 
+    real (*x)[3], 
+    real (*v)[3], 
+    real *t, 
+    real dt, 
+    real tf, 
+    int npts, 
+    const real *m, 
+    real G, 
+    real (*sol_state)[6 * objects_count]
+);
+void euler_cromer(
+    int objects_count, 
+    real (*x)[3], 
+    real (*v)[3], 
+    real *t, 
+    real dt, 
+    real tf, 
+    int npts, 
+    const real *m, 
+    real G, 
+    real (*sol_state)[6]
+);
 real vec_norm(const real *vec, int vec_size);
 
-void acceleration(int objects_count, real (*x)[3], real (*a)[3], real *m, real G)
+void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
 {   
     real R_norm, temp_value, *temp_vec = (real *) malloc(3 * sizeof(real)), *R = (real *) malloc(3 * sizeof(real));
 
@@ -33,18 +55,30 @@ void acceleration(int objects_count, real (*x)[3], real (*a)[3], real *m, real G
             a[j][2] = temp_vec[2] * m[i];
         }
     }
+
     free(temp_vec);
     free(R);
 }
 
 
-void euler(int objects_count, real (*x)[3], real (*v)[3], real *t, real dt, real tf, int npts, real *m, real G, real (*sol_state)[6])
+void euler(
+    int objects_count, 
+    real (*x)[3], 
+    real (*v)[3], 
+    real *t, 
+    real dt, 
+    real tf, 
+    int npts, 
+    const real *m, 
+    real G, 
+    real (*sol_state)[6 * objects_count]
+)
 {   
     real (*a)[3] = malloc(3 * objects_count * sizeof(real));
 
     int progress_percentage = (int) round(*t / tf * 100);
     for(int count = (int) round(*t / dt); count < npts; count++)
-    {
+    {   
         acceleration(objects_count, x, a, m, G);
         for (int j = 0; j < objects_count; j++)
         {
@@ -54,23 +88,35 @@ void euler(int objects_count, real (*x)[3], real (*v)[3], real *t, real dt, real
             v[j][0] += a[j][0] * dt;
             v[j][1] += a[j][1] * dt;
             v[j][2] += a[j][2] * dt;
-            sol_state[count + 1][j * 6] = x[j][0];
-            sol_state[count + 1][j * 6 + 1] = x[j][1];
-            sol_state[count + 1][j * 6 + 2] = x[j][2];
-            sol_state[count + 1][j * 6 + 3] = v[j][0];
-            sol_state[count + 1][j * 6 + 4] = v[j][1];
-            sol_state[count + 1][j * 6 + 5] = v[j][2];
-        }        
+            sol_state[count + 1][j * 3] = x[j][0];
+            sol_state[count + 1][j * 3 + 1] = x[j][1];
+            sol_state[count + 1][j * 3 + 2] = x[j][2];
+            sol_state[count + 1][objects_count * 3 + j * 3] = v[j][0];
+            sol_state[count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+            sol_state[count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+        }    
+            
         *t += dt;
         if ((int) (*t / tf * 100) > progress_percentage)
-        {
+        {   
             free(a);
             return;
         }
     }
 }
 
-void euler_cromer(int objects_count, real (*x)[3], real (*v)[3], real *t, real dt, real tf, int npts, real *m, real G, real (*sol_state)[6])
+void euler_cromer(
+    int objects_count, 
+    real (*x)[3], 
+    real (*v)[3], 
+    real *t, 
+    real dt, 
+    real tf, 
+    int npts, 
+    const real *m, 
+    real G, 
+    real (*sol_state)[6]
+)
 {   
     real (*a)[3] = malloc(3 * objects_count * sizeof(real));
 
