@@ -249,11 +249,13 @@ class Simulator:
                     self.objects_count = 3
 
                 case "sun_earth_moon":
-                    self.m = np.array([
-                        self.SOLAR_SYSTEM_MASSES["Sun"],
-                        self.SOLAR_SYSTEM_MASSES["Earth"],
-                        self.SOLAR_SYSTEM_MASSES["Moon"],
-                    ])
+                    self.m = np.array(
+                        [
+                            self.SOLAR_SYSTEM_MASSES["Sun"],
+                            self.SOLAR_SYSTEM_MASSES["Earth"],
+                            self.SOLAR_SYSTEM_MASSES["Moon"],
+                        ]
+                    )
                     R_CM = (
                         1
                         / np.sum(self.m)
@@ -308,17 +310,19 @@ class Simulator:
                     self.objects_count = 3
 
                 case "solar_system":
-                    self.m = np.array([
-                        self.SOLAR_SYSTEM_MASSES["Sun"],
-                        self.SOLAR_SYSTEM_MASSES["Mercury"],
-                        self.SOLAR_SYSTEM_MASSES["Venus"],
-                        self.SOLAR_SYSTEM_MASSES["Earth"],
-                        self.SOLAR_SYSTEM_MASSES["Mars"],
-                        self.SOLAR_SYSTEM_MASSES["Jupiter"],
-                        self.SOLAR_SYSTEM_MASSES["Saturn"],
-                        self.SOLAR_SYSTEM_MASSES["Uranus"],
-                        self.SOLAR_SYSTEM_MASSES["Neptune"],
-                    ])
+                    self.m = np.array(
+                        [
+                            self.SOLAR_SYSTEM_MASSES["Sun"],
+                            self.SOLAR_SYSTEM_MASSES["Mercury"],
+                            self.SOLAR_SYSTEM_MASSES["Venus"],
+                            self.SOLAR_SYSTEM_MASSES["Earth"],
+                            self.SOLAR_SYSTEM_MASSES["Mars"],
+                            self.SOLAR_SYSTEM_MASSES["Jupiter"],
+                            self.SOLAR_SYSTEM_MASSES["Saturn"],
+                            self.SOLAR_SYSTEM_MASSES["Uranus"],
+                            self.SOLAR_SYSTEM_MASSES["Neptune"],
+                        ]
+                    )
                     R_CM = (
                         1
                         / np.sum(self.m)
@@ -386,20 +390,22 @@ class Simulator:
                     ]
 
                 case "solar_system_plus":
-                    self.m = np.array([
-                        self.SOLAR_SYSTEM_MASSES["Sun"],
-                        self.SOLAR_SYSTEM_MASSES["Mercury"],
-                        self.SOLAR_SYSTEM_MASSES["Venus"],
-                        self.SOLAR_SYSTEM_MASSES["Earth"],
-                        self.SOLAR_SYSTEM_MASSES["Mars"],
-                        self.SOLAR_SYSTEM_MASSES["Jupiter"],
-                        self.SOLAR_SYSTEM_MASSES["Saturn"],
-                        self.SOLAR_SYSTEM_MASSES["Uranus"],
-                        self.SOLAR_SYSTEM_MASSES["Neptune"],
-                        self.SOLAR_SYSTEM_MASSES["Pluto"],
-                        self.SOLAR_SYSTEM_MASSES["Ceres"],
-                        self.SOLAR_SYSTEM_MASSES["Vesta"],
-                    ])
+                    self.m = np.array(
+                        [
+                            self.SOLAR_SYSTEM_MASSES["Sun"],
+                            self.SOLAR_SYSTEM_MASSES["Mercury"],
+                            self.SOLAR_SYSTEM_MASSES["Venus"],
+                            self.SOLAR_SYSTEM_MASSES["Earth"],
+                            self.SOLAR_SYSTEM_MASSES["Mars"],
+                            self.SOLAR_SYSTEM_MASSES["Jupiter"],
+                            self.SOLAR_SYSTEM_MASSES["Saturn"],
+                            self.SOLAR_SYSTEM_MASSES["Uranus"],
+                            self.SOLAR_SYSTEM_MASSES["Neptune"],
+                            self.SOLAR_SYSTEM_MASSES["Pluto"],
+                            self.SOLAR_SYSTEM_MASSES["Ceres"],
+                            self.SOLAR_SYSTEM_MASSES["Vesta"],
+                        ]
+                    )
 
                     R_CM = (
                         1
@@ -530,7 +536,9 @@ class Simulator:
                             ctypes.c_int(self.npts),
                             self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(self.G),
-                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.sol_state.ctypes.data_as(
+                                ctypes.POINTER(ctypes.c_double)
+                            ),
                         )
                         pb.update(task, completed=self.t.value)
                     pb.stop()
@@ -547,7 +555,9 @@ class Simulator:
                             ctypes.c_int(self.npts),
                             self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(self.G),
-                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.sol_state.ctypes.data_as(
+                                ctypes.POINTER(ctypes.c_double)
+                            ),
                         )
                         pb.update(task, completed=self.t.value)
                     pb.stop()
@@ -564,7 +574,9 @@ class Simulator:
                             ctypes.c_int(self.npts),
                             self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(self.G),
-                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.sol_state.ctypes.data_as(
+                                ctypes.POINTER(ctypes.c_double)
+                            ),
                         )
                         pb.update(task, completed=self.t.value)
                     pb.stop()
@@ -581,7 +593,9 @@ class Simulator:
                             ctypes.c_int(self.npts),
                             self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(self.G),
-                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.sol_state.ctypes.data_as(
+                                ctypes.POINTER(ctypes.c_double)
+                            ),
                         )
                         pb.update(task, completed=self.t.value)
                     pb.stop()
@@ -996,6 +1010,7 @@ class Simulator:
                 progress_bar.stop()
                 return sol_state[0 : count + 1], sol_time[0 : count + 1]
 
+
 def acceleration(objects_count, x, m, G):
     """
     Calculate acceleration by a = - GM/r^3 vec{r}
@@ -1017,13 +1032,16 @@ def acceleration(objects_count, x, m, G):
 
     return a
 
+
 def euler(x, v, a, dt):
     return x + v * dt, v + a * dt
+
 
 def euler_cromer(x, v, a, dt):
     v = v + a * dt
     x = x + v * dt
     return x, v
+
 
 def rk4(objects_count, x, v, m, G, dt):
     vk1 = acceleration(objects_count, x, m, G)
@@ -1043,6 +1061,7 @@ def rk4(objects_count, x, v, m, G, dt):
 
     return x, v
 
+
 def leapfrog(objects_count, x, v, a, m, dt, G):
     a_0 = a
     x = x + v * dt + a_0 * 0.5 * dt * dt
@@ -1050,6 +1069,7 @@ def leapfrog(objects_count, x, v, a, m, dt, G):
     v = v + (a_0 + a_1) * 0.5 * dt
 
     return x, v, a_1
+
 
 def initial_time_step_rk_embedded(
     objects_count: int,
@@ -1100,6 +1120,7 @@ def initial_time_step_rk_embedded(
     dt = min([100 * dt_0, dt_1])
 
     return dt
+
 
 def butcher_tableaus_rk(order):
     """
