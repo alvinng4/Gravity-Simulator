@@ -14,6 +14,7 @@ This is a Newtonian 3D N-body gravity simulator program which project the result
     - [Available systems](#available-systems)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
+    - [C library / Numpy](#c-library--numpy)
     - [Comparing relative energy error of multiple simulations (Additional)](#comparing-relative-energy-error-of-multiple-simulations-additional)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program)
@@ -89,6 +90,15 @@ The data except time will be in the default unit (solar masses, AU and days), an
 time(days/years), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
 Total energy will be stored as `0.0` if user chose not to compute energy.
+
+### C library / Numpy
+By default, the module utilize the code written in C to improve performance.
+Nevertheless, the code in C and numpy are almost identical and gives similar result.
+If you want to use numpy, run the program with
+```
+python gravity_plot -n
+```
+
 
 ### Comparing relative energy error of multiple simulations (Additional)
 To compare the relative energy error of multiple simulations, 
