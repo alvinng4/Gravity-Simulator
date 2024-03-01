@@ -1,3 +1,4 @@
+import argparse
 import csv
 from pathlib import Path
 import re
@@ -10,8 +11,9 @@ from simulator import Simulator
 
 class Plotter:
     def __init__(self):
+        self._read_command_line_arg()
         # Use c library to perform simulation
-        self.is_c_lib = True
+        self.is_c_lib = self.args.numpy
 
         self.tolerance = None
         self.dt = None
@@ -479,8 +481,19 @@ class Plotter:
             else:
                 print(f"dt: {self.dt} days")
         elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
-            print(f"tolerance: {self.tolerance}")
+            print(f"Tolerance: {self.tolerance}")
+        print(f"Use c_lib: {self.is_c_lib}")
         print("")
+
+    def _read_command_line_arg(self):
+        parser = argparse.ArgumentParser(description="N-body gravity simulator")
+        parser.add_argument(
+            "--numpy",
+            "-n",
+            action="store_false",
+            help="disable c_lib and use numpy",
+        )
+        self.args = parser.parse_args()
 
     @staticmethod
     def ask_user_permission(msg):
