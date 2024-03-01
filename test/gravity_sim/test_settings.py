@@ -10,13 +10,8 @@ from pathlib import Path
 import random
 import sys
 
-path = (
-    str(
-        Path(Path(Path(__file__).parent.absolute()).parent.absolute()).parent.absolute()
-    )
-    + "/gravity_sim/"
-)
-sys.path.insert(0, path)
+path =  Path(__file__).parent.parent.parent.absolute() / "gravity_sim"
+sys.path.insert(0, str(path))
 
 from settings import Settings
 
