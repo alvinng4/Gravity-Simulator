@@ -534,6 +534,23 @@ class Simulator:
                         )
                         pb.update(task, completed=self.t.value)
                     pb.stop()
+                case "euler_cromer":
+                    task = pb.add_task("", total=self.tf)
+                    while self.t.value <= self.sol_time[-1]:
+                        self.c_lib.euler_cromer(
+                            ctypes.c_int(self.objects_count),
+                            self.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.byref(self.t),
+                            ctypes.c_double(self.dt),
+                            ctypes.c_double(self.tf),
+                            ctypes.c_int(self.npts),
+                            self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_double(self.G),
+                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        )
+                        pb.update(task, completed=self.t.value)
+                    pb.stop()
 
         stop = timeit.default_timer()
         print(f"Run time: {stop - start:.3f} s")
