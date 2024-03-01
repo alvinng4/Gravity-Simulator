@@ -7,8 +7,6 @@ import rich.progress
 import timeit
 import sys
 
-
-import numba as nb  # Note: nb.njit cannot works on functions inside a class
 import numpy as np
 
 
@@ -947,9 +945,6 @@ class Simulator:
                 progress_bar.stop()
                 return sol_state[0 : count + 1], sol_time[0 : count + 1]
 
-
-# Note: jit cannot works on functions inside a class
-@nb.njit
 def acceleration(objects_count, x, m, G):
     """
     Calculate acceleration by a = - GM/r^3 vec{r}
@@ -971,20 +966,14 @@ def acceleration(objects_count, x, m, G):
 
     return a
 
-
-@nb.njit
 def euler(x, v, a, dt):
     return x + v * dt, v + a * dt
 
-
-@nb.njit
 def euler_cromer(x, v, a, dt):
     v = v + a * dt
     x = x + v * dt
     return x, v
 
-
-@nb.njit
 def rk4(objects_count, x, v, m, G, dt):
     vk1 = acceleration(objects_count, x, m, G)
     xk1 = v
@@ -1003,8 +992,6 @@ def rk4(objects_count, x, v, m, G, dt):
 
     return x, v
 
-
-@nb.njit
 def leapfrog(objects_count, x, v, a, m, dt, G):
     a_0 = a
     x = x + v * dt + a_0 * 0.5 * dt * dt
@@ -1013,8 +1000,6 @@ def leapfrog(objects_count, x, v, a, m, dt, G):
 
     return x, v, a_1
 
-
-@nb.njit
 def initial_time_step_rk_embedded(
     objects_count: int,
     power: int,
@@ -1065,8 +1050,6 @@ def initial_time_step_rk_embedded(
 
     return dt
 
-
-@nb.njit
 def butcher_tableaus_rk(order):
     """
     Butcher tableaus for embedded rk
