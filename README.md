@@ -152,7 +152,7 @@ Hold the right mouse button to create a star + drag the mouse to give it an init
 Adjust parameter values: Left-click on the parameters panel to select a parameter + scroll to change its value.\
 Switch integrators: Left-click the integrator on the integrators panel.
 
-Warning: switching integrators in the middle of simulation may produce numerical error.
+Warning: switching integrators in the middle of simulation may produce numerical error due to different natures of the integrators.
 ### Changing the resolution
 The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
 ```
