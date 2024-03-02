@@ -1,5 +1,5 @@
 # Gravity Simulator
-This is a Newtonian 3D N-body gravity simulator program which project the results on the xy plane.
+This is a Newtonian 3D N-body gravity simulator program which projects the results on the xy plane.
 * With the plotting module, you may set up your own system and generate a plot easily.
 * The interactive module enables real-time interaction with the gravity simulator.
 
@@ -16,6 +16,7 @@ This is a Newtonian 3D N-body gravity simulator program which project the result
     - [Saving the data](#saving-the-data)
     - [C library / Numpy](#c-library--numpy)
     - [Comparing relative energy error of multiple simulations (Additional)](#comparing-relative-energy-error-of-multiple-simulations-additional)
+    - [Program crashes](#program-crashes)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program)
     - [Available systems](#available-systems-1)
@@ -53,6 +54,7 @@ Once you have downloaded the source files, navigate to the directory of the sour
 ```
 python gravity_plot
 ```
+
 ### Available systems
 | System | Description |
 |:-------|:------------| 
@@ -99,7 +101,6 @@ If you want to use numpy, run the program with
 python gravity_plot -n
 ```
 
-
 ### Comparing relative energy error of multiple simulations (Additional)
 To compare the relative energy error of multiple simulations, 
 You can run `compare.py` inside the `gravity_plot` folder.
@@ -112,6 +113,16 @@ python compare.py -t <title>
 ```
 
 <img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.svg" alt="Image" width="400">
+
+### Program crashes
+If your program won't start and shows error messages related to ctypes library or dll files after running
+```
+python gravity_plot
+```
+you may fix this issue by running with numpy (See [C library / Numpy](#c-library--numpy))
+or try running the program with 64-bit python.
+
+You are also welcomed to contact me if you see any error. (See [Feedback and Bugs](#feedback-and-bugs))
 
 ## Interactive module
 ### Running the program
