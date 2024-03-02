@@ -156,7 +156,8 @@ class Simulator:
     }
 
     def __init__(self, plotter):
-        self.c_lib = plotter.c_lib
+        if plotter.is_c_lib:
+            self.c_lib = plotter.c_lib
         self.system = plotter.system
         self.integrator = plotter.integrator
         self.tf = plotter.tf
