@@ -56,18 +56,12 @@ class GravitySimulator:
 
     def run_prog(self):
         """The main loop for the program"""
-        try:
-            while True:
-                self._check_events()
-                self._update_events()
-                self._simulation()
-                self._update_screen()
-                self.clock.tick(self.settings.MAX_FPS)
-        except TypeError:
-            print("Error: object is out of range |x| > 2147483647.")
-            print(
-                "To avoid this, consider using more accurate integrators or use smaller step size."
-            )
+        while True:
+            self._check_events()
+            self._update_events()
+            self._simulation()
+            self._update_screen()
+            self.clock.tick(self.settings.MAX_FPS)
 
     def _check_events(self):
         self.simulator.check_current_integrator()
@@ -89,7 +83,7 @@ class GravitySimulator:
 
     def _update_events(self):
         self.camera.update_movement()
-        self.grav_objs.update()
+        self.grav_objs.update(self)
         self.stats.update(self)
 
     def _simulation(self):
