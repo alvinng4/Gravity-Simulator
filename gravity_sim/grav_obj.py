@@ -185,16 +185,21 @@ class Grav_obj(Sprite):
                     "Error: Image not found. Make sure the image path provided for Grav_obj is correct."
                 )
 
-    def update(self):
+    def update(self, gravity_sim):
         """Update the apparent position of all grav_objs with camera"""
-        self.rect.center = (
-            self.params["r1"] * self.settings.distance_scale
-            + self.screen_rect.centerx
-            - self.camera.pos[0],
-            -self.params["r2"] * self.settings.distance_scale
-            + self.screen_rect.centery
-            - self.camera.pos[1],
-        )
+        try:
+            self.rect.center = (
+                self.params["r1"] * self.settings.distance_scale
+                + self.screen_rect.centerx
+                - self.camera.pos[0],
+                -self.params["r2"] * self.settings.distance_scale
+                + self.screen_rect.centery
+                - self.camera.pos[1],
+            )
+        except TypeError:
+            # Remove object when position/velocity out of int range (2,147,483,648)
+            self.kill()
+            gravity_sim.simulator.is_initialize = True
 
     @staticmethod
     def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
