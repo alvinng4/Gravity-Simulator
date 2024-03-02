@@ -2,6 +2,7 @@ import argparse
 import ctypes
 import csv
 from pathlib import Path
+import platform
 import re
 
 import matplotlib.pyplot as plt
@@ -16,7 +17,11 @@ class Plotter:
         # Use c library to perform simulation
         self.is_c_lib = self.args.numpy
         if self.is_c_lib:
-            self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.so"))
+            if platform.system() == "Windows":
+                self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.dll"))
+            else:
+                self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.so"))
+
 
         self.tolerance = None
         self.dt = None
