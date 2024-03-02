@@ -498,8 +498,8 @@ class Simulator:
         start = timeit.default_timer()
 
         # Initializing
+        self.t = ctypes.c_double(0.0)
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
-            self.t = ctypes.c_double(0.0)
             self.npts = int(np.floor((self.tf - self.t0) / self.dt)) + 1
             self.sol_state = np.zeros((self.npts, self.objects_count * 3 * 2))
             self.sol_state[0] = np.concatenate(
@@ -598,6 +598,89 @@ class Simulator:
                             ),
                         )
                         pb.update(task, completed=self.t.value)
+                    pb.stop()
+                case "rkf45" | "dopri" | "dverk" | "rkf78":
+                    (
+                        self.power,
+                        self.power_test,
+                        self.coeff,
+                        self.weights,
+                        self.weights_test,
+                    ) = butcher_tableaus_rk(self.order)
+                    task = pb.add_task("", total=self.tf)
+                    self.a = acceleration(self.objects_count, self.x, self.m, self.G)
+                    self.dt = initial_time_step_rk_embedded(
+                            self.objects_count,
+                            self.power,
+                            self.x,
+                            self.v,
+                            self.a,
+                            self.m,
+                            self.G,
+                            self.tolerance,
+                            self.tolerance,
+                        )      
+                    
+                    # Allocate for dense output:
+                    self.npts = 100000
+                    self.sol_state = np.zeros((self.npts, self.objects_count * 2 * 3))
+                    self.sol_time = np.zeros(self.npts)    
+
+                    # Initial values
+                    self.sol_state[0] = np.concatenate(
+                        (np.reshape(self.x, self.objects_count * 3), 
+                         np.reshape(self.v, self.objects_count * 3))
+                    )
+                    self.sol_time[0] = 0.0
+
+                    
+                    # Launch integration:
+                    self.dt = ctypes.c_double(self.dt)
+                    self.count = ctypes.c_int(0)
+                    while self.t.value <= self.tf:
+                        rk_flag = self.c_lib.rk_embedded(
+                            ctypes.c_int(self.objects_count),
+                            self.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.byref(self.t),
+                            ctypes.byref(self.dt),
+                            ctypes.c_double(self.tf),
+                            ctypes.byref(self.count),
+                            self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_double(self.G),
+                            ctypes.c_int(self.power),
+                            ctypes.c_int(self.power_test),
+                            ctypes.c_int(np.shape(self.coeff)[-1]),
+                            self.coeff.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_int(len(self.weights)),
+                            self.weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            self.weights_test.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_double(self.tolerance),
+                            ctypes.c_double(self.tolerance),
+                            self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_int(len(self.sol_time)),
+                            self.sol_time.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        )
+
+                        # Extend buffer size if needed
+                        if rk_flag == 2:
+                            self.sol_state = np.concatenate(
+                            (self.sol_state, np.zeros((self.npts, self.objects_count * 2 * 3)))
+                            )
+                            self.sol_time = np.concatenate((self.sol_time, np.zeros(self.npts)))
+
+                        # Update percentage bar
+                        elif rk_flag == 1:
+                            pass 
+                        
+                        # End simulation as t = tf
+                        elif rk_flag == 0:
+                            self.sol_state = self.sol_state[0 : self.count.value + 1]
+                            self.sol_time = self.sol_time[0 : self.count.value + 1]
+                            break
+                        
+                        pb.update(task, completed=self.t.value)
+
                     pb.stop()
 
         stop = timeit.default_timer()
@@ -890,12 +973,11 @@ class Simulator:
     ):
         """
         Perform simulation using rk_embedded methods
-        Modified for plotting
 
         :return: sol_state, sol_time
         :rtype: numpy.array
         """
-        # Initializing
+        # Initialization
         t = 0.0
         dt = initial_dt
         stages = len(weights)
