@@ -156,7 +156,7 @@ class Simulator:
     }
 
     def __init__(self, plotter):
-        self.c_lib = ctypes.cdll.LoadLibrary(Path(__file__).parent / "c_lib.so")
+        self.c_lib = plotter.c_lib
         self.system = plotter.system
         self.integrator = plotter.integrator
         self.tf = plotter.tf
