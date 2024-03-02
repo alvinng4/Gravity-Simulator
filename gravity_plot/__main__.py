@@ -1,4 +1,5 @@
 import argparse
+import ctypes
 import csv
 from pathlib import Path
 import re
@@ -14,6 +15,8 @@ class Plotter:
         self._read_command_line_arg()
         # Use c library to perform simulation
         self.is_c_lib = self.args.numpy
+        if self.is_c_lib:
+            self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.so"))
 
         self.tolerance = None
         self.dt = None
