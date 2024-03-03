@@ -1,4 +1,5 @@
 import argparse
+import math
 from os import environ
 import sys
 
@@ -60,6 +61,7 @@ class GravitySimulator:
             self._check_events()
             self._update_events()
             self._simulation()
+            self._check_energy_error()
             self._update_screen()
             self.clock.tick(self.settings.MAX_FPS)
 
@@ -90,6 +92,13 @@ class GravitySimulator:
         if self.grav_objs and not self.stats.is_paused:
             self.simulator.run_simulation(self)
             self.simulator.unload_value(self)
+
+    def _check_energy_error(self):
+        if math.isnan(self.stats.total_energy):
+            for grav_obj in self.grav_objs:
+                grav_obj.kill()
+
+        self.simulator.is_initialize = True
 
     def _update_screen(self):
         self.screen.fill(Settings.BG_COLOR)
