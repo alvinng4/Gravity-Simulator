@@ -512,6 +512,7 @@ class Simulator:
             self.sol_time = np.linspace(
                 self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
             )
+            self.sol_dt = np.full(shape=(self.npts), fill_value=f"{self.dt}", dtype=float)
 
         progress_bar = rich.progress.Progress(
             rich.progress.BarColumn(),
@@ -626,6 +627,7 @@ class Simulator:
                     self.npts = 100000
                     self.sol_state = np.zeros((self.npts, self.objects_count * 2 * 3))
                     self.sol_time = np.zeros(self.npts)    
+                    self.sol_dt = np.zeros(self.npts)    
 
                     # Initial values
                     self.sol_state[0] = np.concatenate(
@@ -633,6 +635,7 @@ class Simulator:
                          np.reshape(self.v, self.objects_count * 3))
                     )
                     self.sol_time[0] = 0.0
+                    self.sol_dt[0] = 0.0
 
                     
                     # Launch integration:
@@ -661,6 +664,8 @@ class Simulator:
                             self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_int(len(self.sol_time)),
                             self.sol_time.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_int(len(self.sol_dt)),
+                            self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
 
                         # Extend buffer size if needed
@@ -669,6 +674,7 @@ class Simulator:
                             (self.sol_state, np.zeros((self.npts, self.objects_count * 2 * 3)))
                             )
                             self.sol_time = np.concatenate((self.sol_time, np.zeros(self.npts)))
+                            self.sol_dt = np.concatenate((self.sol_dt, np.zeros(self.npts)))
 
                         # Update percentage bar
                         elif rk_flag == 1:
@@ -678,6 +684,7 @@ class Simulator:
                         elif rk_flag == 0:
                             self.sol_state = self.sol_state[0 : self.count.value + 1]
                             self.sol_time = self.sol_time[0 : self.count.value + 1]
+                            self.sol_dt = self.sol_dt[0 : self.count.value + 1]
                             break
                         
                         pb.update(task, completed=self.t.value)
@@ -705,6 +712,7 @@ class Simulator:
             self.sol_time = np.linspace(
                 self.t0, self.t0 + self.dt * (self.npts - 1), self.npts
             )
+            self.sol_dt = np.full(shape=(self.npts), fill_value=f"{self.dt}", dtype=float)
 
         progress_bar = rich.progress.Progress(
             rich.progress.BarColumn(),
@@ -798,7 +806,7 @@ class Simulator:
                         self.tolerance,
                         self.tolerance,
                     )
-                    self.sol_state, self.sol_time = self.rk_embedded(
+                    self.sol_state, self.sol_time, self.sol_dt = self.rk_embedded(
                         pb,
                         self.objects_count,
                         self.x,
@@ -838,22 +846,26 @@ class Simulator:
         if len(self.sol_time) % self.trim_size == 0:
             self.trim_size += 1
         self.trimmed_sol_time = np.zeros(self.trim_size)
+        self.trimmed_sol_dt = np.zeros(self.trim_size)
         self.trimmed_sol_state = np.zeros((self.trim_size, self.objects_count * 3 * 2))
 
         j = 0
         for i in range(len(self.sol_time)):
             if i % round(len(self.sol_time) / self.trim_size) == 0:
                 self.trimmed_sol_time[j] = self.sol_time[i]
+                self.trimmed_sol_dt[j] = self.sol_dt[i]
                 self.trimmed_sol_state[j] = self.sol_state[i]
                 j += 1
 
         if self.trimmed_sol_time[-1] != self.sol_time[-1]:
             self.trimmed_sol_time[-1] = self.sol_time[-1]
+            self.trimmed_sol_dt[-1] = self.sol_dt[-1]
             self.trimmed_sol_state[-1] = self.sol_state[-1]
 
         print(f"Trimmed data size = {len(self.trimmed_sol_time)}")
 
         self.sol_time = self.trimmed_sol_time
+        self.sol_dt = self.trimmed_sol_dt
         self.sol_state = self.trimmed_sol_state
 
     def compute_energy(self):
@@ -912,7 +924,7 @@ class Simulator:
         """
         Save the result in a csv file
         Unit: Solar masses, AU, day
-        Format: time, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+        Format: time(self.unit), dt(days), total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
         print("Storing simulation results...")
         file_path = Path(__file__).parent / "results"
@@ -945,9 +957,11 @@ class Simulator:
                 for count in pb.track(range(len(self.sol_time))):
                     if is_compute_energy:
                         row = np.insert(self.sol_state[count], 0, self.energy[count])
+                        row = np.insert(row, 0, self.sol_dt[count])
                         row = np.insert(row, 0, self.sol_time[count])
                     else:
                         row = np.insert(self.sol_state[count], 0, 0)
+                        row = np.insert(row, 0, self.sol_dt[count])
                         row = np.insert(row, 0, self.sol_time[count])
                     writer.writerow(row.tolist())
 
@@ -975,7 +989,7 @@ class Simulator:
         """
         Perform simulation using rk_embedded methods
 
-        :return: sol_state, sol_time
+        :return: sol_state, sol_time, sol_dt
         :rtype: numpy.array
         """
         # Initialization
@@ -998,12 +1012,14 @@ class Simulator:
         npts = 100000
         sol_state = np.zeros((npts, objects_count * 2 * 3))
         sol_time = np.zeros(npts)
+        sol_dt = np.zeros(npts)
 
         # Initial values
         sol_state[0] = np.concatenate(
             (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
         )
         sol_time[0] = t
+        sol_dt[0] = 0.0
 
         # Launch integration:
         count = 0
@@ -1065,6 +1081,7 @@ class Simulator:
                     (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
                 )
                 sol_time[count] = t
+                sol_dt[count] = dt
                 progress_bar.update(task, completed=t)
 
                 # Check buffer size and extend if needed :
@@ -1073,6 +1090,7 @@ class Simulator:
                         (sol_state, np.zeros((npts, objects_count * 2 * 3)))
                     )
                     sol_time = np.concatenate((sol_time, np.zeros(npts)))
+                    sol_dt = np.concatenate((sol_dt, np.zeros(npts)))
 
             dt_new = dt * safety_fac / error ** (1.0 / (1.0 + min_power))
             # Prevent dt to be too small or too large relative to the last time step
@@ -1091,7 +1109,7 @@ class Simulator:
 
             if t >= tf:
                 progress_bar.stop()
-                return sol_state[0 : count + 1], sol_time[0 : count + 1]
+                return sol_state[0 : count + 1], sol_time[0 : count + 1], sol_dt[0 : count + 1]
 
 
 def acceleration(objects_count, x, m, G):

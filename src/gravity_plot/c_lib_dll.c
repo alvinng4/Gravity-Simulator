@@ -84,7 +84,9 @@ int rk_embedded(
     real rel_tolerance,
     real (*sol_state)[6 * objects_count],
     int len_sol_time,
-    real *sol_time
+    real *sol_time,
+    int len_sol_dt,
+    real *sol_dt
 );
 
 
@@ -444,7 +446,9 @@ __declspec(dllexport) int rk_embedded(
     real rel_tolerance,
     real (*sol_state)[6 * objects_count],
     int len_sol_time,
-    real *sol_time
+    real *sol_time,
+    int len_sol_dt,
+    real *sol_dt
 )
 {
     // Initialization
@@ -589,6 +593,7 @@ __declspec(dllexport) int rk_embedded(
 
             // Store step
             sol_time[*count] = *t;
+            sol_dt[*count] = *dt;
             for (int j = 0; j < objects_count; j++)
             {
                 sol_state[*count][j * 3] = x[j][0];

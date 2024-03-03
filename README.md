@@ -14,8 +14,9 @@ This is a Newtonian 3D N-body gravity simulator program which projects the resul
     - [Available systems](#available-systems)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
-    - [C library / Numpy](#c-library--numpy)
-    - [Comparing relative energy error of multiple simulations (Additional)](#comparing-relative-energy-error-of-multiple-simulations-additional)
+    - [C library / Numpy (Optional)](#c-library--numpy-optional)
+    - [Plotting dt (Optional)](#plotting-dt-optional)
+    - [Comparing relative energy error (Optional)](#comparing-relative-energy-error-optional)
     - [Program crashes](#program-crashes)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program)
@@ -89,11 +90,11 @@ gravity_simulator/gravity_plot/results
 ```
 The data except time will be in the default unit (solar masses, AU and days), and follow this format:
 ```
-time(days/years), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
+time(tf unit), dt(days), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
 Total energy will be stored as `0.0` if user chose not to compute energy.
 
-### C library / Numpy
+### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
 Nevertheless, the code in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
@@ -101,7 +102,14 @@ If you want to use numpy, run the program with
 python gravity_plot -n
 ```
 
-### Comparing relative energy error of multiple simulations (Additional)
+### Plotting dt (Optional)
+It might be useful to visualize the dt for adaptive step size integrators. 
+If you want to plot the dt, simply run the program with
+```
+python gravity_plot -d
+```
+
+### Comparing relative energy error (Optional)
 To compare the relative energy error of multiple simulations, 
 You can run `compare.py` inside the `gravity_plot` folder.
 The chosen data inside the `gravity_plot/results` folder would be read to generate a plot. 
