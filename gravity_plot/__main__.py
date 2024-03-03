@@ -22,6 +22,7 @@ class Plotter:
             else:
                 self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.so"))
 
+        self.is_plot_dt = self.args.dt
 
         self.tolerance = None
         self.dt = None
@@ -125,7 +126,11 @@ class Plotter:
                     if self.ask_user_permission("Plot relative energy error?"):
                         print("")
                         self._plot_rel_energy()
+
                 # self._plot_tot_energy() # Warnings: The unit is in solar masses, AU and day.
+                        
+                if self.is_plot_dt:
+                    self._plot_dt()
 
                 # Store data
                 print(f"Lines of data = {len(self.simulator.sol_time)}")
@@ -225,6 +230,21 @@ class Plotter:
         ax3.set_title("Total energy against time")
         ax3.set_xlabel(f"Time ({self.unit})")
         ax3.set_ylabel("E(t)")
+
+        plt.show()
+
+    def _plot_dt(self):
+        """
+        Plot dt(days)
+        """
+        print("Plotting dt...(Please check the window)")
+        fig4 = plt.figure()
+        ax4 = fig4.add_subplot(111)
+        ax4.scatter(self.simulator.sol_time, self.simulator.sol_dt, s=0.1)
+        ax4.set_yscale('log')
+        ax4.set_title("dt against time")
+        ax4.set_xlabel(f"Time ({self.unit})")
+        ax4.set_ylabel("dt(days)")
 
         plt.show()
 
@@ -500,6 +520,12 @@ class Plotter:
             "-n",
             action="store_false",
             help="disable c_lib and use numpy",
+        )
+        parser.add_argument(
+            "--dt",
+            "-d",
+            action="store_true",
+            help="plot dt",
         )
         self.args = parser.parse_args()
 
