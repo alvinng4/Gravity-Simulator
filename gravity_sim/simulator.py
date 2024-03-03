@@ -648,7 +648,10 @@ def rk_embedded(
             x = x_1
             v = v_1
 
-        dt_new = actual_dt * safety_fac / error ** (1.0 / (1.0 + min_power))
+        if error == 0.0: # Prevent extreme cases where the error is smaller than machine zero
+            dt_new = actual_dt
+        else:    
+            dt_new = actual_dt * safety_fac / error ** (1.0 / (1.0 + min_power))
         # Prevent dt to be too small or too large relative to the last time step
         if dt_new > safety_fac_max * actual_dt:
             actual_dt = safety_fac_max * actual_dt
