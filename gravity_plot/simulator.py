@@ -1185,19 +1185,22 @@ def initial_time_step_rk_embedded(
 ) -> float:
     """
     Calculate the initial time step for embedded rk method
+
+    Modified: Return dt * 1e-3 since this function gives initial dt thats too large
+
     Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
     Chapter 6, Page 92 - 94
     """
     tolerance_scale_x = abs_tolerance + rel_tolerance * np.abs(x)
     tolerance_scale_v = abs_tolerance + rel_tolerance * np.abs(v)
-    sum_1 = np.sum(np.square(x / tolerance_scale_x)) + np.sum(
+    sum_0 = np.sum(np.square(x / tolerance_scale_x)) + np.sum(
         np.square(v / tolerance_scale_v)
     )
-    sum_0 = np.sum(np.square(v / tolerance_scale_x)) + np.sum(
+    sum_1 = np.sum(np.square(v / tolerance_scale_x)) + np.sum(
         np.square(a / tolerance_scale_v)
     )
-    d_1 = np.sqrt(sum_1 / (objects_count * 3 * 2))
     d_0 = np.sqrt(sum_0 / (objects_count * 3 * 2))
+    d_1 = np.sqrt(sum_1 / (objects_count * 3 * 2))
 
     if d_0 < 1e-5 or d_1 < 1e-5:
         dt_0 = 1e-4
@@ -1215,12 +1218,12 @@ def initial_time_step_rk_embedded(
     d_2 = np.sqrt(sum_2 / (objects_count * 3 * 2)) / dt_0
 
     if max(d_1, d_2) <= 1e-15:
-        dt_1 = max([1e-6, dt_0 * 1e-3])
+        dt_1 = max(1e-6, dt_0 * 1e-3)
     else:
         dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
-    dt = min([100 * dt_0, dt_1])
+    dt = min(100 * dt_0, dt_1)
 
-    return dt
+    return dt * 1e-3
 
 
 def butcher_tableaus_rk(order):
