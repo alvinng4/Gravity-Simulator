@@ -616,7 +616,15 @@ __declspec(dllexport) int rk_embedded(
         }
 
         // Calculate dt
-        dt_new = *dt * safety_fac / pow(error, (1.0 / (1.0 + (real) min_power)));
+        if (error != 0.0)   // Prevent division by zero
+        {
+            dt_new = *dt * safety_fac / pow(error, (1.0 / (1.0 + (real) min_power)));
+        }
+        else
+        {
+            dt_new = *dt;
+        }
+        
         if (dt_new > safety_fac_max * *dt) 
         {
             *dt *= safety_fac_max;
