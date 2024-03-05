@@ -640,6 +640,24 @@ __declspec(dllexport) int rk_embedded(
             *dt = tf - *t;
         }
         
+        // Exit if finishsed
+        if (*t >= tf)
+        {
+            free(error_estimation_delta_weights);
+            free(v_1);
+            free(x_1);
+            free(vk);
+            free(xk);
+            free(temp_a);
+            free(temp_v);
+            free(temp_x);
+            free(error_estimation_delta_v);
+            free(error_estimation_delta_x);
+            free(tolerance_scale_v);
+            free(tolerance_scale_x);
+            return 0;
+        }
+
         // Exit to update progress bar
         if ((int) (*t / tf * 100.0) > progress_percentage)
         {
@@ -656,23 +674,6 @@ __declspec(dllexport) int rk_embedded(
             free(tolerance_scale_v);
             free(tolerance_scale_x);
             return 1;
-        }
-
-        if (*t >= tf)
-        {
-            free(error_estimation_delta_weights);
-            free(v_1);
-            free(x_1);
-            free(vk);
-            free(xk);
-            free(temp_a);
-            free(temp_v);
-            free(temp_x);
-            free(error_estimation_delta_v);
-            free(error_estimation_delta_x);
-            free(tolerance_scale_v);
-            free(tolerance_scale_x);
-            return 0;
         }
     }
 }
