@@ -5,14 +5,6 @@
 
 #define real double
 
-#ifndef max
-    #define max(a,b) ((a) > (b) ? (a) : (b))
-#endif
-
-#ifndef min
-    #define min(a,b) ((a) < (b) ? (a) : (b))
-#endif
-
 real vec_norm(const real *vec, int vec_size);
 void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G);
 void euler(
@@ -453,7 +445,7 @@ int rk_embedded(
 {
     // Initialization
     int stages = len_weights;
-    int min_power = min(power, power_test);
+    int min_power = fmin(power, power_test);
 
     real *error_estimation_delta_weights = malloc(len_weights * sizeof(real));
     for (int stage = 0; stage < stages; stage++)
@@ -561,12 +553,12 @@ int rk_embedded(
         // Error calculation
         for (int k = 0; k < objects_count; k++)
         {
-            tolerance_scale_v[k][0] = abs_tolerance + max(fabs(v[k][0]), fabs(v_1[k][0])) * rel_tolerance;
-            tolerance_scale_v[k][1] = abs_tolerance + max(fabs(v[k][1]), fabs(v_1[k][1])) * rel_tolerance;
-            tolerance_scale_v[k][2] = abs_tolerance + max(fabs(v[k][2]), fabs(v_1[k][2])) * rel_tolerance;
-            tolerance_scale_x[k][0] = abs_tolerance + max(fabs(v[k][0]), fabs(v_1[k][0])) * rel_tolerance;
-            tolerance_scale_x[k][1] = abs_tolerance + max(fabs(v[k][1]), fabs(v_1[k][1])) * rel_tolerance;
-            tolerance_scale_x[k][2] = abs_tolerance + max(fabs(v[k][2]), fabs(v_1[k][2])) * rel_tolerance;
+            tolerance_scale_v[k][0] = abs_tolerance + fmax(fabs(v[k][0]), fabs(v_1[k][0])) * rel_tolerance;
+            tolerance_scale_v[k][1] = abs_tolerance + fmax(fabs(v[k][1]), fabs(v_1[k][1])) * rel_tolerance;
+            tolerance_scale_v[k][2] = abs_tolerance + fmax(fabs(v[k][2]), fabs(v_1[k][2])) * rel_tolerance;
+            tolerance_scale_x[k][0] = abs_tolerance + fmax(fabs(x[k][0]), fabs(x_1[k][0])) * rel_tolerance;
+            tolerance_scale_x[k][1] = abs_tolerance + fmax(fabs(x[k][1]), fabs(x_1[k][1])) * rel_tolerance;
+            tolerance_scale_x[k][2] = abs_tolerance + fmax(fabs(x[k][2]), fabs(x_1[k][2])) * rel_tolerance;
         }
 
         // Sum up all the elements of x/tol and v/tol, 
@@ -649,7 +641,7 @@ int rk_embedded(
         }
         
         // Exit to update progress bar
-        if ((int) (*t / tf * 100) > progress_percentage)
+        if ((int) (*t / tf * 100.0) > progress_percentage)
         {
             free(error_estimation_delta_weights);
             free(v_1);
