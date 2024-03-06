@@ -12,6 +12,9 @@ from simulator import Simulator
 
 
 class Plotter:
+
+    SIDEREAL_DAYS_PER_YEAR = 365.256363004
+
     def __init__(self):
         self._read_command_line_arg()
         # Use c library to perform simulation
@@ -104,7 +107,7 @@ class Plotter:
                 else:
                     self.simulator.simulation_numpy()
                 if self.unit == "years":
-                    self.simulator.sol_time /= 365.24
+                    self.simulator.sol_time /= self.SIDEREAL_DAYS_PER_YEAR
 
                 if len(self.simulator.sol_time) > 20000:
                     if self.ask_user_permission(
@@ -404,7 +407,7 @@ class Plotter:
                     self.system
                 ]
                 if self.unit == "years":
-                    self.tf *= 365.24
+                    self.tf *= self.SIDEREAL_DAYS_PER_YEAR
 
                 return None
 
@@ -458,7 +461,7 @@ class Plotter:
                     break
                 else:
                     self.unit = "years"
-                    self.tf *= 365.24
+                    self.tf *= self.SIDEREAL_DAYS_PER_YEAR
                     break
 
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
@@ -481,7 +484,7 @@ class Plotter:
                         break
                     else:
                         self.dt_unit = "years"
-                        self.dt *= 365.24
+                        self.dt *= self.SIDEREAL_DAYS_PER_YEAR
                         break
 
         elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
@@ -500,12 +503,12 @@ class Plotter:
         print(f"System: {self.system}")
         print(f"Integrator: {self.integrator}")
         if self.unit == "years":
-            print(f"tf: {self.tf / 365.24} years")
+            print(f"tf: {self.tf / self.SIDEREAL_DAYS_PER_YEAR} years")
         else:
             print(f"tf: {self.tf} days")
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             if self.dt_unit == "years":
-                print(f"dt: {self.dt / 365.24} years")
+                print(f"dt: {self.dt / self.SIDEREAL_DAYS_PER_YEAR} years")
             else:
                 print(f"dt: {self.dt} days")
         elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
