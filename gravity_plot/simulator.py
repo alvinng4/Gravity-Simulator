@@ -165,6 +165,7 @@ class Simulator:
         self.tolerance = plotter.tolerance
         self.dt = plotter.dt
         self.G = self.CONSTANT_G
+        self.SIDEREAL_DAYS_PER_YEAR = plotter.SIDEREAL_DAYS_PER_YEAR
 
     def initialize_system(self, plotter):
         self.t0 = 0.0
@@ -930,7 +931,7 @@ class Simulator:
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
         if self.unit == "years":
-            self.tf /= 365.24
+            self.tf /= self.SIDEREAL_DAYS_PER_YEAR
         file_path = (
             Path(__file__).parent
             / "results"
