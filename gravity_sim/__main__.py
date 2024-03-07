@@ -96,7 +96,7 @@ class GravitySimulator:
     def _check_energy_error(self):
         if math.isnan(self.stats.total_energy):
             self._kill_all_objects()
-            print("System message: removed all objects due to infinity energy error. To avoid this, do not place two object at the exact same position.")
+            print("System message: removed all objects due to infinity energy error.")
     
     def _kill_all_objects(self):
         for grav_obj in self.grav_objs:
