@@ -206,9 +206,6 @@ class Grav_obj(Sprite):
             - self.camera.pos[1],
         )
 
-
-
-    @staticmethod
     def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "assets/images/sun.png")
@@ -219,42 +216,47 @@ class Grav_obj(Sprite):
             * grav_sim.settings.new_star_mass_scale
         )
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
-        grav_obj = Grav_obj(
-            grav_sim,
-            {
-                "r1": (
-                    mouse_pos[0] - grav_sim.screen.get_rect().centerx + camera_pos[0]
-                )
-                / grav_sim.settings.distance_scale,
-                "r2": -(
-                    mouse_pos[1] - grav_sim.screen.get_rect().centery + camera_pos[1]
-                )
-                / grav_sim.settings.distance_scale,
-                "r3": 0.0,
-                "v1": -(
-                    (drag_mouse_pos[0] - mouse_pos[0])
-                    + (drag_camera_pos[0] - camera_pos[0])
-                )
-                * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
-                / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
-                "v2": (
-                    (drag_mouse_pos[1] - mouse_pos[1])
-                    + (drag_camera_pos[1] - camera_pos[1])
-                )
-                * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
-                / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
-                "v3": 0.0,
-                "m": m,
-                "R": R,
-            },
-            path_sun,
-            name="Sun",
-        )
-        grav_sim.grav_objs.add(grav_obj)
-        grav_sim.simulator.is_initialize = True
-        grav_sim.simulator.is_initialize_integrator = (
-            grav_sim.simulator.current_integrator
-        )
+        new_star_r1 = (mouse_pos[0] - grav_sim.screen.get_rect().centerx + camera_pos[0]) / grav_sim.settings.distance_scale
+        new_star_r2 = -(mouse_pos[1] - grav_sim.screen.get_rect().centery + camera_pos[1])/ grav_sim.settings.distance_scale
+        new_star_r3 = 0.0
+
+        # Check if two objects has the exact same position, which would causes error
+        flag = True 
+        for j in range(grav_sim.stats.objects_count):
+            if new_star_r1 == grav_sim.grav_objs.sprites()[j].params["r1"] and new_star_r2 == grav_sim.grav_objs.sprites()[j].params["r2"] and new_star_r3 == grav_sim.grav_objs.sprites()[j].params["r3"]:
+                flag = False
+
+        if flag == True:
+            grav_obj = Grav_obj(
+                grav_sim,
+                {
+                    "r1": new_star_r1,
+                    "r2": new_star_r2,
+                    "r3": new_star_r3,
+                    "v1": -(
+                        (drag_mouse_pos[0] - mouse_pos[0])
+                        + (drag_camera_pos[0] - camera_pos[0])
+                    )
+                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
+                    / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
+                    "v2": (
+                        (drag_mouse_pos[1] - mouse_pos[1])
+                        + (drag_camera_pos[1] - camera_pos[1])
+                    )
+                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
+                    / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
+                    "v3": 0.0,
+                    "m": m,
+                    "R": R,
+                },
+                path_sun,
+                name="Sun",
+            )
+            grav_sim.grav_objs.add(grav_obj)
+            grav_sim.simulator.is_initialize = True
+            grav_sim.simulator.is_initialize_integrator = (
+                grav_sim.simulator.current_integrator
+            )
 
     @staticmethod
     def create_solor_system(grav_sim):
