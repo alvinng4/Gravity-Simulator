@@ -98,7 +98,8 @@ class GravitySimulator:
             for grav_obj in self.grav_objs:
                 grav_obj.kill()
 
-        self.stats.total_energy = 0.0
+            self.stats.total_energy = 0.0
+            
         self.simulator.is_initialize = True
 
     def _update_screen(self):
