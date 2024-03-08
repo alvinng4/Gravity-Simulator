@@ -222,8 +222,8 @@ class Grav_obj(Sprite):
 
         # Check if two objects has the exact same position, which would causes error
         flag = True 
-        for j in range(grav_sim.stats.objects_count):
-            if new_star_r1 == grav_sim.grav_objs.sprites()[j].params["r1"] and new_star_r2 == grav_sim.grav_objs.sprites()[j].params["r2"] and new_star_r3 == grav_sim.grav_objs.sprites()[j].params["r3"]:
+        for grav_obj in grav_sim.grav_objs:
+            if new_star_r1 == grav_obj.params["r1"] and new_star_r2 == grav_obj.params["r2"] and new_star_r3 == grav_obj.params["r3"]:
                 flag = False
 
         if flag == True:
