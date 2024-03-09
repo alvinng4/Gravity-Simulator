@@ -238,12 +238,12 @@ class Grav_obj(Sprite):
                         (drag_mouse_pos[0] - mouse_pos[0])
                         + (drag_camera_pos[0] - camera_pos[0])
                     )
-                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE,
+                    * grav_sim.settings.new_star_speed_scale * Settings.NEW_STAR_SPEED_CONVERT_FACTOR,
                     "v2": (
                         (drag_mouse_pos[1] - mouse_pos[1])
                         + (drag_camera_pos[1] - camera_pos[1])
                     )
-                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE,
+                    * grav_sim.settings.new_star_speed_scale * Settings.NEW_STAR_SPEED_CONVERT_FACTOR,
                     "v3": 0.0,
                     "m": m,
                     "R": R,
