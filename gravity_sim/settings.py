@@ -13,6 +13,7 @@ class Settings:
     DEFAULT_PLANET_IMG_SCALE = 100000
     DEFAULT_DISTANCE_SCALE = 150
     DEFAULT_NEW_STAR_MASS_SCALE = 1
+    DEFAULT_NEW_STAR_SPEED_SCALE = 1
     DEFAULT_DT = 0.1
     DEFAULT_TIME_SPEED = 1
     DEFAULT_RK_MAX_ITERATION = 10
@@ -28,6 +29,8 @@ class Settings:
     MIN_DISTANCE_SCALE = 1
     MAX_NEW_STAR_MASS_SCALE = 1000
     MIN_NEW_STAR_MASS_SCALE = 1e-3
+    MAX_NEW_STAR_SPEED_SCALE = 1000
+    MIN_NEW_STAR_SPEED_SCALE = 1
     MAX_DT = 100
     MIN_DT = 1e-10
     MAX_TIME_SPEED = 10000
@@ -45,7 +48,7 @@ class Settings:
     DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED = 10000
     DEFAULT_CHANGE_DISTANCE_SCALE_SPEED = 10
 
-    DEFAULT_NEW_STAR_VELOCITY_SCALE = 0.0001
+    NEW_STAR_SPEED_CONVERT_FACTOR = 1e-4 # Multiply with new_star_speed_scale to get the actual scale
 
     def __init__(
         self,
@@ -59,6 +62,7 @@ class Settings:
         self.planet_img_scale = self.DEFAULT_PLANET_IMG_SCALE
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
+        self.new_star_speed_scale = self.DEFAULT_NEW_STAR_SPEED_SCALE
         self.dt = self.DEFAULT_DT
         self.time_speed = self.DEFAULT_TIME_SPEED
         # Initializing internal variable directly because rk_min_iteration.setter and rk_max_iteration.setter depends on each other
@@ -122,6 +126,11 @@ class Settings:
                     self.new_star_mass_scale += self._rate_of_change(
                         self.new_star_mass_scale, magnitude
                     )
+            case "new_star_speed_scale":
+                for _ in range(abs(magnitude)):
+                    self.new_star_speed_scale += self._rate_of_change(
+                        self.new_star_speed_scale, magnitude
+                    )
             case "dt":
                 for _ in range(abs(magnitude)):
                     self.dt += self._rate_of_change(self.dt, magnitude)
@@ -161,6 +170,8 @@ class Settings:
             self.current_changing_parameter = "distance_scale"
         elif self.is_changing_new_star_mass_scale == True:
             self.current_changing_parameter = "new_star_mass_scale"
+        elif self.is_changing_new_star_speed_scale == True:
+            self.current_changing_parameter = "new_star_speed_scale"
         elif self.is_changing_dt == True:
             self.current_changing_parameter = "dt"
         elif self.is_changing_time_speed == True:
@@ -177,6 +188,7 @@ class Settings:
         self.is_changing_planet_img_scale = False
         self.is_changing_distance_scale = False
         self.is_changing_new_star_mass_scale = False
+        self.is_changing_new_star_speed_scale = False
         self.is_changing_dt = False
         self.is_changing_time_speed = False
         self.is_changing_rk_max_iteration = False
@@ -188,6 +200,7 @@ class Settings:
         self.planet_img_scale = self.DEFAULT_PLANET_IMG_SCALE
         self.time_speed = self.DEFAULT_TIME_SPEED
         self.new_star_mass_scale = self.DEFAULT_NEW_STAR_MASS_SCALE
+        self.new_star_speed_scale = self.DEFAULT_NEW_STAR_SPEED_SCALE
         self.dt = self.DEFAULT_DT
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
         self.rk_max_iteration = self.DEFAULT_RK_MAX_ITERATION
@@ -269,6 +282,19 @@ class Settings:
             self._new_star_mass_scale = self.MIN_NEW_STAR_MASS_SCALE
         else:
             self._new_star_mass_scale = round(value, ndigits=15)
+
+    @property
+    def new_star_speed_scale(self):
+        return self._new_star_speed_scale
+
+    @new_star_speed_scale.setter
+    def new_star_speed_scale(self, value):
+        if value > self.MAX_NEW_STAR_SPEED_SCALE:
+            self._new_star_speed_scale = self.MAX_NEW_STAR_SPEED_SCALE
+        elif value < self.MIN_NEW_STAR_SPEED_SCALE:
+            self._new_star_speed_scale = self.MIN_NEW_STAR_SPEED_SCALE
+        else:
+            self._new_star_speed_scale = int(value)
 
     @property
     def dt(self):
