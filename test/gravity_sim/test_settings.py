@@ -16,8 +16,10 @@ sys.path.insert(0, str(path))
 from settings import Settings
 
 def test_max_range():
-    assert Settings.MAX_RANGE > 0
-    assert abs(Settings.MAX_RANGE) < 2147483647
+    settings = Settings(screen_width=1920, screen_height=1080)
+    assert settings.MAX_RANGE > 0
+    # MAX_RANGE * self.settings.distance_scale + self.screen_rect.center - self.camera.pos must be smaller than pygame int value
+    assert abs(settings.MAX_RANGE) * settings.MAX_DISTANCE_SCALE + 100000 < 2147483647
 
 def test_settings_screen_size():
     settings1 = Settings(screen_width=1920, screen_height=1080)
