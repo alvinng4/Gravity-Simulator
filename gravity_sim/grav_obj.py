@@ -184,6 +184,7 @@ class Grav_obj(Sprite):
                 sys.exit(
                     "Error: Image not found. Make sure the image path provided for Grav_obj is correct."
                 )
+                
     def update(self, gravity_sim):
         self.remove_out_of_range_objs(gravity_sim)
         self.update_apparent_pos()
@@ -237,14 +238,12 @@ class Grav_obj(Sprite):
                         (drag_mouse_pos[0] - mouse_pos[0])
                         + (drag_camera_pos[0] - camera_pos[0])
                     )
-                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
-                    / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
+                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE,
                     "v2": (
                         (drag_mouse_pos[1] - mouse_pos[1])
                         + (drag_camera_pos[1] - camera_pos[1])
                     )
-                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE
-                    / (grav_sim.settings.distance_scale / Settings.DEFAULT_DISTANCE_SCALE),
+                    * Settings.DEFAULT_NEW_STAR_VELOCITY_SCALE,
                     "v3": 0.0,
                     "m": m,
                     "R": R,
