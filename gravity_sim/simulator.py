@@ -456,9 +456,8 @@ def acceleration(objects_count, x, m, G):
     for j in range(objects_count):
         for k in range(j + 1, objects_count):
             R = x[j] - x[k]
-            R_norm = np.linalg.norm(R)
-            if R_norm != 0:
-                temp_value = G * R / (R_norm * R_norm * R_norm)
+            if np.linalg.norm(R) != 0:
+                temp_value = G * R / np.linalg.norm(R) ** 3
                 temp_a[j * objects_count + k] = -temp_value * m[k]
                 temp_a[k * objects_count + j] = temp_value * m[j]
             else: 
