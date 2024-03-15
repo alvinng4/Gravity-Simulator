@@ -37,16 +37,16 @@ class Comparer:
                         i = 0
                         for row in reader:
                             self.sol_time[i] = row[0]
-                            self.energy[i] = row[1]
+                            self.energy[i] = row[2]
                             i += 1
 
                             # Extending memory buffer
                             if i % 50000 == 0:
                                 self.sol_time = np.concatenate(
-                                    self.sol_time, np.zeros(50000)
+                                    (self.sol_time, np.zeros(50000))
                                 )
                                 self.energy = np.concatenate(
-                                    self.energy, np.zeros(50000)
+                                    (self.energy, np.zeros(50000))
                                 )
 
                         self.sol_time = self.sol_time[:i]

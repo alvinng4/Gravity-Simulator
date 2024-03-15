@@ -12,7 +12,6 @@ from simulator import Simulator
 
 
 class Plotter:
-
     SIDEREAL_DAYS_PER_YEAR = 365.256363004
 
     def __init__(self):
@@ -21,9 +20,13 @@ class Plotter:
         self.is_c_lib = self.args.numpy
         if self.is_c_lib:
             if platform.system() == "Windows":
-                self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.dll"))
+                self.c_lib = ctypes.cdll.LoadLibrary(
+                    str(Path(__file__).parent / "c_lib.dll")
+                )
             else:
-                self.c_lib = ctypes.cdll.LoadLibrary(str(Path(__file__).parent / "c_lib.so"))
+                self.c_lib = ctypes.cdll.LoadLibrary(
+                    str(Path(__file__).parent / "c_lib.so")
+                )
 
         self.is_plot_dt = self.args.dt
 
@@ -49,6 +52,7 @@ class Plotter:
             "dopri",
             "dverk",
             "rkf78",
+            "ias15",
         ]
         self.solar_like_systems = [
             "sun_earth_moon",
@@ -72,14 +76,14 @@ class Plotter:
         }
         self.recommended_settings = {
             "template": ["tf", "tf unit", "tolerance"],
-            "circular_binary_orbit": [50, "days", 1e-6],
-            "eccentric_binary_orbit": [2.6, "years", 1e-6],
-            "3d_helix": [20, "days", 1e-6],
+            "circular_binary_orbit": [50, "days", 1e-9],
+            "eccentric_binary_orbit": [2.6, "years", 1e-9],
+            "3d_helix": [20, "days", 1e-9],
             "sun_earth_moon": [1, "years", 1e-9],
-            "figure-8": [20, "days", 1e-6],
-            "pyth-3-body": [70, "days", 1e-6],
-            "solar_system": [200, "years", 1e-6],
-            "solar_system_plus": [250, "years", 1e-6],
+            "figure-8": [20, "days", 1e-9],
+            "pyth-3-body": [70, "days", 1e-9],
+            "solar_system": [200, "years", 1e-9],
+            "solar_system_plus": [250, "years", 1e-9],
         }
 
     def run_prog(self):
@@ -131,7 +135,7 @@ class Plotter:
                         self._plot_rel_energy()
 
                 # self._plot_tot_energy() # Warnings: The unit is in solar masses, AU and day.
-                        
+
                 if self.is_plot_dt:
                     self._plot_dt()
 
@@ -244,7 +248,7 @@ class Plotter:
         fig4 = plt.figure()
         ax4 = fig4.add_subplot(111)
         ax4.scatter(self.simulator.sol_time, self.simulator.sol_dt, s=0.1)
-        ax4.set_yscale('log')
+        ax4.set_yscale("log")
         ax4.set_title("dt against time")
         ax4.set_xlabel(f"Time ({self.unit})")
         ax4.set_ylabel("dt(days)")
@@ -402,7 +406,7 @@ class Plotter:
                 "Do you want to use the recommended settings for this system?"
             ):
                 print("")
-                self.integrator = "rkf78"
+                self.integrator = "ias15"
                 self.tf, self.unit, self.tolerance = self.recommended_settings[
                     self.system
                 ]
@@ -487,7 +491,7 @@ class Plotter:
                         self.dt *= self.SIDEREAL_DAYS_PER_YEAR
                         break
 
-        elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
+        elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78", "ias15"]:
             while True:
                 try:
                     print("")
@@ -503,7 +507,7 @@ class Plotter:
         print(f"System: {self.system}")
         print(f"Integrator: {self.integrator}")
         if self.unit == "years":
-            print(f"tf: {self.tf / self.SIDEREAL_DAYS_PER_YEAR} years")
+            print(f"tf: {self.tf / self.SIDEREAL_DAYS_PER_YEAR:g} years")
         else:
             print(f"tf: {self.tf} days")
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
@@ -511,7 +515,7 @@ class Plotter:
                 print(f"dt: {self.dt / self.SIDEREAL_DAYS_PER_YEAR} years")
             else:
                 print(f"dt: {self.dt} days")
-        elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78"]:
+        elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78", "ias15"]:
             print(f"Tolerance: {self.tolerance}")
         print(f"Use c_lib: {self.is_c_lib}")
         print("")
