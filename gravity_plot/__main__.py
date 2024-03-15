@@ -75,7 +75,7 @@ class Plotter:
             "Vesta": None,
         }
         self.recommended_settings = {
-            "template": ["tf", "tf unit", "tolerance"],
+            # "template": ["tf", "tf unit", "tolerance"],
             "circular_binary_orbit": [50, "days", 1e-9],
             "eccentric_binary_orbit": [2.6, "years", 1e-9],
             "3d_helix": [20, "days", 1e-9],

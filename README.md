@@ -9,17 +9,17 @@ This is a Newtonian 3D N-body gravity simulator program which projects the resul
 * [Quick Start](#quick-start)
     - [Python version](#python-version)
     - [Installation](#installation)
-* [Plotting module](#plotting-module)
     - [Running the program](#running-the-program)
+* [Plotting module](#plotting-module)
+    - [Running the program](#running-the-program-1)
     - [Available systems](#available-systems)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
     - [C library / Numpy (Optional)](#c-library--numpy-optional)
     - [Plotting dt (Optional)](#plotting-dt-optional)
     - [Comparing relative energy error (Optional)](#comparing-relative-energy-error-optional)
-    - [Program crashes](#program-crashes)
 * [Interactive module](#interactive-module)
-    - [Running the program](#running-the-program)
+    - [Running the program](#running-the-program-2)
     - [Available systems](#available-systems-1)
     - [Control](#control)
     - [Changing the resolution](#changing-the-resolution)
@@ -43,6 +43,19 @@ git clone https://github.com/alvinng4/Gravity-Simulator
 Install the required packages by
 ```
 pip install -r requirements.txt
+```
+### Running the program
+Plotting module: run the following command in terminal
+```
+python gravity_plot
+```
+If the program crashes immediately, try running with 
+```
+python gravity_plot --numpy
+```
+Interactive module: run the following command in terminal
+```
+python gravity_sim
 ```
 ## Plotting module
 
@@ -122,16 +135,6 @@ python compare.py -t <title>
 
 <img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.svg" alt="Image" width="400">
 
-### Program crashes
-If your program won't start and shows error messages related to ctypes library or dll files after running
-```
-python gravity_plot
-```
-you may fix this issue by running with numpy (See [C library / Numpy](#c-library--numpy))
-or try running the program with 64-bit python.
-
-You are also welcomed to contact me if you see any error. (See [Feedback and Bugs](#feedback-and-bugs))
-
 ## Interactive module
 ### Running the program
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
@@ -190,7 +193,8 @@ Adaptive step size integrators are efficient and accurate methods that decides t
 **For reference only
 
 ## Feedback and Bugs
-If you find any bugs or want to give me your feedback, please feel free to let me know by sending an email to alvinng324@gmail.com or open an issue.
+This is my first programming project after learning programming for 6 months.
+If you find any bugs or want to give me your feedback, you are welcomed to let me know by sending an email to alvinng324@gmail.com or open an issue.
 
 ## Data References
 1. Park, R.S., et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, *Astronomical Journal*, 161:105.
