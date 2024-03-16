@@ -106,10 +106,7 @@ class Plotter:
                 # Launch simulation
                 self.simulator = Simulator(self)
                 self.simulator.initialize_system(self)
-                if self.is_c_lib == True:
-                    self.simulator.simulation_c_lib()
-                else:
-                    self.simulator.simulation_numpy()
+                self.simulator.simulation()
                 if self.unit == "years":
                     self.simulator.sol_time /= self.SIDEREAL_DAYS_PER_YEAR
 
