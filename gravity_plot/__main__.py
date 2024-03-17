@@ -76,14 +76,14 @@ class Plotter:
         }
         self.recommended_settings = {
             # "template": ["tf", "tf unit", "tolerance"],
-            "circular_binary_orbit": [50, "days", 1e-6],
-            "eccentric_binary_orbit": [2.6, "years", 1e-6],
-            "3d_helix": [20, "days", 1e-6],
+            "circular_binary_orbit": [50, "days", 1e-9],
+            "eccentric_binary_orbit": [2.6, "years", 1e-9],
+            "3d_helix": [20, "days", 1e-9],
             "sun_earth_moon": [1, "years", 1e-9],
-            "figure-8": [20, "days", 1e-6],
-            "pyth-3-body": [70, "days", 1e-6],
-            "solar_system": [200, "years", 1e-6],
-            "solar_system_plus": [250, "years", 1e-6],
+            "figure-8": [20, "days", 1e-9],
+            "pyth-3-body": [70, "days", 1e-9],
+            "solar_system": [200, "years", 1e-9],
+            "solar_system_plus": [250, "years", 1e-9],
         }
 
     def run_prog(self):
@@ -403,7 +403,7 @@ class Plotter:
                 "Do you want to use the recommended settings for this system?"
             ):
                 print("")
-                self.integrator = "rkf78"
+                self.integrator = "ias15"
                 self.tf, self.unit, self.tolerance = self.recommended_settings[
                     self.system
                 ]
@@ -417,7 +417,6 @@ class Plotter:
             print("Available integrators: ")
             for i, integrator in enumerate(self.available_integrators):
                 print(f"{i + 1}. {integrator}")
-            print("Warning: IAS15 c_lib version is still a prototype. Use numpy version instead.")
             self.integrator = input("Enter integrator (Number or name): ")
             # Temporary string
             temp_str = ""

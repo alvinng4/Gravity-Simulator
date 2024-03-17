@@ -950,7 +950,6 @@ void ias15_step(
         // Loop for predictor-corrector algorithm
         // 12 = max iterations
         memcpy(a, a0, objects_count * 3 * sizeof(real));
-
         for (int temp = 0; temp < 12; temp++)
         {
             for (int i = 0; i < dim_nodes; i++)
@@ -1021,7 +1020,6 @@ void ias15_step(
             }
         }
         error_b7 = abs_max_vec(temp_b, objects_count * 3) / abs_max_vec_array(a, objects_count);
-
         error = pow((error_b7 / tolerance), exponent);
         
         // Step-size for the next step
@@ -1479,7 +1477,7 @@ void ias15_compute_aux_g(
             {
                 aux_g[3 * objects_count * 3 + j * 3 + k] = (
                     (((F5[j * 3 + k] - F1[j * 3 + k]) * aux_r[4 * dim_nodes + 0] 
-                    - aux_g[0]) * aux_r[4 * dim_nodes + 1] - aux_g[1 * objects_count * 3 + j * 3 + k])
+                    - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[4 * dim_nodes + 1] - aux_g[1 * objects_count * 3 + j * 3 + k])
                     * aux_r[4 * dim_nodes + 2]
                     - aux_g[2 * objects_count * 3 + j * 3 + k]
                 ) * aux_r[4 * dim_nodes + 3];
