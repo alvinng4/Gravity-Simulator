@@ -1,11 +1,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <stdio.h> // For testing
+#include <stdio.h> // For testing
 
 #define real double
 
-real vec_norm(const real *vec, int vec_size);
+real abs_max_vec(const real *vec, int vec_length);
+real abs_max_vec_array(const real (*arr)[3], int objects_count);
+real vec_norm(const real *vec, int vec_length);
 void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G);
 void euler(
     int objects_count, 
@@ -80,23 +82,145 @@ int rk_embedded(
     int len_sol_dt,
     real *sol_dt
 );
+int ias15(
+    int objects_count, 
+    int dim_nodes,
+    const real *nodes,
+    const real *aux_c, 
+    const real *aux_r,
+    real *aux_b0,
+    real *aux_b,
+    real *aux_g,
+    real *aux_e,
+    real (*x)[3], 
+    real (*v)[3], 
+    real (*a)[3],
+    const real *m, 
+    real G,     
+    real *t, 
+    real *dt, 
+    real tf, 
+    int *count, 
+    real tolerance,
+    real tolerance_pc,
+    real (*sol_state)[6 * objects_count],
+    int len_sol_time,
+    real *sol_time,
+    int len_sol_dt,
+    real *sol_dt,
+    real safety_fac,
+    real exponent,
+    int *ias15_refine_flag
+);
+void ias15_step(
+    int objects_count,
+    int dim_nodes,
+    real (*x)[3],
+    real (*v)[3],
+    real (*a)[3],
+    const real *m,
+    real G,
+    real *t,
+    real *dt,
+    real tf,
+    const real *nodes,
+    real *aux_b0,
+    real *aux_b,
+    const real *aux_c,
+    real *aux_e,
+    real *aux_g,
+    const real *aux_r,
+    real tolerance,
+    real tolerance_pc,
+    real exponent,
+    real safety_fac,
+    int *ias15_refine_flag
+);
+void ias15_approx_pos(
+    int objects_count,
+    real (*x)[3],
+    const real (*v)[3],
+    const real (*a)[3],
+    real node,
+    real *aux_b,
+    real dt
+);
+void ias15_approx_vel(
+    int objects_count,
+    real (*v)[3],
+    const real (*a)[3],
+    real node,
+    real *aux_b,
+    real dt
+);
+void ias15_compute_aux_b(
+    int objects_count,
+    int dim_nodes,
+    real *aux_b,
+    const real *aux_g,
+    const real *aux_c,
+    int i
+);
+void ias15_compute_aux_g(
+    int objects_count,
+    int dim_nodes,
+    real *aux_g,
+    const real *aux_r,
+    const real *aux_a,
+    int i
+);
+void ias15_refine_aux_b(
+    int objects_count,
+    int dim_nodes,
+    real *aux_b,
+    real *aux_e,
+    real dt,
+    real dt_new,
+    int ias15_refine_flag
+);
 
+real abs_max_vec(const real *vec, int vec_length)
+{
+    // Find the max absolute value in a 1D array
+    real max = fabs(vec[0]);
+    for (int i = 1; i < vec_length; i++)
+    {
+        max = fmax(max, fabs(vec[i]));
+    }
 
-real vec_norm(const real *vec, int vec_size)
+    return max;
+}
+real abs_max_vec_array(const real (*arr)[3], int objects_count)
+{
+    // Find the max absolute value in a 1D array
+    real max = 0;
+    for (int i = 0; i < objects_count; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            max = fmax(max, fabs(arr[i][j]));
+        }
+    }
+
+    return max;
+}
+real vec_norm(const real *vec, int vec_length)
 {   
     real sum = 0.0;
-    if (vec_size == 3) 
+    if (vec_length == 3) 
+    {
         sum = vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2];
+    }
     else
     {
-        for (int i = 0; i < vec_size; i++) sum += vec[i] * vec[i];
+        for (int i = 0; i < vec_length; i++) sum += vec[i] * vec[i];
     }
     return sqrt(sum);
 }
 
 void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
 {   
-    real R_norm, temp_value, *temp_vec = (real *) malloc(3 * sizeof(real)), *R = (real *) malloc(3 * sizeof(real));
+    real R_norm, temp_value, *temp_vec = malloc(3 * sizeof(real)), *R = malloc(3 * sizeof(real));
 
     // Empty the input array
     memset(a, 0, objects_count * 3 * sizeof(real));
@@ -611,7 +735,7 @@ int rk_embedded(
                 free(error_estimation_delta_x);
                 free(tolerance_scale_v);
                 free(tolerance_scale_x);
-                return 2;
+                return 1;
             } 
         }
 
@@ -633,13 +757,14 @@ int rk_embedded(
         {
             *dt *= safety_fac_min;
         }
-        else if (dt_new / tf < 1e-12)
-        {
-            *dt = tf * 1e-12;
-        }
         else
         {
             *dt = dt_new;
+        }
+
+        if (dt_new / tf < 1e-12)
+        {
+            *dt = tf * 1e-12;
         }
 
         // Correct overshooting
@@ -663,7 +788,7 @@ int rk_embedded(
             free(error_estimation_delta_x);
             free(tolerance_scale_v);
             free(tolerance_scale_x);
-            return 0;
+            return 2;
         }
 
         // Exit to update progress bar
@@ -681,7 +806,818 @@ int rk_embedded(
             free(error_estimation_delta_x);
             free(tolerance_scale_v);
             free(tolerance_scale_x);
-            return 1;
+            return 0;
         }
     }
+}
+
+int ias15(
+    int objects_count, 
+    int dim_nodes,
+    const real *nodes,
+    const real *aux_c, 
+    const real *aux_r,
+    real *aux_b0,
+    real *aux_b,
+    real *aux_g,
+    real *aux_e,
+    real (*x)[3], 
+    real (*v)[3], 
+    real (*a)[3], 
+    const real *m, 
+    real G,     
+    real *t, 
+    real *dt, 
+    real tf, 
+    int *count, 
+    real tolerance,
+    real tolerance_pc,
+    real (*sol_state)[6 * objects_count],
+    int len_sol_time,
+    real *sol_time,
+    int len_sol_dt,
+    real *sol_dt,
+    real safety_fac,
+    real exponent,
+    int *ias15_refine_flag
+)
+{
+    // Current progress percentage rounded to int
+    int progress_percentage = (int) round(*t / tf * 100);
+
+    while (1)
+    {
+        ias15_step(
+            objects_count,
+            dim_nodes,
+            x,
+            v,
+            a,
+            m,
+            G,
+            t,
+            dt,
+            tf,
+            nodes,
+            aux_b0,
+            aux_b,
+            aux_c,
+            aux_e,
+            aux_g,
+            aux_r,
+            tolerance,
+            tolerance_pc,
+            exponent,
+            safety_fac,
+            ias15_refine_flag
+        );
+
+        // Update count
+        *count += 1;
+
+        // Store step
+        sol_time[*count] = *t;
+        sol_dt[*count] = *dt;
+        for (int j = 0; j < objects_count; j++)
+        {
+            sol_state[*count][j * 3] = x[j][0];
+            sol_state[*count][j * 3 + 1] = x[j][1];
+            sol_state[*count][j * 3 + 2] = x[j][2];
+            sol_state[*count][objects_count * 3 + j * 3] = v[j][0];
+            sol_state[*count][objects_count * 3 + j * 3 + 1] = v[j][1];
+            sol_state[*count][objects_count * 3 + j * 3 + 2] = v[j][2];
+        }  
+
+        // Check buffer size and quit if full
+        if ((*count + 1) == len_sol_time)
+        {
+            return 1;
+        } 
+
+        // End simulation as t = tf
+        if (*t >= tf)
+        {
+            return 2;
+        }
+
+        // Exit to update progress bar
+        if ((int) (*t / tf * 100.0) > progress_percentage)
+        {
+            return 0;
+        }
+    }
+}
+
+void ias15_step(
+    int objects_count,
+    int dim_nodes,
+    real (*x0)[3],
+    real (*v0)[3],
+    real (*a0)[3],
+    const real *m,
+    real G,
+    real *t,
+    real *dt,
+    real tf,
+    const real *nodes,
+    real *aux_b0,
+    real *aux_b,
+    const real *aux_c,
+    real *aux_e,
+    real *aux_g,
+    const real *aux_r,
+    real tolerance,
+    real tolerance_pc,
+    real exponent,
+    real safety_fac,
+    int *ias15_refine_flag
+)
+{
+    /**
+    *   Advance IAS15 for one step
+    */
+   
+    real *aux_a = malloc(dim_nodes * objects_count * 3 * sizeof(real));
+    real (*temp_a)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*x)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*v)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
+    real *delta_b7 = malloc(objects_count * 3 * sizeof(real));
+    real error, error_b7, dt_new;
+
+    // Main Loop
+    int ias15_integrate_flag = 0; 
+    while (1)
+    {   
+        // Loop for predictor-corrector algorithm
+        // 12 = max iterations
+        memcpy(a, a0, objects_count * 3 * sizeof(real));
+
+        for (int temp = 0; temp < 12; temp++)
+        {
+            for (int i = 0; i < dim_nodes; i++)
+            {
+                // Estimate position and velocity with current aux_b and nodes
+                memcpy(x, x0, objects_count * 3 * sizeof(real));
+                memcpy(v, v0, objects_count * 3 * sizeof(real));
+                ias15_approx_pos(objects_count, x, v, a, nodes[i], aux_b, *dt);
+                ias15_approx_vel(objects_count, v, a, nodes[i], aux_b, *dt);
+
+                // Evaluate force function and store result
+                acceleration(objects_count, x, temp_a, m, G);
+                memcpy(&aux_a[i * objects_count * 3], temp_a, objects_count * 3 * sizeof(real));
+                ias15_compute_aux_g(objects_count, dim_nodes, aux_g, aux_r, aux_a, i);
+                ias15_compute_aux_b(objects_count, dim_nodes, aux_b, aux_g, aux_c, i);
+            }
+
+            // Estimate convergence
+            for (int i = 0; i < objects_count; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    delta_b7[i * 3 + j] = aux_b[(dim_nodes - 2) * objects_count * 3 + i * 3 + j] - aux_b0[(dim_nodes - 2) * objects_count * 3 + i * 3 + j];
+                }
+            }
+            memcpy(aux_b0, aux_b, (dim_nodes - 1) * objects_count * 3 * sizeof(real));
+
+            if ((abs_max_vec(delta_b7, objects_count * 3) / abs_max_vec(&aux_a[(dim_nodes - 1) * objects_count * 3], objects_count * 3)) < tolerance_pc)
+            {
+                break;
+            }
+        }
+
+        // Advance step
+        memcpy(x, x0, objects_count * 3 * sizeof(real));
+        memcpy(v, v0, objects_count * 3 * sizeof(real));
+        memcpy(a, a0, objects_count * 3 * sizeof(real));
+        ias15_approx_pos(objects_count, x, v, a, 1.0, aux_b, *dt);
+        ias15_approx_vel(objects_count, v, a, 1.0, aux_b, *dt);
+        acceleration(objects_count, x, a, m, G);
+
+        // Estimate relative error
+        error_b7 = abs_max_vec(&aux_b[(dim_nodes - 2) * objects_count * 3], objects_count * 3) / abs_max_vec_array(a, objects_count);
+        error = pow((error_b7 / tolerance), exponent);
+        
+        // Step-size for the next step
+        if (error != 0)
+        {
+            dt_new = *dt / error;
+        }
+        else
+        {
+            dt_new = *dt;
+        }
+
+        // Accept the step
+        if (error <= 1 || *dt == tf * 1e-12)
+        {
+            // Report accepted step
+            ias15_integrate_flag = 1;
+            *t += *dt;
+
+            ias15_refine_aux_b(objects_count, dim_nodes, aux_b, aux_e, *dt, dt_new, *ias15_refine_flag);
+            *ias15_refine_flag = 1;
+
+            if (*t >= tf)
+            {
+                memcpy(x0, x, objects_count * 3 * sizeof(real));
+                memcpy(v0, v, objects_count * 3 * sizeof(real));
+                memcpy(a0, a, objects_count * 3 * sizeof(real));
+                free(aux_a);
+                free(temp_a);
+                free(x);
+                free(v);
+                free(a);
+                free(delta_b7);        
+                break;  
+            }
+        }
+
+        // Step size for the next iteration
+        if (dt_new > (*dt / safety_fac))
+        {
+            *dt = *dt / safety_fac;
+        }
+        else if (dt_new < *dt * safety_fac)
+        {
+            *dt = *dt * safety_fac;
+        }
+        else
+        {
+            *dt = dt_new;
+        }
+
+        if (dt_new / tf < 1e-12)
+        {
+            *dt = tf * 1e-12;
+        }
+
+        // Correct overshooting
+        if (*t + *dt > tf)
+        {
+            *dt = tf - *t;
+        }
+
+        // Exit 
+        if (ias15_integrate_flag > 0)
+        {   
+            memcpy(x0, x, objects_count * 3 * sizeof(real));
+            memcpy(v0, v, objects_count * 3 * sizeof(real));
+            memcpy(a0, a, objects_count * 3 * sizeof(real));
+            free(aux_a);
+            free(temp_a);
+            free(x);
+            free(v);
+            free(a);
+            free(delta_b7);        
+            break;    
+        }
+    }
+}
+
+void ias15_approx_pos(
+    int objects_count,
+    real (*x)[3],
+    const real (*v)[3],
+    const real (*a)[3],
+    real node,
+    real *aux_b,
+    real dt
+)
+{   
+    for (int j = 0; j < objects_count; j++)
+    {
+        for (int k = 0; k < 3; k++)
+        {
+            x[j][k] = x[j][k] + dt * node * (
+                v[j][k]
+                + dt
+                * node
+                * (
+                    a[j][k]
+                    + node 
+                    * (
+                        aux_b[0 * objects_count * 3 + j * 3 + k] / 3.0
+                        + node
+                        * (
+                            aux_b[1 * objects_count * 3 + j * 3 + k] / 6.0
+                            + node
+                            * (
+                                aux_b[2 * objects_count * 3 + j * 3 + k] / 10.0
+                                + node
+                                * (
+                                    aux_b[3 * objects_count * 3 + j * 3 + k] / 15.0
+                                    + node
+                                    * (
+                                        aux_b[4 * objects_count * 3 + j * 3 + k] / 21.0
+                                        + node * (
+                                            aux_b[5 * objects_count * 3 + j * 3 + k] / 28.0 
+                                            + node * aux_b[6 * objects_count * 3 + j * 3 + k] / 36.0
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+                / 2.0
+            );
+        }
+    }
+}
+
+void ias15_approx_vel(
+    int objects_count,
+    real (*v)[3],
+    const real (*a)[3],
+    real node,
+    real *aux_b,
+    real dt
+)
+{
+    for (int j = 0; j < objects_count; j++)
+    {
+        for (int k = 0; k < 3; k++)
+        {
+            v[j][k] = v[j][k] + dt * node * (
+                a[j][k]
+                + node
+                * (
+                    aux_b[0 * objects_count * 3 + j * 3 + k] / 2.0
+                    + node
+                    * (
+                        aux_b[1 * objects_count * 3 + j * 3 + k] / 3.0
+                        + node
+                        * (
+                            aux_b[2 * objects_count * 3 + j * 3 + k] / 4.0
+                            + node
+                            * (
+                                aux_b[3 * objects_count * 3 + j * 3 + k] / 5.0
+                                + node
+                                * (
+                                    aux_b[4 * objects_count * 3 + j * 3 + k] / 6.0
+                                    + node * (
+                                        aux_b[5 * objects_count * 3 + j * 3 + k] / 7.0 
+                                        + node * aux_b[6 * objects_count * 3 + j * 3 + k] / 8.0
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }
+}
+
+void ias15_compute_aux_b(
+    int objects_count,
+    int dim_nodes,
+    real *aux_b,
+    const real *aux_g,
+    const real *aux_c,
+    int i
+)
+{
+    // Calculate the auxiliary coefficients b for IAS15
+    
+    for (int j = 0; j < objects_count; j++)
+    {
+        for (int k = 0; k < 3; k++)
+        {
+            if (i >= 1) {
+                aux_b[0 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[0 * (dim_nodes - 1) + 0] * aux_g[0 * objects_count * 3 + j * 3 + k]
+                    + aux_c[1 * (dim_nodes - 1) + 0] * aux_g[1 * objects_count * 3 + j * 3 + k]
+                    + aux_c[2 * (dim_nodes - 1) + 0] * aux_g[2 * objects_count * 3 + j * 3 + k]
+                    + aux_c[3 * (dim_nodes - 1) + 0] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * (dim_nodes - 1) + 0] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * (dim_nodes - 1) + 0] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * (dim_nodes - 1) + 0] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 2) {
+                aux_b[1 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[1 * (dim_nodes - 1) + 1] * aux_g[1 * objects_count * 3 + j * 3 + k]
+                    + aux_c[2 * (dim_nodes - 1) + 1] * aux_g[2 * objects_count * 3 + j * 3 + k]
+                    + aux_c[3 * (dim_nodes - 1) + 1] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * (dim_nodes - 1) + 1] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * (dim_nodes - 1) + 1] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * (dim_nodes - 1) + 1] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 3) {
+                aux_b[2 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[2 * (dim_nodes - 1) + 2] * aux_g[2 * objects_count * 3 + j * 3 + k]
+                    + aux_c[3 * (dim_nodes - 1) + 2] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * (dim_nodes - 1) + 2] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * (dim_nodes - 1) + 2] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * (dim_nodes - 1) + 2] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 4) {
+                aux_b[3 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[3 * (dim_nodes - 1) + 3] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * (dim_nodes - 1) + 3] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * (dim_nodes - 1) + 3] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * (dim_nodes - 1) + 3] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 5)
+            {
+                aux_b[4 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[4 * (dim_nodes - 1) + 4] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * (dim_nodes - 1) + 4] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * (dim_nodes - 1) + 4] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 6)
+            {
+                aux_b[5 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[5 * (dim_nodes - 1) + 5] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * (dim_nodes - 1) + 5] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 7)
+            {
+                aux_b[6 * objects_count * 3 + j * 3 + k] = (
+                    aux_c[6 * (dim_nodes - 1) + 6] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                );
+            }
+            else
+            {
+                continue;
+            }
+        }
+    }
+}
+
+void ias15_compute_aux_g(
+    int objects_count,
+    int dim_nodes,
+    real *aux_g,
+    const real *aux_r,
+    const real *aux_a,
+    int i
+)
+{
+
+    real *F1 = malloc(objects_count * 3 * sizeof(real));
+    real *F2 = malloc(objects_count * 3 * sizeof(real));
+    real *F3 = malloc(objects_count * 3 * sizeof(real));
+    real *F4 = malloc(objects_count * 3 * sizeof(real));
+    real *F5 = malloc(objects_count * 3 * sizeof(real));
+    real *F6 = malloc(objects_count * 3 * sizeof(real));
+    real *F7 = malloc(objects_count * 3 * sizeof(real));
+    real *F8 = malloc(objects_count * 3 * sizeof(real));
+
+    memcpy(F1, &aux_a[0 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F2, &aux_a[1 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F3, &aux_a[2 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F4, &aux_a[3 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F5, &aux_a[4 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F6, &aux_a[5 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F7, &aux_a[6 * objects_count * 3], objects_count * 3 * sizeof(real));
+    memcpy(F8, &aux_a[7 * objects_count * 3], objects_count * 3 * sizeof(real)); 
+    /*
+    // Retrieve required accelerations
+    real *F1 = malloc((dim_nodes - 1) * 3 * sizeof(real));
+    real *F2 = malloc((i >= 1? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+    real *F3 = malloc((i >= 2? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+    real *F4 = malloc((i >= 3? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+    real *F5 = malloc((i >= 4? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+    real *F6 = malloc((i >= 5? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+    real *F7 = malloc((i >= 6? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+    real *F8 = malloc((i >= 7? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
+
+    switch (i)
+    {
+        case 1:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 2:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 3:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 4:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 5:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 6:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 7:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F7, &aux_a[6 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            break;
+        case 8:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F7, &aux_a[6 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F8, &aux_a[7 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));   
+            break;     
+
+        default:
+            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F7, &aux_a[6 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
+            memcpy(F8, &aux_a[7 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));   
+            break;    
+    }
+    */
+   
+    // Update aux_g
+    for (int j = 0; j < objects_count; j++)
+    {
+        for (int k = 0; k < 3; k++)
+        {
+            if (i >= 1)
+            {
+                aux_g[0 * objects_count * 3 + j * 3 + k] = (
+                    (F2[j * 3 + k] - F1[j * 3 + k]) * aux_r[1 * dim_nodes + 0]
+                );
+            }
+            else
+            {
+                continue;
+            }
+                
+            if (i >= 2)
+            {
+                aux_g[1 * objects_count * 3 + j * 3 + k] = (
+                    ((F3[j * 3 + k] - F1[j * 3 + k]) * aux_r[2 * dim_nodes + 0] 
+                    - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[2 * dim_nodes + 1]
+                );
+            }
+            else 
+            {
+                continue;
+            }
+
+            if (i >= 3)
+            {
+                aux_g[2 * objects_count * 3 + j * 3 + k] = (
+                    ((F4[j * 3 + k] - F1[j * 3 + k]) * aux_r[3 * dim_nodes + 0] 
+                    - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[3 * dim_nodes + 1] 
+                    - aux_g[1 * objects_count * 3 + j * 3 + k]
+                ) * aux_r[3 * dim_nodes + 2];
+            }
+            else
+            {
+                continue;
+            }
+                
+            if (i >= 4)
+            {
+                aux_g[3 * objects_count * 3 + j * 3 + k] = (
+                    (((F5[j * 3 + k] - F1[j * 3 + k]) * aux_r[4 * dim_nodes + 0] 
+                    - aux_g[0]) * aux_r[4 * dim_nodes + 1] - aux_g[1 * objects_count * 3 + j * 3 + k])
+                    * aux_r[4 * dim_nodes + 2]
+                    - aux_g[2 * objects_count * 3 + j * 3 + k]
+                ) * aux_r[4 * dim_nodes + 3];
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 5)
+            {
+                aux_g[4 * objects_count * 3 + j * 3 + k] = (
+                    (
+                        (((F6[j * 3 + k] - F1[j * 3 + k]) * aux_r[5 * dim_nodes + 0] 
+                        - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[5 * dim_nodes + 1] 
+                        - aux_g[1 * objects_count * 3 + j * 3 + k])
+                        * aux_r[5 * dim_nodes + 2]
+                        - aux_g[2 * objects_count * 3 + j * 3 + k]
+                    )
+                    * aux_r[5 * dim_nodes + 3]
+                    - aux_g[3 * objects_count * 3 + j * 3 + k]
+                ) * aux_r[5 * dim_nodes + 4];
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 6)
+            {
+                aux_g[5 * objects_count * 3 + j * 3 + k] = (
+                    (
+                        (
+                            (((F7[j * 3 + k] - F1[j * 3 + k]) * aux_r[6 * dim_nodes + 0] 
+                            - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[6 * dim_nodes + 1] 
+                            - aux_g[1 * objects_count * 3 + j * 3 + k])
+                            * aux_r[6 * dim_nodes + 2]
+                            - aux_g[2 * objects_count * 3 + j * 3 + k]
+                        )
+                        * aux_r[6 * dim_nodes + 3]
+                        - aux_g[3 * objects_count * 3 + j * 3 + k]
+                    )
+                    * aux_r[6 * dim_nodes + 4]
+                    - aux_g[4 * objects_count * 3 + j * 3 + k]
+                ) * aux_r[6 * dim_nodes + 5];
+            }
+            else
+            {
+                continue;
+            }
+
+            if (i >= 7)
+            {
+                aux_g[6 * objects_count * 3 + j * 3 + k] = (
+                    (
+                        (
+                            (
+                                (((F8[j * 3 + k] - F1[j * 3 + k]) * aux_r[7 * dim_nodes + 0] - aux_g[0 * objects_count * 3 + j * 3 + k]) 
+                                * aux_r[7 * dim_nodes + 1] 
+                                - aux_g[1 * objects_count * 3 + j * 3 + k])
+                                * aux_r[7 * dim_nodes + 2]
+                                - aux_g[2 * objects_count * 3 + j * 3 + k]
+                            )
+                            * aux_r[7 * dim_nodes + 3]
+                            - aux_g[3 * objects_count * 3 + j * 3 + k]
+                        )
+                        * aux_r[7 * dim_nodes + 4]
+                        - aux_g[4 * objects_count * 3 + j * 3 + k]
+                    )
+                    * aux_r[7 * dim_nodes + 5]
+                    - aux_g[5 * objects_count * 3 + j * 3 + k]
+                ) * aux_r[7 * dim_nodes + 6];                
+            }
+            else
+            {
+                continue;
+            }
+        }
+    }
+    free(F1);
+    free(F2);
+    free(F3);
+    free(F4);
+    free(F5);
+    free(F6);
+    free(F7);
+    free(F8);
+}
+
+void ias15_refine_aux_b(
+    int objects_count,
+    int dim_nodes,
+    real *aux_b,
+    real *aux_e,
+    real dt,
+    real dt_new,
+    int ias15_refine_flag
+)
+{
+    real *delta_aux_b = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
+    if (ias15_refine_flag != 0)
+    {
+        for (int i = 0; i < (dim_nodes - 1); i++)
+        {
+            for (int j = 0; j < objects_count; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    delta_aux_b[i * objects_count * 3 + j * 3 + k] = (
+                        aux_b[i * objects_count * 3 + j * 3 + k] - aux_e[i * objects_count * 3 + j * 3 + k]
+                    );
+                }
+            }
+        }
+    }
+
+    real q = dt_new / dt;
+    real q2 = q * q, q3 = q2 * q, q4 = q3 * q, q5 = q4 * q, q6 = q5 * q, q7 = q6 * q;
+    
+    for (int j = 0; j < objects_count; j++) 
+    {
+        for (int k = 0; k < 3; k++) 
+        {
+            aux_e[0 * objects_count * 3 + j * 3 + k] = q * (
+                aux_b[6 * objects_count * 3 + j * 3 + k] * 7.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k] * 6.0
+                + aux_b[4 * objects_count * 3 + j * 3 + k] * 5.0
+                + aux_b[3 * objects_count * 3 + j * 3 + k] * 4.0
+                + aux_b[2 * objects_count * 3 + j * 3 + k] * 3.0
+                + aux_b[1 * objects_count * 3 + j * 3 + k] * 2.0
+                + aux_b[0 * objects_count * 3 + j * 3 + k]
+            );
+
+            aux_e[1 * objects_count * 3 + j * 3 + k] = q2 * (
+                aux_b[6 * objects_count * 3 + j * 3 + k] * 21.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k] * 15.0
+                + aux_b[4 * objects_count * 3 + j * 3 + k] * 10.0
+                + aux_b[3 * objects_count * 3 + j * 3 + k] * 6.0
+                + aux_b[2 * objects_count * 3 + j * 3 + k] * 3.0
+                + aux_b[1 * objects_count * 3 + j * 3 + k]
+            );
+
+            aux_e[2 * objects_count * 3 + j * 3 + k] = q3 * (
+                aux_b[6 * objects_count * 3 + j * 3 + k] * 35.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k] * 20.0
+                + aux_b[4 * objects_count * 3 + j * 3 + k] * 10.0
+                + aux_b[3 * objects_count * 3 + j * 3 + k] * 4.0
+                + aux_b[2 * objects_count * 3 + j * 3 + k]
+            );
+
+            aux_e[3 * objects_count * 3 + j * 3 + k] = q4 * (
+                aux_b[6 * objects_count * 3 + j * 3 + k] * 35.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k] * 15.0
+                + aux_b[4 * objects_count * 3 + j * 3 + k] * 5.0
+                + aux_b[3 * objects_count * 3 + j * 3 + k]
+            );
+
+            aux_e[4 * objects_count * 3 + j * 3 + k] = q5 * (
+                aux_b[6 * objects_count * 3 + j * 3 + k] * 21.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k] * 6.0
+                + aux_b[4 * objects_count * 3 + j * 3 + k]
+            );
+
+            aux_e[5 * objects_count * 3 + j * 3 + k] = q6 * (
+                aux_b[6 * objects_count * 3 + j * 3 + k] * 7.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k]
+            );
+
+            aux_e[6 * objects_count * 3 + j * 3 + k] = q7 * aux_b[6 * objects_count * 3 + j * 3 + k];
+        }
+    }
+
+    for (int i = 0; i < (dim_nodes - 1); i++)
+    {
+        for (int j = 0; j < objects_count; j++)
+        {
+            for (int k = 0; k < 3; k++)
+            {
+                aux_b[i * objects_count * 3 + j * 3 + k] = (
+                    aux_e[i * objects_count * 3 + j * 3 + k] + delta_aux_b[i * objects_count * 3 + j * 3 + k]
+                );
+            }
+        }
+    }
+
+    free(delta_aux_b);
 }

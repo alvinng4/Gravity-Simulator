@@ -1,7 +1,9 @@
+import ctypes
+
 import numpy as np
 import rich.progress
 
-from common import acceleration
+from common import acceleration 
 
 class IAS15:
     def __init__(self, simulator, objects_count, x, v, m, G, tf, tolerance, is_c_lib):
@@ -15,7 +17,15 @@ class IAS15:
         )
         if is_c_lib == True:
             self.c_lib = simulator.c_lib 
-            pass
+            self.sol_state, self.sol_time, self.sol_dt = self.simulation_c_lib(
+                objects_count,
+                x,
+                v,
+                m,
+                G,
+                tf,
+                tolerance,
+            )
         elif is_c_lib == False:
             self.sol_state, self.sol_time, self.sol_dt = self.simulation_numpy(
                 objects_count,
@@ -28,7 +38,108 @@ class IAS15:
             )
 
     def simulation_c_lib(self, objects_count, x, v, m, G, tf, tolerance):
-        pass
+        # Recommended tolerance: 1e-9
+
+        # Safety factors for step-size control
+        safety_fac = 0.25
+
+        # For fixed step integration, choose exponent = 0
+        exponent = 1.0 / 7.0
+
+        # Allocate for dense output:
+        npts = 50000
+        self.sol_state = np.zeros((npts, objects_count * 2 * 3))
+        self.sol_time = np.zeros(npts)
+        self.sol_dt = np.zeros(npts)
+
+        # Initial values
+        self.sol_state[0] = np.concatenate(
+            (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+        )
+        t = ctypes.c_double(0.0)
+        self.sol_time[0] = 0.0
+        self.sol_dt[0] = 0.0
+
+        # Tolerance of predictor-corrector algorithm
+        tolerance_pc = 1e-16
+
+        # Initializing auxiliary variables
+        nodes, dim_nodes = self.ias15_radau_spacing()
+        aux_c = self.ias15_aux_c().reshape((dim_nodes - 1) * (dim_nodes - 1))    
+        aux_r = self.ias15_aux_r().reshape(dim_nodes * dim_nodes)    
+
+        aux_b0 = np.zeros(((dim_nodes - 1) * objects_count * 3))
+        aux_b = np.zeros(((dim_nodes - 1) * objects_count * 3))
+        aux_g = np.zeros(((dim_nodes - 1) * objects_count * 3))
+        aux_e = np.zeros(((dim_nodes - 1) * objects_count * 3))
+
+        a = acceleration(objects_count, x, m, G)
+
+        dt = ctypes.c_double(self.ias15_initial_time_step(objects_count, 15, x, v, a, m, G))
+
+        ias15_refine_flag = ctypes.c_int(0)
+        count = ctypes.c_int(0)
+        with self.progress_bar as progress_bar:
+            task = progress_bar.add_task("", total=tf)
+            while True:
+                ias15_flag = self.c_lib.ias15(
+                    ctypes.c_int(objects_count),
+                    ctypes.c_int(dim_nodes),
+                    nodes.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    aux_c.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    aux_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    aux_b0.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    aux_b.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    aux_g.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    aux_e.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    ctypes.c_double(G),                    
+                    ctypes.byref(t),
+                    ctypes.byref(dt),
+                    ctypes.c_double(tf),
+                    ctypes.byref(count),
+                    ctypes.c_double(tolerance),
+                    ctypes.c_double(tolerance_pc),
+                    self.sol_state.ctypes.data_as(
+                        ctypes.POINTER(ctypes.c_double)
+                    ),
+                    ctypes.c_int(len(self.sol_time)),
+                    self.sol_time.ctypes.data_as(
+                        ctypes.POINTER(ctypes.c_double)
+                    ),
+                    ctypes.c_int(len(self.sol_dt)),
+                    self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    ctypes.c_double(safety_fac),
+                    ctypes.c_double(exponent),
+                    ctypes.byref(ias15_refine_flag),
+                )
+
+                # Update progress bar
+                progress_bar.update(task, completed=t.value)
+                if ias15_flag == 0:
+                    pass
+
+                # Detect end of integration
+                elif ias15_flag == 2:
+                    progress_bar.stop()
+                    break
+
+                # Check buffer size and extend if needed :
+                elif ias15_flag == 1:
+                    self.sol_state = np.concatenate(
+                        (self.sol_state, np.zeros((npts, objects_count * 2 * 3)))
+                    )
+                    self.sol_time = np.concatenate((self.sol_time, np.zeros(npts)))
+                    self.sol_dt = np.concatenate((self.sol_dt, np.zeros(npts)))
+
+            return (
+                self.sol_state[0 : count.value + 1],
+                self.sol_time[0 : count.value + 1],
+                self.sol_dt[0 : count.value + 1],
+            )
 
     def simulation_numpy(self, objects_count, x, v, m, G, tf, tolerance):
         # Recommended tolerance: 1e-9
@@ -92,6 +203,8 @@ class IAS15:
                     x,
                     v,
                     a,
+                    m,
+                    G,
                     t,
                     dt,
                     tf,
@@ -108,8 +221,6 @@ class IAS15:
                     exponent,
                     safety_fac,
                     ias15_refine_flag,
-                    m,
-                    G,
                 )
 
                 # Update step
@@ -149,6 +260,8 @@ class IAS15:
         x0,
         v0,
         a0,
+        m,
+        G,
         t,
         dt,
         tf,
@@ -165,20 +278,17 @@ class IAS15:
         exponent,
         safety_fac,
         ias15_refine_flag,
-        m,
-        G,
     ):
         """
         Advance IAS15 for one step
         """
         # Main Loop
         ias15_integrate_flag = 0
+        aux_a = np.zeros((dim_nodes, objects_count, 3))
         while True:
             # Loop for predictor-corrector algorithm
             # 12 = max iterations
             for _ in range(12):
-                aux_a = np.zeros((dim_nodes, objects_count, 3))
-
                 # Advance along the Gauss-Radau sequence
                 for i in range(dim_nodes):
                     # Estimate position and velocity with current aux_b and nodes
@@ -204,12 +314,15 @@ class IAS15:
             # Estimate relative error
             error_b7 = np.max(np.abs(aux_b[-1])) / np.max(np.abs(a))
             error = (error_b7 / tolerance) ** exponent
-
+            
             # Step-size for the next step
-            dt_new = dt / error
+            if error != 0:
+                dt_new = dt / error
+            else:
+                dt_new = dt
 
             # Accept the step
-            if error <= 1:
+            if error <= 1 or dt == tf * 1e-12:
                 # Report accepted step
                 ias15_integrate_flag = 1
                 t += dt
@@ -226,10 +339,13 @@ class IAS15:
             # Step size for the next iteration
             if (dt_new / dt) > (1.0 / safety_fac):
                 dt = dt / safety_fac
-            elif dt_new < 1e-12:
+            elif dt_new < dt * safety_fac:
                 dt = dt * safety_fac
             else:
                 dt = dt_new
+
+            if dt_new / tf < 1e-12:
+                dt = tf * 1e-12
 
             # Correct overshooting
             if t + dt > tf:
@@ -392,6 +508,7 @@ class IAS15:
                 + aux_c[5, 0] * aux_g[5]
                 + aux_c[6, 0] * aux_g[6]
             )
+
         if i >= 2:
             aux_b[1] = (
                 aux_c[1, 1] * aux_g[1]
@@ -433,10 +550,10 @@ class IAS15:
         Return the auxiliary coefficients c for IAS15
 
         :rtype: numpy.array
-        :rshape: (8, 8)
+        :rshape: (7, 7)
         """
-        aux_c = np.zeros((8, 8))
-        for i in range(8):
+        aux_c = np.zeros((7, 7))
+        for i in range(7):
             aux_c[i, i] = 1.0
 
         aux_c[1, 0] = -0.0562625605369221464656522
@@ -466,19 +583,11 @@ class IAS15:
         aux_c[6, 4] = 2.9061362593084293014237914371173946705384212479246
         aux_c[6, 5] = -2.7558127197720458314421589
 
-        aux_c[7, 0] = -0.0012432012432012432012432013849038719237133940238163
-        aux_c[7, 1] = 0.039160839160839160839160841227582657239289159887563
-        aux_c[7, 2] = -0.39160839160839160839160841545895262429018228668896
-        aux_c[7, 3] = 1.7948717948717948717948719027866738711862551337629
-        aux_c[7, 4] = -4.3076923076923076923076925231853900723503338586335
-        aux_c[7, 5] = 5.6000000000000000000000001961129300233768803845526
-        aux_c[7, 6] = -3.7333333333333333333333334
-
         return aux_c
 
     @staticmethod
     def ias15_compute_aux_g(aux_g, aux_r, aux_a, i):
-        # Retrieve required accelerations:
+        # Retrieve required accelerations
         F1 = aux_a[0]
         F2 = aux_a[1]
         F3 = aux_a[2]
@@ -488,7 +597,7 @@ class IAS15:
         F7 = aux_a[6]
         F8 = aux_a[7]
 
-        # Update aux_g using the accelerations:
+        # Update aux_g
         if i >= 1:
             aux_g[0] = (F2 - F1) * aux_r[1, 0]
         if i >= 2:
