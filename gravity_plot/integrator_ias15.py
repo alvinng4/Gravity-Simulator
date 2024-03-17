@@ -302,10 +302,10 @@ class IAS15:
 
                 # Estimate convergence
                 delta_b7 = aux_b[-1] - aux_b0[-1]
+                aux_b0 = aux_b
                 if np.max(np.abs(delta_b7)) / np.max(np.abs(aux_a[-1])) < tolerance_pc:
                     break
-                aux_b0 = aux_b
-
+                
             # Advance step
             x = self.ias15_approx_pos(x0, v0, a0, 1.0, aux_b, dt)
             v = self.ias15_approx_vel(v0, a0, 1.0, aux_b, dt)
@@ -326,7 +326,6 @@ class IAS15:
                 # Report accepted step
                 ias15_integrate_flag = 1
                 t += dt
-                aux_b0 = aux_b
                 aux_b, aux_e = self.ias15_refine_aux_b(
                     aux_b, aux_e, dt, dt_new, ias15_refine_flag
                 )
