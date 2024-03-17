@@ -3,6 +3,12 @@
 #include <string.h>
 // #include <stdio.h> // For testing
 
+#ifdef WIN32DLL_EXPORTS
+    #define WIN32DLL_API __declspec(dllexport)
+#else
+    #define WIN32DLL_API 
+#endif
+
 #define real double
 
 real abs_max_vec(const real *vec, int vec_length);
@@ -179,7 +185,7 @@ void ias15_refine_aux_b(
     int ias15_refine_flag
 );
 
-real abs_max_vec(const real *vec, int vec_length)
+WIN32DLL_API real abs_max_vec(const real *vec, int vec_length)
 {
     // Find the max absolute value in a 1D array
     real max = fabs(vec[0]);
@@ -190,7 +196,8 @@ real abs_max_vec(const real *vec, int vec_length)
 
     return max;
 }
-real abs_max_vec_array(const real (*arr)[3], int objects_count)
+
+WIN32DLL_API real abs_max_vec_array(const real (*arr)[3], int objects_count)
 {
     // Find the max absolute value in a 1D array
     real max = 0;
@@ -204,7 +211,8 @@ real abs_max_vec_array(const real (*arr)[3], int objects_count)
 
     return max;
 }
-real vec_norm(const real *vec, int vec_length)
+
+WIN32DLL_API real vec_norm(const real *vec, int vec_length)
 {   
     real sum = 0.0;
     if (vec_length == 3) 
@@ -218,7 +226,7 @@ real vec_norm(const real *vec, int vec_length)
     return sqrt(sum);
 }
 
-void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
+WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
 {   
     real R_norm, temp_value, *temp_vec = malloc(3 * sizeof(real)), *R = malloc(3 * sizeof(real));
 
@@ -253,7 +261,7 @@ void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const rea
     free(R);
 }
 
-void euler(
+WIN32DLL_API void euler(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
@@ -304,7 +312,7 @@ void euler(
     }
 }
 
-void euler_cromer(
+WIN32DLL_API void euler_cromer(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
@@ -355,7 +363,7 @@ void euler_cromer(
     }
 }
 
-void rk4(
+WIN32DLL_API void rk4(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
@@ -471,7 +479,7 @@ void rk4(
     }
 }
 
-void leapfrog(
+WIN32DLL_API void leapfrog(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
@@ -541,7 +549,7 @@ void leapfrog(
     }
 }
 
-int rk_embedded(
+WIN32DLL_API int rk_embedded(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
@@ -811,7 +819,7 @@ int rk_embedded(
     }
 }
 
-int ias15(
+WIN32DLL_API int ias15(
     int objects_count, 
     int dim_nodes,
     const real *nodes,
@@ -909,7 +917,7 @@ int ias15(
 }
 
 // Advance IAS15 for one step
-void ias15_step(
+WIN32DLL_API void ias15_step(
     int objects_count,
     int dim_nodes,
     real (*x0)[3],
@@ -1070,7 +1078,7 @@ void ias15_step(
     }
 }
 
-void ias15_approx_pos(
+WIN32DLL_API void ias15_approx_pos(
     int objects_count,
     real (*x)[3],
     const real (*v)[3],
@@ -1121,7 +1129,7 @@ void ias15_approx_pos(
     }
 }
 
-void ias15_approx_vel(
+WIN32DLL_API void ias15_approx_vel(
     int objects_count,
     real (*v)[3],
     const real (*a)[3],
@@ -1166,7 +1174,7 @@ void ias15_approx_vel(
 }
 
 // Calculate the auxiliary coefficients b for IAS15
-void ias15_compute_aux_b(
+WIN32DLL_API void ias15_compute_aux_b(
     int objects_count,
     int dim_nodes,
     real *aux_b,
@@ -1276,7 +1284,7 @@ void ias15_compute_aux_b(
     }
 }
 
-void ias15_compute_aux_g(
+WIN32DLL_API void ias15_compute_aux_g(
     int objects_count,
     int dim_nodes,
     real *aux_g,
@@ -1439,7 +1447,7 @@ void ias15_compute_aux_g(
     free(F8);
 }
 
-void ias15_refine_aux_b(
+WIN32DLL_API void ias15_refine_aux_b(
     int objects_count,
     int dim_nodes,
     real *aux_b,
