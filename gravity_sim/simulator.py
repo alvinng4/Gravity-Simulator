@@ -136,11 +136,11 @@ class Simulator:
                             self.coeff,
                             self.weights,
                             self.weights_test,
-                        ) = butcher_tableaus_rk(order=45)
+                        ) = rk_embedded_butcher_tableaus(order=45)
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
                         )
-                        self.rk_dt = _initial_time_step_rk_embedded(
+                        self.rk_dt = _rk_embedded_initial_time_step(
                             self.stats.objects_count,
                             4,
                             self.x,
@@ -203,11 +203,11 @@ class Simulator:
                             self.coeff,
                             self.weights,
                             self.weights_test,
-                        ) = butcher_tableaus_rk(order=54)
+                        ) = rk_embedded_butcher_tableaus(order=54)
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
                         )
-                        self.rk_dt = _initial_time_step_rk_embedded(
+                        self.rk_dt = _rk_embedded_initial_time_step(
                             self.stats.objects_count,
                             5,
                             self.x,
@@ -270,11 +270,11 @@ class Simulator:
                             self.coeff,
                             self.weights,
                             self.weights_test,
-                        ) = butcher_tableaus_rk(order=65)
+                        ) = rk_embedded_butcher_tableaus(order=65)
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
                         )
-                        self.rk_dt = _initial_time_step_rk_embedded(
+                        self.rk_dt = _rk_embedded_initial_time_step(
                             self.stats.objects_count,
                             6,
                             self.x,
@@ -337,11 +337,11 @@ class Simulator:
                             self.coeff,
                             self.weights,
                             self.weights_test,
-                        ) = butcher_tableaus_rk(order=78)
+                        ) = rk_embedded_butcher_tableaus(order=78)
                         self.a = acceleration(
                             self.stats.objects_count, self.x, self.m, Grav_obj.G
                         )
-                        self.rk_dt = _initial_time_step_rk_embedded(
+                        self.rk_dt = _rk_embedded_initial_time_step(
                             self.stats.objects_count,
                             7,
                             self.x,
@@ -512,7 +512,7 @@ def leapfrog(objects_count, x, v, a, m, dt, G):
 
 
 @nb.njit
-def _initial_time_step_rk_embedded(
+def _rk_embedded_initial_time_step(
     objects_count: int,
     power: int,
     x,
@@ -661,10 +661,11 @@ def rk_embedded(
             actual_dt = safety_fac_max * actual_dt
         elif dt_new < safety_fac_min * actual_dt:
             actual_dt = safety_fac_min * actual_dt
-        elif dt_new / expected_time_scale < 1e-12:
-            actual_dt = expected_time_scale * 1e-12
         else:
             actual_dt = dt_new
+
+        if dt_new / expected_time_scale < 1e-12:
+            actual_dt = expected_time_scale * 1e-12
 
         if i >= min_iteration and t > (simulation_time + expected_time_scale * 1e-5):
             return x, v, t, actual_dt
@@ -690,7 +691,7 @@ def total_energy(objects_count, x, v, m, G):
 
 
 @nb.njit
-def butcher_tableaus_rk(order):
+def rk_embedded_butcher_tableaus(order):
     """
     Butcher tableaus for embedded rk
 
