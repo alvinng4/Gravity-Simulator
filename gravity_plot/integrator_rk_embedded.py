@@ -112,8 +112,12 @@ class RK_EMBEDDED:
                     self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                 )
 
+                # Update percentage bar
+                if rk_flag == 0:
+                    pass
+            
                 # Extend buffer size if needed
-                if rk_flag == 2:
+                elif rk_flag == 1:
                     self.sol_state = np.concatenate(
                         (
                             self.sol_state,
@@ -127,12 +131,8 @@ class RK_EMBEDDED:
                         (self.sol_dt, np.zeros(npts))
                     )
 
-                # Update percentage bar
-                elif rk_flag == 1:
-                    pass
-
                 # End simulation as t = tf
-                elif rk_flag == 0:
+                elif rk_flag == 2:
                     self.sol_state = self.sol_state[0 : count.value + 1]
                     self.sol_time = self.sol_time[0 : count.value + 1]
                     self.sol_dt = self.sol_dt[0 : count.value + 1]
@@ -305,10 +305,11 @@ class RK_EMBEDDED:
                 dt = safety_fac_max * dt
             elif dt_new < safety_fac_min * dt:
                 dt = safety_fac_min * dt
-            elif dt_new / tf < 1e-12:
-                dt = tf * 1e-12
             else:
                 dt = dt_new
+
+            if dt_new / tf < 1e-12:
+                dt = tf * 1e-12
 
             # Correct overshooting:
             if t + dt > tf:
