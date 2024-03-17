@@ -941,8 +941,6 @@ void ias15_step(
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
     real *delta_b7 = malloc(objects_count * 3 * sizeof(real));
     real error, error_b7, dt_new;
-
-    real *temp_b = malloc(objects_count * 3 * sizeof(real));
     // Main Loop
     int ias15_integrate_flag = 0; 
     while (1)
@@ -962,14 +960,8 @@ void ias15_step(
 
                 // Evaluate force function and store result
                 acceleration(objects_count, x, temp_a, m, G);
-                // memcpy(&aux_a[i * objects_count * 3], temp_a, objects_count * 3 * sizeof(real));
-                for (int j = 0; j < objects_count; j++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        aux_a[i * objects_count * 3 + j * 3 + k] = temp_a[j][k];
-                    }
-                }
+                memcpy(&aux_a[i * objects_count * 3], temp_a, objects_count * 3 * sizeof(real));
+                
                 ias15_compute_aux_g(objects_count, dim_nodes, aux_g, aux_r, aux_a, i);
                 ias15_compute_aux_b(objects_count, dim_nodes, aux_b, aux_g, aux_c, i);
             }
@@ -983,20 +975,7 @@ void ias15_step(
                 }
             }
             memcpy(aux_b0, aux_b, (dim_nodes - 1) * objects_count * 3 * sizeof(real));
-            /*
             if ((abs_max_vec(delta_b7, objects_count * 3) / abs_max_vec(&aux_a[(dim_nodes - 1) * objects_count * 3], objects_count * 3)) < tolerance_pc)
-            {
-                break;
-            }
-            */
-            for (int i = 0; i < objects_count; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    temp_a[i][j] = aux_a[(dim_nodes - 1) * objects_count * 3 + i * 3 + j];
-                }
-            }
-            if ((abs_max_vec(delta_b7, objects_count * 3) / abs_max_vec_array(temp_a, objects_count)) < tolerance_pc)
             {
                 break;
             }
@@ -1011,15 +990,7 @@ void ias15_step(
         acceleration(objects_count, x, a, m, G);
 
         // Estimate relative error
-        //error_b7 = abs_max_vec(&aux_b[(dim_nodes - 2) * objects_count * 3], objects_count * 3) / abs_max_vec_array(a, objects_count);
-        for (int i = 0; i < objects_count; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                temp_b[i * 3 + j] = aux_b[(dim_nodes - 2) * objects_count * 3 + i * 3 + j];
-            }
-        }
-        error_b7 = abs_max_vec(temp_b, objects_count * 3) / abs_max_vec_array(a, objects_count);
+        error_b7 = abs_max_vec(&aux_b[(dim_nodes - 2) * objects_count * 3], objects_count * 3) / abs_max_vec_array(a, objects_count);
         error = pow((error_b7 / tolerance), exponent);
         
         // Step-size for the next step
@@ -1053,8 +1024,6 @@ void ias15_step(
                 free(v);
                 free(a);
                 free(delta_b7);      
-
-                free(temp_b);  
                 break;  
             }
         }
@@ -1095,9 +1064,7 @@ void ias15_step(
             free(x);
             free(v);
             free(a);
-            free(delta_b7);   
-
-            free(temp_b);     
+            free(delta_b7);       
             break;    
         }
     }
@@ -1318,7 +1285,7 @@ void ias15_compute_aux_g(
     int i
 )
 {
-
+    // Retrieve required accelerations
     real *F1 = malloc(objects_count * 3 * sizeof(real));
     real *F2 = malloc(objects_count * 3 * sizeof(real));
     real *F3 = malloc(objects_count * 3 * sizeof(real));
@@ -1328,7 +1295,6 @@ void ias15_compute_aux_g(
     real *F7 = malloc(objects_count * 3 * sizeof(real));
     real *F8 = malloc(objects_count * 3 * sizeof(real));
 
-    /*
     memcpy(F1, &aux_a[0 * objects_count * 3], objects_count * 3 * sizeof(real));
     memcpy(F2, &aux_a[1 * objects_count * 3], objects_count * 3 * sizeof(real));
     memcpy(F3, &aux_a[2 * objects_count * 3], objects_count * 3 * sizeof(real));
@@ -1337,101 +1303,7 @@ void ias15_compute_aux_g(
     memcpy(F6, &aux_a[5 * objects_count * 3], objects_count * 3 * sizeof(real));
     memcpy(F7, &aux_a[6 * objects_count * 3], objects_count * 3 * sizeof(real));
     memcpy(F8, &aux_a[7 * objects_count * 3], objects_count * 3 * sizeof(real)); 
-    */
 
-    for (int j = 0; j < objects_count; j++)
-    {
-        for (int k = 0; k < 3; k++)
-        {
-            F1[j * 3 + k] = aux_a[0 * objects_count * 3 + j * 3 + k];
-            F2[j * 3 + k] = aux_a[1 * objects_count * 3 + j * 3 + k];
-            F3[j * 3 + k] = aux_a[2 * objects_count * 3 + j * 3 + k];
-            F4[j * 3 + k] = aux_a[3 * objects_count * 3 + j * 3 + k];
-            F5[j * 3 + k] = aux_a[4 * objects_count * 3 + j * 3 + k];
-            F6[j * 3 + k] = aux_a[5 * objects_count * 3 + j * 3 + k];
-            F7[j * 3 + k] = aux_a[6 * objects_count * 3 + j * 3 + k];
-            F8[j * 3 + k] = aux_a[7 * objects_count * 3 + j * 3 + k];
-        }
-    }
-    /*
-    // Retrieve required accelerations
-    real *F1 = malloc((dim_nodes - 1) * 3 * sizeof(real));
-    real *F2 = malloc((i >= 1? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-    real *F3 = malloc((i >= 2? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-    real *F4 = malloc((i >= 3? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-    real *F5 = malloc((i >= 4? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-    real *F6 = malloc((i >= 5? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-    real *F7 = malloc((i >= 6? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-    real *F8 = malloc((i >= 7? 1 : 0) * (dim_nodes - 1) * 3 * sizeof(real));
-
-    switch (i)
-    {
-        case 1:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 2:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 3:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 4:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 5:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 6:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 7:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F7, &aux_a[6 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            break;
-        case 8:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F7, &aux_a[6 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F8, &aux_a[7 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));   
-            break;     
-
-        default:
-            memcpy(F1, &aux_a[0 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F2, &aux_a[1 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F3, &aux_a[2 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F4, &aux_a[3 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F5, &aux_a[4 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F6, &aux_a[5 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F7, &aux_a[6 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));
-            memcpy(F8, &aux_a[7 * (dim_nodes - 1) * 3], (dim_nodes - 1) * 3 * sizeof(real));   
-            break;    
-    }
-    */
-   
     // Update aux_g
     for (int j = 0; j < objects_count; j++)
     {
@@ -1584,12 +1456,15 @@ void ias15_refine_aux_b(
         {
             for (int j = 0; j < objects_count; j++)
             {
-                for (int k = 0; k < 3; k++)
-                {
-                    delta_aux_b[i * objects_count * 3 + j * 3 + k] = (
-                        aux_b[i * objects_count * 3 + j * 3 + k] - aux_e[i * objects_count * 3 + j * 3 + k]
-                    );
-                }
+                delta_aux_b[i * objects_count * 3 + j * 3 + 0] = (
+                    aux_b[i * objects_count * 3 + j * 3 + 0] - aux_e[i * objects_count * 3 + j * 3 + 0]
+                );
+                delta_aux_b[i * objects_count * 3 + j * 3 + 1] = (
+                    aux_b[i * objects_count * 3 + j * 3 + 1] - aux_e[i * objects_count * 3 + j * 3 + 1]
+                );
+                delta_aux_b[i * objects_count * 3 + j * 3 + 2] = (
+                    aux_b[i * objects_count * 3 + j * 3 + 2] - aux_e[i * objects_count * 3 + j * 3 + 2]
+                );
             }
         }
     }
@@ -1654,12 +1529,15 @@ void ias15_refine_aux_b(
     {
         for (int j = 0; j < objects_count; j++)
         {
-            for (int k = 0; k < 3; k++)
-            {
-                aux_b[i * objects_count * 3 + j * 3 + k] = (
-                    aux_e[i * objects_count * 3 + j * 3 + k] + delta_aux_b[i * objects_count * 3 + j * 3 + k]
+            aux_b[i * objects_count * 3 + j * 3 + 0] = (
+                    aux_e[i * objects_count * 3 + j * 3 + 0] + delta_aux_b[i * objects_count * 3 + j * 3 + 0]
                 );
-            }
+            aux_b[i * objects_count * 3 + j * 3 + 1] = (
+                aux_e[i * objects_count * 3 + j * 3 + 1] + delta_aux_b[i * objects_count * 3 + j * 3 + 1]
+            );
+            aux_b[i * objects_count * 3 + j * 3 + 2] = (
+                aux_e[i * objects_count * 3 + j * 3 + 2] + delta_aux_b[i * objects_count * 3 + j * 3 + 2]
+            );
         }
     }
 
