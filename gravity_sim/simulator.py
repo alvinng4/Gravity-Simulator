@@ -5,6 +5,7 @@ from grav_obj import Grav_obj
 
 from integrator_fixed_step_size import FIXED_STEP_SIZE_INTEGRATOR
 from integrator_rk_embedded import RK_EMBEDDED
+from integrator_ias15 import IAS15
 
 from common import acceleration
 
@@ -20,6 +21,8 @@ class Simulator:
 
         self.fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR()
         self.rk_embdded_integrator = RK_EMBEDDED()
+        self.ias15_integrator = IAS15()
+
         self.is_initialize = True
         self.set_all_integrators_false()
         self.is_rk4 = True  # Default integrator
@@ -33,17 +36,13 @@ class Simulator:
         # Simple euler is enough when there is no interaction
         if self.stats.objects_count == 1:
             self.fixed_step_size_integrator.simulation(
-                self.stats.objects_count,
+                self,
                 "euler",
-                self.x,
-                self.v,
-                self.a,
+                self.stats.objects_count,
                 self.m,
                 Grav_obj.G,
                 self.settings.dt,
                 self.settings.time_speed,
-                self.is_initialize,
-                self.is_initialize_integrator,
             )
             self.stats.simulation_time += (
                 self.settings.dt * self.settings.time_speed
@@ -54,6 +53,7 @@ class Simulator:
                 case "euler" | "euler_cromer" | "rk4" | "leapfrog":
                     self.fixed_step_size_integrator.simulation(
                         self,
+                        self.current_integrator,
                         self.stats.objects_count,
                         self.m,
                         Grav_obj.G,
@@ -72,6 +72,18 @@ class Simulator:
                         self.m,
                         Grav_obj.G,
                         self.settings.tolerance,
+                        self.settings.tolerance,
+                        self.settings.expected_time_scale,
+                        self.settings.rk_max_iteration,
+                        self.settings.rk_min_iteration,
+                    )
+
+                case "ias15":
+                    self.ias15_integrator.simulation(
+                        self,
+                        self.stats.objects_count,
+                        self.m,
+                        Grav_obj.G,
                         self.settings.tolerance,
                         self.settings.expected_time_scale,
                         self.settings.rk_max_iteration,
@@ -120,6 +132,7 @@ class Simulator:
         self.is_dopri = False
         self.is_dverk = False
         self.is_rkf78 = False
+        self.is_ias15 = False
 
     def check_current_integrator(self):
         """
@@ -141,6 +154,8 @@ class Simulator:
             self.current_integrator = "dverk"
         elif self.is_rkf78 == True:
             self.current_integrator = "rkf78"
+        elif self.is_ias15 == True:
+            self.current_integrator = "ias15"
 
 
 @nb.njit
