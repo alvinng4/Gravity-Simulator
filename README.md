@@ -3,7 +3,7 @@ This is a Newtonian 3D N-body gravity simulator program which projects the resul
 * With the plotting module, you may set up your own system and generate a plot easily.
 * The interactive module enables real-time interaction with the gravity simulator.
 
-<img src="gravity_plot/examples/solar_system.svg" alt="Image" width="400">
+<img src="gravity_plot/examples/Solar_system.png" alt="Image" width="400">
 
 ## Documentation
 * [Quick Start](#quick-start)
@@ -59,8 +59,8 @@ python gravity_sim
 ```
 ## Plotting module
 
-<img src="gravity_plot/examples/pyth-3-body.svg" alt="Image" width="300">
-<img src="gravity_plot/examples/solar_system_rel_energy.svg" alt="Image" width="300">
+<img src="gravity_plot/examples/pyth-3-body.png" alt="Image" width="300">
+<img src="gravity_plot/examples/solar_system_rel_energy.png" alt="Image" width="300">
 
 ### Running the program
 
@@ -133,7 +133,7 @@ If you want to customize the title of the graph, run the program with the follow
 python compare.py -t <title>
 ```
 
-<img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.svg" alt="Image" width="400">
+<img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.png" alt="Image" width="400">
 
 ## Interactive module
 ### Running the program
