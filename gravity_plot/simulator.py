@@ -519,7 +519,9 @@ class Simulator:
             try:
                 desired_trim_size = int(input("Enter desired number of lines: "))
                 if desired_trim_size >= len(self.sol_time):
-                    raise ValueError
+                    raise ValueError("Value too big!")
+                elif desired_trim_size <= 2:
+                    raise ValueError("Value too small!")
                 else:
                     break
             except ValueError:
