@@ -2,8 +2,8 @@ from common import acceleration
 
 class FIXED_STEP_SIZE_INTEGRATOR:
 
-    def simulation(self, simulator, objects_count, m, G, dt, time_speed):
-        match simulator.current_integrator:
+    def simulation(self, simulator, integrator, objects_count, m, G, dt, time_speed):
+        match integrator:
             case "euler":
                 if (
                     simulator.is_initialize == True
