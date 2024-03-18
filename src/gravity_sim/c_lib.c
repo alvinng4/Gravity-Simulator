@@ -14,12 +14,10 @@
 real abs_max_vec(const real *vec, int vec_length);
 real abs_max_vec_array(const real (*arr)[3], int objects_count);
 real vec_norm(const real *vec, int vec_length);
-void compute_energy(
+real compute_energy(
     int objects_count, 
-    int npts,
-    int *count, 
-    real *energy, 
-    const real (*sol_state)[objects_count * 6], 
+    const real (*x)[3],
+    const real (*v)[3],
     const real *m, 
     real G
 );
@@ -224,64 +222,65 @@ WIN32DLL_API real vec_norm(const real *vec, int vec_length)
     return sqrt(sum);
 }
 
-WIN32DLL_API void compute_energy(
+WIN32DLL_API real compute_energy(
     int objects_count, 
-    int npts,
-    int *count, 
-    real *energy, 
-    const real (*sol_state)[objects_count * 6], 
+    const real (*x)[3],
+    const real (*v)[3],
     const real *m, 
     real G
 )
 {
-    int progress_percentage = (int) round((float) *count / (float) npts * 100.0);
+    real temp_vec[3], energy = 0.0, norm;
 
-    real temp_vec[3];
-
-    while (1)
+    for (int i = 0; i < objects_count; i++)
     {   
-        for (int i = 0; i < objects_count; i++)
+        // KE
+        norm = vec_norm(v[i], 3);
+        if (norm != 0)
         {
-            // KE
-            energy[*count] += (
+            energy += (
                 0.5 * m[i] 
-                * pow(vec_norm(&sol_state[*count][(objects_count + i) * 3], 3), 2)
+                * pow(norm, 2)
+            );
+        }
+        else
+        {
+            return NAN;
+        }
+
+        // PE
+        for (int j = i + 1; j < objects_count; j++)
+        {
+            temp_vec[0] = (
+                x[i][0] 
+                - x[j][0]
+            );
+            temp_vec[1] = (
+                x[i][1] 
+                - x[j][1]
+            );
+            temp_vec[2] = (
+                x[i][2] 
+                - x[j][2]
             );
 
-            // PE
-            for (int j = i + 1; j < objects_count; j++)
+            norm = vec_norm(temp_vec, 3);
+            if (norm != 0)
             {
-                temp_vec[0] = (
-                    sol_state[*count][i * 3 + 0] 
-                    - sol_state[*count][j * 3 + 0]
-                );
-                temp_vec[1] = (
-                    sol_state[*count][i * 3 + 1] 
-                    - sol_state[*count][j * 3 + 1]
-                );
-                temp_vec[2] = (
-                    sol_state[*count][i * 3 + 2] 
-                    - sol_state[*count][j * 3 + 2]
-                );
-                energy[*count] -= (
+                energy -= (
                     G * m[i] * m[j]
-                    / vec_norm(temp_vec, 3)
+                    / norm
                 );
             }
-        }
-        *count += 1;
-
-        if (*count >= npts)
-        {
-            break;
-        }
-
-        // Exit to update progress bar
-        if ((int) round((float) *count / (float) npts * 100.0) > progress_percentage)
-        {   
-            break;
+            else
+            {
+                return NAN;
+            }
         }
     }
+
+    return energy;
+    
 }
 
 WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
