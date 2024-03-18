@@ -43,6 +43,8 @@ class RK_EMBEDDED:
                 rel_tolerance,
             )
 
+            simulator.is_initialize = False
+
         # Simulation
         (
             simulator.x,
