@@ -575,50 +575,22 @@ class Simulator:
         self.energy = np.zeros(npts)
 
         start = timeit.default_timer()
-        with self.progress_bar as progress_bar:
-            for count in progress_bar.track(range(npts), description=""):
-                x = self.sol_state[count]
-                for i in range(self.objects_count):
-                    # KE
-                    self.energy[count] += (
-                        0.5
-                        * self.m[i]
-                        * np.linalg.norm(
-                            x[
-                                (self.objects_count + i)
-                                * 3 : (self.objects_count + 1 + i)
-                                * 3
-                            ]
-                        )
-                        ** 2
-                    )
-                    # PE
-                    for j in range(i + 1, self.objects_count):
-                        self.energy[count] -= (
-                            self.G
-                            * self.m[i]
-                            * self.m[j]
-                            / np.linalg.norm(
-                                x[i * 3 : (i + 1) * 3] - x[j * 3 : (j + 1) * 3]
-                            )
-                        )
-        """
-        The c_lib compute_energy casues memory problem for unknown reason
-        
         if self.is_c_lib == True:
             count = ctypes.c_int(0)
-            while count.value < npts:
-                self.c_lib.compute_energy(
-                    ctypes.c_int(self.objects_count),
-                    ctypes.c_int(npts),
-                    ctypes.byref(count),
-                    self.energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                    self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                    self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                    ctypes.c_double(self.G)
-                    )
-
-
+            with self.progress_bar as progress_bar:
+                task = progress_bar.add_task("", total=npts)       
+                while count.value < npts:
+                    self.c_lib.compute_energy(
+                        ctypes.c_int(self.objects_count),
+                        ctypes.c_int(npts),
+                        ctypes.byref(count),
+                        self.energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        ctypes.c_double(self.G)
+                        )
+                    progress_bar.update(task, completed=count.value)
+                    
         elif self.is_c_lib == False:
             with self.progress_bar as progress_bar:
                 for count in progress_bar.track(range(npts), description=""):
@@ -647,7 +619,7 @@ class Simulator:
                                     x[i * 3 : (i + 1) * 3] - x[j * 3 : (j + 1) * 3]
                                 )
                             )
-        """
+
         stop = timeit.default_timer()
         print(f"Run time: {(stop - start):.3f} s")
         print("")
