@@ -3,6 +3,9 @@ import numpy as np
 
 from grav_obj import Grav_obj
 
+from integrator_fixed_step_size import FIXED_STEP_SIZE_INTEGRATOR
+
+from common import acceleration
 
 class Simulator:
     def __init__(self, grav_sim):
@@ -14,6 +17,7 @@ class Simulator:
         self.v = []
         self.a = []
 
+        self.fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR()
         self.is_initialize = True
         self.set_all_integrators_false()
         self.is_rk4 = True  # Default integrator
@@ -24,108 +28,42 @@ class Simulator:
         if self.is_initialize == True:
             self.initialize_problem(grav_sim)
 
-        match self.current_integrator:
-            # Fixed step size integrators
-            case "euler":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "euler"
-                ):
-                    self.is_initialize = False
-
-                for _ in range(self.settings.time_speed):
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.x, self.v = euler(
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.settings.dt,
-                    )
-                self.stats.simulation_time += (
-                    self.settings.dt * self.settings.time_speed
-                )
-            case "euler_cromer":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "euler_cromer"
-                ):
-                    self.is_initialize = False
-
-                for _ in range(self.settings.time_speed):
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.x, self.v = euler_cromer(
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.settings.dt,
-                    )
-                self.stats.simulation_time += (
-                    self.settings.dt * self.settings.time_speed
-                )
-            case "rk4":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "rk4"
-                ):
-                    self.is_initialize = False
-
-                for _ in range(self.settings.time_speed):
-                    self.x, self.v = rk4(
+        # Simple euler is enough when there is no interaction
+        if self.stats.objects_count == 1:
+            self.fixed_step_size_integrator.simulation(
+                self.stats.objects_count,
+                "euler",
+                self.x,
+                self.v,
+                self.a,
+                self.m,
+                Grav_obj.G,
+                self.settings.dt,
+                self.settings.time_speed,
+                self.is_initialize,
+                self.is_initialize_integrator,
+            )
+            self.stats.simulation_time += (
+                self.settings.dt * self.settings.time_speed
+            )
+        else:
+            match self.current_integrator:
+                # Fixed step size integrators
+                case "euler" | "euler_cromer" | "rk4" | "leapfrog":
+                    self.fixed_step_size_integrator.simulation(
+                        self,
                         self.stats.objects_count,
-                        self.x,
-                        self.v,
                         self.m,
-                        self.settings.dt,
                         Grav_obj.G,
-                    )
-                self.stats.simulation_time += (
-                    self.settings.dt * self.settings.time_speed
-                )
-            case "leapfrog":
-                if (
-                    self.is_initialize == True
-                    and self.is_initialize_integrator == "leapfrog"
-                ):
-                    self.a = acceleration(
-                        self.stats.objects_count, self.x, self.m, Grav_obj.G
-                    )
-                    self.is_initialize = False
-
-                for _ in range(self.settings.time_speed):
-                    self.x, self.v, self.a = leapfrog(
-                        self.stats.objects_count,
-                        self.x,
-                        self.v,
-                        self.a,
-                        self.m,
                         self.settings.dt,
-                        Grav_obj.G,
-                    )
-                self.stats.simulation_time += (
-                    self.settings.dt * self.settings.time_speed
-                )
-            # Adaptive step size integrators
-            case "rkf45":
-                # Simple euler is enough when there is no interaction
-                if self.stats.objects_count == 1:
-                    for _ in range(self.settings.time_speed):
-                        self.a = acceleration(
-                            self.stats.objects_count, self.x, self.m, Grav_obj.G
+                        self.settings.time_speed,
                         )
-                        self.x, self.v = euler(
-                            self.x,
-                            self.v,
-                            self.a,
-                            self.settings.dt,
-                        )
+                    
                     self.stats.simulation_time += (
                         self.settings.dt * self.settings.time_speed
                     )
-                else:
+                # Adaptive step size integrators
+                case "rkf45":
                     if (
                         self.is_initialize == True
                         and self.is_initialize_integrator == "rkf45"
@@ -176,23 +114,7 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-            case "dopri":
-                # Simple euler is enough when there is no interaction
-                if self.stats.objects_count == 1:
-                    for _ in range(self.settings.time_speed):
-                        self.a = acceleration(
-                            self.stats.objects_count, self.x, self.m, Grav_obj.G
-                        )
-                        self.x, self.v = euler(
-                            self.x,
-                            self.v,
-                            self.a,
-                            self.settings.dt,
-                        )
-                    self.stats.simulation_time += (
-                        self.settings.dt * self.settings.time_speed
-                    )
-                else:
+                case "dopri":
                     if (
                         self.is_initialize == True
                         and self.is_initialize_integrator == "dopri"
@@ -243,23 +165,7 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-            case "dverk":
-                # Simple euler is enough when there is no interaction
-                if self.stats.objects_count == 1:
-                    for _ in range(self.settings.time_speed):
-                        self.a = acceleration(
-                            self.stats.objects_count, self.x, self.m, Grav_obj.G
-                        )
-                        self.x, self.v = euler(
-                            self.x,
-                            self.v,
-                            self.a,
-                            self.settings.dt,
-                        )
-                    self.stats.simulation_time += (
-                        self.settings.dt * self.settings.time_speed
-                    )
-                else:
+                case "dverk":
                     if (
                         self.is_initialize == True
                         and self.is_initialize_integrator == "dverk"
@@ -310,23 +216,7 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                     )
-            case "rkf78":
-                # Simple euler is enough when there is no interaction
-                if self.stats.objects_count == 1:
-                    for _ in range(self.settings.time_speed):
-                        self.a = acceleration(
-                            self.stats.objects_count, self.x, self.m, Grav_obj.G
-                        )
-                        self.x, self.v = euler(
-                            self.x,
-                            self.v,
-                            self.a,
-                            self.settings.dt,
-                        )
-                    self.stats.simulation_time += (
-                        self.settings.dt * self.settings.time_speed
-                    )
-                else:
+                case "rkf78":
                     if (
                         self.is_initialize == True
                         and self.is_initialize_integrator == "rkf78"
@@ -441,74 +331,6 @@ class Simulator:
             self.current_integrator = "dverk"
         elif self.is_rkf78 == True:
             self.current_integrator = "rkf78"
-
-
-# Note: jit cannot works on functions inside a class
-@nb.njit
-def acceleration(objects_count, x, m, G):
-    """
-    Calculate acceleration by a = - GM/r^3 vec{r}
-    """
-    # Allocate memory
-    temp_a = np.zeros((objects_count * objects_count, 3))
-
-    # Calculations
-    for j in range(objects_count):
-        for k in range(j + 1, objects_count):
-            R = x[j] - x[k]
-            if np.linalg.norm(R) != 0:
-                temp_value = G * R / np.linalg.norm(R) ** 3
-                temp_a[j * objects_count + k] = -temp_value * m[k]
-                temp_a[k * objects_count + j] = temp_value * m[j]
-            else: 
-                return np.zeros((objects_count, 3))
-
-    temp_a = temp_a.reshape((objects_count, objects_count, 3))
-    a = np.sum(temp_a, axis=1)
-
-    return a
-
-
-@nb.njit
-def euler(x, v, a, dt):
-    return x + v * dt, v + a * dt
-
-
-@nb.njit
-def euler_cromer(x, v, a, dt):
-    v = v + a * dt
-    x = x + v * dt
-    return x, v
-
-
-@nb.njit
-def rk4(objects_count, x, v, m, dt, G):
-    vk1 = acceleration(objects_count, x, m, G)
-    xk1 = v
-
-    vk2 = acceleration(objects_count, x + 0.5 * xk1 * dt, m, G)
-    xk2 = v + 0.5 * vk1 * dt
-
-    vk3 = acceleration(objects_count, x + 0.5 * xk2 * dt, m, G)
-    xk3 = v + 0.5 * vk2 * dt
-
-    vk4 = acceleration(objects_count, x + xk3 * dt, m, G)
-    xk4 = v + vk3 * dt
-
-    v = v + dt * (vk1 + 2 * vk2 + 2 * vk3 + vk4) / 6.0
-    x = x + dt * (xk1 + 2 * xk2 + 2 * xk3 + xk4) / 6.0
-
-    return x, v
-
-
-@nb.njit
-def leapfrog(objects_count, x, v, a, m, dt, G):
-    a_0 = a
-    x = x + v * dt + a_0 * 0.5 * dt * dt
-    a_1 = acceleration(objects_count, x, m, G)
-    v = v + (a_0 + a_1) * 0.5 * dt
-
-    return x, v, a_1
 
 
 @nb.njit
