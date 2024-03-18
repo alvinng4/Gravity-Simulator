@@ -1,6 +1,9 @@
 import argparse
+import ctypes
 import math
 from os import environ
+from pathlib import Path
+import platform
 import sys
 
 # Remove the "Hello from the pygame community." message when starting the program.
@@ -31,6 +34,18 @@ class GravitySimulator:
             simulator: stats, settings
         """
         self._read_command_line_arg()
+        # Use c library to perform simulation
+        self.is_c_lib = self.args.numpy
+        if self.is_c_lib:
+            if platform.system() == "Windows":
+                self.c_lib = ctypes.cdll.LoadLibrary(
+                    str(Path(__file__).parent / "c_lib.dll")
+                )
+            else:
+                self.c_lib = ctypes.cdll.LoadLibrary(
+                    str(Path(__file__).parent / "c_lib.so")
+                )
+
         pygame.init()
         if self.args.resolution == None:
             self.settings = Settings(
@@ -189,6 +204,12 @@ class GravitySimulator:
             default=None,
             type=float,
             help="Usage: --resolution <width>, <height>",
+        )
+        parser.add_argument(
+            "--numpy",
+            "-n",
+            action="store_false",
+            help="disable c_lib and use numpy",
         )
         self.args = parser.parse_args()
         if self.args.resolution != None:

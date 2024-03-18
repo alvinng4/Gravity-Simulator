@@ -4,7 +4,13 @@ from common import acceleration
 
 class IAS15:
     
-    def __init__(self):
+    def __init__(self, simulator):
+        if simulator.is_c_lib == True:
+            self.c_lib = simulator.c_lib
+            self.is_c_lib = True
+        else:
+            self.is_c_lib = False
+
         # Recommended tolerance: 1e-9
 
         # Safety factors for step-size control

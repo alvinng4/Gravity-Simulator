@@ -8,17 +8,21 @@ from integrator_ias15 import IAS15
 
 class Simulator:
     def __init__(self, grav_sim):
+        self.is_c_lib = grav_sim.is_c_lib
+        if self.is_c_lib == True:
+            self.c_lib = grav_sim.c_lib
+
         self.stats = grav_sim.stats
         self.settings = grav_sim.settings
 
-        self.m = []
-        self.x = []
-        self.v = []
-        self.a = []
+        self.m = np.array([])
+        self.x = np.array([])
+        self.v = np.array([])
+        self.a = np.array([])
 
-        self.fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR()
-        self.rk_embedded_integrator = RK_EMBEDDED()
-        self.ias15_integrator = IAS15()
+        self.fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR(self)
+        self.rk_embedded_integrator = RK_EMBEDDED(self)
+        self.ias15_integrator = IAS15(self)
 
         self.is_initialize = True
         self.set_all_integrators_false()
