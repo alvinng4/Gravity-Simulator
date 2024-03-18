@@ -4,7 +4,13 @@ from common import acceleration
 
 
 class RK_EMBEDDED:
-    
+    def __init__(self, simulator):
+        if simulator.is_c_lib == True:
+            self.c_lib = simulator.c_lib
+            self.is_c_lib = True
+        else:
+            self.is_c_lib = False
+            
     def simulation(self, simulator, objects_count, m, G, abs_tolerance, rel_tolerance, expected_time_scale, rk_max_iteration, rk_min_iteration):
         # Initialization
         if simulator.is_initialize == True and simulator.is_initialize_integrator == simulator.current_integrator:
