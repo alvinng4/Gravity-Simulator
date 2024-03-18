@@ -140,8 +140,6 @@ class RK_EMBEDDED:
 
                 progress_bar.update(task, completed=t.value)
 
-            progress_bar.stop()
-
     def simulation_numpy(self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance):
         a = acceleration(objects_count, x, m, G)
         initial_dt = self.rk_embedded_initial_time_step(
@@ -316,7 +314,6 @@ class RK_EMBEDDED:
                 dt = tf - t
 
             if t >= tf:
-                progress_bar.stop()
                 return (
                     sol_state[0 : count + 1],
                     sol_time[0 : count + 1],

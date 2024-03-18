@@ -578,7 +578,7 @@ class Simulator:
         if self.is_c_lib == True:
             count = ctypes.c_int(0)
             with self.progress_bar as progress_bar:
-                task = self.progress_bar.add_task("", total=npts)
+                task = progress_bar.add_task("", total=npts)
                 while count.value < npts:
                     self.c_lib.compute_energy(
                         ctypes.c_int(self.objects_count),
@@ -589,9 +589,8 @@ class Simulator:
                         self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         ctypes.c_double(self.G)
                         )
-                    self.progress_bar.update(task, completed=count.value)
+                    progress_bar.update(task, completed=count.value)
 
-                progress_bar.stop()
         elif self.is_c_lib == False:
             with self.progress_bar as progress_bar:
                 for count in progress_bar.track(range(npts), description=""):
@@ -648,8 +647,8 @@ class Simulator:
             )
         )
 
-        with self.progress_bar as progress_bar:
-            with open(file_path, "w", newline="") as file:
+        with open(file_path, "w", newline="") as file:
+            with self.progress_bar as progress_bar:
                 writer = csv.writer(file)
                 for count in progress_bar.track(range(len(self.sol_time))):
                     if is_compute_energy:

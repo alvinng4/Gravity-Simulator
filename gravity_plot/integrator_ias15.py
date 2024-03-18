@@ -124,7 +124,6 @@ class IAS15:
 
                 # Detect end of integration
                 elif ias15_flag == 2:
-                    progress_bar.stop()
                     break
 
                 # Check buffer size and extend if needed :
@@ -236,7 +235,6 @@ class IAS15:
 
                 # Detect end of integration
                 if ias15_integrate_flag == 2:
-                    progress_bar.stop()
                     break
 
                 # Check buffer size and extend if needed :
