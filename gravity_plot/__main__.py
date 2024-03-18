@@ -19,14 +19,18 @@ class Plotter:
         # Use c library to perform simulation
         self.is_c_lib = self.args.numpy
         if self.is_c_lib:
-            if platform.system() == "Windows":
-                self.c_lib = ctypes.cdll.LoadLibrary(
-                    str(Path(__file__).parent / "c_lib.dll")
-                )
-            else:
-                self.c_lib = ctypes.cdll.LoadLibrary(
-                    str(Path(__file__).parent / "c_lib.so")
-                )
+            try:
+                if platform.system() == "Windows":
+                    self.c_lib = ctypes.cdll.LoadLibrary(
+                        str(Path(__file__).parent / "c_lib.dll")
+                    )
+                else:
+                    self.c_lib = ctypes.cdll.LoadLibrary(
+                        str(Path(__file__).parent / "c_lib.so")
+                    )
+            except:
+                print("System message: Loading c_lib failed. Running with numpy.")
+                self.is_c_lib = False
 
         self.is_plot_dt = self.args.dt
 
