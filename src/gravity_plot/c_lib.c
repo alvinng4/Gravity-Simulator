@@ -292,7 +292,7 @@ WIN32DLL_API void compute_energy(
 
 WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
 {   
-    real R_norm, temp_value, *temp_vec = malloc(3 * sizeof(real)), *R = malloc(3 * sizeof(real));
+    real R_norm, temp_value, temp_vec[3], R[3];
 
     // Empty the input array
     memset(a, 0, objects_count * 3 * sizeof(real));
@@ -320,9 +320,6 @@ WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[
             a[j][2] += temp_vec[2] * m[i];
         }
     }
-
-    free(temp_vec);
-    free(R);
 }
 
 WIN32DLL_API void euler(
