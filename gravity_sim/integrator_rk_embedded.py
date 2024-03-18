@@ -194,7 +194,7 @@ class RK_EMBEDDED:
         """
         Calculate the initial time step for embedded rk method
 
-        Modified: Return dt * 1e-3 since this function gives initial dt thats too large
+        Modified: Return dt * 1e-2 since this function gives initial dt thats too large
 
         Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
         Chapter 6, Page 92 - 94
@@ -231,7 +231,7 @@ class RK_EMBEDDED:
             dt_1 = (0.01 / max(d_1, d_2)) ** (1.0 / (1.0 + power))
         dt = min(100 * dt_0, dt_1)
 
-        return dt * 1e-3
+        return dt * 1e-2
 
     @staticmethod
     def rk_embedded_butcher_tableaus(order):
