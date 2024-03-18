@@ -1,3 +1,5 @@
+import ctypes
+
 import numpy as np
 
 from grav_obj import Grav_obj
@@ -91,9 +93,23 @@ class Simulator:
                         self.settings.rk_min_iteration,
                     )
 
-        self.stats.total_energy = total_energy(
-            self.stats.objects_count, self.x, self.v, self.m, Grav_obj.G
-        )
+        if self.is_c_lib == True:
+            try:
+                self.stats.total_energy = self.c_lib.compute_energy(
+                    ctypes.c_int(self.stats.objects_count),
+                    self.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                    self.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                    self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                    ctypes.c_double(Grav_obj.G),
+                )
+            except:
+                self.stats.total_energy = compute_energy(
+                    self.stats.objects_count, self.x, self.v, self.m, Grav_obj.G
+                )
+        elif self.is_c_lib == False:
+            self.stats.total_energy = compute_energy(
+                self.stats.objects_count, self.x, self.v, self.m, Grav_obj.G
+            )
 
     def initialize_problem(self, grav_sim):
         """
@@ -159,17 +175,16 @@ class Simulator:
             self.current_integrator = "ias15"
 
 
-def total_energy(objects_count, x, v, m, G):
+def compute_energy(objects_count, x, v, m, G):
     E = 0
-    for j in range(0, objects_count):
+    for j in range(objects_count):
         E += 0.5 * m[j] * np.linalg.norm(v[j]) ** 2
-        for k in range(0, objects_count):
-            if j < k:
-                R = x[j] - x[k]
-                norm = np.linalg.norm(R)
-                if norm != 0:
-                    E -= G * m[j] * m[k] / norm 
-                else:
-                    return np.nan
+        for k in range(j + 1, objects_count):
+            R = x[j] - x[k]
+            norm = np.linalg.norm(R)
+            if norm != 0:
+                E -= G * m[j] * m[k] / norm 
+            else:
+                return np.nan
     return E
 

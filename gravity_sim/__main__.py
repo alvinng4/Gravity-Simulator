@@ -46,6 +46,8 @@ class GravitySimulator:
                     self.c_lib = ctypes.cdll.LoadLibrary(
                         str(Path(__file__).parent / "c_lib.so")
                     )
+
+                self.c_lib.compute_energy.restype = ctypes.c_double
             except:
                 print("System message: Loading c_lib failed. Running with numpy.")
                 self.is_c_lib = False
