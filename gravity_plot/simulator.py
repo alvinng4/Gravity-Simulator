@@ -518,43 +518,44 @@ class Simulator:
         while True:
             try:
                 desired_trim_size = int(input("Enter desired number of lines: "))
-                if desired_trim_size >= len(self.sol_time):
-                    raise ValueError("Value too big!")
-                elif desired_trim_size <= 2:
-                    raise ValueError("Value too small!")
-                else:
-                    break
             except ValueError:
                 print("Invalid input! Please try again.")
-                pass
+                continue 
 
-        self.trim_size = math.ceil(
-            len(self.sol_time) / math.ceil(len(self.sol_time) / desired_trim_size)
-        )
-        if len(self.sol_time) % self.trim_size == 0:
-            self.trim_size += 1
-        self.trimmed_sol_time = np.zeros(self.trim_size)
-        self.trimmed_sol_dt = np.zeros(self.trim_size)
-        self.trimmed_sol_state = np.zeros((self.trim_size, self.objects_count * 3 * 2))
+            if desired_trim_size >= len(self.sol_time):
+                print("Value too big! Please try again.")
+                continue
+            elif desired_trim_size < 10:
+                print("Value too small! Please try again.")
+                continue
+            else:
+                break
+
+        divide_factor = math.ceil(len(self.sol_time) / desired_trim_size)
+        trim_size = math.floor(len(self.sol_time) / divide_factor) + 1
+
+        trimmed_sol_time = np.zeros(trim_size)
+        trimmed_sol_dt = np.zeros(trim_size)
+        trimmed_sol_state = np.zeros((trim_size, self.objects_count * 3 * 2))
 
         j = 0
         for i in range(len(self.sol_time)):
-            if i % round(len(self.sol_time) / self.trim_size) == 0:
-                self.trimmed_sol_time[j] = self.sol_time[i]
-                self.trimmed_sol_dt[j] = self.sol_dt[i]
-                self.trimmed_sol_state[j] = self.sol_state[i]
+            if i % divide_factor == 0:
+                trimmed_sol_time[j] = self.sol_time[i]
+                trimmed_sol_dt[j] = self.sol_dt[i]
+                trimmed_sol_state[j] = self.sol_state[i]
                 j += 1
 
-        if self.trimmed_sol_time[-1] != self.sol_time[-1]:
-            self.trimmed_sol_time[-1] = self.sol_time[-1]
-            self.trimmed_sol_dt[-1] = self.sol_dt[-1]
-            self.trimmed_sol_state[-1] = self.sol_state[-1]
+        if trimmed_sol_time[-1] != self.sol_time[-1]:
+            trimmed_sol_time[-1] = self.sol_time[-1]
+            trimmed_sol_dt[-1] = self.sol_dt[-1]
+            trimmed_sol_state[-1] = self.sol_state[-1]
 
-        print(f"Trimmed data size = {len(self.trimmed_sol_time)}")
+        print(f"Trimmed data size = {len(trimmed_sol_time)}")
 
-        self.sol_time = self.trimmed_sol_time
-        self.sol_dt = self.trimmed_sol_dt
-        self.sol_state = self.trimmed_sol_state
+        self.sol_time = trimmed_sol_time
+        self.sol_dt = trimmed_sol_dt
+        self.sol_state = trimmed_sol_state
 
     def compute_energy(self):
         """
