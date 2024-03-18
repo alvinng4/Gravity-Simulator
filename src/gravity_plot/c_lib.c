@@ -235,6 +235,10 @@ WIN32DLL_API real vec_norm(const real *vec, int vec_length)
     return sqrt(sum);
 }
 
+/*
+
+For some reason, this function causes memory error
+
 WIN32DLL_API void compute_energy(
     int objects_count, 
     int npts,
@@ -289,6 +293,7 @@ WIN32DLL_API void compute_energy(
         }
     }
 }
+*/
 
 WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
 {   
