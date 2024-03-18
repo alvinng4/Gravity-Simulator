@@ -171,6 +171,15 @@ class Simulator:
         self.G = self.CONSTANT_G
         self.SIDEREAL_DAYS_PER_YEAR = plotter.SIDEREAL_DAYS_PER_YEAR
 
+        self.progress_bar = rich.progress.Progress(
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
+        )
+
     def initialize_system(self, plotter):
         # Read information of the customized system
         if self.system not in plotter.default_systems:
@@ -563,39 +572,46 @@ class Simulator:
         """
         print("Computing energy...")
         self.energy = np.zeros(len(self.sol_state))
-        self.progress_percentage = 0
-        self.npts = len(self.sol_state)
-
-        progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
+        npts = len(self.sol_state)
 
         start = timeit.default_timer()
-        with progress_bar as pb:
-            for count in pb.track(range(self.npts), description=""):
-                x = self.sol_state[count]
-                for i in range(self.objects_count):
-                    # KE
-                    self.energy[count] += (
-                        0.5
-                        * self.m[i]
-                        * np.linalg.norm(
-                            x[
-                                (self.objects_count + i)
-                                * 3 : (self.objects_count + 1 + i)
-                                * 3
-                            ]
+        if self.is_c_lib == True:
+            count = ctypes.c_int(0)
+            with self.progress_bar as progress_bar:
+                task = self.progress_bar.add_task("", total=npts)
+                while count.value < npts:
+                    self.c_lib.compute_energy(
+                        ctypes.c_int(self.objects_count),
+                        ctypes.c_int(npts),
+                        ctypes.byref(count),
+                        self.energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        ctypes.c_double(self.G)
                         )
-                        ** 2
-                    )
-                    # PE
-                    for j in range(self.objects_count):
-                        if i < j:
+                    self.progress_bar.update(task, completed=count.value)
+
+                progress_bar.stop()
+        elif self.is_c_lib == False:
+            with self.progress_bar as progress_bar:
+                for count in progress_bar.track(range(npts), description=""):
+                    x = self.sol_state[count]
+                    for i in range(self.objects_count):
+                        # KE
+                        self.energy[count] += (
+                            0.5
+                            * self.m[i]
+                            * np.linalg.norm(
+                                x[
+                                    (self.objects_count + i)
+                                    * 3 : (self.objects_count + 1 + i)
+                                    * 3
+                                ]
+                            )
+                            ** 2
+                        )
+                        # PE
+                        for j in range(i + 1, self.objects_count):
                             self.energy[count] -= (
                                 self.G
                                 * self.m[i]
@@ -632,18 +648,10 @@ class Simulator:
             )
         )
 
-        progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
-        with progress_bar as pb:
+        with self.progress_bar as progress_bar:
             with open(file_path, "w", newline="") as file:
                 writer = csv.writer(file)
-                for count in pb.track(range(len(self.sol_time))):
+                for count in progress_bar.track(range(len(self.sol_time))):
                     if is_compute_energy:
                         row = np.insert(self.sol_state[count], 0, self.energy[count])
                         row = np.insert(row, 0, self.sol_dt[count])
