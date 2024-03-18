@@ -14,6 +14,15 @@
 real abs_max_vec(const real *vec, int vec_length);
 real abs_max_vec_array(const real (*arr)[3], int objects_count);
 real vec_norm(const real *vec, int vec_length);
+void compute_energy(
+    int objects_count, 
+    int npts,
+    int *count, 
+    real *energy, 
+    const real (*sol_state)[objects_count * 6], 
+    const real *m, 
+    real G
+);
 void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G);
 void euler(
     int objects_count, 
@@ -224,6 +233,61 @@ WIN32DLL_API real vec_norm(const real *vec, int vec_length)
         for (int i = 0; i < vec_length; i++) sum += vec[i] * vec[i];
     }
     return sqrt(sum);
+}
+
+WIN32DLL_API void compute_energy(
+    int objects_count, 
+    int npts,
+    int *count, 
+    real *energy, 
+    const real (*sol_state)[objects_count * 6], 
+    const real *m, 
+    real G
+)
+{
+    int progress_percentage = (int) round((float) *count / (float) npts * 100.0);
+
+    real temp_vec[3];
+
+    while (1)
+    {   
+        for (int i = 0; i < objects_count; i++)
+        {
+            // KE
+            energy[*count] += (
+                0.5 * m[i] 
+                * pow(vec_norm(&sol_state[*count][(objects_count + i) * 3], 3), 2)
+            );
+
+            // PE
+            for (int j = i + 1; j < objects_count; j++)
+            {
+                temp_vec[0] = (
+                    sol_state[*count][i * 3 + 0] 
+                    - sol_state[*count][j * 3 + 0]
+                );
+                temp_vec[1] = (
+                    sol_state[*count][i * 3 + 1] 
+                    - sol_state[*count][j * 3 + 1]
+                );
+                temp_vec[2] = (
+                    sol_state[*count][i * 3 + 2] 
+                    - sol_state[*count][j * 3 + 2]
+                );
+                energy[*count] -= (
+                    G * m[i] * m[j]
+                    / vec_norm(temp_vec, 3)
+                );
+            }
+        }
+        *count += 1;
+
+        // Exit to update progress bar
+        if ((int) round((float) *count / (float) npts * 100.0) > progress_percentage)
+        {   
+            break;
+        }
+    }
 }
 
 WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
