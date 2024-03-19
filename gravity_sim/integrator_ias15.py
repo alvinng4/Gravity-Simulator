@@ -1,3 +1,5 @@
+import ctypes 
+
 import numpy as np
 
 from common import acceleration
@@ -27,7 +29,7 @@ class IAS15:
         self.aux_c = self.ias15_aux_c()    
         self.aux_r = self.ias15_aux_r()
 
-    def simulation(self, simulator, objects_count, m, G, tolerance, expected_time_scale, rk_max_iteration, rk_min_iteration):
+    def simulation(self, simulator, objects_count, m, G, tolerance, expected_time_scale, max_iteration, min_iteration):
         if simulator.is_initialize == True and simulator.is_initialize_integrator == "ias15":
             # Initializing auxiliary variables
             self.aux_b0 = np.zeros((self.dim_nodes - 1, objects_count, 3))
@@ -42,50 +44,88 @@ class IAS15:
             self.ias15_refine_flag = 0
 
             simulator.is_initialize = False
-
+        
         # Simulation
-        count = 0
-        t0 = simulator.stats.simulation_time
-        for _ in range(rk_max_iteration):
-            (
-                simulator.x,
-                simulator.v,
-                simulator.a,
-                simulator.stats.simulation_time,
-                self.dt,
-                self.aux_g,
-                self.aux_b,
-                self.aux_e,
-                self.aux_b0,
-                self.ias15_refine_flag,
-            ) = self.ias15_step(
-                objects_count,
-                simulator.x,
-                simulator.v,
-                simulator.a,
-                m,
-                G,
-                simulator.stats.simulation_time,
-                self.dt,
-                expected_time_scale,
-                self.dim_nodes,
-                self.nodes,
-                self.aux_b0,
-                self.aux_b,
-                self.aux_c,
-                self.aux_e,
-                self.aux_g,
-                self.aux_r,
-                tolerance,
-                self.tolerance_pc,
-                self.exponent,
-                self.safety_fac,
-                self.ias15_refine_flag,
-                rk_max_iteration
+        if simulator.is_c_lib == True:
+            count = ctypes.c_int(0)
+            temp_simulation_time = ctypes.c_double(simulator.stats.simulation_time)
+            temp_dt = ctypes.c_double(self.dt)
+            temp_ias15_refine_flag = ctypes.c_int(self.ias15_refine_flag)
+
+            self.c_lib.ias15(
+                ctypes.c_int(objects_count), 
+                simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                ctypes.c_double(G), 
+                ctypes.c_int(self.dim_nodes),
+                self.nodes.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                self.aux_c.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                self.aux_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                self.aux_b0.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                self.aux_b.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                self.aux_g.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                self.aux_e.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                ctypes.byref(temp_simulation_time), 
+                ctypes.byref(temp_dt),
+                ctypes.c_double(expected_time_scale),
+                ctypes.byref(count),
+                ctypes.c_double(tolerance),
+                ctypes.c_double(self.tolerance_pc),
+                ctypes.c_double(self.safety_fac),
+                ctypes.c_double(self.exponent),
+                ctypes.byref(temp_ias15_refine_flag),
+                ctypes.c_int(max_iteration),
+                ctypes.c_int(min_iteration),
             )
-            count += 1
-            if count >= rk_min_iteration and simulator.stats.simulation_time > (t0 + expected_time_scale * 1e-5):
-                break
+            simulator.stats.simulation_time = temp_simulation_time.value
+            self.dt = temp_dt.value
+            self.ias15_refine_flag = temp_ias15_refine_flag.value
+
+        elif simulator.is_c_lib == False:
+            count = 0
+            t0 = simulator.stats.simulation_time
+            for _ in range(max_iteration):
+                (
+                    simulator.x,
+                    simulator.v,
+                    simulator.a,
+                    simulator.stats.simulation_time,
+                    self.dt,
+                    self.aux_g,
+                    self.aux_b,
+                    self.aux_e,
+                    self.aux_b0,
+                    self.ias15_refine_flag,
+                ) = self.ias15_step(
+                    objects_count,
+                    simulator.x,
+                    simulator.v,
+                    simulator.a,
+                    m,
+                    G,
+                    simulator.stats.simulation_time,
+                    self.dt,
+                    expected_time_scale,
+                    self.dim_nodes,
+                    self.nodes,
+                    self.aux_b0,
+                    self.aux_b,
+                    self.aux_c,
+                    self.aux_e,
+                    self.aux_g,
+                    self.aux_r,
+                    tolerance,
+                    self.tolerance_pc,
+                    self.exponent,
+                    self.safety_fac,
+                    self.ias15_refine_flag,
+                )
+
+                count += 1
+                if count >= min_iteration and simulator.stats.simulation_time > (t0 + expected_time_scale * 1e-5):
+                    break
 
     def ias15_step(
         self,
@@ -111,7 +151,6 @@ class IAS15:
         exponent,
         safety_fac,
         ias15_refine_flag,
-        max_iterations,
     ):
         """
         Advance IAS15 for one step
@@ -119,7 +158,7 @@ class IAS15:
         # Main Loop
         ias15_integrate_flag = 0
         aux_a = np.zeros((dim_nodes, objects_count, 3))
-        for _ in range(max_iterations):
+        while True:
             # Loop for predictor-corrector algorithm
             # 12 = max iterations
             for _ in range(12):
