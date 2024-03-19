@@ -106,7 +106,7 @@ By default, the module utilize the code written in C to improve performance.
 Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
-python gravity_sim -n
+python gravity_sim [-n|--numpy]
 ```
 
 ## Plotting module
@@ -129,10 +129,12 @@ python gravity_plot
 | 3d_helix | An upward helix consists of three stars |
 | sun_earth_moon | The Sun, Earth, and Moon system |
 | figure-8 | A "figure-8" orbit involving three stars  |
-| pyth-3-body | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
+| pyth-3-body* | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
 | solar_system | Solar System with the Sun and the planets |
 | solar_system_plus | solar_system with the inclusion of Pluto, Ceres, and Vesta  |
 | custom | Customize your own system |
+
+*Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the accuracy of a integrator. Fixed step size integrators usually do not have enough accuracy.
 
 ### Customizing system
 If you want to setup your own system, choose the "custom" option.
@@ -160,8 +162,9 @@ time(tf unit), dt(days), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 Total energy will be stored as `0.0` if user chose not to compute energy.
 
 ### Store every nth point (Optional)
-Sometimes with long integration time and short dt, there may be a lot of unwanted solutions 
-stored in the memory, which causes the program to slows down significantly and even terminates itself. To fix this, run the following command to store every nth solution
+With long integration time and short dt, there would be a lot of unnecessary solutions stored in the memory, 
+which causes the program to slows down significantly and may even terminates itself. 
+To fix this, run the following command to store every nth point
 ```
 python gravity_plot [-s|--store_every_n] <int value>
 ```
