@@ -1,3 +1,5 @@
+import ctypes
+
 import numpy as np
 
 from common import acceleration
@@ -52,30 +54,62 @@ class RK_EMBEDDED:
             simulator.is_initialize = False
 
         # Simulation
-        (
-            simulator.x,
-            simulator.v,
-            simulator.stats.simulation_time,
-            self.rk_dt,
-        ) = self.rk_embedded(
-            objects_count,
-            simulator.x,
-            simulator.v,
-            m,
-            G,
-            expected_time_scale,
-            simulator.stats.simulation_time,
-            self.rk_dt,
-            self.power,
-            self.power_test,
-            self.coeff,
-            self.weights,
-            self.weights_test,
-            rk_max_iteration,
-            rk_min_iteration,
-            abs_tolerance,
-            rel_tolerance,
-        )
+        temp_simulation_time = ctypes.c_double(simulator.stats.simulation_time)
+        temp_rk_dt = ctypes.c_double(self.rk_dt)
+        if simulator.is_c_lib == True:
+            self.c_lib.rk_embedded(
+                ctypes.c_int(objects_count), 
+                simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                ctypes.c_double(G), 
+                ctypes.c_double(expected_time_scale),
+                ctypes.byref(temp_simulation_time), 
+                ctypes.byref(temp_rk_dt),
+                ctypes.c_int(self.power),
+                ctypes.c_int(self.power_test),
+                ctypes.c_int(np.shape(self.coeff)[-1]),
+                self.coeff.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                ctypes.c_int(len(self.weights)),
+                self.weights.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_double)
+                ),
+                self.weights_test.ctypes.data_as(
+                    ctypes.POINTER(ctypes.c_double)
+                ),
+                ctypes.c_int(rk_max_iteration),
+                ctypes.c_int(rk_min_iteration),
+                ctypes.c_double(abs_tolerance),
+                ctypes.c_double(rel_tolerance),
+            )
+            simulator.stats.simulation_time = temp_simulation_time.value 
+            self.rk_dt = temp_rk_dt.value
+
+        elif simulator.is_c_lib == False:
+            (
+                simulator.x,
+                simulator.v,
+                simulator.stats.simulation_time,
+                self.rk_dt,
+            ) = self.rk_embedded(
+                objects_count,
+                simulator.x,
+                simulator.v,
+                m,
+                G,
+                expected_time_scale,
+                simulator.stats.simulation_time,
+                self.rk_dt,
+                self.power,
+                self.power_test,
+                self.coeff,
+                self.weights,
+                self.weights_test,
+                rk_max_iteration,
+                rk_min_iteration,
+                abs_tolerance,
+                rel_tolerance,
+            )
 
 
     @staticmethod
