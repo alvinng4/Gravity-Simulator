@@ -6,7 +6,7 @@ from pathlib import Path
 import platform
 import sys
 
-# Remove the "Hello from the pygame community." message when starting the program.
+# Remove the "Hello from the pygame community." message when importing pygame.
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import pygame

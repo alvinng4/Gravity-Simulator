@@ -19,3 +19,16 @@ def acceleration(objects_count, x, m, G):
     a = np.sum(temp_a, axis=1)
 
     return a
+
+def compute_energy(objects_count, x, v, m, G):
+    E = 0
+    for j in range(objects_count):
+        E += 0.5 * m[j] * np.linalg.norm(v[j]) ** 2
+        for k in range(j + 1, objects_count):
+            R = x[j] - x[k]
+            norm = np.linalg.norm(R)
+            if norm != 0:
+                E -= G * m[j] * m[k] / norm 
+            else:
+                return np.nan
+    return E

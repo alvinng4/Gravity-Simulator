@@ -5,14 +5,8 @@ import numpy as np
 from common import acceleration
 
 class IAS15:
-    
-    def __init__(self, simulator):
-        if simulator.is_c_lib == True:
-            self.c_lib = simulator.c_lib
-            self.is_c_lib = True
-        else:
-            self.is_c_lib = False
-
+    """IAS15 integrator"""
+    def __init__(self):
         # Recommended tolerance: 1e-9
 
         # Safety factors for step-size control
@@ -25,9 +19,9 @@ class IAS15:
         self.tolerance_pc = 1e-16
 
         # Initializing auxiliary variables
-        self.nodes, self.dim_nodes = self.ias15_radau_spacing()
-        self.aux_c = self.ias15_aux_c()    
-        self.aux_r = self.ias15_aux_r()
+        self.nodes, self.dim_nodes = self._ias15_radau_spacing()
+        self.aux_c = self._ias15_aux_c()    
+        self.aux_r = self._ias15_aux_r()
 
     def simulation(self, simulator, objects_count, m, G, tolerance, expected_time_scale, max_iteration, min_iteration):
         if simulator.is_initialize == True and simulator.is_initialize_integrator == "ias15":
@@ -39,7 +33,7 @@ class IAS15:
 
             simulator.a = acceleration(objects_count, simulator.x, m, G)
 
-            self.dt = self.ias15_initial_time_step(objects_count, 15, simulator.x, simulator.v, simulator.a, m, G)
+            self.dt = self._ias15_initial_time_step(objects_count, 15, simulator.x, simulator.v, simulator.a, m, G)
 
             self.ias15_refine_flag = 0
 
@@ -52,7 +46,7 @@ class IAS15:
             temp_dt = ctypes.c_double(self.dt)
             temp_ias15_refine_flag = ctypes.c_int(self.ias15_refine_flag)
 
-            self.c_lib.ias15(
+            simulator.c_lib.ias15(
                 ctypes.c_int(objects_count), 
                 simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                 simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -98,7 +92,7 @@ class IAS15:
                     self.aux_e,
                     self.aux_b0,
                     self.ias15_refine_flag,
-                ) = self.ias15_step(
+                ) = self._ias15_step(
                     objects_count,
                     simulator.x,
                     simulator.v,
@@ -121,11 +115,11 @@ class IAS15:
                     self.exponent,
                     self.safety_fac,
                     self.ias15_refine_flag,
-                    self.ias15_approx_pos,
-                    self.ias15_approx_vel,
-                    self.ias15_compute_aux_b,
-                    self.ias15_compute_aux_g,
-                    self.ias15_refine_aux_b,
+                    self._ias15_approx_pos,
+                    self._ias15_approx_vel,
+                    self._ias15_compute_aux_b,
+                    self._ias15_compute_aux_g,
+                    self._ias15_refine_aux_b,
                 )
 
                 count += 1
@@ -133,7 +127,7 @@ class IAS15:
                     break
     
     @staticmethod
-    def ias15_step(
+    def _ias15_step(
         objects_count,
         x0,
         v0,
@@ -246,7 +240,7 @@ class IAS15:
         )
 
     @staticmethod
-    def ias15_approx_pos(x0, v0, a0, node, aux_b, dt):
+    def _ias15_approx_pos(x0, v0, a0, node, aux_b, dt):
         x = x0 + dt * node * (
             v0
             + dt
@@ -281,7 +275,7 @@ class IAS15:
         return x
 
     @staticmethod
-    def ias15_approx_vel(v0, a0, node, aux_b, dt):
+    def _ias15_approx_vel(v0, a0, node, aux_b, dt):
         v = v0 + dt * node * (
             a0
             + node
@@ -310,7 +304,7 @@ class IAS15:
         return v
 
     @staticmethod
-    def ias15_initial_time_step(
+    def _ias15_initial_time_step(
         objects_count: int,
         power: int,
         x,
@@ -347,7 +341,7 @@ class IAS15:
         return dt
     
     @staticmethod
-    def ias15_radau_spacing():
+    def _ias15_radau_spacing():
         """
         Return the the nodes and its dimension for IAS15
 
@@ -368,7 +362,7 @@ class IAS15:
         return nodes, dim_nodes
 
     @staticmethod
-    def ias15_compute_aux_b(aux_b, aux_g, aux_c, i):
+    def _ias15_compute_aux_b(aux_b, aux_g, aux_c, i):
         """
         Calculate the auxiliary coefficients b for IAS15
 
@@ -422,7 +416,7 @@ class IAS15:
         return aux_b
 
     @staticmethod
-    def ias15_aux_c():
+    def _ias15_aux_c():
         """
         Return the auxiliary coefficients c for IAS15
 
@@ -463,7 +457,7 @@ class IAS15:
         return aux_c
 
     @staticmethod
-    def ias15_compute_aux_g(aux_g, aux_r, aux_a, i):
+    def _ias15_compute_aux_g(aux_g, aux_r, aux_a, i):
         # Retrieve required accelerations
         F1 = aux_a[0]
         F2 = aux_a[1]
@@ -535,7 +529,7 @@ class IAS15:
         return aux_g
 
     @staticmethod
-    def ias15_aux_r():
+    def _ias15_aux_r():
         """
         Return the auxiliary coefficients r for IAS15
 
@@ -582,7 +576,7 @@ class IAS15:
         return aux_r
 
     @staticmethod
-    def ias15_refine_aux_b(aux_b, aux_e, dt, dt_new, ias15_refine_flag):
+    def _ias15_refine_aux_b(aux_b, aux_e, dt, dt_new, ias15_refine_flag):
         if ias15_refine_flag != 0:
             delta_aux_b = aux_b - aux_e
         else:
