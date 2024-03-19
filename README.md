@@ -54,9 +54,13 @@ Plotting module: run the following command in terminal
 ```
 python gravity_plot
 ```
-If the program crashes immediately, try running with 
+### Quick fix
+If the program keeps crashing, running with numpy may fix the problem. However, the program may run ~50 to 100 times slower. To run with numpy, run the following command in terminal
 ```
-python gravity_plot --numpy
+python gravity_sim -n
+```
+```
+python gravity_plot -n
 ```
 
 
@@ -147,7 +151,7 @@ Total energy will be stored as `0.0` if user chose not to compute energy.
 
 ### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
-Nevertheless, the code in C and numpy are almost identical and gives similar result.
+Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
 python gravity_plot -n
