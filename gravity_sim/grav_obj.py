@@ -187,7 +187,7 @@ class Grav_obj(Sprite):
                 
     def update(self, gravity_sim):
         self.remove_out_of_range_objs(gravity_sim)
-        self.update_apparent_pos()
+        self.update_apparent_pos(gravity_sim)
 
     def remove_out_of_range_objs(self, gravity_sim):
         """Remove object when position is out of range"""
@@ -196,16 +196,22 @@ class Grav_obj(Sprite):
             print("System message: Out of range object removed.")
             gravity_sim.simulator.is_initialize = True        
 
-    def update_apparent_pos(self):
+    def update_apparent_pos(self, gravity_sim):
         """Update the apparent position of all grav_objs with camera"""
-        self.rect.center = (
-            self.params["r1"] * self.settings.distance_scale
-            + self.screen_rect.centerx
-            - self.camera.pos[0],
-            -self.params["r2"] * self.settings.distance_scale
-            + self.screen_rect.centery
-            - self.camera.pos[1],
-        )
+        try:
+            self.rect.center = (
+                self.params["r1"] * self.settings.distance_scale
+                + self.screen_rect.centerx
+                - self.camera.pos[0],
+                -self.params["r2"] * self.settings.distance_scale
+                + self.screen_rect.centery
+                - self.camera.pos[1],
+            )
+        except TypeError:
+            self.kill()
+            print("System message: Out of range object removed.")
+            gravity_sim.simulator.is_initialize = True 
+
 
     def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
         main_dir_path = os.path.dirname(__file__)
