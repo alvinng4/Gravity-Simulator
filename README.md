@@ -10,6 +10,7 @@ This is a Newtonian 3D N-body gravity simulator program which projects the resul
     - [Python version](#python-version)
     - [Installation](#installation)
     - [Running the program](#running-the-program)
+* [Quick fix](#quick-fix)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program-2)
     - [Available systems](#available-systems-1)
@@ -54,7 +55,7 @@ Plotting module: run the following command in terminal
 ```
 python gravity_plot
 ```
-### Quick fix
+## Quick fix
 If the program keeps crashing, running with numpy may fix the problem. However, the program may run ~50 to 100 times slower. To run with numpy, run the following command in terminal
 ```
 python gravity_sim -n
@@ -62,7 +63,6 @@ python gravity_sim -n
 ```
 python gravity_plot -n
 ```
-
 
 ## Interactive module
 ### Running the program
