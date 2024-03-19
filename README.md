@@ -16,12 +16,13 @@ This is a Newtonian 3D N-body gravity simulator program which projects the resul
     - [Available systems](#available-systems-1)
     - [Control](#control)
     - [Changing the resolution](#changing-the-resolution)
+    - [C library / Numpy (Optional)](#c-library--numpy-optional)
 * [Plotting module](#plotting-module)
     - [Running the program](#running-the-program-1)
     - [Available systems](#available-systems)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
-    - [C library / Numpy (Optional)](#c-library--numpy-optional)
+    - [C library / Numpy (Optional)](#c-library--numpy-optional-1)
     - [Plotting dt (Optional)](#plotting-dt-optional)
     - [Comparing relative energy error (Optional)](#comparing-relative-energy-error-optional)
 * [Available integrators](#available-integrators)
@@ -93,10 +94,19 @@ Adjust parameter values: Left-click on the parameters panel to select a paramete
 Switch integrators: Left-click the integrator on the integrators panel.
 
 Warning: switching integrators in the middle of simulation may produce numerical error due to different natures of the integrators.
+
 ### Changing the resolution
 The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
 ```
 python3 gravity_sim -r <width> <height>
+```
+
+### C library / Numpy (Optional)
+By default, the module utilize the code written in C to improve performance.
+Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
+If you want to use numpy, run the program with
+```
+python gravity_sim -n
 ```
 
 ## Plotting module
