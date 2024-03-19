@@ -171,15 +171,6 @@ class Simulator:
         self.G = self.CONSTANT_G
         self.SIDEREAL_DAYS_PER_YEAR = plotter.SIDEREAL_DAYS_PER_YEAR
 
-        self.progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
-
     def initialize_system(self, plotter):
         # Read information of the customized system
         if self.system not in plotter.default_systems:
@@ -574,10 +565,19 @@ class Simulator:
         npts = len(self.sol_state)
         self.energy = np.zeros(npts)
 
+        progress_bar = rich.progress.Progress(
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
+        )
+
         start = timeit.default_timer()
         if self.is_c_lib == True:
             count = ctypes.c_int(0)
-            with self.progress_bar as progress_bar:
+            with progress_bar:
                 task = progress_bar.add_task("", total=npts)       
                 while count.value < npts:
                     self.c_lib.compute_energy(
@@ -592,7 +592,7 @@ class Simulator:
                     progress_bar.update(task, completed=count.value)
                     
         elif self.is_c_lib == False:
-            with self.progress_bar as progress_bar:
+            with progress_bar:
                 for count in progress_bar.track(range(npts), description=""):
                     x = self.sol_state[count]
                     for i in range(self.objects_count):
@@ -647,8 +647,16 @@ class Simulator:
             )
         )
 
-        with open(file_path, "w", newline="") as file:
-            with self.progress_bar as progress_bar:
+        progress_bar = rich.progress.Progress(
+            rich.progress.BarColumn(),
+            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeElapsedColumn(),
+            rich.progress.TextColumn("•"),
+            rich.progress.TimeRemainingColumn(),
+        )
+        with progress_bar:
+            with open(file_path, "w", newline="") as file:
                 writer = csv.writer(file)
                 for count in progress_bar.track(range(len(self.sol_time))):
                     if is_compute_energy:
