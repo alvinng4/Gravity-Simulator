@@ -121,14 +121,19 @@ class IAS15:
                     self.exponent,
                     self.safety_fac,
                     self.ias15_refine_flag,
+                    self.ias15_approx_pos,
+                    self.ias15_approx_vel,
+                    self.ias15_compute_aux_b,
+                    self.ias15_compute_aux_g,
+                    self.ias15_refine_aux_b,
                 )
 
                 count += 1
                 if count >= min_iteration and simulator.stats.simulation_time > (t0 + expected_time_scale * 1e-5):
                     break
-
+    
+    @staticmethod
     def ias15_step(
-        self,
         objects_count,
         x0,
         v0,
@@ -151,6 +156,11 @@ class IAS15:
         exponent,
         safety_fac,
         ias15_refine_flag,
+        ias15_approx_pos,
+        ias15_approx_vel,
+        ias15_compute_aux_b,
+        ias15_compute_aux_g,
+        ias15_refine_aux_b,
     ):
         """
         Advance IAS15 for one step
@@ -165,13 +175,13 @@ class IAS15:
                 # Advance along the Gauss-Radau sequence
                 for i in range(dim_nodes):
                     # Estimate position and velocity with current aux_b and nodes
-                    x = self.ias15_approx_pos(x0, v0, a0, nodes[i], aux_b, dt)
-                    v = self.ias15_approx_vel(v0, a0, nodes[i], aux_b, dt)
+                    x = ias15_approx_pos(x0, v0, a0, nodes[i], aux_b, dt)
+                    v = ias15_approx_vel(v0, a0, nodes[i], aux_b, dt)
 
                     # Evaluate force function and store result
                     aux_a[i] = acceleration(objects_count, x, m, G)
-                    aux_g = self.ias15_compute_aux_g(aux_g, aux_r, aux_a, i)
-                    aux_b = self.ias15_compute_aux_b(aux_b, aux_g, aux_c, i)
+                    aux_g = ias15_compute_aux_g(aux_g, aux_r, aux_a, i)
+                    aux_b = ias15_compute_aux_b(aux_b, aux_g, aux_c, i)
 
                 # Estimate convergence
                 delta_b7 = aux_b[-1] - aux_b0[-1]
@@ -180,8 +190,8 @@ class IAS15:
                     break
                 
             # Advance step
-            x = self.ias15_approx_pos(x0, v0, a0, 1.0, aux_b, dt)
-            v = self.ias15_approx_vel(v0, a0, 1.0, aux_b, dt)
+            x = ias15_approx_pos(x0, v0, a0, 1.0, aux_b, dt)
+            v = ias15_approx_vel(v0, a0, 1.0, aux_b, dt)
             a = acceleration(objects_count, x, m, G)
 
             # Estimate relative error
@@ -199,7 +209,7 @@ class IAS15:
                 # Report accepted step
                 ias15_integrate_flag = 1
                 t += dt
-                aux_b, aux_e = self.ias15_refine_aux_b(
+                aux_b, aux_e = ias15_refine_aux_b(
                     aux_b, aux_e, dt, dt_new, ias15_refine_flag
                 )
                 ias15_refine_flag = 1
