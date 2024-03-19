@@ -162,6 +162,8 @@ class Simulator:
         self.is_c_lib = plotter.is_c_lib
         if plotter.is_c_lib:
             self.c_lib = plotter.c_lib
+
+        self.store_every_n = plotter.store_every_n
         self.system = plotter.system
         self.integrator = plotter.integrator
         self.tf = plotter.tf

@@ -57,12 +57,12 @@ Plotting module: run the following command in terminal
 python gravity_plot
 ```
 ## Quick fix
-If the program keeps crashing, running with numpy may fix the problem. However, the program may run ~50 to 100 times slower. To run with numpy, run the following command in terminal
+If the program keeps crashing, running with numpy may fix the problem. However, the program may runs ~50 to 100 times slower. To run with numpy, run the following command in terminal
 ```
-python gravity_sim -n
+python gravity_sim [-n|--numpy]
 ```
 ```
-python gravity_plot -n
+python gravity_plot [-n|--numpy]
 ```
 
 ## Interactive module
@@ -98,7 +98,7 @@ Warning: switching integrators in the middle of simulation may produce numerical
 ### Changing the resolution
 The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
 ```
-python3 gravity_sim -r <width> <height>
+python3 gravity_sim [-r|--resolution] <width> <height>
 ```
 
 ### C library / Numpy (Optional)
@@ -159,19 +159,27 @@ time(tf unit), dt(days), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
 Total energy will be stored as `0.0` if user chose not to compute energy.
 
+### Store every nth point (Optional)
+Sometimes with long integration time and short dt, there may be a lot of unwanted solutions 
+stored in the memory, which causes the program to slows down significantly and even terminates itself. To fix this, run the following command to store every nth solution
+```
+python gravity_plot [-s|--store_every_n] <int value>
+```
+The program would also ask if you want to trim the solutions after the simulation.
+
 ### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
 Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
-python gravity_plot -n
+python gravity_plot [-n|--numpy]
 ```
 
 ### Plotting dt (Optional)
 It might be useful to visualize the dt for adaptive step size integrators. 
 If you want to plot the dt, simply run the program with
 ```
-python gravity_plot -d
+python gravity_plot [-d|--dt]
 ```
 
 ### Comparing relative energy error (Optional)
@@ -182,7 +190,7 @@ This module is not included in the main program.
 
 If you want to customize the title of the graph, run the program with the following argument:
 ```
-python compare.py -t <title>
+python compare.py [-t|--title] <title>
 ```
 
 <img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.png" alt="Image" width="400">
