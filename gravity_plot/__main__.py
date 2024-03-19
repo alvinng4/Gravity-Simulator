@@ -32,6 +32,10 @@ class Plotter:
                 print("System message: Loading c_lib failed. Running with numpy.")
                 self.is_c_lib = False
 
+
+        self.store_every_n = self.args.store_every_n
+        if self.store_every_n < 1:
+            raise argparse.ArgumentTypeError("Store every nth points should be larger than 1!")
         self.is_plot_dt = self.args.dt
 
         self.tolerance = None
@@ -519,6 +523,7 @@ class Plotter:
         elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78", "ias15"]:
             print(f"Tolerance: {self.tolerance}")
         print(f"Use c_lib: {self.is_c_lib}")
+        print(f"Store every nth point: {self.store_every_n}")
         print("")
 
     def _read_command_line_arg(self):
@@ -534,6 +539,13 @@ class Plotter:
             "-d",
             action="store_true",
             help="plot dt",
+        )
+        parser.add_argument(
+            "--store_every_n",
+            "-s",
+            type=int,
+            default=1,
+            help="Store every nth points",
         )
         self.args = parser.parse_args()
 

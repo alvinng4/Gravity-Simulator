@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <stdio.h> // For testing
+#include <stdio.h> // For testing
 
 #ifdef WIN32DLL_EXPORTS
     #define WIN32DLL_API __declspec(dllexport)
@@ -34,7 +34,12 @@ void euler(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 );
 void euler_cromer(
     int objects_count, 
@@ -46,7 +51,12 @@ void euler_cromer(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 );
 void rk4(
     int objects_count, 
@@ -58,7 +68,12 @@ void rk4(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 );
 void leapfrog(
     int objects_count, 
@@ -70,7 +85,12 @@ void leapfrog(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 );
 int rk_embedded(
     int objects_count, 
@@ -79,6 +99,8 @@ int rk_embedded(
     real *t, 
     real *dt, 
     real tf, 
+    int store_every_n,
+    int *store_count,
     int *count, 
     const real *m, 
     real G, 
@@ -115,6 +137,8 @@ int ias15(
     real *t, 
     real *dt, 
     real tf, 
+    int store_every_n,
+    int *store_count,
     int *count, 
     real tolerance,
     real tolerance_pc,
@@ -337,7 +361,12 @@ WIN32DLL_API void euler(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 )
 {   
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -346,8 +375,10 @@ WIN32DLL_API void euler(
     int progress_percentage = (int) round(*t / tf * 100);
 
     // Main Loop
-    for(int count = (int) round(*t / dt); count < npts; count++)
+    while ((*count + 1) <= npts)
     {   
+        *t += dt;
+
         acceleration(objects_count, x, a, m, G);
         for (int j = 0; j < objects_count; j++)
         {
@@ -360,14 +391,34 @@ WIN32DLL_API void euler(
             v[j][2] += a[j][2] * dt;
 
             // Store solution
-            sol_state[count + 1][j * 3] = x[j][0];
-            sol_state[count + 1][j * 3 + 1] = x[j][1];
-            sol_state[count + 1][j * 3 + 2] = x[j][2];
-            sol_state[count + 1][objects_count * 3 + j * 3] = v[j][0];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+            if ((*count + 1) % store_every_n == 0)
+            {
+                sol_state[*store_count + 1][j * 3] = x[j][0];
+                sol_state[*store_count + 1][j * 3 + 1] = x[j][1];
+                sol_state[*store_count + 1][j * 3 + 2] = x[j][2];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[*store_count + 1] = *t;
+            }
+
+            if ((*count + 2) == npts)
+            {
+                sol_state[store_npts - 1][j * 3] = x[j][0];
+                sol_state[store_npts - 1][j * 3 + 1] = x[j][1];
+                sol_state[store_npts - 1][j * 3 + 2] = x[j][2];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[store_npts - 1] = *t;
+            }
         }    
-        *t += dt;
+        if ((*count + 1) % store_every_n == 0)
+        {
+            *store_count += 1;
+        }
+
+        *count += 1;
 
         // Exit to update progress bar
         if ((int) (*t / tf * 100) > progress_percentage)
@@ -388,7 +439,12 @@ WIN32DLL_API void euler_cromer(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 )
 {   
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -397,8 +453,10 @@ WIN32DLL_API void euler_cromer(
     int progress_percentage = (int) round(*t / tf * 100);
 
     // Main Loop
-    for(int count = (int) round(*t / dt); count < npts; count++)
+    while ((*count + 1) <= npts)
     {   
+        *t += dt;
+
         acceleration(objects_count, x, a, m, G);
         for (int j = 0; j < objects_count; j++)
         {
@@ -411,14 +469,34 @@ WIN32DLL_API void euler_cromer(
             x[j][2] += v[j][2] * dt;
 
             // Store solution
-            sol_state[count + 1][j * 3] = x[j][0];
-            sol_state[count + 1][j * 3 + 1] = x[j][1];
-            sol_state[count + 1][j * 3 + 2] = x[j][2];
-            sol_state[count + 1][objects_count * 3 + j * 3] = v[j][0];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+            if ((*count + 1) % store_every_n == 0)
+            {
+                sol_state[*store_count + 1][j * 3] = x[j][0];
+                sol_state[*store_count + 1][j * 3 + 1] = x[j][1];
+                sol_state[*store_count + 1][j * 3 + 2] = x[j][2];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[*store_count + 1] = *t;
+            }
+
+            if ((*count + 2) == npts)
+            {
+                sol_state[store_npts - 1][j * 3] = x[j][0];
+                sol_state[store_npts - 1][j * 3 + 1] = x[j][1];
+                sol_state[store_npts - 1][j * 3 + 2] = x[j][2];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[store_npts - 1] = *t;
+            }
         }    
-        *t += dt;
+        if ((*count + 1) % store_every_n == 0)
+        {
+            *store_count += 1;
+        }
+
+        *count += 1;
 
         // Exit to update progress bar
         if ((int) (*t / tf * 100) > progress_percentage)
@@ -439,7 +517,12 @@ WIN32DLL_API void rk4(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 )
 {
     real (*temp_x)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -460,8 +543,10 @@ WIN32DLL_API void rk4(
     int progress_percentage = (int) round(*t / tf * 100);
 
     // Main Loop
-    for(int count = (int) round(*t / dt); count < npts; count++)
+    while ((*count + 1) <= npts)
     {   
+        *t += dt;
+        
         acceleration(objects_count, x, a, m, G);
         memcpy(vk1, a, objects_count * 3 * sizeof(real));
         memcpy(xk1, v, objects_count * 3 * sizeof(real));
@@ -517,14 +602,34 @@ WIN32DLL_API void rk4(
             x[j][2] += (xk1[j][2] + 2 * xk2[j][2] + 2 * xk3[j][2] + xk4[j][2]) * dt / 6.0;
 
             // Store solution
-            sol_state[count + 1][j * 3] = x[j][0];
-            sol_state[count + 1][j * 3 + 1] = x[j][1];
-            sol_state[count + 1][j * 3 + 2] = x[j][2];
-            sol_state[count + 1][objects_count * 3 + j * 3] = v[j][0];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+            if ((*count + 1) % store_every_n == 0)
+            {
+                sol_state[*store_count + 1][j * 3] = x[j][0];
+                sol_state[*store_count + 1][j * 3 + 1] = x[j][1];
+                sol_state[*store_count + 1][j * 3 + 2] = x[j][2];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[*store_count + 1] = *t;
+            }
+
+            if ((*count + 2) == npts)
+            {
+                sol_state[store_npts - 1][j * 3] = x[j][0];
+                sol_state[store_npts - 1][j * 3 + 1] = x[j][1];
+                sol_state[store_npts - 1][j * 3 + 2] = x[j][2];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[store_npts - 1] = *t;
+            }
         }    
-        *t += dt;
+        if ((*count + 1) % store_every_n == 0)
+        {
+            *store_count += 1;
+        }
+
+        *count += 1;
 
         // Exit to update progress bar
         if ((int) (*t / tf * 100) > progress_percentage)
@@ -555,7 +660,12 @@ WIN32DLL_API void leapfrog(
     int npts, 
     const real *m, 
     real G, 
-    real (*sol_state)[6 * objects_count]
+    real (*sol_state)[6 * objects_count],
+    real *sol_time,
+    int store_every_n,
+    int store_npts,
+    int *count,
+    int *store_count
 )
 {   
     real (*a_0)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -567,8 +677,10 @@ WIN32DLL_API void leapfrog(
     int progress_percentage = (int) round(*t / tf * 100);
 
     // Main Loop
-    for(int count = (int) round(*t / dt); count < npts; count++)
+    while ((*count + 1) <= npts)
     {       
+        *t += dt;
+
         if (is_initialize == 1)
         {
             acceleration(objects_count, x, a_0, m, G);
@@ -596,14 +708,34 @@ WIN32DLL_API void leapfrog(
             v[j][2] += 0.5 * (a_0[j][2] + a_1[j][2]) * dt;
 
             // Store solution
-            sol_state[count + 1][j * 3] = x[j][0];
-            sol_state[count + 1][j * 3 + 1] = x[j][1];
-            sol_state[count + 1][j * 3 + 2] = x[j][2];
-            sol_state[count + 1][objects_count * 3 + j * 3] = v[j][0];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
-            sol_state[count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+            if ((*count + 1) % store_every_n == 0)
+            {
+                sol_state[*store_count + 1][j * 3] = x[j][0];
+                sol_state[*store_count + 1][j * 3 + 1] = x[j][1];
+                sol_state[*store_count + 1][j * 3 + 2] = x[j][2];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[*store_count + 1] = *t;
+            }
+
+            if ((*count + 2) == npts)
+            {
+                sol_state[store_npts - 1][j * 3] = x[j][0];
+                sol_state[store_npts - 1][j * 3 + 1] = x[j][1];
+                sol_state[store_npts - 1][j * 3 + 2] = x[j][2];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                sol_time[store_npts - 1] = *t;
+            }
         }    
-        *t += dt;
+        if ((*count + 1) % store_every_n == 0)
+        {
+            *store_count += 1;
+        }
+
+        *count += 1;
 
         // Exit to update progress bar
         if ((int) (*t / tf * 100) > progress_percentage)
@@ -622,6 +754,8 @@ WIN32DLL_API int rk_embedded(
     real *t, 
     real *dt, 
     real tf, 
+    int store_every_n,
+    int *store_count,
     int *count, 
     const real *m, 
     real G, 
@@ -782,20 +916,39 @@ WIN32DLL_API int rk_embedded(
             *count += 1;
 
             // Store step
-            sol_time[*count] = *t;
-            sol_dt[*count] = *dt;
-            for (int j = 0; j < objects_count; j++)
+            if ((*count + 1) % store_every_n == 0)
             {
-                sol_state[*count][j * 3] = x[j][0];
-                sol_state[*count][j * 3 + 1] = x[j][1];
-                sol_state[*count][j * 3 + 2] = x[j][2];
-                sol_state[*count][objects_count * 3 + j * 3] = v[j][0];
-                sol_state[*count][objects_count * 3 + j * 3 + 1] = v[j][1];
-                sol_state[*count][objects_count * 3 + j * 3 + 2] = v[j][2];
-            }  
+                sol_time[*store_count + 1] = *t;
+                sol_dt[*store_count + 1] = *dt;
+                for (int j = 0; j < objects_count; j++)
+                {
+                    sol_state[*store_count + 1][j * 3] = x[j][0];
+                    sol_state[*store_count + 1][j * 3 + 1] = x[j][1];
+                    sol_state[*store_count + 1][j * 3 + 2] = x[j][2];
+                    sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
+                    sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                    sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                }  
+                *store_count += 1;
+            }
+
+            if (*t == tf)
+            {
+                sol_time[*store_count] = *t;
+                sol_dt[*store_count] = *dt;
+                for (int j = 0; j < objects_count; j++)
+                {
+                    sol_state[*store_count][j * 3] = x[j][0];
+                    sol_state[*store_count][j * 3 + 1] = x[j][1];
+                    sol_state[*store_count][j * 3 + 2] = x[j][2];
+                    sol_state[*store_count][objects_count * 3 + j * 3] = v[j][0];
+                    sol_state[*store_count][objects_count * 3 + j * 3 + 1] = v[j][1];
+                    sol_state[*store_count][objects_count * 3 + j * 3 + 2] = v[j][2];
+                }  
+            }
 
             // Check buffer size and quit if full
-            if ((*count + 1) == len_sol_time)
+            if ((*store_count + 1) == len_sol_time)
             {
                 free(error_estimation_delta_weights);
                 free(v_1);
@@ -903,6 +1056,8 @@ WIN32DLL_API int ias15(
     real *t, 
     real *dt, 
     real tf, 
+    int store_every_n,
+    int *store_count,
     int *count, 
     real tolerance,
     real tolerance_pc,
@@ -949,21 +1104,40 @@ WIN32DLL_API int ias15(
         // Update count
         *count += 1;
 
-        // Store step
-        sol_time[*count] = *t;
-        sol_dt[*count] = *dt;
-        for (int j = 0; j < objects_count; j++)
-        {
-            sol_state[*count][j * 3] = x[j][0];
-            sol_state[*count][j * 3 + 1] = x[j][1];
-            sol_state[*count][j * 3 + 2] = x[j][2];
-            sol_state[*count][objects_count * 3 + j * 3] = v[j][0];
-            sol_state[*count][objects_count * 3 + j * 3 + 1] = v[j][1];
-            sol_state[*count][objects_count * 3 + j * 3 + 2] = v[j][2];
-        }  
+            // Store step
+            if ((*count + 1) % store_every_n == 0)
+            {
+                sol_time[*store_count + 1] = *t;
+                sol_dt[*store_count + 1] = *dt;
+                for (int j = 0; j < objects_count; j++)
+                {
+                    sol_state[*store_count + 1][j * 3] = x[j][0];
+                    sol_state[*store_count + 1][j * 3 + 1] = x[j][1];
+                    sol_state[*store_count + 1][j * 3 + 2] = x[j][2];
+                    sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
+                    sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
+                    sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
+                }  
+                *store_count += 1;
+            }
+
+            if (*t == tf)
+            {
+                sol_time[*store_count] = *t;
+                sol_dt[*store_count] = *dt;
+                for (int j = 0; j < objects_count; j++)
+                {
+                    sol_state[*store_count][j * 3] = x[j][0];
+                    sol_state[*store_count][j * 3 + 1] = x[j][1];
+                    sol_state[*store_count][j * 3 + 2] = x[j][2];
+                    sol_state[*store_count][objects_count * 3 + j * 3] = v[j][0];
+                    sol_state[*store_count][objects_count * 3 + j * 3 + 1] = v[j][1];
+                    sol_state[*store_count][objects_count * 3 + j * 3 + 2] = v[j][2];
+                }  
+            }
 
         // Check buffer size and quit if full
-        if ((*count + 1) == len_sol_time)
+        if ((*store_count + 1) == len_sol_time)
         {
             return 1;
         } 

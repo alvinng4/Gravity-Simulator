@@ -36,6 +36,8 @@ class RK_EMBEDDED:
             rich.progress.TimeRemainingColumn(),
         )
             
+        self.store_every_n = simulator.store_every_n
+
         if is_c_lib == True:
             self.c_lib = simulator.c_lib
             self.simulation_c_lib(objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance)
@@ -43,7 +45,6 @@ class RK_EMBEDDED:
             self.simulation_numpy(objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance)
         
     def simulation_c_lib(self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance):
-        t = ctypes.c_double(0.0)
         with self.progress_bar as progress_bar:
             task = progress_bar.add_task("", total=tf)
             a = acceleration(objects_count, x, m, G)
@@ -75,8 +76,10 @@ class RK_EMBEDDED:
             self.sol_dt[0] = 0.0
 
             # Launch integration:
+            t = ctypes.c_double(0.0)
             dt = ctypes.c_double(dt)
             count = ctypes.c_int(0)
+            store_count = ctypes.c_int(0)
             while t.value <= tf:
                 rk_flag = self.c_lib.rk_embedded(
                     ctypes.c_int(objects_count),
@@ -85,6 +88,8 @@ class RK_EMBEDDED:
                     ctypes.byref(t),
                     ctypes.byref(dt),
                     ctypes.c_double(tf),
+                    ctypes.c_int(self.store_every_n),
+                    ctypes.byref(store_count),
                     ctypes.byref(count),
                     m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_double(G),
@@ -133,9 +138,9 @@ class RK_EMBEDDED:
 
                 # End simulation as t = tf
                 elif rk_flag == 2:
-                    self.sol_state = self.sol_state[0 : count.value + 1]
-                    self.sol_time = self.sol_time[0 : count.value + 1]
-                    self.sol_dt = self.sol_dt[0 : count.value + 1]
+                    self.sol_state = self.sol_state[0 : store_count.value + 1]
+                    self.sol_time = self.sol_time[0 : store_count.value + 1]
+                    self.sol_dt = self.sol_dt[0 : store_count.value + 1]
                     break
 
                 progress_bar.update(task, completed=t.value)
@@ -171,6 +176,7 @@ class RK_EMBEDDED:
                 self.weights_test,
                 abs_tolerance,
                 rel_tolerance,
+                self.store_every_n,
             )
 
     @staticmethod
@@ -190,6 +196,7 @@ class RK_EMBEDDED:
         weights_test,
         abs_tolerance: float,
         rel_tolerance: float,
+        store_every_n: int
     ):
         """
         Perform simulation using rk_embedded methods
@@ -228,6 +235,7 @@ class RK_EMBEDDED:
 
         # Launch integration:
         count = 0
+        store_count = 0
         task = progress_bar.add_task("", total=tf)
         while True:
             # Calculate xk and vk
@@ -282,15 +290,25 @@ class RK_EMBEDDED:
                 count += 1
 
                 # Store step:
-                sol_state[count] = np.concatenate(
-                    (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
-                )
-                sol_time[count] = t
-                sol_dt[count] = dt
+                if (count + 1) % store_every_n == 0:
+                    sol_state[store_count + 1] = np.concatenate(
+                        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                    )
+                    sol_time[store_count + 1] = t
+                    sol_dt[store_count + 1] = dt
+                    store_count += 1
+
+                if t == tf:
+                    sol_state[store_count] = np.concatenate(
+                        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                    )
+                    sol_time[store_count] = t
+                    sol_dt[store_count] = dt
+
                 progress_bar.update(task, completed=t)
 
                 # Check buffer size and extend if needed :
-                if (count + 1) == len(sol_state):
+                if (store_count + 1) == len(sol_state):
                     sol_state = np.concatenate(
                         (sol_state, np.zeros((npts, objects_count * 2 * 3)))
                     )
@@ -315,9 +333,9 @@ class RK_EMBEDDED:
 
             if t >= tf:
                 return (
-                    sol_state[0 : count + 1],
-                    sol_time[0 : count + 1],
-                    sol_dt[0 : count + 1],
+                    sol_state[0 : store_count + 1],
+                    sol_time[0 : store_count + 1],
+                    sol_dt[0 : store_count + 1],
                 )
 
     @staticmethod
