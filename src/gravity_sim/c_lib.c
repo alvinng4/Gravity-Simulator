@@ -80,8 +80,13 @@ void rk_embedded(
     real abs_tolerance,
     real rel_tolerance
 );
-int ias15(
+void ias15(
     int objects_count, 
+    real (*x)[3], 
+    real (*v)[3], 
+    real (*a)[3], 
+    const real *m, 
+    real G,    
     int dim_nodes,
     const real *nodes,
     const real *aux_c, 
@@ -89,38 +94,30 @@ int ias15(
     real *aux_b0,
     real *aux_b,
     real *aux_g,
-    real *aux_e,
-    real (*x)[3], 
-    real (*v)[3], 
-    real (*a)[3],
-    const real *m, 
-    real G,     
+    real *aux_e, 
     real *t, 
     real *dt, 
-    real tf, 
+    real expected_time_scale, 
     int *count, 
     real tolerance,
     real tolerance_pc,
-    real (*sol_state)[6 * objects_count],
-    int len_sol_time,
-    real *sol_time,
-    int len_sol_dt,
-    real *sol_dt,
     real safety_fac,
     real exponent,
-    int *ias15_refine_flag
+    int *ias15_refine_flag,
+    int max_iteration,
+    int min_iteration
 );
 void ias15_step(
     int objects_count,
-    int dim_nodes,
-    real (*x)[3],
-    real (*v)[3],
-    real (*a)[3],
+    real (*x0)[3],
+    real (*v0)[3],
+    real (*a0)[3],
     const real *m,
     real G,
     real *t,
     real *dt,
     real tf,
+    int dim_nodes,
     const real *nodes,
     real *aux_b0,
     real *aux_b,
@@ -721,8 +718,13 @@ WIN32DLL_API void rk_embedded(
     }
 }
 
-WIN32DLL_API int ias15(
+WIN32DLL_API void ias15(
     int objects_count, 
+    real (*x)[3], 
+    real (*v)[3], 
+    real (*a)[3], 
+    const real *m, 
+    real G,    
     int dim_nodes,
     const real *nodes,
     const real *aux_c, 
@@ -730,36 +732,26 @@ WIN32DLL_API int ias15(
     real *aux_b0,
     real *aux_b,
     real *aux_g,
-    real *aux_e,
-    real (*x)[3], 
-    real (*v)[3], 
-    real (*a)[3], 
-    const real *m, 
-    real G,     
+    real *aux_e, 
     real *t, 
     real *dt, 
-    real tf, 
+    real expected_time_scale, 
     int *count, 
     real tolerance,
     real tolerance_pc,
-    real (*sol_state)[6 * objects_count],
-    int len_sol_time,
-    real *sol_time,
-    int len_sol_dt,
-    real *sol_dt,
     real safety_fac,
     real exponent,
-    int *ias15_refine_flag
+    int *ias15_refine_flag,
+    int max_iteration,
+    int min_iteration
 )
 {
-    // Current progress percentage rounded to int
-    int progress_percentage = (int) round(*t / tf * 100);
+    real t0 = *t;
 
-    while (1)
+    for (int i = 0; i < max_iteration; i++)
     {
         ias15_step(
             objects_count,
-            dim_nodes,
             x,
             v,
             a,
@@ -767,7 +759,8 @@ WIN32DLL_API int ias15(
             G,
             t,
             dt,
-            tf,
+            expected_time_scale,
+            dim_nodes,
             nodes,
             aux_b0,
             aux_b,
@@ -782,38 +775,9 @@ WIN32DLL_API int ias15(
             ias15_refine_flag
         );
 
-        // Update count
-        *count += 1;
-
-        // Store step
-        sol_time[*count] = *t;
-        sol_dt[*count] = *dt;
-        for (int j = 0; j < objects_count; j++)
+        if (i >= min_iteration && *t > (t0 + expected_time_scale * 1e-5))
         {
-            sol_state[*count][j * 3] = x[j][0];
-            sol_state[*count][j * 3 + 1] = x[j][1];
-            sol_state[*count][j * 3 + 2] = x[j][2];
-            sol_state[*count][objects_count * 3 + j * 3] = v[j][0];
-            sol_state[*count][objects_count * 3 + j * 3 + 1] = v[j][1];
-            sol_state[*count][objects_count * 3 + j * 3 + 2] = v[j][2];
-        }  
-
-        // Check buffer size and quit if full
-        if ((*count + 1) == len_sol_time)
-        {
-            return 1;
-        } 
-
-        // End simulation as t = tf
-        if (*t >= tf)
-        {
-            return 2;
-        }
-
-        // Exit to update progress bar
-        if ((int) (*t / tf * 100.0) > progress_percentage)
-        {
-            return 0;
+            break;
         }
     }
 }
@@ -821,7 +785,6 @@ WIN32DLL_API int ias15(
 // Advance IAS15 for one step
 WIN32DLL_API void ias15_step(
     int objects_count,
-    int dim_nodes,
     real (*x0)[3],
     real (*v0)[3],
     real (*a0)[3],
@@ -829,7 +792,8 @@ WIN32DLL_API void ias15_step(
     real G,
     real *t,
     real *dt,
-    real tf,
+    real expected_time_scale,
+    int dim_nodes,
     const real *nodes,
     real *aux_b0,
     real *aux_b,
@@ -914,7 +878,7 @@ WIN32DLL_API void ias15_step(
         }
 
         // Accept the step
-        if (error <= 1 || *dt == tf * 1e-12)
+        if (error <= 1 || *dt == expected_time_scale * 1e-12)
         {
             // Report accepted step
             ias15_integrate_flag = 1;
@@ -922,20 +886,6 @@ WIN32DLL_API void ias15_step(
 
             ias15_refine_aux_b(objects_count, dim_nodes, aux_b, aux_e, *dt, dt_new, *ias15_refine_flag);
             *ias15_refine_flag = 1;
-
-            if (*t >= tf)
-            {
-                memcpy(x0, x, objects_count * 3 * sizeof(real));
-                memcpy(v0, v, objects_count * 3 * sizeof(real));
-                memcpy(a0, a, objects_count * 3 * sizeof(real));
-                free(aux_a);
-                free(temp_a);
-                free(x);
-                free(v);
-                free(a);
-                free(delta_b7);      
-                break;  
-            }
         }
 
         // Step size for the next iteration
@@ -952,15 +902,9 @@ WIN32DLL_API void ias15_step(
             *dt = dt_new;
         }
 
-        if (dt_new / tf < 1e-12)
+        if (dt_new / expected_time_scale < 1e-12)
         {
-            *dt = tf * 1e-12;
-        }
-
-        // Correct overshooting
-        if (*t + *dt > tf)
-        {
-            *dt = tf - *t;
+            *dt = expected_time_scale * 1e-12;
         }
 
         // Exit 
