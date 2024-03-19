@@ -59,16 +59,15 @@ void leapfrog(
     real dt,
     int time_speed
 );
-int rk_embedded(
+void rk_embedded(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
-    real *dt, 
-    real tf, 
-    int *count, 
     const real *m, 
     real G, 
+    real expected_time_scale,
+    real *t, 
+    real *dt,
     int power,
     int power_test,
     int len_coeff,
@@ -76,13 +75,10 @@ int rk_embedded(
     int len_weights,
     const real *weights,
     const real *weights_test,
+    int max_iteration,
+    int min_iteration,
     real abs_tolerance,
-    real rel_tolerance,
-    real (*sol_state)[6 * objects_count],
-    int len_sol_time,
-    real *sol_time,
-    int len_sol_dt,
-    real *sol_dt
+    real rel_tolerance
 );
 int ias15(
     int objects_count, 
@@ -517,16 +513,15 @@ WIN32DLL_API void leapfrog(
     free(a_1);
 }
 
-WIN32DLL_API int rk_embedded(
+WIN32DLL_API void rk_embedded(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
-    real *dt, 
-    real tf, 
-    int *count, 
     const real *m, 
     real G, 
+    real expected_time_scale,
+    real *t, 
+    real *dt,
     int power,
     int power_test,
     int len_coeff,
@@ -534,16 +529,14 @@ WIN32DLL_API int rk_embedded(
     int len_weights,
     const real *weights,
     const real *weights_test,
+    int max_iteration,
+    int min_iteration,
     real abs_tolerance,
-    real rel_tolerance,
-    real (*sol_state)[6 * objects_count],
-    int len_sol_time,
-    real *sol_time,
-    int len_sol_dt,
-    real *sol_dt
+    real rel_tolerance
 )
 {
     // Initialization
+    real t0 = *t;
     int stages = len_weights;
     int min_power = fmin(power, power_test);
 
@@ -572,11 +565,8 @@ WIN32DLL_API int rk_embedded(
     real (*tolerance_scale_v)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*tolerance_scale_x)[3] = malloc(objects_count * 3 * sizeof(real));
 
-    // Current progress percentage rounded to int
-    int progress_percentage = (int) round(*t / tf * 100);
-
     // Main Loop
-    while (1)
+    for (int i = 0; i < max_iteration; i++)
     {
         // Calculate xk and vk
         acceleration(objects_count, x, temp_a, m, G);
@@ -675,44 +665,12 @@ WIN32DLL_API int rk_embedded(
         }
         error = sqrt(sum / (objects_count * 3 * 2));
 
-        if (error <= 1 || *dt == tf * 1e-12)
+        if (error <= 1 || *dt == expected_time_scale * 1e-12)
         {
             // Advance step
             *t += *dt; 
             memcpy(x, x_1, objects_count * 3 * sizeof(real));
             memcpy(v, v_1, objects_count * 3 * sizeof(real));
-            *count += 1;
-
-            // Store step
-            sol_time[*count] = *t;
-            sol_dt[*count] = *dt;
-            for (int j = 0; j < objects_count; j++)
-            {
-                sol_state[*count][j * 3] = x[j][0];
-                sol_state[*count][j * 3 + 1] = x[j][1];
-                sol_state[*count][j * 3 + 2] = x[j][2];
-                sol_state[*count][objects_count * 3 + j * 3] = v[j][0];
-                sol_state[*count][objects_count * 3 + j * 3 + 1] = v[j][1];
-                sol_state[*count][objects_count * 3 + j * 3 + 2] = v[j][2];
-            }  
-
-            // Check buffer size and quit if full
-            if ((*count + 1) == len_sol_time)
-            {
-                free(error_estimation_delta_weights);
-                free(v_1);
-                free(x_1);
-                free(vk);
-                free(xk);
-                free(temp_a);
-                free(temp_v);
-                free(temp_x);
-                free(error_estimation_delta_v);
-                free(error_estimation_delta_x);
-                free(tolerance_scale_v);
-                free(tolerance_scale_x);
-                return 1;
-            } 
         }
 
         // Calculate dt
@@ -738,19 +696,13 @@ WIN32DLL_API int rk_embedded(
             *dt = dt_new;
         }
 
-        if (dt_new / tf < 1e-12)
+        if (dt_new / expected_time_scale < 1e-12)
         {
-            *dt = tf * 1e-12;
-        }
-
-        // Correct overshooting
-        if (*t + *dt > tf)
-        {
-            *dt = tf - *t;
+            *dt = expected_time_scale * 1e-12;
         }
         
-        // Exit if finished
-        if (*t >= tf)
+        // Exit 
+        if (i >= min_iteration && *t >= (t0 + expected_time_scale * 1e-5))
         {
             free(error_estimation_delta_weights);
             free(v_1);
@@ -764,25 +716,7 @@ WIN32DLL_API int rk_embedded(
             free(error_estimation_delta_x);
             free(tolerance_scale_v);
             free(tolerance_scale_x);
-            return 2;
-        }
-
-        // Exit to update progress bar
-        if ((int) (*t / tf * 100.0) > progress_percentage)
-        {
-            free(error_estimation_delta_weights);
-            free(v_1);
-            free(x_1);
-            free(vk);
-            free(xk);
-            free(temp_a);
-            free(temp_v);
-            free(temp_x);
-            free(error_estimation_delta_v);
-            free(error_estimation_delta_x);
-            free(tolerance_scale_v);
-            free(tolerance_scale_x);
-            return 0;
+            break;
         }
     }
 }
