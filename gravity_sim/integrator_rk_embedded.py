@@ -6,14 +6,8 @@ from common import acceleration
 
 
 class RK_EMBEDDED:
-    def __init__(self, simulator):
-        if simulator.is_c_lib == True:
-            self.c_lib = simulator.c_lib
-            self.is_c_lib = True
-        else:
-            self.is_c_lib = False
-            
-    def simulation(self, simulator, objects_count, m, G, abs_tolerance, rel_tolerance, expected_time_scale, rk_max_iteration, rk_min_iteration):
+    """Embedded RK integrators: RKF45, DOPRI, DVERK, RKF78"""
+    def simulation(self, simulator, objects_count, m, G, abs_tolerance, rel_tolerance, expected_time_scale, max_iteration, min_iteration):
         # Initialization
         if simulator.is_initialize == True and simulator.is_initialize_integrator == simulator.current_integrator:
             match simulator.current_integrator:
@@ -34,7 +28,7 @@ class RK_EMBEDDED:
                 self.coeff,
                 self.weights,
                 self.weights_test,
-            ) = self.rk_embedded_butcher_tableaus(order)
+            ) = self._rk_embedded_butcher_tableaus(order)
             
             simulator.a = acceleration(
                 objects_count, simulator.x, m, G
@@ -57,7 +51,7 @@ class RK_EMBEDDED:
         temp_simulation_time = ctypes.c_double(simulator.stats.simulation_time)
         temp_rk_dt = ctypes.c_double(self.rk_dt)
         if simulator.is_c_lib == True:
-            self.c_lib.rk_embedded(
+            simulator.c_lib.rk_embedded(
                 ctypes.c_int(objects_count), 
                 simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                 simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -77,8 +71,8 @@ class RK_EMBEDDED:
                 self.weights_test.ctypes.data_as(
                     ctypes.POINTER(ctypes.c_double)
                 ),
-                ctypes.c_int(rk_max_iteration),
-                ctypes.c_int(rk_min_iteration),
+                ctypes.c_int(max_iteration),
+                ctypes.c_int(min_iteration),
                 ctypes.c_double(abs_tolerance),
                 ctypes.c_double(rel_tolerance),
             )
@@ -91,7 +85,7 @@ class RK_EMBEDDED:
                 simulator.v,
                 simulator.stats.simulation_time,
                 self.rk_dt,
-            ) = self.rk_embedded(
+            ) = self._rk_embedded(
                 objects_count,
                 simulator.x,
                 simulator.v,
@@ -105,15 +99,15 @@ class RK_EMBEDDED:
                 self.coeff,
                 self.weights,
                 self.weights_test,
-                rk_max_iteration,
-                rk_min_iteration,
+                max_iteration,
+                min_iteration,
                 abs_tolerance,
                 rel_tolerance,
             )
 
 
     @staticmethod
-    def rk_embedded(
+    def _rk_embedded(
         objects_count: int,
         x,
         v,
@@ -274,7 +268,7 @@ class RK_EMBEDDED:
         return dt * 1e-2
 
     @staticmethod
-    def rk_embedded_butcher_tableaus(order):
+    def _rk_embedded_butcher_tableaus(order):
         """
         Butcher tableaus for embedded rk
 

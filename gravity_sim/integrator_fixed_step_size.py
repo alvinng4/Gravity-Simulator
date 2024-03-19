@@ -3,16 +3,10 @@ import ctypes
 from common import acceleration
 
 class FIXED_STEP_SIZE_INTEGRATOR:
-
-    def __init__(self, simulator):
-        if simulator.is_c_lib == True:
-            self.c_lib = simulator.c_lib
-            self.is_c_lib = True 
-        else:
-            self.is_c_lib = False
+    """Fixed step size integrators: Euler, Euler Cromer, RK4, Leap Frog"""
 
     def simulation(self, simulator, integrator, objects_count, m, G, dt, time_speed):
-        if self.is_c_lib == True:
+        if simulator.is_c_lib == True:
             match integrator:
                 case "euler":
                     if (
@@ -21,7 +15,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    self.c_lib.euler(
+                    simulator.c_lib.euler(
                         ctypes.c_int(objects_count), 
                         simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                         simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -38,7 +32,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    self.c_lib.euler_cromer(
+                    simulator.c_lib.euler_cromer(
                         ctypes.c_int(objects_count), 
                         simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                         simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -55,7 +49,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    self.c_lib.rk4(
+                    simulator.c_lib.rk4(
                         ctypes.c_int(objects_count), 
                         simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                         simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -70,7 +64,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         simulator.is_initialize == True
                         and simulator.is_initialize_integrator == "leapfrog"
                     ):
-                        self.c_lib.acceleration(
+                        simulator.c_lib.acceleration(
                             ctypes.c_int(objects_count), 
                             simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                             simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -79,7 +73,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         )
                         simulator.is_initialize = False
 
-                    self.c_lib.leapfrog(
+                    simulator.c_lib.leapfrog(
                         ctypes.c_int(objects_count), 
                         simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
                         simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
@@ -90,7 +84,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         ctypes.c_int(time_speed)
                     )
 
-        elif self.is_c_lib == False:
+        elif simulator.is_c_lib == False:
             match integrator:
                 case "euler":
                     if (
@@ -99,7 +93,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    simulator.x, simulator.v = self.euler(objects_count, simulator.x, simulator.v, m, G, dt, time_speed)
+                    simulator.x, simulator.v = self._euler(objects_count, simulator.x, simulator.v, m, G, dt, time_speed)
                 
                 case "euler_cromer":
                     if (
@@ -108,7 +102,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    simulator.x, simulator.v = self.euler_cromer(objects_count, simulator.x, simulator.v, m, G, dt, time_speed)
+                    simulator.x, simulator.v = self._euler_cromer(objects_count, simulator.x, simulator.v, m, G, dt, time_speed)
 
                 case "rk4":
                     if (
@@ -117,7 +111,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    simulator.x, simulator.v = self.rk4(
+                    simulator.x, simulator.v = self._rk4(
                         objects_count,
                         simulator.x,
                         simulator.v,
@@ -137,7 +131,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         )
                         simulator.is_initialize = False
 
-                    simulator.x, simulator.v, simulator.a = self.leapfrog(
+                    simulator.x, simulator.v, simulator.a = self._leapfrog(
                         objects_count,
                         simulator.x,
                         simulator.v,
@@ -150,7 +144,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
 
 
     @staticmethod
-    def euler(objects_count, x, v, m, G, dt, time_speed):
+    def _euler(objects_count, x, v, m, G, dt, time_speed):
         for _ in range(time_speed):
             a = acceleration(objects_count, x, m, G)
             x += v * dt
@@ -159,7 +153,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         return x, v 
 
     @staticmethod
-    def euler_cromer(objects_count, x, v, m, G, dt, time_speed):
+    def _euler_cromer(objects_count, x, v, m, G, dt, time_speed):
         for _ in range(time_speed):
             a = acceleration(objects_count, x, m, G)
             v += a * dt             
@@ -168,7 +162,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         return x, v
 
     @staticmethod
-    def rk4(objects_count, x, v, m, G, dt, time_speed):
+    def _rk4(objects_count, x, v, m, G, dt, time_speed):
         for _ in range(time_speed):
             vk1 = acceleration(objects_count, x, m, G)
             xk1 = v
@@ -188,7 +182,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         return x, v
 
     @staticmethod
-    def leapfrog(objects_count, x, v, a, m, G, dt, time_speed):
+    def _leapfrog(objects_count, x, v, a, m, G, dt, time_speed):
         a_1 = a
         for _ in range(time_speed):
             a_0 = a_1

@@ -2,8 +2,8 @@ import ctypes
 
 import numpy as np
 
+from common import compute_energy
 from grav_obj import Grav_obj
-
 from integrator_fixed_step_size import FIXED_STEP_SIZE_INTEGRATOR
 from integrator_rk_embedded import RK_EMBEDDED
 from integrator_ias15 import IAS15
@@ -22,9 +22,9 @@ class Simulator:
         self.v = np.array([])
         self.a = np.array([])
 
-        self.fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR(self)
-        self.rk_embedded_integrator = RK_EMBEDDED(self)
-        self.ias15_integrator = IAS15(self)
+        self.fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR()
+        self.rk_embedded_integrator = RK_EMBEDDED()
+        self.ias15_integrator = IAS15()
 
         self.is_initialize = True
         self.set_all_integrators_false()
@@ -77,8 +77,8 @@ class Simulator:
                         self.settings.tolerance,
                         self.settings.tolerance,
                         self.settings.expected_time_scale,
-                        self.settings.rk_max_iteration,
-                        self.settings.rk_min_iteration,
+                        self.settings.max_iteration,
+                        self.settings.min_iteration,
                     )
 
                 case "ias15":
@@ -89,8 +89,8 @@ class Simulator:
                         Grav_obj.G,
                         self.settings.tolerance,
                         self.settings.expected_time_scale,
-                        self.settings.rk_max_iteration,
-                        self.settings.rk_min_iteration,
+                        self.settings.max_iteration,
+                        self.settings.min_iteration,
                     )
 
         if self.is_c_lib == True:
@@ -173,18 +173,4 @@ class Simulator:
             self.current_integrator = "rkf78"
         elif self.is_ias15 == True:
             self.current_integrator = "ias15"
-
-
-def compute_energy(objects_count, x, v, m, G):
-    E = 0
-    for j in range(objects_count):
-        E += 0.5 * m[j] * np.linalg.norm(v[j]) ** 2
-        for k in range(j + 1, objects_count):
-            R = x[j] - x[k]
-            norm = np.linalg.norm(R)
-            if norm != 0:
-                E -= G * m[j] * m[k] / norm 
-            else:
-                return np.nan
-    return E
 

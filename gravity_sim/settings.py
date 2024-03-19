@@ -16,8 +16,8 @@ class Settings:
     DEFAULT_NEW_STAR_SPEED_SCALE = 1
     DEFAULT_DT = 0.1
     DEFAULT_TIME_SPEED = 1
-    DEFAULT_RK_MAX_ITERATION = 10
-    DEFAULT_RK_MIN_ITERATION = 1
+    DEFAULT_MAX_ITERATION = 10
+    DEFAULT_MIN_ITERATION = 1
     DEFAULT_TOLERANCE = 1e-6
     DEFAULT_EXPECTED_TIME_SCALE = 1e4
 
@@ -33,12 +33,12 @@ class Settings:
     MIN_NEW_STAR_SPEED_SCALE = 1
     MAX_DT = 100
     MIN_DT = 1e-10
-    MAX_TIME_SPEED = 10000
+    MAX_TIME_SPEED = 50000
     MIN_TIME_SPEED = 1
-    MAX_RK_MAX_ITERATION = 50000
-    MIN_RK_MAX_ITERATION = 1
-    MAX_RK_MIN_ITERATION = 50000
-    MIN_RK_MIN_ITERATION = 1
+    MAX_MAX_ITERATION = 50000
+    MIN_MAX_ITERATION = 1
+    MAX_MIN_ITERATION = 50000
+    MIN_MIN_ITERATION = 1
     MAX_TOLERANCE = 1e-4
     MIN_TOLERANCE = 1e-15
     MAX_EXPECTED_TIME_SCALE = 1e10
@@ -65,9 +65,9 @@ class Settings:
         self.new_star_speed_scale = self.DEFAULT_NEW_STAR_SPEED_SCALE
         self.dt = self.DEFAULT_DT
         self.time_speed = self.DEFAULT_TIME_SPEED
-        # Initializing internal variable directly because rk_min_iteration.setter and rk_max_iteration.setter depends on each other
-        self._rk_max_iteration = self.DEFAULT_RK_MAX_ITERATION
-        self._rk_min_iteration = self.DEFAULT_RK_MIN_ITERATION
+        # Initializing internal variable directly because min_iteration.setter and max_iteration.setter depends on each other
+        self._max_iteration = self.DEFAULT_MAX_ITERATION
+        self._min_iteration = self.DEFAULT_MIN_ITERATION
         self.tolerance = self.DEFAULT_TOLERANCE
         self.expected_time_scale = self.DEFAULT_EXPECTED_TIME_SCALE
         self.set_all_parameters_changing_false()
@@ -137,15 +137,15 @@ class Settings:
             case "time_speed":
                 for _ in range(abs(magnitude)):
                     self.time_speed += self._rate_of_change(self.time_speed, magnitude)
-            case "rk_max_iteration":
+            case "max_iteration":
                 for _ in range(abs(magnitude)):
-                    self.rk_max_iteration += self._rate_of_change(
-                        self.rk_max_iteration, magnitude
+                    self.max_iteration += self._rate_of_change(
+                        self.max_iteration, magnitude
                     )
-            case "rk_min_iteration":
+            case "min_iteration":
                 for _ in range(abs(magnitude)):
-                    self.rk_min_iteration += self._rate_of_change(
-                        self.rk_min_iteration, magnitude
+                    self.min_iteration += self._rate_of_change(
+                        self.min_iteration, magnitude
                     )
             case "tolerance":
                 for _ in range(abs(magnitude)):
@@ -176,10 +176,10 @@ class Settings:
             self.current_changing_parameter = "dt"
         elif self.is_changing_time_speed == True:
             self.current_changing_parameter = "time_speed"
-        elif self.is_changing_rk_max_iteration == True:
-            self.current_changing_parameter = "rk_max_iteration"
-        elif self.is_changing_rk_min_iteration == True:
-            self.current_changing_parameter = "rk_min_iteration"
+        elif self.is_changing_max_iteration == True:
+            self.current_changing_parameter = "max_iteration"
+        elif self.is_changing_min_iteration == True:
+            self.current_changing_parameter = "min_iteration"
         elif self.is_changing_tolerance == True:
             self.current_changing_parameter = "tolerance"
 
@@ -191,8 +191,8 @@ class Settings:
         self.is_changing_new_star_speed_scale = False
         self.is_changing_dt = False
         self.is_changing_time_speed = False
-        self.is_changing_rk_max_iteration = False
-        self.is_changing_rk_min_iteration = False
+        self.is_changing_max_iteration = False
+        self.is_changing_min_iteration = False
         self.is_changing_tolerance = False
 
     def reset_parameters(self):
@@ -203,8 +203,8 @@ class Settings:
         self.new_star_speed_scale = self.DEFAULT_NEW_STAR_SPEED_SCALE
         self.dt = self.DEFAULT_DT
         self.distance_scale = self.DEFAULT_DISTANCE_SCALE
-        self.rk_max_iteration = self.DEFAULT_RK_MAX_ITERATION
-        self.rk_min_iteration = self.DEFAULT_RK_MIN_ITERATION
+        self.max_iteration = self.DEFAULT_MAX_ITERATION
+        self.min_iteration = self.DEFAULT_MIN_ITERATION
         self.tolerance = self.DEFAULT_TOLERANCE
 
     @property
@@ -323,34 +323,34 @@ class Settings:
             self._time_speed = int(value)
 
     @property
-    def rk_max_iteration(self):
-        return self._rk_max_iteration
+    def max_iteration(self):
+        return self._max_iteration
 
-    @rk_max_iteration.setter
-    def rk_max_iteration(self, value):
-        if value > self.MAX_RK_MAX_ITERATION:
-            self._rk_max_iteration = self.MAX_RK_MAX_ITERATION
-        elif value < self.MIN_RK_MAX_ITERATION:
-            self._rk_max_iteration = self.MIN_RK_MAX_ITERATION
-        elif value < self.rk_min_iteration:
-            self._rk_max_iteration = self.rk_min_iteration
+    @max_iteration.setter
+    def max_iteration(self, value):
+        if value > self.MAX_MAX_ITERATION:
+            self._max_iteration = self.MAX_MAX_ITERATION
+        elif value < self.MIN_MAX_ITERATION:
+            self._max_iteration = self.MIN_MAX_ITERATION
+        elif value < self.min_iteration:
+            self._max_iteration = self.min_iteration
         else:
-            self._rk_max_iteration = int(value)
+            self._max_iteration = int(value)
 
     @property
-    def rk_min_iteration(self):
-        return self._rk_min_iteration
+    def min_iteration(self):
+        return self._min_iteration
 
-    @rk_min_iteration.setter
-    def rk_min_iteration(self, value):
-        if value > self.MAX_RK_MIN_ITERATION:
-            self._rk_min_iteration = self.MAX_RK_MIN_ITERATION
-        elif value > self.rk_max_iteration:
-            self._rk_min_iteration = self.rk_max_iteration
-        elif value < self.MIN_RK_MIN_ITERATION:
-            self._rk_min_iteration = self.MIN_RK_MIN_ITERATION
+    @min_iteration.setter
+    def min_iteration(self, value):
+        if value > self.MAX_MIN_ITERATION:
+            self._min_iteration = self.MAX_MIN_ITERATION
+        elif value > self.max_iteration:
+            self._min_iteration = self.max_iteration
+        elif value < self.MIN_MIN_ITERATION:
+            self._min_iteration = self.MIN_MIN_ITERATION
         else:
-            self._rk_min_iteration = int(value)
+            self._min_iteration = int(value)
 
     @property
     def tolerance(self):

@@ -3,7 +3,7 @@ test file for gravity_sim/settings.py
 This file mainly test the setter and getter values. 
 Note that 
 1. some variables are int 
-2. some variables round to ndigits=15
+2. some variables round to ndigits=15 to avoid round off errors
 3. Max min rk iteration are coupled.
 """
 from pathlib import Path
@@ -195,52 +195,52 @@ def test_settings_time_speed():
 
 def test_settings_max_iteration():
     settings = Settings(screen_width=1920, screen_height=1080)
-    assert settings.MAX_RK_MAX_ITERATION > settings.MIN_RK_MAX_ITERATION
-    assert settings.rk_max_iteration == settings.DEFAULT_RK_MAX_ITERATION
-    settings.rk_min_iteration = (
-        settings.MIN_RK_MAX_ITERATION
+    assert settings.MAX_MAX_ITERATION > settings.MIN_MAX_ITERATION
+    assert settings.max_iteration == settings.DEFAULT_MAX_ITERATION
+    settings.min_iteration = (
+        settings.MIN_MAX_ITERATION
     )  # This is neccessary as max and min are coupled
     random_value = random.randint(
-        settings.MIN_RK_MAX_ITERATION, settings.MAX_RK_MAX_ITERATION
+        settings.MIN_MAX_ITERATION, settings.MAX_MAX_ITERATION
     )
-    settings.rk_max_iteration = random_value
-    assert settings.rk_max_iteration == random_value
+    settings.max_iteration = random_value
+    assert settings.max_iteration == random_value
     test_value = int(
-        (settings.MAX_RK_MAX_ITERATION - settings.MIN_RK_MAX_ITERATION) / 2
+        (settings.MAX_MAX_ITERATION - settings.MIN_MAX_ITERATION) / 2
     )
-    settings.rk_max_iteration = settings.MAX_RK_MAX_ITERATION - test_value
-    assert settings.rk_max_iteration == settings.MAX_RK_MAX_ITERATION - test_value
-    settings.rk_max_iteration = settings.MAX_RK_MAX_ITERATION + test_value
-    assert settings.rk_max_iteration == settings.MAX_RK_MAX_ITERATION
-    settings.rk_max_iteration = settings.MIN_RK_MAX_ITERATION + test_value
-    assert settings.rk_max_iteration == settings.MIN_RK_MAX_ITERATION + test_value
-    settings.rk_max_iteration = settings.MIN_RK_MAX_ITERATION - test_value
-    assert settings.rk_max_iteration == settings.MIN_RK_MAX_ITERATION
+    settings.max_iteration = settings.MAX_MAX_ITERATION - test_value
+    assert settings.max_iteration == settings.MAX_MAX_ITERATION - test_value
+    settings.max_iteration = settings.MAX_MAX_ITERATION + test_value
+    assert settings.max_iteration == settings.MAX_MAX_ITERATION
+    settings.max_iteration = settings.MIN_MAX_ITERATION + test_value
+    assert settings.max_iteration == settings.MIN_MAX_ITERATION + test_value
+    settings.max_iteration = settings.MIN_MAX_ITERATION - test_value
+    assert settings.max_iteration == settings.MIN_MAX_ITERATION
 
 
 def test_settings_min_iteration():
     settings = Settings(screen_width=1920, screen_height=1080)
-    assert settings.MAX_RK_MIN_ITERATION > settings.MIN_RK_MIN_ITERATION
-    assert settings.rk_min_iteration == settings.DEFAULT_RK_MIN_ITERATION
-    settings.rk_max_iteration = (
-        settings.MAX_RK_MAX_ITERATION
+    assert settings.MAX_MIN_ITERATION > settings.MIN_MIN_ITERATION
+    assert settings.min_iteration == settings.DEFAULT_MIN_ITERATION
+    settings.max_iteration = (
+        settings.MAX_MAX_ITERATION
     )  # This is neccessary as max and min are coupled
     random_value = random.randint(
-        settings.MIN_RK_MIN_ITERATION, settings.MIN_RK_MIN_ITERATION
+        settings.MIN_MIN_ITERATION, settings.MIN_MIN_ITERATION
     )
-    settings.rk_min_iteration = random_value
-    assert settings.rk_min_iteration == random_value
+    settings.min_iteration = random_value
+    assert settings.min_iteration == random_value
     test_value = int(
-        (settings.MIN_RK_MIN_ITERATION - settings.MIN_RK_MIN_ITERATION) / 2
+        (settings.MIN_MIN_ITERATION - settings.MIN_MIN_ITERATION) / 2
     )
-    settings.rk_min_iteration = settings.MIN_RK_MIN_ITERATION - test_value
-    assert settings.rk_min_iteration == settings.MIN_RK_MIN_ITERATION - test_value
-    settings.rk_min_iteration = settings.MIN_RK_MIN_ITERATION + test_value
-    assert settings.rk_min_iteration == settings.MIN_RK_MIN_ITERATION
-    settings.rk_min_iteration = settings.MIN_RK_MIN_ITERATION + test_value
-    assert settings.rk_min_iteration == settings.MIN_RK_MIN_ITERATION + test_value
-    settings.rk_min_iteration = settings.MIN_RK_MIN_ITERATION - test_value
-    assert settings.rk_min_iteration == settings.MIN_RK_MIN_ITERATION
+    settings.min_iteration = settings.MIN_MIN_ITERATION - test_value
+    assert settings.min_iteration == settings.MIN_MIN_ITERATION - test_value
+    settings.min_iteration = settings.MIN_MIN_ITERATION + test_value
+    assert settings.min_iteration == settings.MIN_MIN_ITERATION
+    settings.min_iteration = settings.MIN_MIN_ITERATION + test_value
+    assert settings.min_iteration == settings.MIN_MIN_ITERATION + test_value
+    settings.min_iteration = settings.MIN_MIN_ITERATION - test_value
+    assert settings.min_iteration == settings.MIN_MIN_ITERATION
 
 
 def test_settings_tolerance():

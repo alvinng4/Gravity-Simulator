@@ -21,7 +21,7 @@ class Stats:
         self.settings = grav_sim.settings
         self.is_paused = False
         self.is_holding_rclick = False
-        self.create_statsboard(grav_sim)
+        self._create_statsboard(grav_sim)
         self._statsboard_init_print_msg()
 
     def update(self, grav_sim) -> None:
@@ -89,11 +89,11 @@ class Stats:
         )
         self.dt_board.print_msg(f"dt = {self.settings.dt:g} days / frame")
         self.time_speed_board.print_msg(f"Time Speed = {self.settings.time_speed}x")
-        self.rk_max_iteration_board.print_msg(
-            f"Max iterations / frame = {self.settings.rk_max_iteration}"
+        self.max_iteration_board.print_msg(
+            f"Max iterations / frame = {self.settings.max_iteration}"
         )
-        self.rk_min_iteration_board.print_msg(
-            f"Min iterations / frame = {self.settings.rk_min_iteration}"
+        self.min_iteration_board.print_msg(
+            f"Min iterations / frame = {self.settings.min_iteration}"
         )
         self.tolerance_board.print_msg(f"Tolerance = {self.settings.tolerance:g}")
 
@@ -113,8 +113,8 @@ class Stats:
         self.new_star_speed_scale_board.draw()
         self.dt_board.draw()
         self.time_speed_board.draw()
-        self.rk_max_iteration_board.draw()
-        self.rk_min_iteration_board.draw()
+        self.max_iteration_board.draw()
+        self.min_iteration_board.draw()
         self.tolerance_board.draw()
 
         self.integrators_board.draw()
@@ -179,18 +179,18 @@ class Stats:
                     (290, self.time_speed_board.rect.centery + 5),
                     4,
                 )
-            case "rk_max_iteration":
+            case "max_iteration":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (290, self.rk_max_iteration_board.rect.centery + 5),
+                    (290, self.max_iteration_board.rect.centery + 5),
                     4,
                 )
-            case "rk_min_iteration":
+            case "min_iteration":
                 pygame.draw.circle(
                     grav_sim.screen,
                     "yellow",
-                    (290, self.rk_min_iteration_board.rect.centery + 5),
+                    (290, self.min_iteration_board.rect.centery + 5),
                     4,
                 )
             case "tolerance":
@@ -288,12 +288,12 @@ class Stats:
             if self.time_speed_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_time_speed = True
-            if self.rk_max_iteration_board.rect.collidepoint(mouse_pos):
+            if self.max_iteration_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_rk_max_iteration = True
-            if self.rk_min_iteration_board.rect.collidepoint(mouse_pos):
+                self.settings.is_changing_max_iteration = True
+            if self.min_iteration_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
-                self.settings.is_changing_rk_min_iteration = True
+                self.settings.is_changing_min_iteration = True
             if self.tolerance_board.rect.collidepoint(mouse_pos):
                 self.settings.set_all_parameters_changing_false()
                 self.settings.is_changing_tolerance = True
@@ -361,7 +361,7 @@ class Stats:
         self.ias15_board.print_msg("IAS15")
 
     @classmethod
-    def create_statsboard(self, grav_sim) -> None:
+    def _create_statsboard(self, grav_sim) -> None:
         self.fps_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
@@ -470,7 +470,7 @@ class Stats:
             text_box_left_top=(10, 299),
             text_color=self.FIXED_STEP_SIZE_INTEGRATORS_COLOR,
         )
-        self.rk_max_iteration_board = Text_box(
+        self.max_iteration_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
@@ -479,7 +479,7 @@ class Stats:
             text_box_left_top=(10, 322),
             text_color=self.ADAPTIVE_STEP_SIZE_INTEGRATORS_COLOR,
         )
-        self.rk_min_iteration_board = Text_box(
+        self.min_iteration_board = Text_box(
             grav_sim,
             self.STATSBOARD_FONT_SIZE,
             size_x=self.STATSBOARD_SIZE_X,
