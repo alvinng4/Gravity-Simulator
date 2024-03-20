@@ -93,7 +93,9 @@ Hold the right mouse button to create a star + drag the mouse to give it an init
 Adjust parameter values: Left-click on the parameters panel to select a parameter + scroll to change its value.\
 Switch integrators: Left-click the integrator on the integrators panel.
 
-Warning: switching integrators in the middle of simulation may produce numerical error due to different natures of the integrators.
+
+>[!WARNING]\
+>Switching integrators in the middle of simulation may produce numerical error due to different natures of the integrators.
 
 ### Changing the resolution
 The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
@@ -103,6 +105,7 @@ python3 gravity_sim [-r|--resolution] <width> <height>
 
 ### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
+Numpy is slower and produces slightly more error.
 Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
@@ -172,6 +175,7 @@ The program would also ask if you want to trim the solutions after the simulatio
 
 ### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
+Numpy is slower and produces slightly more error.
 Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
@@ -230,11 +234,11 @@ This is my first programming project after learning programming for 6 months.
 If you find any bugs or want to give me your feedback, you are welcomed to let me know by sending an email to alvinng324@gmail.com or open an issue.
 
 ## Data References
-1. Park, R.S., et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, Astronomical Journal, 161:105.
-2. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
+1. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
+2. Park, R.S., et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, Astronomical Journal, 161:105.
 
-## Bibliography
-1. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
-2. Rein, H., and D. S. Spiegel, 2014, "IAS15: A fast, adaptive, high-order integrator for gravitational dynamics,
+## Bibliography 
+1. Rein, H., and D. S. Spiegel, 2014, "IAS15: A fast, adaptive, high-order integrator for gravitational dynamics,
 accurate to machine precision over a billion orbits", Monthly Notices of the Royal Astronomical Society 446:
 1424–1437.
+2. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
