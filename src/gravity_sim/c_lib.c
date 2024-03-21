@@ -506,6 +506,8 @@ WIN32DLL_API void leapfrog(
         }    
     }
 
+    memcpy(a, a_1, objects_count * 3 * sizeof(real));
+
     free(a_0);
     free(a_1);
 }
