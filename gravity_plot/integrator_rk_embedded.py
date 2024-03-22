@@ -281,7 +281,7 @@ class RK_EMBEDDED:
             sum = np.sum(
                 np.square(error_estimation_delta_x / tolerance_scale_x)
             ) + np.sum(np.square(error_estimation_delta_v / tolerance_scale_v))
-            error = np.sqrt(sum / (objects_count * 3 * 2))
+            error = (sum / (objects_count * 3 * 2)) ** 0.5
 
             if error <= 1 or dt == tf * 1e-12:
                 t += dt
@@ -366,8 +366,8 @@ class RK_EMBEDDED:
         sum_1 = np.sum(np.square(v / tolerance_scale_x)) + np.sum(
             np.square(a / tolerance_scale_v)
         )
-        d_0 = np.sqrt(sum_0 / (objects_count * 3 * 2))
-        d_1 = np.sqrt(sum_1 / (objects_count * 3 * 2))
+        d_0 = (sum_0 / (objects_count * 3 * 2)) ** 0.5
+        d_1 = (sum_1 / (objects_count * 3 * 2)) ** 0.5
 
         if d_0 < 1e-5 or d_1 < 1e-5:
             dt_0 = 1e-4
@@ -382,7 +382,7 @@ class RK_EMBEDDED:
         sum_2 = np.sum(np.square((v_1 - v) / tolerance_scale_x)) + np.sum(
             np.square((a_1 - a) / tolerance_scale_v)
         )
-        d_2 = np.sqrt(sum_2 / (objects_count * 3 * 2)) / dt_0
+        d_2 = (sum_2 / (objects_count * 3 * 2)) ** 0.5 / dt_0
 
         if max(d_1, d_2) <= 1e-15:
             dt_1 = max(1e-6, dt_0 * 1e-3)
