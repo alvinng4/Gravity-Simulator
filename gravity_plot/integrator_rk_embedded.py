@@ -118,6 +118,7 @@ class RK_EMBEDDED:
                 )
 
                 # Update percentage bar
+                progress_bar.update(task, completed=t.value)
                 if rk_flag == 0:
                     pass
             
@@ -142,8 +143,6 @@ class RK_EMBEDDED:
                     self.sol_time = self.sol_time[0 : store_count.value + 1]
                     self.sol_dt = self.sol_dt[0 : store_count.value + 1]
                     break
-
-                progress_bar.update(task, completed=t.value)
 
     def simulation_numpy(self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance):
         a = acceleration(objects_count, x, m, G)
