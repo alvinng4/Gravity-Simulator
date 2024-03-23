@@ -48,7 +48,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
             match integrator:
                 case "euler":
                     task = progress_bar.add_task("", total=tf)
-                    while t.value <= tf:
+                    while count.value < npts:
                         self.c_lib.euler(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -74,7 +74,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     progress_bar.stop()
                 case "euler_cromer":
                     task = progress_bar.add_task("", total=tf)
-                    while t.value <= tf:
+                    while count.value < npts:
                         self.c_lib.euler_cromer(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -100,7 +100,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     progress_bar.stop()
                 case "rk4":
                     task = progress_bar.add_task("", total=tf)
-                    while t.value <= tf:
+                    while count.value < npts:
                         self.c_lib.rk4(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -126,7 +126,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     progress_bar.stop()
                 case "leapfrog":
                     task = progress_bar.add_task("", total=tf)
-                    while t.value <= tf:
+                    while count.value < npts:
                         self.c_lib.leapfrog(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
