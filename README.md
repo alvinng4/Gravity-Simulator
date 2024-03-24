@@ -1,5 +1,5 @@
 # Gravity Simulator
-This is a Newtonian 3D N-body gravity simulator program which projects the results on the xy plane.
+This is a Newtonian N-body gravity simulator program which projects the results on the xy plane.
 * Interactive module: real time simulation with interactive simulator
 * Plotting module: customize your own system and generate a plot easily
 
@@ -39,7 +39,7 @@ This is a Newtonian 3D N-body gravity simulator program which projects the resul
 This program requires Python version 3.10 or higher. 
 
 ### Installation
-Download the source file, or clone this repository by running the following command in terminal:
+Download the source files, or clone this repository by running the following command in terminal:
 ```
 git clone https://github.com/alvinng4/Gravity-Simulator
 ```
@@ -76,26 +76,30 @@ python gravity_sim
 |:-------|:------------| 
 | Void | Emptiness |
 | figure-8 | A "figure-8" orbit involving three stars  |
-| pyth-3-body* | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
+| pyth-3-body | Three stars arranged in a triangle with length ratios of 3, 4, and 5 |
 | solar_system | Solar System with the Sun and the planets |
 
-*Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the accuracy of a integrator. Fixed step size integrators usually do not have enough accuracy.
+> [!TIP]\
+> Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the difference
+between fixed and variable step size integrators.
 
 ### Control
-Move camera: `W` `A` `S` `D`\
-Menu: `Esc`\
-Pause: `P`\
-Toggle full-screen mode: `F`\
-Hide user interface: `H`\
-Reset parameters: `R`\
-Create new star: 
-Hold the right mouse button to create a star + drag the mouse to give it an initial boost.\
-Adjust parameter values: Left-click on the parameters panel to select a parameter + scroll to change its value.\
-Switch integrators: Left-click the integrator on the integrators panel.
+
+| Action | Control |
+|:-------|:------------| 
+| Move camera | `W` `A` `S` `D` |
+| Menu | `Esc`|
+| Pause | `P` |
+| Toggle full-screen mode | `F` |
+| Hide user interface | `H` |
+| Reset parameters | `R` |
+| Create new star | Hold the right mouse button to create a star + drag the mouse to give it an initial boost. |
+| Adjust parameter values| Left-click the parameter on the parameters panel + scroll to change its value. |
+| Switch integrators | Left-click the integrator on the integrators panel. |
 
 
->[!WARNING]\
->Switching integrators in the middle of simulation may produce numerical error due to different natures of the integrators.
+> [!WARNING]\
+> Switching integrators or changing dt in the middle of simulation may produce some numerical error.
 
 ### Changing the resolution
 The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
@@ -137,7 +141,9 @@ python gravity_plot
 | solar_system_plus | solar_system with the inclusion of Pluto, Ceres, and Vesta  |
 | custom | Customize your own system |
 
-*Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the accuracy of a integrator. Fixed step size integrators usually do not have enough accuracy.
+> [!TIP]\
+> Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the difference
+between fixed and variable step size integrators.
 
 ### Customizing system
 If you want to setup your own system, choose the "custom" option.
@@ -215,7 +221,7 @@ Fixed step size integrators are simple methods to simulate the system with the g
 ### Embedded Runge-Kutta methods
 Embedded RK methods are adaptive methods that decides the step size automatically based on the estimated error. The system would adopt smaller step size for smaller tolerance.
 
-| Embdedded Runge-Kutta methods | Recommended tolerance** |
+| Embdedded Runge-Kutta methods | Recommended tolerance* |
 |:-----------|:-------------|
 | Runge–Kutta–Fehlberg 4(5) | 1e-8 to 1e-14 |
 | Dormand–Prince method (DOPRI) 5(4) | 1e-8 to 1e-14 |
@@ -225,9 +231,9 @@ Embedded RK methods are adaptive methods that decides the step size automaticall
 ### IAS15
 IAS15 (Implicit integrator with Adaptive time Stepping, 15th order) is a highly optimized and efficient method to simulate the system. It is the default method of the plotting module.
 
-Recommended tolerance**: 1e-9
+Recommended tolerance*: 1e-9
 
-**For reference only
+*For reference only
 
 ## Feedback and Bugs
 This is my first programming project after learning programming for 6 months.
