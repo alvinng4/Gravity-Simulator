@@ -42,8 +42,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
             rich.progress.TimeRemainingColumn(),
         )
 
-        count = ctypes.c_int(0)
-        store_count = ctypes.c_int(0)
+        count = ctypes.c_ulong(0)
+        store_count = ctypes.c_uint(0)
         with progress_bar:
             match integrator:
                 case "euler":

@@ -38,8 +38,8 @@ void euler(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 );
 void euler_cromer(
     int objects_count, 
@@ -55,8 +55,8 @@ void euler_cromer(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 );
 void rk4(
     int objects_count, 
@@ -72,8 +72,8 @@ void rk4(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 );
 void leapfrog(
     int objects_count, 
@@ -89,8 +89,8 @@ void leapfrog(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 );
 int rk_embedded(
     int objects_count, 
@@ -100,8 +100,8 @@ int rk_embedded(
     real *dt, 
     real tf, 
     int store_every_n,
-    int *store_count,
-    int *count, 
+    unsigned int *store_count,
+    unsigned int *count, 
     const real *m, 
     real G, 
     int power,
@@ -138,8 +138,8 @@ int ias15(
     real *dt, 
     real tf, 
     int store_every_n,
-    int *store_count,
-    int *count, 
+    unsigned int *store_count,
+    unsigned int *count, 
     real tolerance,
     real tolerance_pc,
     real (*sol_state)[6 * objects_count],
@@ -365,8 +365,8 @@ WIN32DLL_API void euler(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 )
 {   
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -443,8 +443,8 @@ WIN32DLL_API void euler_cromer(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 )
 {   
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -521,8 +521,8 @@ WIN32DLL_API void rk4(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 )
 {
     real (*temp_x)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -664,8 +664,8 @@ WIN32DLL_API void leapfrog(
     real *sol_time,
     int store_every_n,
     int store_npts,
-    int *count,
-    int *store_count
+    unsigned long *count,
+    unsigned int *store_count
 )
 {   
     real (*a_0)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -755,8 +755,8 @@ WIN32DLL_API int rk_embedded(
     real *dt, 
     real tf, 
     int store_every_n,
-    int *store_count,
-    int *count, 
+    unsigned int *store_count,
+    unsigned int *count, 
     const real *m, 
     real G, 
     int power,
@@ -1057,8 +1057,8 @@ WIN32DLL_API int ias15(
     real *dt, 
     real tf, 
     int store_every_n,
-    int *store_count,
-    int *count, 
+    unsigned int *store_count,
+    unsigned int *count, 
     real tolerance,
     real tolerance_pc,
     real (*sol_state)[6 * objects_count],
