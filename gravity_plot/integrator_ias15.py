@@ -81,8 +81,8 @@ class IAS15:
         dt = ctypes.c_double(self.ias15_initial_time_step(objects_count, 15, x, v, a, m, G))
 
         ias15_refine_flag = ctypes.c_int(0)
-        count = ctypes.c_int(0)
-        store_count = ctypes.c_int(0)
+        count = ctypes.c_uint(0)
+        store_count = ctypes.c_uint(0)
         with self.progress_bar as progress_bar:
             task = progress_bar.add_task("", total=tf)
             while True:

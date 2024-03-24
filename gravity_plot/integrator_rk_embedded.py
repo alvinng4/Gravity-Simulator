@@ -78,8 +78,8 @@ class RK_EMBEDDED:
             # Launch integration:
             t = ctypes.c_double(0.0)
             dt = ctypes.c_double(dt)
-            count = ctypes.c_int(0)
-            store_count = ctypes.c_int(0)
+            count = ctypes.c_uint(0)
+            store_count = ctypes.c_uint(0)
             while t.value <= tf:
                 rk_flag = self.c_lib.rk_embedded(
                     ctypes.c_int(objects_count),
