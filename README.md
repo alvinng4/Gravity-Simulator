@@ -1,7 +1,10 @@
 # Gravity Simulator
-This is a Newtonian N-body gravity simulator program which projects the results on the xy plane.
-* Interactive module: real time simulation with interactive simulator
+This is a Newtonian N-body gravity simulator which projects the results on the xy plane.
+
+* Interactive module: real time simulation with the interactive simulator
 * Plotting module: customize your own system and generate a plot easily
+
+In development: WHFast integrator
 
 <img src="gravity_plot/examples/solar_system.png" alt="Image" width="400">
 
@@ -57,7 +60,7 @@ Plotting module: run the following command in terminal
 python gravity_plot
 ```
 ## Quick fix
-If the program keeps crashing, running with numpy may fix the problem. However, the program may runs ~50 to 100 times slower. To run with numpy, run the following command in terminal
+If the program keeps crashing, running with numpy may fix the problem. However, the program could runs ~50 to 100 times slower. To run with numpy, run the following command in terminal
 ```
 python gravity_sim [-n|--numpy]
 ```
@@ -87,7 +90,7 @@ between fixed and variable step size integrators.
 
 | Action | Control |
 |:-------|:------------| 
-| Move camera | `W` `A` `S` `D`/ `↑ ↓ ← →`|
+| Move camera | `W` `A` `S` `D`/ `↑` `↓` `←` `→`|
 | Menu | `Esc`|
 | Pause | `P` |
 | Toggle full-screen mode | `F` |
@@ -229,15 +232,15 @@ Embedded RK methods are adaptive methods that decides the step size automaticall
 | Runge–Kutta–Fehlberg 7(8) | 1e-4 to 1e-8 |
 
 ### IAS15
-IAS15 (Implicit integrator with Adaptive time Stepping, 15th order) is a highly optimized and efficient method to simulate the system. It is the default method of the plotting module.
+IAS15 (Implicit integrator with Adaptive time Stepping, 15th order) is a highly optimized and efficient integrator. It is the default method of the plotting module.
 
 Recommended tolerance*: 1e-9
 
 *For reference only
 
 ## Feedback and Bugs
-This is my first programming project after learning programming for 6 months.
-If you find any bugs or want to give me your feedback, you are welcomed to let me know by sending an email to alvinng324@gmail.com or open an issue.
+This is my first programming project after learning programming for 7 months, so there could be a lot of bugs.
+If you find any bugs or want to give me your feedback, please feel free to let me know by sending an email to alvinng324@gmail.com or open an issue.
 
 ## Data References
 1. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
