@@ -87,7 +87,7 @@ between fixed and variable step size integrators.
 
 | Action | Control |
 |:-------|:------------| 
-| Move camera | `W` `A` `S` `D` |
+| Move camera | `W` `A` `S` `D`/ `↑ ↓ ← →`|
 | Menu | `Esc`|
 | Pause | `P` |
 | Toggle full-screen mode | `F` |

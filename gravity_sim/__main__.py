@@ -139,25 +139,25 @@ class GravitySimulator:
 
     def _check_key_up_events(self, event):
         match event.key:
-            case pygame.K_d:
-                self.camera.moving_right = False
-            case pygame.K_a:
-                self.camera.moving_left = False
-            case pygame.K_w:
+            case up if up in [pygame.K_w, pygame.K_UP]:
                 self.camera.moving_up = False
-            case pygame.K_s:
+            case left if left in [pygame.K_a, pygame.K_LEFT]:
+                self.camera.moving_left = False
+            case down if down in [pygame.K_s, pygame.K_DOWN]:
                 self.camera.moving_down = False
+            case right if right in [pygame.K_d, pygame.K_RIGHT]:
+                self.camera.moving_right = False
 
     def _check_key_down_events(self, event):
         match event.key:
-            case pygame.K_d:
-                self.camera.moving_right = True
-            case pygame.K_a:
-                self.camera.moving_left = True
-            case pygame.K_w:
+            case up if up in [pygame.K_w, pygame.K_UP]:
                 self.camera.moving_up = True
-            case pygame.K_s:
+            case left if left in [pygame.K_a, pygame.K_LEFT]:
+                self.camera.moving_left = True
+            case down if down in [pygame.K_s, pygame.K_DOWN]:
                 self.camera.moving_down = True
+            case right if right in [pygame.K_d, pygame.K_RIGHT]:
+                self.camera.moving_right = True
             case pygame.K_p:
                 if self.stats.is_paused == False:
                     self.stats.start_pause()
