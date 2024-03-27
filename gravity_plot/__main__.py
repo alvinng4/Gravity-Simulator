@@ -198,14 +198,12 @@ class Plotter:
                     color=traj[0].get_color(),
                 )
 
-        ax1.set_title("Trajectory")
         ax1.set_xlabel("X (AU)")
         ax1.set_ylabel("Y (AU)")
 
         if self.system in self.solar_like_systems:
-            fig1.legend(loc=7)
+            fig1.legend(loc="center right", borderaxespad=0.2)
             fig1.tight_layout()
-            fig1.subplots_adjust(right=0.8)
 
         plt.show()
 
