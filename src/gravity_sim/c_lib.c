@@ -11,70 +11,76 @@
 
 #define real double
 
-real abs_max_vec(const real *vec, int vec_length);
-real abs_max_vec_array(const real (*arr)[3], int objects_count);
-real vec_norm(const real *vec, int vec_length);
+real abs_max_vec(const real *restrict vec, int vec_length);
+real abs_max_vec_array(const real (*restrict arr)[3], int objects_count);
+real vec_norm(const real *restrict vec, int vec_length);
 real compute_energy(
     int objects_count, 
-    const real (*x)[3],
-    const real (*v)[3],
-    const real *m, 
+    const real (*restrict x)[3],
+    const real (*restrict v)[3],
+    const real *restrict m, 
     real G
 );
-void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G);
+void acceleration(
+    int objects_count, 
+    const real (*restrict x)[3], 
+    real (*restrict a)[3], 
+    const real *restrict m, 
+    real G
+);
 void euler(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
 );
 void euler_cromer(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
 );
 void rk4(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
 );
 void leapfrog(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    real (*a)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    real (*restrict a)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
 );
 void rk_embedded(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real expected_time_scale,
-    real *t, 
-    real *dt,
+    real *restrict t, 
+    real *restrict dt,
     int power,
     int power_test,
     int len_coeff,
-    const real (*coeff)[len_coeff],
+    const real (*restrict coeff)[len_coeff],
     int len_weights,
-    const real *weights,
-    const real *weights_test,
+    const real *restrict weights,
+    const real *restrict weights_test,
     int max_iteration,
     int min_iteration,
     real abs_tolerance,
@@ -82,99 +88,99 @@ void rk_embedded(
 );
 void ias15(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    real (*a)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    real (*restrict a)[3], 
+    const real *restrict m, 
     real G,    
     int dim_nodes,
-    const real *nodes,
-    const real *aux_c, 
-    const real *aux_r,
-    real *aux_b0,
-    real *aux_b,
-    real *aux_g,
-    real *aux_e, 
-    real *t, 
-    real *dt, 
+    const real *restrict nodes,
+    const real *restrict aux_c, 
+    const real *restrict aux_r,
+    real *restrict aux_b0,
+    real *restrict aux_b,
+    real *restrict aux_g,
+    real *restrict aux_e, 
+    real *restrict t, 
+    real *restrict dt, 
     real expected_time_scale, 
-    int *count, 
+    int *restrict count, 
     real tolerance,
     real tolerance_pc,
     real safety_fac,
     real exponent,
-    int *ias15_refine_flag,
+    int *restrict ias15_refine_flag,
     int max_iteration,
     int min_iteration
 );
 void ias15_step(
     int objects_count,
-    real (*x0)[3],
-    real (*v0)[3],
-    real (*a0)[3],
-    const real *m,
+    real (*restrict x0)[3],
+    real (*restrict v0)[3],
+    real (*restrict a0)[3],
+    const real *restrict m,
     real G,
-    real *t,
-    real *dt,
+    real *restrict t,
+    real *restrict dt,
     real tf,
     int dim_nodes,
-    const real *nodes,
-    real *aux_b0,
-    real *aux_b,
-    const real *aux_c,
-    real *aux_e,
-    real *aux_g,
-    const real *aux_r,
+    const real *restrict nodes,
+    real *restrict aux_b0,
+    real *restrict aux_b,
+    const real *restrict aux_c,
+    real *restrict aux_e,
+    real *restrict aux_g,
+    const real *restrict aux_r,
     real tolerance,
     real tolerance_pc,
     real exponent,
     real safety_fac,
-    int *ias15_refine_flag
+    int *restrict ias15_refine_flag
 );
 void ias15_approx_pos(
     int objects_count,
-    real (*x)[3],
-    const real (*v)[3],
-    const real (*a)[3],
+    real (*restrict x)[3],
+    const real (*restrict v)[3],
+    const real (*restrict a)[3],
     real node,
-    real *aux_b,
+    real *restrict aux_b,
     real dt
 );
 void ias15_approx_vel(
     int objects_count,
-    real (*v)[3],
-    const real (*a)[3],
+    real (*restrict v)[3],
+    const real (*restrict a)[3],
     real node,
-    real *aux_b,
+    real *restrict aux_b,
     real dt
 );
 void ias15_compute_aux_b(
     int objects_count,
     int dim_nodes,
-    real *aux_b,
-    const real *aux_g,
-    const real *aux_c,
+    real *restrict aux_b,
+    const real *restrict aux_g,
+    const real *restrict aux_c,
     int i
 );
 void ias15_compute_aux_g(
     int objects_count,
     int dim_nodes,
-    real *aux_g,
-    const real *aux_r,
-    const real *aux_a,
+    real *restrict aux_g,
+    const real *restrict aux_r,
+    const real *restrict aux_a,
     int i
 );
 void ias15_refine_aux_b(
     int objects_count,
     int dim_nodes,
-    real *aux_b,
-    real *aux_e,
+    real *restrict aux_b,
+    real *restrict aux_e,
     real dt,
     real dt_new,
     int ias15_refine_flag
 );
 
-WIN32DLL_API real abs_max_vec(const real *vec, int vec_length)
+WIN32DLL_API real abs_max_vec(const real *restrict vec, int vec_length)
 {
     // Find the max absolute value in a 1D array
     real max = fabs(vec[0]);
@@ -186,7 +192,7 @@ WIN32DLL_API real abs_max_vec(const real *vec, int vec_length)
     return max;
 }
 
-WIN32DLL_API real abs_max_vec_array(const real (*arr)[3], int objects_count)
+WIN32DLL_API real abs_max_vec_array(const real (*restrict arr)[3], int objects_count)
 {
     // Find the max absolute value in a 1D array
     real max = 0;
@@ -201,7 +207,7 @@ WIN32DLL_API real abs_max_vec_array(const real (*arr)[3], int objects_count)
     return max;
 }
 
-WIN32DLL_API real vec_norm(const real *vec, int vec_length)
+WIN32DLL_API real vec_norm(const real *restrict vec, int vec_length)
 {   
     real sum = 0.0;
     if (vec_length == 3) 
@@ -217,9 +223,9 @@ WIN32DLL_API real vec_norm(const real *vec, int vec_length)
 
 WIN32DLL_API real compute_energy(
     int objects_count, 
-    const real (*x)[3],
-    const real (*v)[3],
-    const real *m, 
+    const real (*restrict x)[3],
+    const real (*restrict v)[3],
+    const real *restrict m, 
     real G
 )
 {
@@ -276,7 +282,13 @@ WIN32DLL_API real compute_energy(
     
 }
 
-WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[3], const real *m, real G)
+WIN32DLL_API void acceleration(
+    int objects_count, 
+    const real (*restrict x)[3], 
+    real (*restrict a)[3], 
+    const real *restrict m, 
+    real G
+)
 {   
     real R_norm, temp_value, temp_vec[3], R[3];
 
@@ -310,9 +322,9 @@ WIN32DLL_API void acceleration(int objects_count, const real (*x)[3], real (*a)[
 
 WIN32DLL_API void euler(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
@@ -341,9 +353,9 @@ WIN32DLL_API void euler(
 
 WIN32DLL_API void euler_cromer(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
@@ -372,9 +384,9 @@ WIN32DLL_API void euler_cromer(
 
 WIN32DLL_API void rk4(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
@@ -469,10 +481,10 @@ WIN32DLL_API void rk4(
 
 WIN32DLL_API void leapfrog(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    real (*a)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    real (*restrict a)[3], 
+    const real *restrict m, 
     real G, 
     real dt,
     int time_speed
@@ -514,20 +526,20 @@ WIN32DLL_API void leapfrog(
 
 WIN32DLL_API void rk_embedded(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    const real *restrict m, 
     real G, 
     real expected_time_scale,
-    real *t, 
-    real *dt,
+    real *restrict t, 
+    real *restrict dt,
     int power,
     int power_test,
     int len_coeff,
-    const real (*coeff)[len_coeff],
+    const real (*restrict coeff)[len_coeff],
     int len_weights,
-    const real *weights,
-    const real *weights_test,
+    const real *restrict weights,
+    const real *restrict weights_test,
     int max_iteration,
     int min_iteration,
     real abs_tolerance,
@@ -722,28 +734,28 @@ WIN32DLL_API void rk_embedded(
 
 WIN32DLL_API void ias15(
     int objects_count, 
-    real (*x)[3], 
-    real (*v)[3], 
-    real (*a)[3], 
-    const real *m, 
+    real (*restrict x)[3], 
+    real (*restrict v)[3], 
+    real (*restrict a)[3], 
+    const real *restrict m, 
     real G,    
     int dim_nodes,
-    const real *nodes,
-    const real *aux_c, 
-    const real *aux_r,
-    real *aux_b0,
-    real *aux_b,
-    real *aux_g,
-    real *aux_e, 
-    real *t, 
-    real *dt, 
+    const real *restrict nodes,
+    const real *restrict aux_c, 
+    const real *restrict aux_r,
+    real *restrict aux_b0,
+    real *restrict aux_b,
+    real *restrict aux_g,
+    real *restrict aux_e, 
+    real *restrict t, 
+    real *restrict dt, 
     real expected_time_scale, 
-    int *count, 
+    int *restrict count, 
     real tolerance,
     real tolerance_pc,
     real safety_fac,
     real exponent,
-    int *ias15_refine_flag,
+    int *restrict ias15_refine_flag,
     int max_iteration,
     int min_iteration
 )
@@ -787,27 +799,27 @@ WIN32DLL_API void ias15(
 // Advance IAS15 for one step
 WIN32DLL_API void ias15_step(
     int objects_count,
-    real (*x0)[3],
-    real (*v0)[3],
-    real (*a0)[3],
-    const real *m,
+    real (*restrict x0)[3],
+    real (*restrict v0)[3],
+    real (*restrict a0)[3],
+    const real *restrict m,
     real G,
-    real *t,
-    real *dt,
+    real *restrict t,
+    real *restrict dt,
     real expected_time_scale,
     int dim_nodes,
-    const real *nodes,
-    real *aux_b0,
-    real *aux_b,
-    const real *aux_c,
-    real *aux_e,
-    real *aux_g,
-    const real *aux_r,
+    const real *restrict nodes,
+    real *restrict aux_b0,
+    real *restrict aux_b,
+    const real *restrict aux_c,
+    real *restrict aux_e,
+    real *restrict aux_g,
+    const real *restrict aux_r,
     real tolerance,
     real tolerance_pc,
     real exponent,
     real safety_fac,
-    int *ias15_refine_flag
+    int *restrict ias15_refine_flag
 )
 {
     real *aux_a = malloc(dim_nodes * objects_count * 3 * sizeof(real));
@@ -928,11 +940,11 @@ WIN32DLL_API void ias15_step(
 
 WIN32DLL_API void ias15_approx_pos(
     int objects_count,
-    real (*x)[3],
-    const real (*v)[3],
-    const real (*a)[3],
+    real (*restrict x)[3],
+    const real (*restrict v)[3],
+    const real (*restrict a)[3],
     real node,
-    real *aux_b,
+    real *restrict aux_b,
     real dt
 )
 {   
@@ -979,10 +991,10 @@ WIN32DLL_API void ias15_approx_pos(
 
 WIN32DLL_API void ias15_approx_vel(
     int objects_count,
-    real (*v)[3],
-    const real (*a)[3],
+    real (*restrict v)[3],
+    const real (*restrict a)[3],
     real node,
-    real *aux_b,
+    real *restrict aux_b,
     real dt
 )
 {
@@ -1025,9 +1037,9 @@ WIN32DLL_API void ias15_approx_vel(
 WIN32DLL_API void ias15_compute_aux_b(
     int objects_count,
     int dim_nodes,
-    real *aux_b,
-    const real *aux_g,
-    const real *aux_c,
+    real *restrict aux_b,
+    const real *restrict aux_g,
+    const real *restrict aux_c,
     int i
 )
 {
@@ -1135,9 +1147,9 @@ WIN32DLL_API void ias15_compute_aux_b(
 WIN32DLL_API void ias15_compute_aux_g(
     int objects_count,
     int dim_nodes,
-    real *aux_g,
-    const real *aux_r,
-    const real *aux_a,
+    real *restrict aux_g,
+    const real *restrict aux_r,
+    const real *restrict aux_a,
     int i
 )
 {
@@ -1298,8 +1310,8 @@ WIN32DLL_API void ias15_compute_aux_g(
 WIN32DLL_API void ias15_refine_aux_b(
     int objects_count,
     int dim_nodes,
-    real *aux_b,
-    real *aux_e,
+    real *restrict aux_b,
+    real *restrict aux_e,
     real dt,
     real dt_new,
     int ias15_refine_flag
