@@ -28,14 +28,12 @@ void euler(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -45,14 +43,12 @@ void euler_cromer(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -61,15 +57,13 @@ void euler_cromer(
 void rk4(
     int objects_count, 
     real (*x)[3], 
-    real (*v)[3], 
-    real *t, 
+    real (*v)[3],  
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -79,14 +73,12 @@ void leapfrog(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -355,14 +347,12 @@ WIN32DLL_API void euler(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -372,13 +362,11 @@ WIN32DLL_API void euler(
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
 
     // Current progress percentage rounded to int
-    int progress_percentage = (int) round(*t / tf * 100);
+    int progress_percentage = (int) round(*count * 100 / npts);
 
     // Main Loop
     while ((*count + 1) <= npts)
     {   
-        *t += dt;
-
         acceleration(objects_count, x, a, m, G);
         for (int j = 0; j < objects_count; j++)
         {
@@ -399,7 +387,6 @@ WIN32DLL_API void euler(
                 sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[*store_count + 1] = *t;
             }
 
             if ((*count + 2) == npts)
@@ -410,7 +397,6 @@ WIN32DLL_API void euler(
                 sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[store_npts - 1] = *t;
             }
         }    
         if ((*count + 1) % store_every_n == 0)
@@ -421,7 +407,7 @@ WIN32DLL_API void euler(
         *count += 1;
 
         // Exit to update progress bar
-        if ((int) (*t / tf * 100) > progress_percentage)
+        if ((int) (*count * 100 / npts) > progress_percentage)
         {   
             free(a);
             return;
@@ -433,14 +419,12 @@ WIN32DLL_API void euler_cromer(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -450,13 +434,11 @@ WIN32DLL_API void euler_cromer(
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
 
     // Current progress percentage rounded to int
-    int progress_percentage = (int) round(*t / tf * 100);
+    int progress_percentage = (int) round(*count * 100 / npts);
 
     // Main Loop
     while ((*count + 1) <= npts)
     {   
-        *t += dt;
-
         acceleration(objects_count, x, a, m, G);
         for (int j = 0; j < objects_count; j++)
         {
@@ -477,7 +459,6 @@ WIN32DLL_API void euler_cromer(
                 sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[*store_count + 1] = *t;
             }
 
             if ((*count + 2) == npts)
@@ -488,7 +469,6 @@ WIN32DLL_API void euler_cromer(
                 sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[store_npts - 1] = *t;
             }
         }    
         if ((*count + 1) % store_every_n == 0)
@@ -499,7 +479,7 @@ WIN32DLL_API void euler_cromer(
         *count += 1;
 
         // Exit to update progress bar
-        if ((int) (*t / tf * 100) > progress_percentage)
+        if ((int) (*count * 100 / npts) > progress_percentage)
         {   
             free(a);
             return;
@@ -511,14 +491,12 @@ WIN32DLL_API void rk4(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -540,13 +518,11 @@ WIN32DLL_API void rk4(
     real (*xk4)[3] = malloc(objects_count * 3 * sizeof(real));
 
     // Current progress percentage rounded to int
-    int progress_percentage = (int) round(*t / tf * 100);
+    int progress_percentage = (int) round(*count * 100 / npts);
 
     // Main Loop
     while ((*count + 1) <= npts)
     {   
-        *t += dt;
-        
         acceleration(objects_count, x, a, m, G);
         memcpy(vk1, a, objects_count * 3 * sizeof(real));
         memcpy(xk1, v, objects_count * 3 * sizeof(real));
@@ -610,7 +586,6 @@ WIN32DLL_API void rk4(
                 sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[*store_count + 1] = *t;
             }
 
             if ((*count + 2) == npts)
@@ -621,7 +596,6 @@ WIN32DLL_API void rk4(
                 sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[store_npts - 1] = *t;
             }
         }    
         if ((*count + 1) % store_every_n == 0)
@@ -632,7 +606,7 @@ WIN32DLL_API void rk4(
         *count += 1;
 
         // Exit to update progress bar
-        if ((int) (*t / tf * 100) > progress_percentage)
+        if ((int) (*count * 100 / npts) > progress_percentage)
         {   
             free(a);
             free(temp_x);
@@ -654,14 +628,12 @@ WIN32DLL_API void leapfrog(
     int objects_count, 
     real (*x)[3], 
     real (*v)[3], 
-    real *t, 
     real dt, 
     real tf, 
-    int npts, 
+    unsigned long npts, 
     const real *m, 
     real G, 
     real (*sol_state)[6 * objects_count],
-    real *sol_time,
     int store_every_n,
     int store_npts,
     unsigned long *count,
@@ -674,13 +646,11 @@ WIN32DLL_API void leapfrog(
     int is_initialize = 1;
 
     // Current progress percentage rounded to int
-    int progress_percentage = (int) round(*t / tf * 100);
+    int progress_percentage = (int) round(*count * 100 / npts);
 
     // Main Loop
     while ((*count + 1) <= npts)
     {       
-        *t += dt;
-
         if (is_initialize == 1)
         {
             acceleration(objects_count, x, a_0, m, G);
@@ -716,7 +686,6 @@ WIN32DLL_API void leapfrog(
                 sol_state[*store_count + 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[*store_count + 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[*store_count + 1] = *t;
             }
 
             if ((*count + 2) == npts)
@@ -727,7 +696,6 @@ WIN32DLL_API void leapfrog(
                 sol_state[store_npts - 1][objects_count * 3 + j * 3] = v[j][0];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 1] = v[j][1];
                 sol_state[store_npts - 1][objects_count * 3 + j * 3 + 2] = v[j][2];
-                sol_time[store_npts - 1] = *t;
             }
         }    
         if ((*count + 1) % store_every_n == 0)
@@ -738,7 +706,7 @@ WIN32DLL_API void leapfrog(
         *count += 1;
 
         // Exit to update progress bar
-        if ((int) (*t / tf * 100) > progress_percentage)
+        if ((int) (*count * 100 / npts) > progress_percentage)
         {   
             free(a_0);
             free(a_1);
