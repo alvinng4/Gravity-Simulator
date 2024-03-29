@@ -6,7 +6,11 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 
 In development: WHFast integrator
 
-<img src="gravity_plot/examples/solar_system.png" alt="Image" width="400">
+<video src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/1eb0d8c7-79fb-4c46-9276-07aebe66dc67" width="700"/>
+</video>
+
+
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/a606eb56-cd6e-4ed9-813a-c5128f5a19dd" alt="Image" width="400">
 
 ## Documentation
 * [Quick Start](#quick-start)
@@ -121,8 +125,8 @@ python gravity_sim [-n|--numpy]
 
 ## Plotting module
 
-<img src="gravity_plot/examples/pyth-3-body.png" alt="Image" width="300">
-<img src="gravity_plot/examples/solar_system_rel_energy.png" alt="Image" width="300">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/b3e9c59e-7f92-4106-9558-b3a5a9848a5f" alt="Image" width="300">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/0b905646-b10b-4b11-9554-5d87b4935393" alt="Image" width="300">
 
 ### Running the program
 
@@ -209,7 +213,7 @@ If you want to customize the title of the graph, run the program with the follow
 python compare.py [-t|--title] <title>
 ```
 
-<img src="gravity_plot/examples/sun_earth_moon_100y_dt_0.1d.png" alt="Image" width="400">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/bb0703fa-0e67-483f-a63e-0fb1c934666e" alt="Image" width="400">
 
 ## Available integrators 
 ### Fixed step size methods
