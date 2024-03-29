@@ -16,7 +16,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
             self.simulation_numpy(integrator, objects_count, x, v, m, G, dt, tf)
 
     def simulation_c_lib(self, integrator, objects_count, x, v, m, G, dt, tf):
-        t = ctypes.c_double(0.0)
         npts = int(np.floor((tf / dt))) + 1    # + 1 for t0
         if self.store_every_n != 1:
             store_npts = math.floor((npts - 1) / self.store_every_n) + 1    # + 1 for t0
@@ -29,7 +28,9 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                 np.reshape(v, objects_count * 3),
             )
         )
-        self.sol_time = np.zeros(store_npts)
+        self.sol_time = np.linspace(
+            0, dt * (npts - 1), store_npts
+        )
         self.sol_dt = np.full(
             shape=(store_npts), fill_value=f"{dt}", dtype=float
         )
@@ -45,24 +46,20 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         count = ctypes.c_ulong(0)
         store_count = ctypes.c_uint(0)
         with progress_bar:
+            task = progress_bar.add_task("", total=store_npts)
             match integrator:
                 case "euler":
-                    task = progress_bar.add_task("", total=tf)
                     while count.value < npts:
                         self.c_lib.euler(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                            ctypes.byref(t),
                             ctypes.c_double(dt),
                             ctypes.c_double(tf),
-                            ctypes.c_int(npts),
+                            ctypes.c_ulong(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
-                                ctypes.POINTER(ctypes.c_double)
-                            ),
-                            self.sol_time.ctypes.data_as(
                                 ctypes.POINTER(ctypes.c_double)
                             ),
                             ctypes.c_int(self.store_every_n),
@@ -70,25 +67,20 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.byref(count),
                             ctypes.byref(store_count),
                         )
-                        progress_bar.update(task, completed=t.value)
+                        progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop()
                 case "euler_cromer":
-                    task = progress_bar.add_task("", total=tf)
                     while count.value < npts:
                         self.c_lib.euler_cromer(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                            ctypes.byref(t),
                             ctypes.c_double(dt),
                             ctypes.c_double(tf),
-                            ctypes.c_int(npts),
+                            ctypes.c_ulong(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
-                                ctypes.POINTER(ctypes.c_double)
-                            ),
-                            self.sol_time.ctypes.data_as(
                                 ctypes.POINTER(ctypes.c_double)
                             ),
                             ctypes.c_int(self.store_every_n),
@@ -96,25 +88,20 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.byref(count),
                             ctypes.byref(store_count),
                         )
-                        progress_bar.update(task, completed=t.value)
+                        progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop()
                 case "rk4":
-                    task = progress_bar.add_task("", total=tf)
                     while count.value < npts:
                         self.c_lib.rk4(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                            ctypes.byref(t),
                             ctypes.c_double(dt),
                             ctypes.c_double(tf),
-                            ctypes.c_int(npts),
+                            ctypes.c_ulong(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
-                                ctypes.POINTER(ctypes.c_double)
-                            ),
-                            self.sol_time.ctypes.data_as(
                                 ctypes.POINTER(ctypes.c_double)
                             ),
                             ctypes.c_int(self.store_every_n),
@@ -122,25 +109,20 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.byref(count),
                             ctypes.byref(store_count),
                         )
-                        progress_bar.update(task, completed=t.value)
+                        progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop()
                 case "leapfrog":
-                    task = progress_bar.add_task("", total=tf)
                     while count.value < npts:
                         self.c_lib.leapfrog(
                             ctypes.c_int(objects_count),
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                            ctypes.byref(t),
                             ctypes.c_double(dt),
                             ctypes.c_double(tf),
-                            ctypes.c_int(npts),
+                            ctypes.c_ulong(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
-                                ctypes.POINTER(ctypes.c_double)
-                            ),
-                            self.sol_time.ctypes.data_as(
                                 ctypes.POINTER(ctypes.c_double)
                             ),
                             ctypes.c_int(self.store_every_n),
@@ -148,7 +130,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.byref(count),
                             ctypes.byref(store_count),
                         )
-                        progress_bar.update(task, completed=t.value)
+                        progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop() 
 
     def simulation_numpy(self, integrator, objects_count, x, v, m, G, dt, tf):
@@ -164,7 +146,9 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                 np.reshape(v, objects_count * 3),
             )
         )
-        self.sol_time = np.zeros(store_npts)
+        self.sol_time = np.linspace(
+            0, dt * (npts - 1), store_npts
+        )
         self.sol_dt = np.full(
             shape=(store_npts), fill_value=f"{dt}", dtype=float
         )
@@ -193,7 +177,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[store_count + 1] = (count + 1) * dt
                             store_count += 1
                         
                         if (count + 2) == npts:
@@ -203,7 +186,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[-1] = (count + 1) * dt
 
                 case "euler_cromer":
                     for count in progress_bar.track(range(npts - 1)):
@@ -218,7 +200,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[store_count + 1] = (count + 1) * dt
                             store_count += 1
 
                         if (count + 2) == npts:
@@ -228,7 +209,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[-1] = (count + 1) * dt
 
                 case "rk4":
                     for count in progress_bar.track(range(npts - 1)):
@@ -247,7 +227,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[store_count + 1] = (count + 1) * dt
                             store_count += 1
 
                         if (count + 2) == npts:
@@ -257,7 +236,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[-1] = (count + 1) * dt
 
                 case "leapfrog":
                     a = acceleration(objects_count, x, m, G)
@@ -278,7 +256,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[store_count + 1] = (count + 1) * dt
                             store_count += 1 
 
                         if (count + 2) == npts:
@@ -288,7 +265,6 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                                     np.reshape(v, objects_count * 3),
                                 )
                             )
-                            self.sol_time[-1] = (count + 1) * dt
                              
     @staticmethod        
     def euler(x, v, a, dt):
