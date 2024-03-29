@@ -6,9 +6,8 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 
 In development: WHFast integrator
 
-<video src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/1eb0d8c7-79fb-4c46-9276-07aebe66dc67" width="700"/>
+<video src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/f761e4cc-3cb6-494b-b251-c1a66809a27d" width="700"/>
 </video>
-
 
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/a606eb56-cd6e-4ed9-813a-c5128f5a19dd" alt="Image" width="400">
 
