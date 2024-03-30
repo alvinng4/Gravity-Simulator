@@ -2,9 +2,9 @@ import ctypes
 import math
 
 import numpy as np
-import rich.progress
 
 from common import acceleration
+from progress_bar import Progress_bar
 
 class FIXED_STEP_SIZE_INTEGRATOR:
     def __init__(self, simulator, integrator, objects_count, x, v, m, G, dt, tf, is_c_lib):
@@ -34,14 +34,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         self.sol_dt = np.full(
             shape=(store_npts), fill_value=f"{dt}", dtype=float
         )
-        progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
+        progress_bar = Progress_bar()
 
         count = ctypes.c_ulong(0)
         store_count = ctypes.c_uint(0)
@@ -152,14 +145,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         self.sol_dt = np.full(
             shape=(store_npts), fill_value=f"{dt}", dtype=float
         )
-        progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
+        progress_bar = Progress_bar()
 
         store_count = 0
         with progress_bar:

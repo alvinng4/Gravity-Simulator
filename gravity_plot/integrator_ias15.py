@@ -1,21 +1,12 @@
 import ctypes
 
 import numpy as np
-import rich.progress
 
 from common import acceleration 
+from progress_bar import Progress_bar
 
 class IAS15:
     def __init__(self, simulator, objects_count, x, v, m, G, tf, tolerance, is_c_lib):
-        self.progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
-
         self.store_every_n = simulator.store_every_n
 
         if is_c_lib == True:
@@ -83,7 +74,8 @@ class IAS15:
         ias15_refine_flag = ctypes.c_int(0)
         count = ctypes.c_uint(0)
         store_count = ctypes.c_uint(0)
-        with self.progress_bar as progress_bar:
+        progress_bar = Progress_bar()
+        with progress_bar:
             task = progress_bar.add_task("", total=tf)
             while True:
                 ias15_flag = self.c_lib.ias15(
@@ -189,7 +181,8 @@ class IAS15:
         ias15_refine_flag = 0
         count = 0
         store_count = 0
-        with self.progress_bar as progress_bar:
+        progress_bar = Progress_bar()
+        with progress_bar:
             task = progress_bar.add_task("", total=tf)
             while True:
                 (

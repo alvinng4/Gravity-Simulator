@@ -1,9 +1,9 @@
 import ctypes
 
 import numpy as np
-import rich.progress
 
 from common import acceleration
+from progress_bar import Progress_bar
 
 class RK_EMBEDDED:
     def __init__(self, simulator, integrator, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance, is_c_lib):
@@ -27,15 +27,6 @@ class RK_EMBEDDED:
             self.weights_test,
         ) = self.rk_embedded_butcher_tableaus(order)
 
-        self.progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
-            
         self.store_every_n = simulator.store_every_n
 
         if is_c_lib == True:
@@ -45,7 +36,8 @@ class RK_EMBEDDED:
             self.simulation_numpy(objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance)
         
     def simulation_c_lib(self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance):
-        with self.progress_bar as progress_bar:
+        progress_bar = Progress_bar()
+        with progress_bar:
             task = progress_bar.add_task("", total=tf)
             a = acceleration(objects_count, x, m, G)
             dt = self.rk_embedded_initial_time_step(
@@ -158,7 +150,8 @@ class RK_EMBEDDED:
             rel_tolerance,
         )
 
-        with self.progress_bar as progress_bar:
+        progress_bar = Progress_bar()
+        with progress_bar:
             self.sol_state, self.sol_time, self.sol_dt = self.simulation(
                 progress_bar,
                 objects_count,
