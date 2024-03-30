@@ -1,6 +1,8 @@
 import argparse
 import ctypes
 import csv
+import datetime
+import math
 from pathlib import Path
 import platform
 import re
@@ -9,13 +11,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from simulator import Simulator
+from progress_bar import Progress_bar
 
 
 class Plotter:
     SIDEREAL_DAYS_PER_YEAR = 365.256363004
 
     def __init__(self):
+        #--------------------Read command line arguments-----------------------
         self._read_command_line_arg()
+        
         # Use c library to perform simulation
         self.is_c_lib = self.args.numpy
         if self.is_c_lib:
@@ -38,6 +43,7 @@ class Plotter:
             raise argparse.ArgumentTypeError("Store every nth points should be larger than 1!")
         self.is_plot_dt = self.args.dt
 
+        #--------------------------Initialize attributes-------------------------------
         self.tolerance = None
         self.dt = None
         self.default_systems = [
@@ -99,19 +105,15 @@ class Plotter:
         try:
             # Restart once all the progress is finished
             while True:
-                # Main program
-
-                # Read user input
+                # --------------------Read user input-----------------------
                 while True:
-                    print("\nGravity simulator")
-                    print("Exit the program anytime by hitting Ctrl + C\n")
                     self._read_user_input()
                     self._print_user_input()
                     if self.ask_user_permission("Proceed?"):
                         print("")
                         break
 
-                # Launch simulation
+                # -------------------Launch simulation----------------------
                 self.simulator = Simulator(self)
                 self.simulator.initialize_system(self)
                 self.simulator.simulation()
@@ -122,9 +124,9 @@ class Plotter:
                     if self.ask_user_permission(
                         f"There are {len(self.simulator.sol_time)} lines of data. Do you want to trim the data?"
                     ):
-                        self.simulator.trim_data()
+                        self.trim_data()
 
-                # Plot the result
+                # --------------------Plot the result-----------------------
                 if self.ask_user_permission("Plot trajectory?"):
                     print("")
                     self._plot_trajectory()
@@ -144,13 +146,13 @@ class Plotter:
                 if self.is_plot_dt:
                     self._plot_dt()
 
-                # Store data
+                # -----------------------Store data-------------------------
                 print(f"Lines of data = {len(self.simulator.sol_time)}")
                 if self.ask_user_permission("Save simulation data?"):
                     print("")
-                    self.simulator.save_result(self.is_compute_energy)
+                    self.save_result(self.is_compute_energy)
 
-                # Ask permission to restart the whole program
+                # -------Ask permission to restart the whole program-------
                 if not self.ask_user_permission(
                     "All plotting is done. Restart simulation?"
                 ):
@@ -269,6 +271,8 @@ class Plotter:
                 for row in reader:
                     self.available_systems.append(row[0])
 
+            print("\nGravity simulator")
+            print("Exit the program anytime by hitting Ctrl + C\n")
             print("Available systems:")
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
@@ -546,6 +550,90 @@ class Plotter:
             help="Store every nth points",
         )
         self.args = parser.parse_args()
+
+    def trim_data(self):
+        while True:
+            try:
+                desired_trim_size = int(input("Enter desired number of lines: "))
+            except ValueError:
+                print("Invalid input! Please try again.")
+                continue 
+
+            if desired_trim_size >= len(self.simulator.sol_time):
+                print("Value too big! Please try again.")
+                continue
+            elif desired_trim_size < 10:
+                print("Value too small! Please try again.")
+                continue
+            else:
+                break
+
+        divide_factor = math.ceil(len(self.simulator.sol_time) / desired_trim_size)
+        trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
+
+        trimmed_sol_time = np.zeros(trim_size)
+        trimmed_sol_dt = np.zeros(trim_size)
+        trimmed_sol_state = np.zeros((trim_size, self.simulator.objects_count * 3 * 2))
+
+        j = 0
+        for i in range(len(self.simulator.sol_time)):
+            if i % divide_factor == 0:
+                trimmed_sol_time[j] = self.simulator.sol_time[i]
+                trimmed_sol_dt[j] = self.simulator.sol_dt[i]
+                trimmed_sol_state[j] = self.simulator.sol_state[i]
+                j += 1
+
+        if trimmed_sol_time[-1] != self.simulator.sol_time[-1]:
+            trimmed_sol_time[-1] = self.simulator.sol_time[-1]
+            trimmed_sol_dt[-1] = self.simulator.sol_dt[-1]
+            trimmed_sol_state[-1] = self.simulator.sol_state[-1]
+
+        print(f"Trimmed data size = {len(trimmed_sol_time)}")
+
+        self.simulator.sol_time = trimmed_sol_time
+        self.simulator.sol_dt = trimmed_sol_dt
+        self.simulator.sol_state = trimmed_sol_state
+
+    def save_result(self, is_compute_energy):
+        """
+        Save the result in a csv file
+        Unit: Solar masses, AU, day
+        Format: time(self.unit), dt(days), total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+        """
+        print("Storing simulation results...")
+        file_path = Path(__file__).parent / "results"
+        file_path.mkdir(parents=True, exist_ok=True)
+        if self.unit == "years":
+            self.tf /= self.SIDEREAL_DAYS_PER_YEAR
+        file_path = (
+            Path(__file__).parent
+            / "results"
+            / (
+                str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                + f"_{self.system}_"
+                + f"{self.tf:g}{self.unit[0]}_"
+                + f"{self.integrator}"
+                + ".csv"
+            )
+        )
+
+        progress_bar = Progress_bar()
+        with progress_bar:
+            with open(file_path, "w", newline="") as file:
+                writer = csv.writer(file)
+                for count in progress_bar.track(range(len(self.simulator.sol_time))):
+                    if is_compute_energy:
+                        row = np.insert(self.simulator.sol_state[count], 0, self.simulator.energy[count])
+                        row = np.insert(row, 0, self.simulator.sol_dt[count])
+                        row = np.insert(row, 0, self.simulator.sol_time[count])
+                    else:
+                        row = np.insert(self.simulator.sol_state[count], 0, 0)
+                        row = np.insert(row, 0, self.simulator.sol_dt[count])
+                        row = np.insert(row, 0, self.simulator.sol_time[count])
+                    writer.writerow(row.tolist())
+
+        print(f"Storing completed. Please check {file_path}")
+        print("")
 
     @staticmethod
     def ask_user_permission(msg):

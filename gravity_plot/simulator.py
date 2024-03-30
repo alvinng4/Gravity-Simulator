@@ -1,14 +1,13 @@
 import csv
 import ctypes
-import datetime
 import math
 from pathlib import Path
 import timeit
 import sys
 
 import numpy as np
-import rich.progress
 
+from progress_bar import Progress_bar
 from integrator_fixed_step_size import FIXED_STEP_SIZE_INTEGRATOR
 from integrator_rk_embedded import RK_EMBEDDED
 from integrator_ias15 import IAS15
@@ -171,7 +170,6 @@ class Simulator:
         self.tolerance = plotter.tolerance
         self.dt = plotter.dt
         self.G = self.CONSTANT_G
-        self.SIDEREAL_DAYS_PER_YEAR = plotter.SIDEREAL_DAYS_PER_YEAR
 
     def initialize_system(self, plotter):
         # Read information of the customized system
@@ -516,48 +514,6 @@ class Simulator:
         print(f"Run time: {stop - start:.3f} s")
         print("")
 
-    def trim_data(self):
-        while True:
-            try:
-                desired_trim_size = int(input("Enter desired number of lines: "))
-            except ValueError:
-                print("Invalid input! Please try again.")
-                continue 
-
-            if desired_trim_size >= len(self.sol_time):
-                print("Value too big! Please try again.")
-                continue
-            elif desired_trim_size < 10:
-                print("Value too small! Please try again.")
-                continue
-            else:
-                break
-
-        divide_factor = math.ceil(len(self.sol_time) / desired_trim_size)
-        trim_size = math.floor(len(self.sol_time) / divide_factor) + 1
-
-        trimmed_sol_time = np.zeros(trim_size)
-        trimmed_sol_dt = np.zeros(trim_size)
-        trimmed_sol_state = np.zeros((trim_size, self.objects_count * 3 * 2))
-
-        j = 0
-        for i in range(len(self.sol_time)):
-            if i % divide_factor == 0:
-                trimmed_sol_time[j] = self.sol_time[i]
-                trimmed_sol_dt[j] = self.sol_dt[i]
-                trimmed_sol_state[j] = self.sol_state[i]
-                j += 1
-
-        if trimmed_sol_time[-1] != self.sol_time[-1]:
-            trimmed_sol_time[-1] = self.sol_time[-1]
-            trimmed_sol_dt[-1] = self.sol_dt[-1]
-            trimmed_sol_state[-1] = self.sol_state[-1]
-
-        print(f"Trimmed data size = {len(trimmed_sol_time)}")
-
-        self.sol_time = trimmed_sol_time
-        self.sol_dt = trimmed_sol_dt
-        self.sol_state = trimmed_sol_state
 
     def compute_energy(self):
         """
@@ -567,14 +523,7 @@ class Simulator:
         npts = len(self.sol_state)
         self.energy = np.zeros(npts)
 
-        progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
+        progress_bar = Progress_bar()
 
         start = timeit.default_timer()
         if self.is_c_lib == True:
@@ -626,50 +575,3 @@ class Simulator:
         print(f"Run time: {(stop - start):.3f} s")
         print("")
 
-    def save_result(self, is_compute_energy):
-        """
-        Save the result in a csv file
-        Unit: Solar masses, AU, day
-        Format: time(self.unit), dt(days), total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
-        """
-        print("Storing simulation results...")
-        file_path = Path(__file__).parent / "results"
-        file_path.mkdir(parents=True, exist_ok=True)
-        if self.unit == "years":
-            self.tf /= self.SIDEREAL_DAYS_PER_YEAR
-        file_path = (
-            Path(__file__).parent
-            / "results"
-            / (
-                str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-                + f"_{self.system}_"
-                + f"{self.tf:g}{self.unit[0]}_"
-                + f"{self.integrator}"
-                + ".csv"
-            )
-        )
-
-        progress_bar = rich.progress.Progress(
-            rich.progress.BarColumn(),
-            rich.progress.TextColumn("[green]{task.percentage:>3.0f}%"),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeElapsedColumn(),
-            rich.progress.TextColumn("•"),
-            rich.progress.TimeRemainingColumn(),
-        )
-        with progress_bar:
-            with open(file_path, "w", newline="") as file:
-                writer = csv.writer(file)
-                for count in progress_bar.track(range(len(self.sol_time))):
-                    if is_compute_energy:
-                        row = np.insert(self.sol_state[count], 0, self.energy[count])
-                        row = np.insert(row, 0, self.sol_dt[count])
-                        row = np.insert(row, 0, self.sol_time[count])
-                    else:
-                        row = np.insert(self.sol_state[count], 0, 0)
-                        row = np.insert(row, 0, self.sol_dt[count])
-                        row = np.insert(row, 0, self.sol_time[count])
-                    writer.writerow(row.tolist())
-
-        print(f"Storing completed. Please check {file_path}")
-        print("")
