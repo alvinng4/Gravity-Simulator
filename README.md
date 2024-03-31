@@ -63,7 +63,7 @@ Plotting module: run the following command in terminal
 python gravity_plot
 ```
 ## Quick fix
-If the program keeps crashing, running with numpy may fix the problem. However, the program could runs ~50 to 100 times slower. To run with numpy, run the following command in terminal
+If the program keeps crashing, running with numpy may fix the problem. However, the program could run about 400 times slower. To run with numpy, run the following command in terminal
 ```
 python gravity_sim [-n|--numpy]
 ```
@@ -115,7 +115,7 @@ python3 gravity_sim [-r|--resolution] <width> <height>
 
 ### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
-Numpy is slower and produces slightly more error.
+Numpy is about 400 times slower and produces slightly more error.
 Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
@@ -187,7 +187,7 @@ The program would also ask if you want to trim the solutions after the simulatio
 
 ### C library / Numpy (Optional)
 By default, the module utilize the code written in C to improve performance.
-Numpy is slower and produces slightly more error.
+Numpy is about 400 times slower and produces slightly more error.
 Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
 If you want to use numpy, run the program with
 ```
