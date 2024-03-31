@@ -146,9 +146,9 @@ int ias15(
 void ias15_step(
     int objects_count,
     int dim_nodes,
-    real (*restrict x)[3],
-    real (*restrict v)[3],
-    real (*restrict a)[3],
+    real (*restrict x0)[3],
+    real (*restrict v0)[3],
+    real (*restrict a0)[3],
     const real *restrict m,
     real G,
     real *restrict t,
@@ -165,7 +165,15 @@ void ias15_step(
     real tolerance_pc,
     real exponent,
     real safety_fac,
-    int *restrict ias15_refine_flag
+    int *restrict ias15_refine_flag,
+    real *restrict aux_a,
+    real (*restrict temp_a)[3],
+    real (*restrict x)[3],
+    real (*restrict v)[3],
+    real (*restrict a)[3],
+    real *restrict delta_b7,
+    real *restrict F1,
+    real *restrict F2
 );
 void ias15_approx_pos(
     int objects_count,
@@ -198,7 +206,9 @@ void ias15_compute_aux_g(
     real *restrict aux_g,
     const real *restrict aux_r,
     const real *restrict aux_a,
-    int i
+    int i,
+    real *restrict F1,
+    real *restrict F2
 );
 void ias15_refine_aux_b(
     int objects_count,
@@ -333,16 +343,16 @@ WIN32DLL_API void acceleration(int objects_count, const real (*restrict x)[3], r
             R[0] = x[i][0] - x[j][0];
             R[1] = x[i][1] - x[j][1];
             R[2] = x[i][2] - x[j][2];
-            R_norm = vec_norm(R, 3);
+            R_norm = sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]);
 
             // Calculate the acceleration
             temp_value = G / (R_norm * R_norm * R_norm);
             temp_vec[0] = temp_value * R[0];
             temp_vec[1] = temp_value * R[1];
             temp_vec[2] = temp_value * R[2];
-            a[i][0] += - temp_vec[0] * m[j];
-            a[i][1] += - temp_vec[1] * m[j];
-            a[i][2] += - temp_vec[2] * m[j];
+            a[i][0] -= temp_vec[0] * m[j];
+            a[i][1] -= temp_vec[1] * m[j];
+            a[i][2] -= temp_vec[2] * m[j];
             a[j][0] += temp_vec[0] * m[i];
             a[j][1] += temp_vec[1] * m[i];
             a[j][2] += temp_vec[2] * m[i];
@@ -1049,6 +1059,15 @@ WIN32DLL_API int ias15(
     // Current progress percentage rounded to int
     int progress_percentage = (int) round(*t / tf * 100);
 
+    real *aux_a = malloc(dim_nodes * objects_count * 3 * sizeof(real));
+    real (*temp_a)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*x_step)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*v_step)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*a_step)[3] = malloc(objects_count * 3 * sizeof(real));
+    real *delta_b7 = malloc(objects_count * 3 * sizeof(real));
+    real *F1 = malloc(objects_count * 3 * sizeof(real));
+    real *F2 = malloc(objects_count * 3 * sizeof(real));
+
     while (1)
     {
         ias15_step(
@@ -1073,7 +1092,15 @@ WIN32DLL_API int ias15(
             tolerance_pc,
             exponent,
             safety_fac,
-            ias15_refine_flag
+            ias15_refine_flag,
+            aux_a,
+            temp_a,
+            x_step,
+            v_step,
+            a_step,
+            delta_b7,
+            F1,
+            F2
         );
 
         // Update count
@@ -1113,19 +1140,43 @@ WIN32DLL_API int ias15(
 
         // Check buffer size and quit if full
         if ((*store_count + 1) == len_sol_time)
-        {
+        {   
+            free(aux_a);
+            free(temp_a);
+            free(x_step);
+            free(v_step);
+            free(a_step);
+            free(delta_b7); 
+            free(F1);
+            free(F2);
             return 1;
         } 
 
         // End simulation as t = tf
         if (*t >= tf)
         {
+            free(aux_a);
+            free(temp_a);
+            free(x_step);
+            free(v_step);
+            free(a_step);
+            free(delta_b7); 
+            free(F1);
+            free(F2);
             return 2;
         }
 
         // Exit to update progress bar
         if ((int) (*t / tf * 100.0) > progress_percentage)
         {
+            free(aux_a);
+            free(temp_a);
+            free(x_step);
+            free(v_step);
+            free(a_step);
+            free(delta_b7); 
+            free(F1);
+            free(F2);
             return 0;
         }
     }
@@ -1154,15 +1205,17 @@ WIN32DLL_API void ias15_step(
     real tolerance_pc,
     real exponent,
     real safety_fac,
-    int *restrict ias15_refine_flag
+    int *restrict ias15_refine_flag,
+    real *restrict aux_a,
+    real (*restrict temp_a)[3],
+    real (*restrict x)[3],
+    real (*restrict v)[3],
+    real (*restrict a)[3],
+    real *restrict delta_b7,
+    real *restrict F1,
+    real *restrict F2
 )
 {
-    real *aux_a = malloc(dim_nodes * objects_count * 3 * sizeof(real));
-    real (*temp_a)[3] = malloc(objects_count * 3 * sizeof(real));
-    real (*x)[3] = malloc(objects_count * 3 * sizeof(real));
-    real (*v)[3] = malloc(objects_count * 3 * sizeof(real));
-    real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
-    real *delta_b7 = malloc(objects_count * 3 * sizeof(real));
     real error, error_b7, dt_new;
     // Main Loop
     int ias15_integrate_flag = 0; 
@@ -1185,7 +1238,7 @@ WIN32DLL_API void ias15_step(
                 acceleration(objects_count, x, temp_a, m, G);
                 memcpy(&aux_a[i * objects_count * 3], temp_a, objects_count * 3 * sizeof(real));
                 
-                ias15_compute_aux_g(objects_count, dim_nodes, aux_g, aux_r, aux_a, i);
+                ias15_compute_aux_g(objects_count, dim_nodes, aux_g, aux_r, aux_a, i, F1, F2);
                 ias15_compute_aux_b(objects_count, dim_nodes, aux_b, aux_g, aux_c, i);
             }
 
@@ -1240,13 +1293,7 @@ WIN32DLL_API void ias15_step(
             {
                 memcpy(x0, x, objects_count * 3 * sizeof(real));
                 memcpy(v0, v, objects_count * 3 * sizeof(real));
-                memcpy(a0, a, objects_count * 3 * sizeof(real));
-                free(aux_a);
-                free(temp_a);
-                free(x);
-                free(v);
-                free(a);
-                free(delta_b7);      
+                memcpy(a0, a, objects_count * 3 * sizeof(real));     
                 break;  
             }
         }
@@ -1281,13 +1328,7 @@ WIN32DLL_API void ias15_step(
         {   
             memcpy(x0, x, objects_count * 3 * sizeof(real));
             memcpy(v0, v, objects_count * 3 * sizeof(real));
-            memcpy(a0, a, objects_count * 3 * sizeof(real));
-            free(aux_a);
-            free(temp_a);
-            free(x);
-            free(v);
-            free(a);
-            free(delta_b7);       
+            memcpy(a0, a, objects_count * 3 * sizeof(real));    
             break;    
         }
     }
@@ -1505,28 +1546,57 @@ WIN32DLL_API void ias15_compute_aux_g(
     real *restrict aux_g,
     const real *restrict aux_r,
     const real *restrict aux_a,
-    int i
+    int i,
+    real *restrict F1,
+    real *restrict F2
 )
 {
     // Retrieve required accelerations
-    real *F1 = malloc(objects_count * 3 * sizeof(real));
-    real *F2 = malloc(objects_count * 3 * sizeof(real));
-    real *F3 = malloc(objects_count * 3 * sizeof(real));
-    real *F4 = malloc(objects_count * 3 * sizeof(real));
-    real *F5 = malloc(objects_count * 3 * sizeof(real));
-    real *F6 = malloc(objects_count * 3 * sizeof(real));
-    real *F7 = malloc(objects_count * 3 * sizeof(real));
-    real *F8 = malloc(objects_count * 3 * sizeof(real));
-
+    // F1 and F2 is allocated in IAS15
     memcpy(F1, &aux_a[0 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F2, &aux_a[1 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F3, &aux_a[2 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F4, &aux_a[3 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F5, &aux_a[4 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F6, &aux_a[5 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F7, &aux_a[6 * objects_count * 3], objects_count * 3 * sizeof(real));
-    memcpy(F8, &aux_a[7 * objects_count * 3], objects_count * 3 * sizeof(real)); 
 
+    real *F3 = NULL;
+    real *F4 = NULL;
+    real *F5 = NULL;
+    real *F6 = NULL;
+    real *F7 = NULL;
+    real *F8 = NULL;
+
+    if (i >= 1)
+    {
+        memcpy(F2, &aux_a[1 * objects_count * 3], objects_count * 3 * sizeof(real));
+    }
+    if (i >= 2)
+    {
+        F3 = malloc(objects_count * 3 * sizeof(real));
+        memcpy(F3, &aux_a[2 * objects_count * 3], objects_count * 3 * sizeof(real));
+    }
+    if (i >= 3)
+    {
+        F4 = malloc(objects_count * 3 * sizeof(real));
+        memcpy(F4, &aux_a[3 * objects_count * 3], objects_count * 3 * sizeof(real));
+    }
+    if (i >= 4)
+    {
+        F5 = malloc(objects_count * 3 * sizeof(real));
+        memcpy(F5, &aux_a[4 * objects_count * 3], objects_count * 3 * sizeof(real));
+    }
+    if (i >= 5)
+    {
+        F6 = malloc(objects_count * 3 * sizeof(real));
+        memcpy(F6, &aux_a[5 * objects_count * 3], objects_count * 3 * sizeof(real));
+    }
+    if (i >= 6)
+    {
+        F7 = malloc(objects_count * 3 * sizeof(real));
+        memcpy(F7, &aux_a[6 * objects_count * 3], objects_count * 3 * sizeof(real));
+    }
+    if (i >= 7)
+    {
+        F8 = malloc(objects_count * 3 * sizeof(real));
+        memcpy(F8, &aux_a[7 * objects_count * 3], objects_count * 3 * sizeof(real)); 
+    }
+    
     // Update aux_g
     for (int j = 0; j < objects_count; j++)
     {
@@ -1652,8 +1722,7 @@ WIN32DLL_API void ias15_compute_aux_g(
             }
         }
     }
-    free(F1);
-    free(F2);
+
     free(F3);
     free(F4);
     free(F5);
