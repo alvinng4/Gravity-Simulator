@@ -146,6 +146,8 @@ int ias15(
 void ias15_step(
     int objects_count,
     int dim_nodes,
+    int dim_nodes_minus_1,
+    int dim_nodes_minus_2,
     real (*restrict x0)[3],
     real (*restrict v0)[3],
     real (*restrict a0)[3],
@@ -172,8 +174,8 @@ void ias15_step(
     real (*restrict v)[3],
     real (*restrict a)[3],
     real *restrict delta_b7,
-    real *restrict F1,
-    real *restrict F2
+    real *restrict F,
+    real *restrict delta_aux_b
 );
 void ias15_approx_pos(
     int objects_count,
@@ -194,7 +196,7 @@ void ias15_approx_vel(
 );
 void ias15_compute_aux_b(
     int objects_count,
-    int dim_nodes,
+    int dim_nodes_minus_1,
     real *restrict aux_b,
     const real *restrict aux_g,
     const real *restrict aux_c,
@@ -207,14 +209,14 @@ void ias15_compute_aux_g(
     const real *restrict aux_r,
     const real *restrict aux_a,
     int i,
-    real *restrict F1,
-    real *restrict F2
+    real *restrict F
 );
 void ias15_refine_aux_b(
     int objects_count,
-    int dim_nodes,
+    int dim_nodes_minus_1,
     real *restrict aux_b,
     real *restrict aux_e,
+    real *restrict delta_aux_b,
     real dt,
     real dt_new,
     int ias15_refine_flag
@@ -238,10 +240,9 @@ WIN32DLL_API real abs_max_vec_array(const real (*restrict arr)[3], int objects_c
     real max = 0;
     for (int i = 0; i < objects_count; i++)
     {
-        for (int j = 0; j < 3; j++)
-        {
-            max = fmax(max, fabs(arr[i][j]));
-        }
+        max = fmax(max, fabs(arr[i][0]));
+        max = fmax(max, fabs(arr[i][1]));
+        max = fmax(max, fabs(arr[i][2]));
     }
 
     return max;
@@ -1059,20 +1060,30 @@ WIN32DLL_API int ias15(
     // Current progress percentage rounded to int
     int progress_percentage = (int) round(*t / tf * 100);
 
+    int dim_nodes_minus_1 = dim_nodes - 1;
+    int dim_nodes_minus_2 = dim_nodes - 2;
+
+    // Arrays for ias15_step
     real *aux_a = malloc(dim_nodes * objects_count * 3 * sizeof(real));
     real (*temp_a)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*x_step)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*v_step)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*a_step)[3] = malloc(objects_count * 3 * sizeof(real));
     real *delta_b7 = malloc(objects_count * 3 * sizeof(real));
-    real *F1 = malloc(objects_count * 3 * sizeof(real));
-    real *F2 = malloc(objects_count * 3 * sizeof(real));
+
+    // Array for compute aux_g
+    real *F = malloc(8 * objects_count * 3 * sizeof(real));
+
+    // Array for refine aux_b
+    real *delta_aux_b = malloc(dim_nodes_minus_1 * objects_count * 3 * sizeof(real));
 
     while (1)
     {
         ias15_step(
             objects_count,
             dim_nodes,
+            dim_nodes_minus_1,
+            dim_nodes_minus_2,
             x,
             v,
             a,
@@ -1099,8 +1110,8 @@ WIN32DLL_API int ias15(
             v_step,
             a_step,
             delta_b7,
-            F1,
-            F2
+            F,
+            delta_aux_b
         );
 
         // Update count
@@ -1147,8 +1158,8 @@ WIN32DLL_API int ias15(
             free(v_step);
             free(a_step);
             free(delta_b7); 
-            free(F1);
-            free(F2);
+            free(F);
+            free(delta_aux_b);
             return 1;
         } 
 
@@ -1161,8 +1172,8 @@ WIN32DLL_API int ias15(
             free(v_step);
             free(a_step);
             free(delta_b7); 
-            free(F1);
-            free(F2);
+            free(F);
+            free(delta_aux_b);
             return 2;
         }
 
@@ -1175,8 +1186,8 @@ WIN32DLL_API int ias15(
             free(v_step);
             free(a_step);
             free(delta_b7); 
-            free(F1);
-            free(F2);
+            free(F);
+            free(delta_aux_b);
             return 0;
         }
     }
@@ -1186,6 +1197,8 @@ WIN32DLL_API int ias15(
 WIN32DLL_API void ias15_step(
     int objects_count,
     int dim_nodes,
+    int dim_nodes_minus_1,
+    int dim_nodes_minus_2,
     real (*restrict x0)[3],
     real (*restrict v0)[3],
     real (*restrict a0)[3],
@@ -1212,8 +1225,8 @@ WIN32DLL_API void ias15_step(
     real (*restrict v)[3],
     real (*restrict a)[3],
     real *restrict delta_b7,
-    real *restrict F1,
-    real *restrict F2
+    real *restrict F,
+    real *restrict delta_aux_b
 )
 {
     real error, error_b7, dt_new;
@@ -1238,20 +1251,19 @@ WIN32DLL_API void ias15_step(
                 acceleration(objects_count, x, temp_a, m, G);
                 memcpy(&aux_a[i * objects_count * 3], temp_a, objects_count * 3 * sizeof(real));
                 
-                ias15_compute_aux_g(objects_count, dim_nodes, aux_g, aux_r, aux_a, i, F1, F2);
-                ias15_compute_aux_b(objects_count, dim_nodes, aux_b, aux_g, aux_c, i);
+                ias15_compute_aux_g(objects_count, dim_nodes, aux_g, aux_r, aux_a, i, F);
+                ias15_compute_aux_b(objects_count, dim_nodes_minus_1, aux_b, aux_g, aux_c, i);
             }
 
             // Estimate convergence
             for (int i = 0; i < objects_count; i++)
             {
-                for (int j = 0; j < 3; j++)
-                {
-                    delta_b7[i * 3 + j] = aux_b[(dim_nodes - 2) * objects_count * 3 + i * 3 + j] - aux_b0[(dim_nodes - 2) * objects_count * 3 + i * 3 + j];
-                }
+                delta_b7[i * 3 + 0] = aux_b[dim_nodes_minus_2 * objects_count * 3 + i * 3 + 0] - aux_b0[dim_nodes_minus_2 * objects_count * 3 + i * 3 + 0];
+                delta_b7[i * 3 + 1] = aux_b[dim_nodes_minus_2 * objects_count * 3 + i * 3 + 1] - aux_b0[dim_nodes_minus_2 * objects_count * 3 + i * 3 + 1];
+                delta_b7[i * 3 + 2] = aux_b[dim_nodes_minus_2 * objects_count * 3 + i * 3 + 2] - aux_b0[dim_nodes_minus_2 * objects_count * 3 + i * 3 + 2];
             }
-            memcpy(aux_b0, aux_b, (dim_nodes - 1) * objects_count * 3 * sizeof(real));
-            if ((abs_max_vec(delta_b7, objects_count * 3) / abs_max_vec(&aux_a[(dim_nodes - 1) * objects_count * 3], objects_count * 3)) < tolerance_pc)
+            memcpy(aux_b0, aux_b, dim_nodes_minus_1 * objects_count * 3 * sizeof(real));
+            if ((abs_max_vec(delta_b7, objects_count * 3) / abs_max_vec(&aux_a[dim_nodes_minus_1 * objects_count * 3], objects_count * 3)) < tolerance_pc)
             {
                 break;
             }
@@ -1266,7 +1278,7 @@ WIN32DLL_API void ias15_step(
         acceleration(objects_count, x, a, m, G);
 
         // Estimate relative error
-        error_b7 = abs_max_vec(&aux_b[(dim_nodes - 2) * objects_count * 3], objects_count * 3) / abs_max_vec_array(a, objects_count);
+        error_b7 = abs_max_vec(&aux_b[dim_nodes_minus_2 * objects_count * 3], objects_count * 3) / abs_max_vec_array(a, objects_count);
         error = pow((error_b7 / tolerance), exponent);
         
         // Step-size for the next step
@@ -1286,7 +1298,7 @@ WIN32DLL_API void ias15_step(
             ias15_integrate_flag = 1;
             *t += *dt;
 
-            ias15_refine_aux_b(objects_count, dim_nodes, aux_b, aux_e, *dt, dt_new, *ias15_refine_flag);
+            ias15_refine_aux_b(objects_count, dim_nodes_minus_1, aux_b, aux_e, delta_aux_b, *dt, dt_new, *ias15_refine_flag);
             *ias15_refine_flag = 1;
 
             if (*t >= tf)
@@ -1432,7 +1444,7 @@ WIN32DLL_API void ias15_approx_vel(
 // Calculate the auxiliary coefficients b for IAS15
 WIN32DLL_API void ias15_compute_aux_b(
     int objects_count,
-    int dim_nodes,
+    int dim_nodes_minus_1,
     real *restrict aux_b,
     const real *restrict aux_g,
     const real *restrict aux_c,
@@ -1445,13 +1457,13 @@ WIN32DLL_API void ias15_compute_aux_b(
         {
             if (i >= 1) {
                 aux_b[0 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[0 * (dim_nodes - 1) + 0] * aux_g[0 * objects_count * 3 + j * 3 + k]
-                    + aux_c[1 * (dim_nodes - 1) + 0] * aux_g[1 * objects_count * 3 + j * 3 + k]
-                    + aux_c[2 * (dim_nodes - 1) + 0] * aux_g[2 * objects_count * 3 + j * 3 + k]
-                    + aux_c[3 * (dim_nodes - 1) + 0] * aux_g[3 * objects_count * 3 + j * 3 + k]
-                    + aux_c[4 * (dim_nodes - 1) + 0] * aux_g[4 * objects_count * 3 + j * 3 + k]
-                    + aux_c[5 * (dim_nodes - 1) + 0] * aux_g[5 * objects_count * 3 + j * 3 + k]
-                    + aux_c[6 * (dim_nodes - 1) + 0] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[0 * dim_nodes_minus_1 + 0] * aux_g[0 * objects_count * 3 + j * 3 + k]
+                    + aux_c[1 * dim_nodes_minus_1 + 0] * aux_g[1 * objects_count * 3 + j * 3 + k]
+                    + aux_c[2 * dim_nodes_minus_1 + 0] * aux_g[2 * objects_count * 3 + j * 3 + k]
+                    + aux_c[3 * dim_nodes_minus_1 + 0] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * dim_nodes_minus_1 + 0] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * dim_nodes_minus_1 + 0] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * dim_nodes_minus_1 + 0] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1461,12 +1473,12 @@ WIN32DLL_API void ias15_compute_aux_b(
 
             if (i >= 2) {
                 aux_b[1 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[1 * (dim_nodes - 1) + 1] * aux_g[1 * objects_count * 3 + j * 3 + k]
-                    + aux_c[2 * (dim_nodes - 1) + 1] * aux_g[2 * objects_count * 3 + j * 3 + k]
-                    + aux_c[3 * (dim_nodes - 1) + 1] * aux_g[3 * objects_count * 3 + j * 3 + k]
-                    + aux_c[4 * (dim_nodes - 1) + 1] * aux_g[4 * objects_count * 3 + j * 3 + k]
-                    + aux_c[5 * (dim_nodes - 1) + 1] * aux_g[5 * objects_count * 3 + j * 3 + k]
-                    + aux_c[6 * (dim_nodes - 1) + 1] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[1 * dim_nodes_minus_1 + 1] * aux_g[1 * objects_count * 3 + j * 3 + k]
+                    + aux_c[2 * dim_nodes_minus_1 + 1] * aux_g[2 * objects_count * 3 + j * 3 + k]
+                    + aux_c[3 * dim_nodes_minus_1 + 1] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * dim_nodes_minus_1 + 1] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * dim_nodes_minus_1 + 1] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * dim_nodes_minus_1 + 1] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1476,11 +1488,11 @@ WIN32DLL_API void ias15_compute_aux_b(
 
             if (i >= 3) {
                 aux_b[2 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[2 * (dim_nodes - 1) + 2] * aux_g[2 * objects_count * 3 + j * 3 + k]
-                    + aux_c[3 * (dim_nodes - 1) + 2] * aux_g[3 * objects_count * 3 + j * 3 + k]
-                    + aux_c[4 * (dim_nodes - 1) + 2] * aux_g[4 * objects_count * 3 + j * 3 + k]
-                    + aux_c[5 * (dim_nodes - 1) + 2] * aux_g[5 * objects_count * 3 + j * 3 + k]
-                    + aux_c[6 * (dim_nodes - 1) + 2] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[2 * dim_nodes_minus_1 + 2] * aux_g[2 * objects_count * 3 + j * 3 + k]
+                    + aux_c[3 * dim_nodes_minus_1 + 2] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * dim_nodes_minus_1 + 2] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * dim_nodes_minus_1 + 2] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * dim_nodes_minus_1 + 2] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1490,10 +1502,10 @@ WIN32DLL_API void ias15_compute_aux_b(
 
             if (i >= 4) {
                 aux_b[3 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[3 * (dim_nodes - 1) + 3] * aux_g[3 * objects_count * 3 + j * 3 + k]
-                    + aux_c[4 * (dim_nodes - 1) + 3] * aux_g[4 * objects_count * 3 + j * 3 + k]
-                    + aux_c[5 * (dim_nodes - 1) + 3] * aux_g[5 * objects_count * 3 + j * 3 + k]
-                    + aux_c[6 * (dim_nodes - 1) + 3] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[3 * dim_nodes_minus_1 + 3] * aux_g[3 * objects_count * 3 + j * 3 + k]
+                    + aux_c[4 * dim_nodes_minus_1 + 3] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * dim_nodes_minus_1 + 3] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * dim_nodes_minus_1 + 3] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1504,9 +1516,9 @@ WIN32DLL_API void ias15_compute_aux_b(
             if (i >= 5)
             {
                 aux_b[4 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[4 * (dim_nodes - 1) + 4] * aux_g[4 * objects_count * 3 + j * 3 + k]
-                    + aux_c[5 * (dim_nodes - 1) + 4] * aux_g[5 * objects_count * 3 + j * 3 + k]
-                    + aux_c[6 * (dim_nodes - 1) + 4] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[4 * dim_nodes_minus_1 + 4] * aux_g[4 * objects_count * 3 + j * 3 + k]
+                    + aux_c[5 * dim_nodes_minus_1 + 4] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * dim_nodes_minus_1 + 4] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1517,8 +1529,8 @@ WIN32DLL_API void ias15_compute_aux_b(
             if (i >= 6)
             {
                 aux_b[5 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[5 * (dim_nodes - 1) + 5] * aux_g[5 * objects_count * 3 + j * 3 + k]
-                    + aux_c[6 * (dim_nodes - 1) + 5] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[5 * dim_nodes_minus_1 + 5] * aux_g[5 * objects_count * 3 + j * 3 + k]
+                    + aux_c[6 * dim_nodes_minus_1 + 5] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1529,7 +1541,7 @@ WIN32DLL_API void ias15_compute_aux_b(
             if (i >= 7)
             {
                 aux_b[6 * objects_count * 3 + j * 3 + k] = (
-                    aux_c[6 * (dim_nodes - 1) + 6] * aux_g[6 * objects_count * 3 + j * 3 + k]
+                    aux_c[6 * dim_nodes_minus_1 + 6] * aux_g[6 * objects_count * 3 + j * 3 + k]
                 );
             }
             else
@@ -1547,54 +1559,14 @@ WIN32DLL_API void ias15_compute_aux_g(
     const real *restrict aux_r,
     const real *restrict aux_a,
     int i,
-    real *restrict F1,
-    real *restrict F2
+    real *restrict F
 )
 {
     // Retrieve required accelerations
-    // F1 and F2 is allocated in IAS15
-    memcpy(F1, &aux_a[0 * objects_count * 3], objects_count * 3 * sizeof(real));
-
-    real *F3 = NULL;
-    real *F4 = NULL;
-    real *F5 = NULL;
-    real *F6 = NULL;
-    real *F7 = NULL;
-    real *F8 = NULL;
-
-    if (i >= 1)
+    // F is allocated in IAS15
+    for (int j = 0; j <= i; j++)
     {
-        memcpy(F2, &aux_a[1 * objects_count * 3], objects_count * 3 * sizeof(real));
-    }
-    if (i >= 2)
-    {
-        F3 = malloc(objects_count * 3 * sizeof(real));
-        memcpy(F3, &aux_a[2 * objects_count * 3], objects_count * 3 * sizeof(real));
-    }
-    if (i >= 3)
-    {
-        F4 = malloc(objects_count * 3 * sizeof(real));
-        memcpy(F4, &aux_a[3 * objects_count * 3], objects_count * 3 * sizeof(real));
-    }
-    if (i >= 4)
-    {
-        F5 = malloc(objects_count * 3 * sizeof(real));
-        memcpy(F5, &aux_a[4 * objects_count * 3], objects_count * 3 * sizeof(real));
-    }
-    if (i >= 5)
-    {
-        F6 = malloc(objects_count * 3 * sizeof(real));
-        memcpy(F6, &aux_a[5 * objects_count * 3], objects_count * 3 * sizeof(real));
-    }
-    if (i >= 6)
-    {
-        F7 = malloc(objects_count * 3 * sizeof(real));
-        memcpy(F7, &aux_a[6 * objects_count * 3], objects_count * 3 * sizeof(real));
-    }
-    if (i >= 7)
-    {
-        F8 = malloc(objects_count * 3 * sizeof(real));
-        memcpy(F8, &aux_a[7 * objects_count * 3], objects_count * 3 * sizeof(real)); 
+        memcpy(&F[j * objects_count * 3], &aux_a[j * objects_count * 3], objects_count * 3 * sizeof(real));
     }
     
     // Update aux_g
@@ -1605,7 +1577,7 @@ WIN32DLL_API void ias15_compute_aux_g(
             if (i >= 1)
             {
                 aux_g[0 * objects_count * 3 + j * 3 + k] = (
-                    (F2[j * 3 + k] - F1[j * 3 + k]) * aux_r[1 * dim_nodes + 0]
+                    (F[1 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[1 * dim_nodes + 0]
                 );
             }
             else
@@ -1616,7 +1588,7 @@ WIN32DLL_API void ias15_compute_aux_g(
             if (i >= 2)
             {
                 aux_g[1 * objects_count * 3 + j * 3 + k] = (
-                    ((F3[j * 3 + k] - F1[j * 3 + k]) * aux_r[2 * dim_nodes + 0] 
+                    ((F[2 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[2 * dim_nodes + 0] 
                     - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[2 * dim_nodes + 1]
                 );
             }
@@ -1628,7 +1600,7 @@ WIN32DLL_API void ias15_compute_aux_g(
             if (i >= 3)
             {
                 aux_g[2 * objects_count * 3 + j * 3 + k] = (
-                    ((F4[j * 3 + k] - F1[j * 3 + k]) * aux_r[3 * dim_nodes + 0] 
+                    ((F[3 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[3 * dim_nodes + 0] 
                     - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[3 * dim_nodes + 1] 
                     - aux_g[1 * objects_count * 3 + j * 3 + k]
                 ) * aux_r[3 * dim_nodes + 2];
@@ -1641,7 +1613,7 @@ WIN32DLL_API void ias15_compute_aux_g(
             if (i >= 4)
             {
                 aux_g[3 * objects_count * 3 + j * 3 + k] = (
-                    (((F5[j * 3 + k] - F1[j * 3 + k]) * aux_r[4 * dim_nodes + 0] 
+                    (((F[4 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[4 * dim_nodes + 0] 
                     - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[4 * dim_nodes + 1] - aux_g[1 * objects_count * 3 + j * 3 + k])
                     * aux_r[4 * dim_nodes + 2]
                     - aux_g[2 * objects_count * 3 + j * 3 + k]
@@ -1656,7 +1628,7 @@ WIN32DLL_API void ias15_compute_aux_g(
             {
                 aux_g[4 * objects_count * 3 + j * 3 + k] = (
                     (
-                        (((F6[j * 3 + k] - F1[j * 3 + k]) * aux_r[5 * dim_nodes + 0] 
+                        (((F[5 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[5 * dim_nodes + 0] 
                         - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[5 * dim_nodes + 1] 
                         - aux_g[1 * objects_count * 3 + j * 3 + k])
                         * aux_r[5 * dim_nodes + 2]
@@ -1676,7 +1648,7 @@ WIN32DLL_API void ias15_compute_aux_g(
                 aux_g[5 * objects_count * 3 + j * 3 + k] = (
                     (
                         (
-                            (((F7[j * 3 + k] - F1[j * 3 + k]) * aux_r[6 * dim_nodes + 0] 
+                            (((F[6 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[6 * dim_nodes + 0] 
                             - aux_g[0 * objects_count * 3 + j * 3 + k]) * aux_r[6 * dim_nodes + 1] 
                             - aux_g[1 * objects_count * 3 + j * 3 + k])
                             * aux_r[6 * dim_nodes + 2]
@@ -1700,7 +1672,7 @@ WIN32DLL_API void ias15_compute_aux_g(
                     (
                         (
                             (
-                                (((F8[j * 3 + k] - F1[j * 3 + k]) * aux_r[7 * dim_nodes + 0] - aux_g[0 * objects_count * 3 + j * 3 + k]) 
+                                (((F[7 * objects_count * 3 + j * 3 + k] - F[0 * objects_count * 3 + j * 3 + k]) * aux_r[7 * dim_nodes + 0] - aux_g[0 * objects_count * 3 + j * 3 + k]) 
                                 * aux_r[7 * dim_nodes + 1] 
                                 - aux_g[1 * objects_count * 3 + j * 3 + k])
                                 * aux_r[7 * dim_nodes + 2]
@@ -1722,29 +1694,22 @@ WIN32DLL_API void ias15_compute_aux_g(
             }
         }
     }
-
-    free(F3);
-    free(F4);
-    free(F5);
-    free(F6);
-    free(F7);
-    free(F8);
 }
 
 WIN32DLL_API void ias15_refine_aux_b(
     int objects_count,
-    int dim_nodes,
+    int dim_nodes_minus_1,
     real *restrict aux_b,
     real *restrict aux_e,
+    real *restrict delta_aux_b,
     real dt,
     real dt_new,
     int ias15_refine_flag
 )
 {
-    real *delta_aux_b = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
     if (ias15_refine_flag != 0)
     {
-        for (int i = 0; i < (dim_nodes - 1); i++)
+        for (int i = 0; i < dim_nodes_minus_1; i++)
         {
             for (int j = 0; j < objects_count; j++)
             {
@@ -1759,6 +1724,10 @@ WIN32DLL_API void ias15_refine_aux_b(
                 );
             }
         }
+    }
+    else
+    {
+        memset(delta_aux_b, 0, dim_nodes_minus_1 * objects_count * 3 * sizeof(real));
     }
 
     real q = dt_new / dt;
@@ -1817,7 +1786,7 @@ WIN32DLL_API void ias15_refine_aux_b(
         }
     }
 
-    for (int i = 0; i < (dim_nodes - 1); i++)
+    for (int i = 0; i < dim_nodes_minus_1; i++)
     {
         for (int j = 0; j < objects_count; j++)
         {
@@ -1832,6 +1801,4 @@ WIN32DLL_API void ias15_refine_aux_b(
             );
         }
     }
-
-    free(delta_aux_b);
 }
