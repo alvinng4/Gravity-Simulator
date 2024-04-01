@@ -163,21 +163,17 @@ class Plotter:
             print("\nKeyboard Interrupt detected (Cltr + C). Exiting the program...")
 
     def _plot_trajectory(self):
-        """
-        Plot the trajectory
-        """
-        print("Plotting trajectory...(Please check the window)\n")
+        print("Plotting trajectory...(Please check the window)")
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(111, aspect="equal")
+        # Get specific colors if the system is solar-like
         if self.system in self.solar_like_systems:
-            # Plot trajectory and initial positions with the same color:
             for i in range(self.simulator.objects_count):
                 traj = ax1.plot(
                     self.simulator.sol_state[:, i * 3],
                     self.simulator.sol_state[:, 1 + i * 3],
                     color=self.solar_like_systems_colors[self.simulator.objs_name[i]],
                 )
-                # Check if the system have names for individual objects
                 ax1.plot(
                     self.simulator.sol_state[-1, i * 3],
                     self.simulator.sol_state[-1, 1 + i * 3],
@@ -186,13 +182,11 @@ class Plotter:
                     label=self.simulator.objs_name[i],
                 )
         else:
-            # Plot trajectory and initial positions with the same color:
             for i in range(self.simulator.objects_count):
                 traj = ax1.plot(
                     self.simulator.sol_state[:, i * 3],
                     self.simulator.sol_state[:, 1 + i * 3],
                 )
-                # Check if the system have names for individual objects
                 ax1.plot(
                     self.simulator.sol_state[-1, i * 3],
                     self.simulator.sol_state[-1, 1 + i * 3],
@@ -208,11 +202,9 @@ class Plotter:
             fig1.tight_layout()
 
         plt.show()
+        print()
 
     def _plot_rel_energy(self):
-        """
-        Plot the relative energy error
-        """
         print("Plotting relative energy error...(Please check the window)")
         fig2 = plt.figure()
         ax2 = fig2.add_subplot(111)
@@ -228,13 +220,10 @@ class Plotter:
         ax2.set_ylabel("|(E(t)-E0)/E0|")
 
         plt.show()
-        print("")
+        print()
 
     def _plot_tot_energy(self):
-        """
-        Plot the total energy
-        Warning: The unit is in solar masses, AU and day
-        """
+        # WARNING: The unit is in solar masses, AU and day
         print("Plotting total energy...(Please check the window)")
         fig3 = plt.figure()
         ax3 = fig3.add_subplot(111)
@@ -244,6 +233,7 @@ class Plotter:
         ax3.set_ylabel("E(t)")
 
         plt.show()
+        print()
 
     def _plot_dt(self):
         """
@@ -258,6 +248,7 @@ class Plotter:
         ax4.set_ylabel("dt(days)")
 
         plt.show()
+        print()
 
     def _read_user_input(self):
         while True:
