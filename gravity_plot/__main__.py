@@ -253,7 +253,6 @@ class Plotter:
         fig4 = plt.figure()
         ax4 = fig4.add_subplot(111)
         ax4.scatter(self.simulator.sol_time, self.simulator.sol_dt, s=0.1)
-        ax4.set_yscale("log")
         ax4.set_title("dt against time")
         ax4.set_xlabel(f"Time ({self.unit})")
         ax4.set_ylabel("dt(days)")
