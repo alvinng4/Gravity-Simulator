@@ -214,6 +214,17 @@ python compare.py [-t|--title] <title>
 
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/bb0703fa-0e67-483f-a63e-0fb1c934666e" alt="Image" width="400">
 
+## Compensated summation
+
+A method known as compensated summation is implemented in the plotting module.
+When we advance our system by $\text{d}t$, we have 
+
+$x_{n+1} = x_n + \delta x$
+
+Since $\delta x$ is very small compared to $x_n$, many digits of precision will be lost.
+By compensated summation, we keep track of the losing digits using another variable, which
+allows us to effectively eliminates round off error with very little cost.
+
 ## Available integrators 
 ### Fixed step size methods
 Fixed step size integrators are simple methods to simulate the system with the given step size dt.

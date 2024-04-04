@@ -2,15 +2,16 @@ import ctypes
 
 import numpy as np
 
-from common import acceleration 
+from common import acceleration
 from progress_bar import Progress_bar
+
 
 class IAS15:
     def __init__(self, simulator, objects_count, x, v, m, G, tf, tolerance, is_c_lib):
         self.store_every_n = simulator.store_every_n
 
         if is_c_lib == True:
-            self.c_lib = simulator.c_lib 
+            self.c_lib = simulator.c_lib
             self.sol_state, self.sol_time, self.sol_dt = self.simulation_c_lib(
                 objects_count,
                 x,
@@ -59,8 +60,8 @@ class IAS15:
 
         # Initializing auxiliary variables
         nodes, dim_nodes = self.ias15_radau_spacing()
-        aux_c = self.ias15_aux_c().reshape((dim_nodes - 1) * (dim_nodes - 1))    
-        aux_r = self.ias15_aux_r().reshape(dim_nodes * dim_nodes)    
+        aux_c = self.ias15_aux_c().reshape((dim_nodes - 1) * (dim_nodes - 1))
+        aux_r = self.ias15_aux_r().reshape(dim_nodes * dim_nodes)
 
         aux_b0 = np.zeros(((dim_nodes - 1) * objects_count * 3))
         aux_b = np.zeros(((dim_nodes - 1) * objects_count * 3))
@@ -69,9 +70,16 @@ class IAS15:
 
         a = acceleration(objects_count, x, m, G)
 
-        dt = ctypes.c_double(self.ias15_initial_time_step(objects_count, 15, x, v, a, m, G))
+        dt = ctypes.c_double(
+            self.ias15_initial_time_step(objects_count, 15, x, v, a, m, G)
+        )
 
         ias15_refine_flag = ctypes.c_int(0)
+
+        # Arrays for compensated summation
+        x_err_comp_sum = np.zeros((objects_count, 3))
+        v_err_comp_sum = np.zeros((objects_count, 3))
+
         count = ctypes.c_uint(0)
         store_count = ctypes.c_uint(0)
         progress_bar = Progress_bar()
@@ -92,7 +100,7 @@ class IAS15:
                     v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                    ctypes.c_double(G),                    
+                    ctypes.c_double(G),
                     ctypes.byref(t),
                     ctypes.byref(dt),
                     ctypes.c_double(tf),
@@ -101,18 +109,16 @@ class IAS15:
                     ctypes.byref(count),
                     ctypes.c_double(tolerance),
                     ctypes.c_double(tolerance_pc),
-                    self.sol_state.ctypes.data_as(
-                        ctypes.POINTER(ctypes.c_double)
-                    ),
+                    self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.sol_time)),
-                    self.sol_time.ctypes.data_as(
-                        ctypes.POINTER(ctypes.c_double)
-                    ),
+                    self.sol_time.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.sol_dt)),
                     self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_double(safety_fac),
                     ctypes.c_double(exponent),
                     ctypes.byref(ias15_refine_flag),
+                    x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                 )
 
                 # Update progress bar
@@ -166,13 +172,17 @@ class IAS15:
 
         # Initializing auxiliary variables
         nodes, dim_nodes = self.ias15_radau_spacing()
-        aux_c = self.ias15_aux_c()    
+        aux_c = self.ias15_aux_c()
         aux_r = self.ias15_aux_r()
 
         aux_b0 = np.zeros((dim_nodes - 1, objects_count, 3))
         aux_b = np.zeros((dim_nodes - 1, objects_count, 3))
         aux_g = np.zeros((dim_nodes - 1, objects_count, 3))
         aux_e = np.zeros((dim_nodes - 1, objects_count, 3))
+
+        # Arrays for compensated summation
+        x_err_comp_sum = np.zeros((objects_count, 3))
+        v_err_comp_sum = np.zeros((objects_count, 3))
 
         a = acceleration(objects_count, x, m, G)
 
@@ -197,6 +207,8 @@ class IAS15:
                     aux_b0,
                     ias15_integrate_flag,
                     ias15_refine_flag,
+                    x_err_comp_sum,
+                    v_err_comp_sum,
                 ) = self.ias15_step(
                     objects_count,
                     x,
@@ -220,6 +232,8 @@ class IAS15:
                     exponent,
                     safety_fac,
                     ias15_refine_flag,
+                    x_err_comp_sum,
+                    v_err_comp_sum,
                 )
 
                 # Update step
@@ -229,7 +243,10 @@ class IAS15:
                 # Store step
                 if (count + 1) % self.store_every_n == 0:
                     sol_state[store_count + 1] = np.concatenate(
-                        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                        (
+                            np.reshape(x, objects_count * 3),
+                            np.reshape(v, objects_count * 3),
+                        )
                     )
                     sol_time[store_count + 1] = t
                     sol_dt[store_count + 1] = dt
@@ -237,7 +254,10 @@ class IAS15:
 
                 if t == tf:
                     sol_state[store_count] = np.concatenate(
-                        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                        (
+                            np.reshape(x, objects_count * 3),
+                            np.reshape(v, objects_count * 3),
+                        )
                     )
                     sol_time[store_count] = t
                     sol_dt[store_count] = dt
@@ -259,7 +279,6 @@ class IAS15:
                 sol_time[0 : store_count + 1],
                 sol_dt[0 : store_count + 1],
             )
-
 
     def ias15_step(
         self,
@@ -285,6 +304,8 @@ class IAS15:
         exponent,
         safety_fac,
         ias15_refine_flag,
+        x_err_comp_sum,
+        v_err_comp_sum,
     ):
         """
         Advance IAS15 for one step
@@ -299,29 +320,37 @@ class IAS15:
                 # Advance along the Gauss-Radau sequence
                 for i in range(dim_nodes):
                     # Estimate position and velocity with current aux_b and nodes
-                    x = self.ias15_approx_pos(x0, v0, a0, nodes[i], aux_b, dt)
-                    v = self.ias15_approx_vel(v0, a0, nodes[i], aux_b, dt)
+                    x = self.ias15_approx_pos_aux(
+                        x0, v0, a0, nodes[i], aux_b, dt, x_err_comp_sum
+                    )
+                    v = self.ias15_approx_vel_aux(
+                        v0, a0, nodes[i], aux_b, dt, v_err_comp_sum
+                    )
 
                     # Evaluate force function and store result
                     aux_a[i] = acceleration(objects_count, x, m, G)
-                    aux_g = self.ias15_compute_aux_g(aux_g, aux_r, aux_a, i)
-                    aux_b = self.ias15_compute_aux_b(aux_b, aux_g, aux_c, i)
+                    self.ias15_compute_aux_g(aux_g, aux_r, aux_a, i)
+                    self.ias15_compute_aux_b(aux_b, aux_g, aux_c, i)
 
                 # Estimate convergence
                 delta_b7 = aux_b[-1] - aux_b0[-1]
-                aux_b0 = aux_b
+                aux_b0 = aux_b.copy()
                 if np.max(np.abs(delta_b7)) / np.max(np.abs(aux_a[-1])) < tolerance_pc:
                     break
-                
+
             # Advance step
-            x = self.ias15_approx_pos(x0, v0, a0, 1.0, aux_b, dt)
-            v = self.ias15_approx_vel(v0, a0, 1.0, aux_b, dt)
+            x, temp_x_err_comp_sum = self.ias15_approx_pos_step(
+                x0, v0, a0, aux_b, dt, x_err_comp_sum.copy()
+            )
+            v, temp_v_err_comp_sum = self.ias15_approx_vel_step(
+                v0, a0, aux_b, dt, v_err_comp_sum.copy()
+            )
             a = acceleration(objects_count, x, m, G)
 
             # Estimate relative error
             error_b7 = np.max(np.abs(aux_b[-1])) / np.max(np.abs(a))
             error = (error_b7 / tolerance) ** exponent
-            
+
             # Step-size for the next step
             if error != 0:
                 dt_new = dt / error
@@ -333,10 +362,13 @@ class IAS15:
                 # Report accepted step
                 ias15_integrate_flag = 1
                 t += dt
-                aux_b, aux_e = self.ias15_refine_aux_b(
+                self.ias15_refine_aux_b(
                     aux_b, aux_e, dt, dt_new, ias15_refine_flag
                 )
                 ias15_refine_flag = 1
+
+                x_err_comp_sum = temp_x_err_comp_sum.copy()
+                v_err_comp_sum = temp_v_err_comp_sum.copy()
 
                 if t >= tf:
                     ias15_integrate_flag = 2
@@ -372,11 +404,16 @@ class IAS15:
             aux_b0,
             ias15_integrate_flag,
             ias15_refine_flag,
+            x_err_comp_sum,
+            v_err_comp_sum,
         )
 
     @staticmethod
-    def ias15_approx_pos(x0, v0, a0, node, aux_b, dt):
-        x = x0 + dt * node * (
+    def ias15_approx_pos_aux(x0, v0, a0, node, aux_b, dt, x_err_comp_sum):
+        """
+        Calculate the auxiliary position used to calculate aux_b and aux_g
+        """
+        x = x0 + x_err_comp_sum + dt * node * (
             v0
             + dt
             * node
@@ -410,8 +447,11 @@ class IAS15:
         return x
 
     @staticmethod
-    def ias15_approx_vel(v0, a0, node, aux_b, dt):
-        v = v0 + dt * node * (
+    def ias15_approx_vel_aux(v0, a0, node, aux_b, dt, v_err_comp_sum):
+        """
+        Calculate the auxiliary velocity used to calculate aux_b and aux_g
+        """
+        v = v0 + v_err_comp_sum + dt * node * (
             a0
             + node
             * (
@@ -437,6 +477,55 @@ class IAS15:
         )
 
         return v
+
+    @staticmethod
+    def ias15_approx_pos_step(x0, v0, a0, aux_b, dt, x_err_comp_sum):
+        """
+        Calculate the position of the next step
+        """
+        x_err_comp_sum += dt * (
+            v0
+            + dt
+            * (
+                a0
+                + aux_b[0] / 3.0
+                + aux_b[1] / 6.0
+                + aux_b[2] / 10.0
+                + aux_b[3] / 15.0
+                + aux_b[4] / 21.0
+                + aux_b[5] / 28.0
+                + aux_b[6] / 36.0
+            )
+            / 2.0
+        )
+
+        x = x0 + x_err_comp_sum
+        x_err_comp_sum += x0 - x
+
+        return x, x_err_comp_sum
+
+    @staticmethod
+    def ias15_approx_vel_step(v0, a0, aux_b, dt, v_err_comp_sum):
+        """
+        Calculate the velocity of the next step
+        """
+        v_err_comp_sum += dt * (
+            a0
+            + (
+                aux_b[0] / 2.0
+                + aux_b[1] / 3.0
+                + aux_b[2] / 4.0
+                + aux_b[3] / 5.0
+                + aux_b[4] / 6.0
+                + aux_b[5] / 7.0
+                + aux_b[6] / 8.0
+            )
+        )
+
+        v = v0 + v_err_comp_sum
+        v_err_comp_sum += v0 - v
+
+        return v, v_err_comp_sum
 
     @staticmethod
     def ias15_initial_time_step(
@@ -474,7 +563,7 @@ class IAS15:
         dt = min(100 * dt_0, dt_1)
 
         return dt
-    
+
     @staticmethod
     def ias15_radau_spacing():
         """
@@ -547,8 +636,6 @@ class IAS15:
             aux_b[5] = aux_c[5, 5] * aux_g[5] + aux_c[6, 5] * aux_g[6]
         if i >= 7:
             aux_b[6] = aux_c[6, 6] * aux_g[6]
-
-        return aux_b
 
     @staticmethod
     def ias15_aux_c():
@@ -647,7 +734,10 @@ class IAS15:
                 (
                     (
                         (
-                            (((F8 - F1) * aux_r[7, 0] - aux_g[0]) * aux_r[7, 1] - aux_g[1])
+                            (
+                                ((F8 - F1) * aux_r[7, 0] - aux_g[0]) * aux_r[7, 1]
+                                - aux_g[1]
+                            )
                             * aux_r[7, 2]
                             - aux_g[2]
                         )
@@ -660,8 +750,6 @@ class IAS15:
                 * aux_r[7, 5]
                 - aux_g[5]
             ) * aux_r[7, 6]
-
-        return aux_g
 
     @staticmethod
     def ias15_aux_r():
@@ -744,7 +832,11 @@ class IAS15:
             + aux_b[1]
         )
         aux_e[2] = q3 * (
-            aux_b[6] * 35.0 + aux_b[5] * 20.0 + aux_b[4] * 10.0 + aux_b[3] * 4.0 + aux_b[2]
+            aux_b[6] * 35.0
+            + aux_b[5] * 20.0
+            + aux_b[4] * 10.0
+            + aux_b[3] * 4.0
+            + aux_b[2]
         )
         aux_e[3] = q4 * (aux_b[6] * 35.0 + aux_b[5] * 15.0 + aux_b[4] * 5.0 + aux_b[3])
         aux_e[4] = q5 * (aux_b[6] * 21.0 + aux_b[5] * 6.0 + aux_b[4])
@@ -752,6 +844,3 @@ class IAS15:
         aux_e[6] = q7 * aux_b[6]
 
         aux_b = aux_e + delta_aux_b
-
-        return aux_b, aux_e
-

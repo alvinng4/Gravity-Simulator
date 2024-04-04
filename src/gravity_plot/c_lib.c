@@ -37,7 +37,9 @@ void euler(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 );
 void euler_cromer(
     int objects_count, 
@@ -52,7 +54,9 @@ void euler_cromer(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 );
 void rk4(
     int objects_count, 
@@ -67,7 +71,9 @@ void rk4(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 );
 void leapfrog(
     int objects_count, 
@@ -82,7 +88,9 @@ void leapfrog(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 );
 int rk_embedded(
     int objects_count, 
@@ -109,7 +117,9 @@ int rk_embedded(
     int len_sol_time,
     real *restrict sol_time,
     int len_sol_dt,
-    real *restrict sol_dt
+    real *restrict sol_dt,
+    real (*restrict x_err_comp_sum)[3],
+    real (*restrict v_err_comp_sum)[3]
 );
 int ias15(
     int objects_count, 
@@ -141,7 +151,9 @@ int ias15(
     real *restrict sol_dt,
     real safety_fac,
     real exponent,
-    int *restrict ias15_refine_flag
+    int *restrict ias15_refine_flag,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 );
 void ias15_step(
     int objects_count,
@@ -175,24 +187,51 @@ void ias15_step(
     real (*restrict a)[3],
     real *restrict delta_b7,
     real *restrict F,
-    real *restrict delta_aux_b
+    real *restrict delta_aux_b,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3],
+    real (*restrict temp_x_err_comp_sum)[3], 
+    real (*restrict temp_v_err_comp_sum)[3],
+    real (*restrict temp_x_comp_sum)[3], 
+    real (*restrict temp_v_comp_sum)[3]
 );
-void ias15_approx_pos(
+void ias15_approx_pos_aux(
     int objects_count,
     real (*restrict x)[3],
     const real (*restrict v)[3],
     const real (*restrict a)[3],
     real node,
     real *restrict aux_b,
-    real dt
+    real dt,
+    real (*restrict x_err_comp_sum)[3]
 );
-void ias15_approx_vel(
+void ias15_approx_vel_aux(
     int objects_count,
     real (*restrict v)[3],
     const real (*restrict a)[3],
     real node,
     real *restrict aux_b,
-    real dt
+    real dt,
+    real (*restrict v_err_comp_sum)[3]
+);
+void ias15_approx_pos_step(
+    int objects_count,
+    real (*restrict x)[3],
+    const real (*restrict v)[3],
+    const real (*restrict a)[3],
+    real *restrict aux_b,
+    real dt,
+    real (*restrict temp_x_err_comp_sum)[3],
+    real (*restrict temp_x_comp_sum)[3]
+);
+void ias15_approx_vel_step(
+    int objects_count,
+    real (*restrict v)[3],
+    const real (*restrict a)[3],
+    real *restrict aux_b,
+    real dt,
+    real (*restrict temp_v_err_comp_sum)[3],
+    real (*restrict temp_v_comp_sum)[3]
 );
 void ias15_compute_aux_b(
     int objects_count,
@@ -374,9 +413,13 @@ WIN32DLL_API void euler(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 )
 {   
+    real (*temp_x)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_v)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
 
     // Current progress percentage rounded to int
@@ -386,15 +429,32 @@ WIN32DLL_API void euler(
     while ((*count + 1) <= npts)
     {   
         acceleration(objects_count, x, a, m, G);
+
+        memcpy(temp_x, x, objects_count * 3 * sizeof(real));
+        memcpy(temp_v, v, objects_count * 3 * sizeof(real));
         for (int j = 0; j < objects_count; j++)
         {
             // Calculation
-            x[j][0] += v[j][0] * dt;
-            x[j][1] += v[j][1] * dt;
-            x[j][2] += v[j][2] * dt;
-            v[j][0] += a[j][0] * dt;
-            v[j][1] += a[j][1] * dt;
-            v[j][2] += a[j][2] * dt;
+            x_err_comp_sum[j][0] += v[j][0] * dt;
+            x_err_comp_sum[j][1] += v[j][1] * dt;
+            x_err_comp_sum[j][2] += v[j][2] * dt;
+            v_err_comp_sum[j][0] += a[j][0] * dt;
+            v_err_comp_sum[j][1] += a[j][1] * dt;
+            v_err_comp_sum[j][2] += a[j][2] * dt;
+
+            x[j][0] = temp_x[j][0] + x_err_comp_sum[j][0];
+            x[j][1] = temp_x[j][1] + x_err_comp_sum[j][1];
+            x[j][2] = temp_x[j][2] + x_err_comp_sum[j][2];
+            v[j][0] = temp_v[j][0] + v_err_comp_sum[j][0];
+            v[j][1] = temp_v[j][1] + v_err_comp_sum[j][1];
+            v[j][2] = temp_v[j][2] + v_err_comp_sum[j][2];
+
+            x_err_comp_sum[j][0] += temp_x[j][0] - x[j][0];
+            x_err_comp_sum[j][1] += temp_x[j][1] - x[j][1];
+            x_err_comp_sum[j][2] += temp_x[j][2] - x[j][2];
+            v_err_comp_sum[j][0] += temp_v[j][0] - v[j][0];
+            v_err_comp_sum[j][1] += temp_v[j][1] - v[j][1];
+            v_err_comp_sum[j][2] += temp_v[j][2] - v[j][2];
 
             // Store solution
             if ((*count + 1) % store_every_n == 0)
@@ -428,6 +488,8 @@ WIN32DLL_API void euler(
         if ((int) (*count * 100 / npts) > progress_percentage)
         {   
             free(a);
+            free(temp_x);
+            free(temp_v);
             return;
         }
     }
@@ -446,9 +508,13 @@ WIN32DLL_API void euler_cromer(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 )
 {   
+    real (*temp_x)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_v)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*a)[3] = malloc(objects_count * 3 * sizeof(real));
 
     // Current progress percentage rounded to int
@@ -458,15 +524,36 @@ WIN32DLL_API void euler_cromer(
     while ((*count + 1) <= npts)
     {   
         acceleration(objects_count, x, a, m, G);
+
+        memcpy(temp_x, x, objects_count * 3 * sizeof(real));
+        memcpy(temp_v, v, objects_count * 3 * sizeof(real));
         for (int j = 0; j < objects_count; j++)
         {
-            // Calculation
-            v[j][0] += a[j][0] * dt;
-            v[j][1] += a[j][1] * dt;
-            v[j][2] += a[j][2] * dt;
-            x[j][0] += v[j][0] * dt;
-            x[j][1] += v[j][1] * dt;
-            x[j][2] += v[j][2] * dt;
+            // Calculation of v
+            v_err_comp_sum[j][0] += a[j][0] * dt;
+            v_err_comp_sum[j][1] += a[j][1] * dt;
+            v_err_comp_sum[j][2] += a[j][2] * dt;
+
+            v[j][0] = temp_v[j][0] + v_err_comp_sum[j][0];
+            v[j][1] = temp_v[j][1] + v_err_comp_sum[j][1];
+            v[j][2] = temp_v[j][2] + v_err_comp_sum[j][2];
+
+            v_err_comp_sum[j][0] += temp_v[j][0] - v[j][0];
+            v_err_comp_sum[j][1] += temp_v[j][1] - v[j][1];
+            v_err_comp_sum[j][2] += temp_v[j][2] - v[j][2];
+
+            // Calculation of x
+            x_err_comp_sum[j][0] += v[j][0] * dt;
+            x_err_comp_sum[j][1] += v[j][1] * dt;
+            x_err_comp_sum[j][2] += v[j][2] * dt;
+
+            x[j][0] = temp_x[j][0] + x_err_comp_sum[j][0];
+            x[j][1] = temp_x[j][1] + x_err_comp_sum[j][1];
+            x[j][2] = temp_x[j][2] + x_err_comp_sum[j][2];
+
+            x_err_comp_sum[j][0] += temp_x[j][0] - x[j][0];
+            x_err_comp_sum[j][1] += temp_x[j][1] - x[j][1];
+            x_err_comp_sum[j][2] += temp_x[j][2] - x[j][2];
 
             // Store solution
             if ((*count + 1) % store_every_n == 0)
@@ -500,6 +587,8 @@ WIN32DLL_API void euler_cromer(
         if ((int) (*count * 100 / npts) > progress_percentage)
         {   
             free(a);
+            free(temp_x);
+            free(temp_v);
             return;
         }
     }
@@ -518,7 +607,9 @@ WIN32DLL_API void rk4(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 )
 {
     real (*temp_x)[3] = malloc(objects_count * 3 * sizeof(real));
@@ -584,16 +675,32 @@ WIN32DLL_API void rk4(
         memcpy(vk4, a, objects_count * 3 * sizeof(real));
         memcpy(xk4, temp_v, objects_count * 3 * sizeof(real));
 
+        memcpy(temp_v, v, objects_count * 3 * sizeof(real));
+        memcpy(temp_x, x, objects_count * 3 * sizeof(real));
 
         for (int j = 0; j < objects_count; j++)
         {
             // Calculation
-            v[j][0] += (vk1[j][0] + 2 * vk2[j][0] + 2 * vk3[j][0] + vk4[j][0]) * dt / 6.0;
-            v[j][1] += (vk1[j][1] + 2 * vk2[j][1] + 2 * vk3[j][1] + vk4[j][1]) * dt / 6.0;
-            v[j][2] += (vk1[j][2] + 2 * vk2[j][2] + 2 * vk3[j][2] + vk4[j][2]) * dt / 6.0;
-            x[j][0] += (xk1[j][0] + 2 * xk2[j][0] + 2 * xk3[j][0] + xk4[j][0]) * dt / 6.0;
-            x[j][1] += (xk1[j][1] + 2 * xk2[j][1] + 2 * xk3[j][1] + xk4[j][1]) * dt / 6.0;
-            x[j][2] += (xk1[j][2] + 2 * xk2[j][2] + 2 * xk3[j][2] + xk4[j][2]) * dt / 6.0;
+            v_err_comp_sum[j][0] += (vk1[j][0] + 2 * vk2[j][0] + 2 * vk3[j][0] + vk4[j][0]) * dt / 6.0;
+            v_err_comp_sum[j][1] += (vk1[j][1] + 2 * vk2[j][1] + 2 * vk3[j][1] + vk4[j][1]) * dt / 6.0;
+            v_err_comp_sum[j][2] += (vk1[j][2] + 2 * vk2[j][2] + 2 * vk3[j][2] + vk4[j][2]) * dt / 6.0;
+            x_err_comp_sum[j][0] += (xk1[j][0] + 2 * xk2[j][0] + 2 * xk3[j][0] + xk4[j][0]) * dt / 6.0;
+            x_err_comp_sum[j][1] += (xk1[j][1] + 2 * xk2[j][1] + 2 * xk3[j][1] + xk4[j][1]) * dt / 6.0;
+            x_err_comp_sum[j][2] += (xk1[j][2] + 2 * xk2[j][2] + 2 * xk3[j][2] + xk4[j][2]) * dt / 6.0;
+
+            v[j][0] = temp_v[j][0] + v_err_comp_sum[j][0];
+            v[j][1] = temp_v[j][1] + v_err_comp_sum[j][1];
+            v[j][2] = temp_v[j][2] + v_err_comp_sum[j][2];
+            x[j][0] = temp_x[j][0] + x_err_comp_sum[j][0];
+            x[j][1] = temp_x[j][1] + x_err_comp_sum[j][1];
+            x[j][2] = temp_x[j][2] + x_err_comp_sum[j][2];
+
+            v_err_comp_sum[j][0] += temp_v[j][0] - v[j][0];
+            v_err_comp_sum[j][1] += temp_v[j][1] - v[j][1];
+            v_err_comp_sum[j][2] += temp_v[j][2] - v[j][2];
+            x_err_comp_sum[j][0] += temp_x[j][0] - x[j][0];
+            x_err_comp_sum[j][1] += temp_x[j][1] - x[j][1];
+            x_err_comp_sum[j][2] += temp_x[j][2] - x[j][2];
 
             // Store solution
             if ((*count + 1) % store_every_n == 0)
@@ -655,9 +762,13 @@ WIN32DLL_API void leapfrog(
     int store_every_n,
     int store_npts,
     unsigned long *restrict count,
-    unsigned int *restrict store_count
+    unsigned int *restrict store_count,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 )
 {   
+    real (*temp_x)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_v)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*a_0)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*a_1)[3] = malloc(objects_count * 3 * sizeof(real));
 
@@ -679,21 +790,40 @@ WIN32DLL_API void leapfrog(
             // Use a_1 from last iteration as a_0
             memcpy(a_0, a_1, objects_count * 3 * sizeof(real));
         }
-           
+
+        // Calculation of x
+        memcpy(temp_x, x, objects_count * 3 * sizeof(real));
         for (int j = 0; j < objects_count; j++)
         {
-            // Calculation
-            x[j][0] += v[j][0] * dt + 0.5 * a_0[j][0] * dt * dt;
-            x[j][1] += v[j][1] * dt + 0.5 * a_0[j][1] * dt * dt;
-            x[j][2] += v[j][2] * dt + 0.5 * a_0[j][2] * dt * dt;
+            x_err_comp_sum[j][0] += v[j][0] * dt + 0.5 * a_0[j][0] * dt * dt;
+            x_err_comp_sum[j][1] += v[j][1] * dt + 0.5 * a_0[j][1] * dt * dt;
+            x_err_comp_sum[j][2] += v[j][2] * dt + 0.5 * a_0[j][2] * dt * dt;
+
+            x[j][0] = temp_x[j][0] + x_err_comp_sum[j][0];
+            x[j][1] = temp_x[j][1] + x_err_comp_sum[j][1];
+            x[j][2] = temp_x[j][2] + x_err_comp_sum[j][2];
+
+            x_err_comp_sum[j][0] += temp_x[j][0] - x[j][0];
+            x_err_comp_sum[j][1] += temp_x[j][1] - x[j][1];
+            x_err_comp_sum[j][2] += temp_x[j][2] - x[j][2];
         }    
+
         acceleration(objects_count, x, a_1, m, G);
+        memcpy(temp_v, v, objects_count * 3 * sizeof(real));
         for (int j = 0; j < objects_count; j++)
         {
-            // Calculation
-            v[j][0] += 0.5 * (a_0[j][0] + a_1[j][0]) * dt;
-            v[j][1] += 0.5 * (a_0[j][1] + a_1[j][1]) * dt;
-            v[j][2] += 0.5 * (a_0[j][2] + a_1[j][2]) * dt;
+            // Calculation of v
+            v_err_comp_sum[j][0] += 0.5 * (a_0[j][0] + a_1[j][0]) * dt;
+            v_err_comp_sum[j][1] += 0.5 * (a_0[j][1] + a_1[j][1]) * dt;
+            v_err_comp_sum[j][2] += 0.5 * (a_0[j][2] + a_1[j][2]) * dt;
+
+            v[j][0] = temp_v[j][0] + v_err_comp_sum[j][0];
+            v[j][1] = temp_v[j][1] + v_err_comp_sum[j][1];
+            v[j][2] = temp_v[j][2] + v_err_comp_sum[j][2];
+
+            v_err_comp_sum[j][0] += temp_v[j][0] - v[j][0];
+            v_err_comp_sum[j][1] += temp_v[j][1] - v[j][1];
+            v_err_comp_sum[j][2] += temp_v[j][2] - v[j][2];
 
             // Store solution
             if ((*count + 1) % store_every_n == 0)
@@ -728,6 +858,8 @@ WIN32DLL_API void leapfrog(
         {   
             free(a_0);
             free(a_1);
+            free(temp_x);
+            free(temp_v);
             return;
         }
     }
@@ -758,7 +890,9 @@ WIN32DLL_API int rk_embedded(
     int len_sol_time,
     real *restrict sol_time,
     int len_sol_dt,
-    real *restrict sol_dt
+    real *restrict sol_dt,
+    real (*restrict x_err_comp_sum)[3],
+    real (*restrict v_err_comp_sum)[3]
 )
 {
     // Initialization
@@ -789,6 +923,8 @@ WIN32DLL_API int rk_embedded(
     real (*error_estimation_delta_x)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*tolerance_scale_v)[3] = malloc(objects_count * 3 * sizeof(real));
     real (*tolerance_scale_x)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_x_err_comp_sum)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_v_err_comp_sum)[3] = malloc(objects_count * 3 * sizeof(real));
 
     // Current progress percentage rounded to int
     int progress_percentage = (int) round(*t / tf * 100);
@@ -800,7 +936,6 @@ WIN32DLL_API int rk_embedded(
         acceleration(objects_count, x, temp_a, m, G);
         memcpy(vk, temp_a, objects_count * 3 * sizeof(real));
         memcpy(xk, v, objects_count * 3 * sizeof(real));
-
         for (int stage = 1; stage < stages; stage++)
         {
             memset(temp_v, 0, objects_count * 3 * sizeof(real));
@@ -821,12 +956,12 @@ WIN32DLL_API int rk_embedded(
 
             for (int k = 0; k < objects_count; k++)
             {
-                temp_x[k][0] = x[k][0] + *dt * temp_x[k][0];
-                temp_x[k][1] = x[k][1] + *dt * temp_x[k][1];
-                temp_x[k][2] = x[k][2] + *dt * temp_x[k][2];
-                temp_v[k][0] = v[k][0] + *dt * temp_v[k][0];
-                temp_v[k][1] = v[k][1] + *dt * temp_v[k][1];
-                temp_v[k][2] = v[k][2] + *dt * temp_v[k][2];
+                temp_v[k][0] = v[k][0] + *dt * temp_v[k][0] + v_err_comp_sum[k][0];
+                temp_v[k][1] = v[k][1] + *dt * temp_v[k][1] + v_err_comp_sum[k][1];
+                temp_v[k][2] = v[k][2] + *dt * temp_v[k][2] + v_err_comp_sum[k][2];
+                temp_x[k][0] = x[k][0] + *dt * temp_x[k][0] + x_err_comp_sum[k][0];
+                temp_x[k][1] = x[k][1] + *dt * temp_x[k][1] + x_err_comp_sum[k][1];
+                temp_x[k][2] = x[k][2] + *dt * temp_x[k][2] + x_err_comp_sum[k][2];
             }
             acceleration(objects_count, temp_x, temp_a, m, G);
             memcpy(&vk[stage * objects_count * 3], temp_a, objects_count * 3 * sizeof(real));
@@ -858,14 +993,30 @@ WIN32DLL_API int rk_embedded(
             }
         }
 
+        memcpy(temp_x_err_comp_sum, x_err_comp_sum, objects_count * 3 * sizeof(real));
+        memcpy(temp_v_err_comp_sum, v_err_comp_sum, objects_count * 3 * sizeof(real));
         for (int k = 0; k < objects_count; k++)
         {
-            v_1[k][0] = v[k][0] + *dt * temp_v[k][0];
-            v_1[k][1] = v[k][1] + *dt * temp_v[k][1];
-            v_1[k][2] = v[k][2] + *dt * temp_v[k][2];
-            x_1[k][0] = x[k][0] + *dt * temp_x[k][0];
-            x_1[k][1] = x[k][1] + *dt * temp_x[k][1];
-            x_1[k][2] = x[k][2] + *dt * temp_x[k][2];
+            temp_v_err_comp_sum[k][0] += *dt * temp_v[k][0];
+            temp_v_err_comp_sum[k][1] += *dt * temp_v[k][1];
+            temp_v_err_comp_sum[k][2] += *dt * temp_v[k][2];
+            temp_x_err_comp_sum[k][0] += *dt * temp_x[k][0];
+            temp_x_err_comp_sum[k][1] += *dt * temp_x[k][1];
+            temp_x_err_comp_sum[k][2] += *dt * temp_x[k][2];
+
+            v_1[k][0] = v[k][0] + temp_v_err_comp_sum[k][0];
+            v_1[k][1] = v[k][1] + temp_v_err_comp_sum[k][1];
+            v_1[k][2] = v[k][2] + temp_v_err_comp_sum[k][2];
+            x_1[k][0] = x[k][0] + temp_x_err_comp_sum[k][0];
+            x_1[k][1] = x[k][1] + temp_x_err_comp_sum[k][1];
+            x_1[k][2] = x[k][2] + temp_x_err_comp_sum[k][2];
+
+            temp_v_err_comp_sum[k][0] += v[k][0] - v_1[k][0];
+            temp_v_err_comp_sum[k][1] += v[k][1] - v_1[k][1];
+            temp_v_err_comp_sum[k][2] += v[k][2] - v_1[k][2];
+            temp_x_err_comp_sum[k][0] += x[k][0] - x_1[k][0];
+            temp_x_err_comp_sum[k][1] += x[k][1] - x_1[k][1];
+            temp_x_err_comp_sum[k][2] += x[k][2] - x_1[k][2];
         }
 
         // Error calculation
@@ -900,6 +1051,9 @@ WIN32DLL_API int rk_embedded(
             memcpy(x, x_1, objects_count * 3 * sizeof(real));
             memcpy(v, v_1, objects_count * 3 * sizeof(real));
             *count += 1;
+
+            memcpy(x_err_comp_sum, temp_x_err_comp_sum, objects_count * 3 * sizeof(real));
+            memcpy(v_err_comp_sum, temp_v_err_comp_sum, objects_count * 3 * sizeof(real));
 
             // Store step
             if ((*count + 1) % store_every_n == 0)
@@ -948,6 +1102,8 @@ WIN32DLL_API int rk_embedded(
                 free(error_estimation_delta_x);
                 free(tolerance_scale_v);
                 free(tolerance_scale_x);
+                free(temp_x_err_comp_sum);
+                free(temp_v_err_comp_sum);
                 return 1;
             } 
         }
@@ -1001,6 +1157,8 @@ WIN32DLL_API int rk_embedded(
             free(error_estimation_delta_x);
             free(tolerance_scale_v);
             free(tolerance_scale_x);
+            free(temp_x_err_comp_sum);
+            free(temp_v_err_comp_sum);
             return 2;
         }
 
@@ -1019,6 +1177,8 @@ WIN32DLL_API int rk_embedded(
             free(error_estimation_delta_x);
             free(tolerance_scale_v);
             free(tolerance_scale_x);
+            free(temp_x_err_comp_sum);
+            free(temp_v_err_comp_sum);
             return 0;
         }
     }
@@ -1054,7 +1214,9 @@ WIN32DLL_API int ias15(
     real *restrict sol_dt,
     real safety_fac,
     real exponent,
-    int *restrict ias15_refine_flag
+    int *restrict ias15_refine_flag,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3]
 )
 {
     // Current progress percentage rounded to int
@@ -1076,6 +1238,12 @@ WIN32DLL_API int ias15(
 
     // Array for refine aux_b
     real *delta_aux_b = malloc(dim_nodes_minus_1 * objects_count * 3 * sizeof(real));
+
+    // Arrays for compensated summation
+    real (*temp_x_err_comp_sum)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_v_err_comp_sum)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_x_comp_sum)[3] = malloc(objects_count * 3 * sizeof(real));
+    real (*temp_v_comp_sum)[3] = malloc(objects_count * 3 * sizeof(real));
 
     while (1)
     {
@@ -1111,7 +1279,13 @@ WIN32DLL_API int ias15(
             a_step,
             delta_b7,
             F,
-            delta_aux_b
+            delta_aux_b,
+            x_err_comp_sum, 
+            v_err_comp_sum,
+            temp_x_err_comp_sum,
+            temp_v_err_comp_sum,
+            temp_x_comp_sum,
+            temp_v_comp_sum
         );
 
         // Update count
@@ -1160,6 +1334,10 @@ WIN32DLL_API int ias15(
             free(delta_b7); 
             free(F);
             free(delta_aux_b);
+            free(temp_x_err_comp_sum);
+            free(temp_v_err_comp_sum);
+            free(temp_x_comp_sum);
+            free(temp_v_comp_sum);
             return 1;
         } 
 
@@ -1174,6 +1352,10 @@ WIN32DLL_API int ias15(
             free(delta_b7); 
             free(F);
             free(delta_aux_b);
+            free(temp_x_err_comp_sum);
+            free(temp_v_err_comp_sum);
+            free(temp_x_comp_sum);
+            free(temp_v_comp_sum);
             return 2;
         }
 
@@ -1188,6 +1370,10 @@ WIN32DLL_API int ias15(
             free(delta_b7); 
             free(F);
             free(delta_aux_b);
+            free(temp_x_err_comp_sum);
+            free(temp_v_err_comp_sum);
+            free(temp_x_comp_sum);
+            free(temp_v_comp_sum);
             return 0;
         }
     }
@@ -1226,7 +1412,13 @@ WIN32DLL_API void ias15_step(
     real (*restrict a)[3],
     real *restrict delta_b7,
     real *restrict F,
-    real *restrict delta_aux_b
+    real *restrict delta_aux_b,
+    real (*restrict x_err_comp_sum)[3], 
+    real (*restrict v_err_comp_sum)[3],
+    real (*restrict temp_x_err_comp_sum)[3], 
+    real (*restrict temp_v_err_comp_sum)[3],
+    real (*restrict temp_x_comp_sum)[3], 
+    real (*restrict temp_v_comp_sum)[3]
 )
 {
     real error, error_b7, dt_new;
@@ -1244,8 +1436,8 @@ WIN32DLL_API void ias15_step(
                 // Estimate position and velocity with current aux_b and nodes
                 memcpy(x, x0, objects_count * 3 * sizeof(real));
                 memcpy(v, v0, objects_count * 3 * sizeof(real));
-                ias15_approx_pos(objects_count, x, v, a, nodes[i], aux_b, *dt);
-                ias15_approx_vel(objects_count, v, a, nodes[i], aux_b, *dt);
+                ias15_approx_pos_aux(objects_count, x, v, a, nodes[i], aux_b, *dt, x_err_comp_sum);
+                ias15_approx_vel_aux(objects_count, v, a, nodes[i], aux_b, *dt, v_err_comp_sum);
 
                 // Evaluate force function and store result
                 acceleration(objects_count, x, temp_a, m, G);
@@ -1270,11 +1462,14 @@ WIN32DLL_API void ias15_step(
         }
 
         // Advance step
+        memcpy(temp_x_err_comp_sum, x_err_comp_sum, objects_count * 3 * sizeof(real));
+        memcpy(temp_v_err_comp_sum, v_err_comp_sum, objects_count * 3 * sizeof(real));
+
         memcpy(x, x0, objects_count * 3 * sizeof(real));
         memcpy(v, v0, objects_count * 3 * sizeof(real));
         memcpy(a, a0, objects_count * 3 * sizeof(real));
-        ias15_approx_pos(objects_count, x, v, a, 1.0, aux_b, *dt);
-        ias15_approx_vel(objects_count, v, a, 1.0, aux_b, *dt);
+        ias15_approx_pos_step(objects_count, x, v, a, aux_b, *dt, temp_x_err_comp_sum, temp_x_comp_sum);
+        ias15_approx_vel_step(objects_count, v, a, aux_b, *dt, temp_v_err_comp_sum, temp_v_comp_sum);
         acceleration(objects_count, x, a, m, G);
 
         // Estimate relative error
@@ -1300,6 +1495,9 @@ WIN32DLL_API void ias15_step(
 
             ias15_refine_aux_b(objects_count, dim_nodes_minus_1, aux_b, aux_e, delta_aux_b, *dt, dt_new, *ias15_refine_flag);
             *ias15_refine_flag = 1;
+
+            memcpy(x_err_comp_sum, temp_x_err_comp_sum, objects_count * 3 * sizeof(real));
+            memcpy(v_err_comp_sum, temp_v_err_comp_sum, objects_count * 3 * sizeof(real));
 
             if (*t >= tf)
             {
@@ -1346,21 +1544,23 @@ WIN32DLL_API void ias15_step(
     }
 }
 
-WIN32DLL_API void ias15_approx_pos(
+// Calculate the auxiliary position used to calculate aux_b and aux_g
+WIN32DLL_API void ias15_approx_pos_aux(
     int objects_count,
     real (*restrict x)[3],
     const real (*restrict v)[3],
     const real (*restrict a)[3],
     real node,
     real *restrict aux_b,
-    real dt
+    real dt,
+    real (*restrict x_err_comp_sum)[3]
 )
 {   
     for (int j = 0; j < objects_count; j++)
     {
         for (int k = 0; k < 3; k++)
         {
-            x[j][k] = x[j][k] + dt * node * (
+            x[j][k] += x_err_comp_sum[j][k] + dt * node * (
                 v[j][k]
                 + dt
                 * node
@@ -1397,20 +1597,22 @@ WIN32DLL_API void ias15_approx_pos(
     }
 }
 
-WIN32DLL_API void ias15_approx_vel(
+// Calculate the auxiliary velocity used to calculate aux_b and aux_g
+WIN32DLL_API void ias15_approx_vel_aux(
     int objects_count,
     real (*restrict v)[3],
     const real (*restrict a)[3],
     real node,
     real *restrict aux_b,
-    real dt
+    real dt,
+    real (*restrict v_err_comp_sum)[3]
 )
 {
     for (int j = 0; j < objects_count; j++)
     {
         for (int k = 0; k < 3; k++)
         {
-            v[j][k] = v[j][k] + dt * node * (
+            v[j][k] += v_err_comp_sum[j][k] + dt * node * (
                 a[j][k]
                 + node
                 * (
@@ -1437,6 +1639,76 @@ WIN32DLL_API void ias15_approx_vel(
                     )
                 )
             );
+        }
+    }
+}
+
+// Calculate the position of the next step
+WIN32DLL_API void ias15_approx_pos_step(
+    int objects_count,
+    real (*restrict x)[3],
+    const real (*restrict v)[3],
+    const real (*restrict a)[3],
+    real *restrict aux_b,
+    real dt,
+    real (*restrict temp_x_err_comp_sum)[3],
+    real (*restrict temp_x_comp_sum)[3]
+)
+{   
+    memcpy(temp_x_comp_sum, x, objects_count * 3 * sizeof(real));
+
+    for (int j = 0; j < objects_count; j++)
+    {
+        for (int k = 0; k < 3; k++)
+        {
+            temp_x_err_comp_sum[j][k] += dt * (
+                v[j][k] + dt * ( a[j][k]
+                    + aux_b[0 * objects_count * 3 + j * 3 + k] / 3.0
+                    + aux_b[1 * objects_count * 3 + j * 3 + k] / 6.0
+                    + aux_b[2 * objects_count * 3 + j * 3 + k] / 10.0
+                    + aux_b[3 * objects_count * 3 + j * 3 + k] / 15.0
+                    + aux_b[4 * objects_count * 3 + j * 3 + k] / 21.0
+                    + aux_b[5 * objects_count * 3 + j * 3 + k] / 28.0 
+                    + aux_b[6 * objects_count * 3 + j * 3 + k] / 36.0
+                )
+                / 2.0
+            );
+
+            x[j][k] = temp_x_comp_sum[j][k] + temp_x_err_comp_sum[j][k];
+            temp_x_err_comp_sum[j][k] += (temp_x_comp_sum[j][k] - x[j][k]);
+        }
+    }
+}
+
+// Calculate the velocity of the next step
+WIN32DLL_API void ias15_approx_vel_step(
+    int objects_count,
+    real (*restrict v)[3],
+    const real (*restrict a)[3],
+    real *restrict aux_b,
+    real dt,
+    real (*restrict temp_v_err_comp_sum)[3],
+    real (*restrict temp_v_comp_sum)[3]
+)
+{
+    memcpy(temp_v_comp_sum, v, objects_count * 3 * sizeof(real));
+
+    for (int j = 0; j < objects_count; j++)
+    {
+        for (int k = 0; k < 3; k++)
+        {
+            temp_v_err_comp_sum[j][k] += dt * (
+                a[j][k]
+                + aux_b[0 * objects_count * 3 + j * 3 + k] / 2.0
+                + aux_b[1 * objects_count * 3 + j * 3 + k] / 3.0
+                + aux_b[2 * objects_count * 3 + j * 3 + k] / 4.0
+                + aux_b[3 * objects_count * 3 + j * 3 + k] / 5.0
+                + aux_b[4 * objects_count * 3 + j * 3 + k] / 6.0
+                + aux_b[5 * objects_count * 3 + j * 3 + k] / 7.0 
+                + aux_b[6 * objects_count * 3 + j * 3 + k] / 8.0
+            );
+            v[j][k] = temp_v_comp_sum[j][k] + temp_v_err_comp_sum[j][k];
+            temp_v_err_comp_sum[j][k] += (temp_v_comp_sum[j][k] - v[j][k]);
         }
     }
 }
