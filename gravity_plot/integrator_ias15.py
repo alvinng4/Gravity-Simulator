@@ -138,6 +138,7 @@ class IAS15:
                     self.sol_time = np.concatenate((self.sol_time, np.zeros(npts)))
                     self.sol_dt = np.concatenate((self.sol_dt, np.zeros(npts)))
 
+            progress_bar.update(task, completed=tf)
             return (
                 self.sol_state[0 : store_count.value + 1],
                 self.sol_time[0 : store_count.value + 1],
@@ -274,6 +275,7 @@ class IAS15:
                     sol_time = np.concatenate((sol_time, np.zeros(npts)))
                     sol_dt = np.concatenate((sol_dt, np.zeros(npts)))
 
+            progress_bar.update(task, completed=tf)
             return (
                 sol_state[0 : store_count + 1],
                 sol_time[0 : store_count + 1],

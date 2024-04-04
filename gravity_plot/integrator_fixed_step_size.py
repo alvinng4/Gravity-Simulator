@@ -66,7 +66,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
-                    progress_bar.stop()
+                    progress_bar.update(task, completed=store_npts)
                 case "euler_cromer":
                     while count.value < npts:
                         self.c_lib.euler_cromer(
@@ -89,7 +89,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
-                    progress_bar.stop()
+                    progress_bar.update(task, completed=store_npts)
                 case "rk4":
                     while count.value < npts:
                         self.c_lib.rk4(
@@ -112,7 +112,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
-                    progress_bar.stop()
+                    progress_bar.update(task, completed=store_npts)
                 case "leapfrog":
                     while count.value < npts:
                         self.c_lib.leapfrog(
@@ -135,7 +135,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
-                    progress_bar.stop() 
+                    progress_bar.update(task, completed=store_npts)
 
     def simulation_numpy(self, integrator, objects_count, x, v, m, G, dt, tf):
         npts = int(np.floor((tf / dt))) + 1    # + 1 for t0

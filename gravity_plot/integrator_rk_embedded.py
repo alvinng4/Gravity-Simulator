@@ -136,6 +136,7 @@ class RK_EMBEDDED:
 
                 # End simulation as t = tf
                 elif rk_flag == 2:
+                    progress_bar.update(task, completed=tf)
                     self.sol_state = self.sol_state[0 : store_count.value + 1]
                     self.sol_time = self.sol_time[0 : store_count.value + 1]
                     self.sol_dt = self.sol_dt[0 : store_count.value + 1]
@@ -348,6 +349,7 @@ class RK_EMBEDDED:
                 dt = tf - t
 
             if t >= tf:
+                progress_bar.update(task, completed=tf)
                 return (
                     sol_state[0 : store_count + 1],
                     sol_time[0 : store_count + 1],
