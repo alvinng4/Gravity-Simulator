@@ -34,8 +34,11 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         self.sol_dt = np.full(
             shape=(store_npts), fill_value=f"{dt}", dtype=float
         )
-        progress_bar = Progress_bar()
 
+        x_err_comp_sum = np.zeros((objects_count, 3))
+        v_err_comp_sum = np.zeros((objects_count, 3))
+
+        progress_bar = Progress_bar()
         count = ctypes.c_ulong(0)
         store_count = ctypes.c_uint(0)
         with progress_bar:
@@ -59,6 +62,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.c_int(store_npts),
                             ctypes.byref(count),
                             ctypes.byref(store_count),
+                            x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop()
@@ -80,6 +85,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.c_int(store_npts),
                             ctypes.byref(count),
                             ctypes.byref(store_count),
+                            x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop()
@@ -101,6 +108,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.c_int(store_npts),
                             ctypes.byref(count),
                             ctypes.byref(store_count),
+                            x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop()
@@ -122,6 +131,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             ctypes.c_int(store_npts),
                             ctypes.byref(count),
                             ctypes.byref(store_count),
+                            x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         )
                         progress_bar.update(task, completed=store_count.value)
                     progress_bar.stop() 
@@ -145,8 +156,11 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         self.sol_dt = np.full(
             shape=(store_npts), fill_value=f"{dt}", dtype=float
         )
-        progress_bar = Progress_bar()
 
+        x_err_comp_sum = np.zeros((objects_count, 3))
+        v_err_comp_sum = np.zeros((objects_count, 3))
+
+        progress_bar = Progress_bar()
         store_count = 0
         with progress_bar:
             match integrator:
@@ -155,7 +169,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         a = acceleration(
                             objects_count, x, m, G
                         )
-                        x, v = self.euler(x, v, a, dt)
+                        x, v, x_err_comp_sum, v_err_comp_sum = self.euler(x, v, a, dt, x_err_comp_sum, v_err_comp_sum)
                         if (count + 1) % self.store_every_n == 0:
                             self.sol_state[store_count + 1] = np.concatenate(
                                 (
@@ -178,7 +192,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         a = acceleration(
                             objects_count, x, m, G
                         )
-                        x, v = self.euler_cromer(x, v, a, dt)
+                        x, v, x_err_comp_sum, v_err_comp_sum = self.euler_cromer(x, v, a, dt, x_err_comp_sum, v_err_comp_sum)
                         if (count + 1) % self.store_every_n == 0:
                             self.sol_state[store_count + 1] = np.concatenate(
                                 (
@@ -198,13 +212,15 @@ class FIXED_STEP_SIZE_INTEGRATOR:
 
                 case "rk4":
                     for count in progress_bar.track(range(npts - 1)):
-                        x, v = self.rk4(
+                        x, v, x_err_comp_sum, v_err_comp_sum = self.rk4(
                             objects_count,
                             x,
                             v,
                             m,
                             G,
                             dt,
+                            x_err_comp_sum,
+                            v_err_comp_sum,
                         )
                         if (count + 1) % self.store_every_n == 0:
                             self.sol_state[store_count + 1] = np.concatenate(
@@ -226,7 +242,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                 case "leapfrog":
                     a = acceleration(objects_count, x, m, G)
                     for count in progress_bar.track(range(npts - 1)):
-                        x, v, a = self.leapfrog(
+                        x, v, a, x_err_comp_sum, v_err_comp_sum = self.leapfrog(
                             objects_count,
                             x,
                             v,
@@ -234,6 +250,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             m,
                             dt,
                             G,
+                            x_err_comp_sum,
+                            v_err_comp_sum
                         )
                         if (count + 1) % self.store_every_n == 0:
                             self.sol_state[store_count + 1] = np.concatenate(
@@ -253,17 +271,39 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             )
                              
     @staticmethod        
-    def euler(x, v, a, dt):
-        return x + v * dt, v + a * dt
+    def euler(x, v, a, dt, x_err_comp_sum, v_err_comp_sum):
+        x0 = x.copy()
+        v0 = v.copy()
+
+        x_err_comp_sum += v * dt
+        v_err_comp_sum += a * dt
+
+        x = x0 + x_err_comp_sum
+        v = v0 + v_err_comp_sum
+
+        x_err_comp_sum += x0 - x
+        v_err_comp_sum += v0 - v
+        
+        return x, v, x_err_comp_sum, v_err_comp_sum
 
     @staticmethod    
-    def euler_cromer(x, v, a, dt):
-        v = v + a * dt
-        x = x + v * dt
-        return x, v
+    def euler_cromer(x, v, a, dt, x_err_comp_sum, v_err_comp_sum):
+        v0 = v.copy()
+
+        v_err_comp_sum += a * dt
+        v = v0 + v_err_comp_sum
+        v_err_comp_sum += v0 - v
+
+        x0 = x.copy()
+
+        x_err_comp_sum += v * dt
+        x = x0 + x_err_comp_sum
+        x_err_comp_sum += x0 - x
+
+        return x, v, x_err_comp_sum, v_err_comp_sum
 
     @staticmethod    
-    def rk4(objects_count, x, v, m, G, dt):
+    def rk4(objects_count, x, v, m, G, dt, x_err_comp_sum, v_err_comp_sum):
         vk1 = acceleration(objects_count, x, m, G)
         xk1 = v
 
@@ -276,18 +316,35 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         vk4 = acceleration(objects_count, x + xk3 * dt, m, G)
         xk4 = v + vk3 * dt
 
-        v = v + dt * (vk1 + 2 * vk2 + 2 * vk3 + vk4) / 6.0
-        x = x + dt * (xk1 + 2 * xk2 + 2 * xk3 + xk4) / 6.0
+        v0 = v.copy()
+        x0 = x.copy()
 
-        return x, v
+        v_err_comp_sum += dt * (vk1 + 2 * vk2 + 2 * vk3 + vk4) / 6.0
+        x_err_comp_sum += dt * (xk1 + 2 * xk2 + 2 * xk3 + xk4) / 6.0
+
+        v = v0 + v_err_comp_sum
+        x = x0 + x_err_comp_sum
+
+        v_err_comp_sum += v0 - v
+        x_err_comp_sum += x0 - x
+        
+        return x, v, x_err_comp_sum, v_err_comp_sum
 
     @staticmethod    
-    def leapfrog(objects_count, x, v, a, m, dt, G):
-        a_0 = a
-        x = x + v * dt + a_0 * 0.5 * dt * dt
-        a_1 = acceleration(objects_count, x, m, G)
-        v = v + (a_0 + a_1) * 0.5 * dt
+    def leapfrog(objects_count, x, v, a, m, dt, G, x_err_comp_sum, v_err_comp_sum):
+        v0 = v.copy()
+        x0 = x.copy()
 
-        return x, v, a_1
+        a_0 = a
+        x_err_comp_sum += v * dt + a_0 * 0.5 * dt * dt
+        x = x0 + x_err_comp_sum
+        x_err_comp_sum += x0 - x
+
+        a_1 = acceleration(objects_count, x, m, G)
+        v_err_comp_sum += (a_0 + a_1) * 0.5 * dt
+        v = v0 + v_err_comp_sum
+        v_err_comp_sum += v0 - v
+
+        return x, v, a_1, x_err_comp_sum, v_err_comp_sum
 
 

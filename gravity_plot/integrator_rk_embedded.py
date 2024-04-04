@@ -67,7 +67,10 @@ class RK_EMBEDDED:
             self.sol_time[0] = 0.0
             self.sol_dt[0] = 0.0
 
-            # Launch integration:
+            # Arrays for compensated summation
+            x_err_comp_sum = np.zeros((objects_count, 3))
+            v_err_comp_sum = np.zeros((objects_count, 3))
+
             t = ctypes.c_double(0.0)
             dt = ctypes.c_double(dt)
             count = ctypes.c_uint(0)
@@ -107,6 +110,8 @@ class RK_EMBEDDED:
                     ),
                     ctypes.c_int(len(self.sol_dt)),
                     self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                 )
 
                 # Update percentage bar
@@ -225,6 +230,12 @@ class RK_EMBEDDED:
         sol_time[0] = t
         sol_dt[0] = 0.0
 
+        # Arrays for compensated summation
+        x_err_comp_sum = np.zeros((objects_count, 3))
+        v_err_comp_sum = np.zeros((objects_count, 3))
+        temp_x_err_comp_sum = np.zeros((objects_count, 3))
+        temp_v_err_comp_sum = np.zeros((objects_count, 3))
+
         # Launch integration:
         count = 0
         store_count = 0
@@ -256,10 +267,20 @@ class RK_EMBEDDED:
                 error_estimation_delta_x += (
                     error_estimation_delta_weights[stage] * xk[stage]
                 )
-            v_1 = v + dt * temp_v
-            x_1 = x + dt * temp_x
+
             error_estimation_delta_v *= dt
             error_estimation_delta_x *= dt
+
+            # Calculate x_1 and v_1
+            temp_v_err_comp_sum = v_err_comp_sum
+            temp_v_err_comp_sum += dt * temp_v
+            v_1 = v + temp_v_err_comp_sum
+            temp_v_err_comp_sum += v - v_1
+
+            temp_x_err_comp_sum = x_err_comp_sum
+            temp_x_err_comp_sum += dt * temp_x
+            x_1 = x + temp_x_err_comp_sum
+            temp_x_err_comp_sum += x - x_1
 
             # Error calculation
             tolerance_scale_v = (
@@ -280,6 +301,9 @@ class RK_EMBEDDED:
                 x = x_1
                 v = v_1
                 count += 1
+
+                x_err_comp_sum = temp_x_err_comp_sum
+                v_err_comp_sum = temp_v_err_comp_sum
 
                 # Store step:
                 if (count + 1) % store_every_n == 0:
