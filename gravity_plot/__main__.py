@@ -137,6 +137,8 @@ class Plotter:
                         f"There are {len(self.simulator.sol_time)} lines of data. Do you want to trim the data?"
                     ):
                         self.trim_data()
+                    else:
+                        print()
 
                 # --------------------Plot the result--------------------
                 if self.ask_user_permission("Plot trajectory?"):
@@ -540,6 +542,18 @@ class Plotter:
             print(f"Tolerance: {self.tolerance}")
         print(f"Use c_lib: {self.is_c_lib}")
         print(f"Store every nth point: {self.store_every_n}")
+
+        if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
+            npts = int(np.floor((self.tf / self.dt))) + 1  # + 1 for t0
+
+            store_npts = npts
+            if self.store_every_n != 1:
+                store_npts = math.floor((npts - 1) / self.store_every_n) + 1  # + 1 for t0
+            
+            print(f"Estimated number of points to be stored: {store_npts}")
+        
+
+
         print("")
 
     def _read_command_line_arg(self):
