@@ -545,45 +545,62 @@ class Plotter:
     def trim_data(self):
         while True:
             try:
-                desired_trim_size = int(input("Enter desired number of lines: "))
+                desired_trim_size = input("\nEnter desired number of lines (Enter \"cancel\" to cancel): ").strip().lower()
+                if desired_trim_size == "cancel":
+                    print()
+                    is_trim_data = False 
+                    break
+                else:
+                    desired_trim_size = int(desired_trim_size)
             except ValueError:
                 print("Invalid input! Please try again.")
                 continue 
 
-            if desired_trim_size >= len(self.simulator.sol_time):
+            if desired_trim_size > len(self.simulator.sol_time):
                 print("Value too big! Please try again.")
                 continue
-            elif desired_trim_size < 10:
+            if desired_trim_size == len(self.simulator.sol_time):
+                if self.ask_user_permission("The input value is equal to the original data size. Continue?"):
+                    print()
+                    is_trim_data = False 
+                    break 
+                else:
+                    continue
+            elif desired_trim_size < 2:
                 print("Value too small! Please try again.")
                 continue
             else:
-                break
+                divide_factor = math.ceil(len(self.simulator.sol_time) / desired_trim_size)
+                trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
+                if self.ask_user_permission(f"The trimmed data size would be {trim_size}. Continue?"):
+                    print()
+                    is_trim_data = True
+                    break
 
-        divide_factor = math.ceil(len(self.simulator.sol_time) / desired_trim_size)
-        trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
+        if is_trim_data == True:
+            trimmed_sol_time = np.zeros(trim_size)
+            trimmed_sol_dt = np.zeros(trim_size)
+            trimmed_sol_state = np.zeros((trim_size, self.simulator.objects_count * 3 * 2))
 
-        trimmed_sol_time = np.zeros(trim_size)
-        trimmed_sol_dt = np.zeros(trim_size)
-        trimmed_sol_state = np.zeros((trim_size, self.simulator.objects_count * 3 * 2))
+            j = 0
+            for i in range(len(self.simulator.sol_time)):
+                if i % divide_factor == 0:
+                    trimmed_sol_time[j] = self.simulator.sol_time[i]
+                    trimmed_sol_dt[j] = self.simulator.sol_dt[i]
+                    trimmed_sol_state[j] = self.simulator.sol_state[i]
+                    j += 1
 
-        j = 0
-        for i in range(len(self.simulator.sol_time)):
-            if i % divide_factor == 0:
-                trimmed_sol_time[j] = self.simulator.sol_time[i]
-                trimmed_sol_dt[j] = self.simulator.sol_dt[i]
-                trimmed_sol_state[j] = self.simulator.sol_state[i]
-                j += 1
+            if trimmed_sol_time[-1] != self.simulator.sol_time[-1]:
+                trimmed_sol_time[-1] = self.simulator.sol_time[-1]
+                trimmed_sol_dt[-1] = self.simulator.sol_dt[-1]
+                trimmed_sol_state[-1] = self.simulator.sol_state[-1]
 
-        if trimmed_sol_time[-1] != self.simulator.sol_time[-1]:
-            trimmed_sol_time[-1] = self.simulator.sol_time[-1]
-            trimmed_sol_dt[-1] = self.simulator.sol_dt[-1]
-            trimmed_sol_state[-1] = self.simulator.sol_state[-1]
+            print(f"Trimmed data size = {len(trimmed_sol_time)}")
+            print()
 
-        print(f"Trimmed data size = {len(trimmed_sol_time)}")
-
-        self.simulator.sol_time = trimmed_sol_time
-        self.simulator.sol_dt = trimmed_sol_dt
-        self.simulator.sol_state = trimmed_sol_state
+            self.simulator.sol_time = trimmed_sol_time
+            self.simulator.sol_dt = trimmed_sol_dt
+            self.simulator.sol_state = trimmed_sol_state
 
     def save_result(self, is_compute_energy):
         """
