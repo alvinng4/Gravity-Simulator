@@ -12,6 +12,7 @@ from integrator_fixed_step_size import FIXED_STEP_SIZE_INTEGRATOR
 from integrator_rk_embedded import RK_EMBEDDED
 from integrator_ias15 import IAS15
 
+
 class Simulator:
     # Conversion factor from km^3 s^-2 to AU^3 d^-2
     CONVERSION_FACTOR = (86400**2) / (149597870.7**3)
@@ -493,27 +494,59 @@ class Simulator:
 
         match self.integrator:
             case "euler" | "euler_cromer" | "rk4" | "leapfrog":
-                fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR(self, self.integrator, self.objects_count, self.x, self.v, self.m, self.G, self.dt, self.tf, self.is_c_lib)
+                fixed_step_size_integrator = FIXED_STEP_SIZE_INTEGRATOR(
+                    self,
+                    self.integrator,
+                    self.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.G,
+                    self.dt,
+                    self.tf,
+                    self.is_c_lib,
+                )
                 self.sol_state = fixed_step_size_integrator.sol_state
                 self.sol_time = fixed_step_size_integrator.sol_time
                 self.sol_dt = fixed_step_size_integrator.sol_dt
 
             case "rkf45" | "dopri" | "dverk" | "rkf78":
-                rk_embedded = RK_EMBEDDED(self, self.integrator, self.objects_count, self.x, self.v, self.m, self.G, self.tf, self.tolerance, self.tolerance, self.is_c_lib)
+                rk_embedded = RK_EMBEDDED(
+                    self,
+                    self.integrator,
+                    self.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.G,
+                    self.tf,
+                    self.tolerance,
+                    self.tolerance,
+                    self.is_c_lib,
+                )
                 self.sol_state = rk_embedded.sol_state
                 self.sol_time = rk_embedded.sol_time
                 self.sol_dt = rk_embedded.sol_dt
 
             case "ias15":
-                ias15 = IAS15(self, self.objects_count, self.x, self.v, self.m, self.G, self.tf, self.tolerance, self.is_c_lib)
+                ias15 = IAS15(
+                    self,
+                    self.objects_count,
+                    self.x,
+                    self.v,
+                    self.m,
+                    self.G,
+                    self.tf,
+                    self.tolerance,
+                    self.is_c_lib,
+                )
                 self.sol_state = ias15.sol_state
                 self.sol_time = ias15.sol_time
-                self.sol_dt = ias15.sol_dt 
+                self.sol_dt = ias15.sol_dt
 
         stop = timeit.default_timer()
         print(f"Run time: {stop - start:.3f} s")
         print("")
-
 
     def compute_energy(self):
         """
@@ -529,7 +562,7 @@ class Simulator:
         if self.is_c_lib == True:
             count = ctypes.c_int(0)
             with progress_bar:
-                task = progress_bar.add_task("", total=npts)       
+                task = progress_bar.add_task("", total=npts)
                 while count.value < npts:
                     self.c_lib.compute_energy(
                         ctypes.c_int(self.objects_count),
@@ -538,10 +571,10 @@ class Simulator:
                         self.energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                         self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                        ctypes.c_double(self.G)
-                        )
+                        ctypes.c_double(self.G),
+                    )
                     progress_bar.update(task, completed=count.value)
-                    
+
         elif self.is_c_lib == False:
             with progress_bar:
                 for count in progress_bar.track(range(npts), description=""):
@@ -574,4 +607,3 @@ class Simulator:
         stop = timeit.default_timer()
         print(f"Run time: {(stop - start):.3f} s")
         print("")
-

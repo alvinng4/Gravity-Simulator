@@ -364,9 +364,7 @@ class IAS15:
                 # Report accepted step
                 ias15_integrate_flag = 1
                 t += dt
-                self.ias15_refine_aux_b(
-                    aux_b, aux_e, dt, dt_new, ias15_refine_flag
-                )
+                self.ias15_refine_aux_b(aux_b, aux_e, dt, dt_new, ias15_refine_flag)
                 ias15_refine_flag = 1
 
                 x_err_comp_sum = temp_x_err_comp_sum.copy()
@@ -415,35 +413,42 @@ class IAS15:
         """
         Calculate the auxiliary position used to calculate aux_b and aux_g
         """
-        x = x0 + x_err_comp_sum + dt * node * (
-            v0
+        x = (
+            x0
+            + x_err_comp_sum
             + dt
             * node
             * (
-                a0
-                + node
+                v0
+                + dt
+                * node
                 * (
-                    aux_b[0] / 3.0
+                    a0
                     + node
                     * (
-                        aux_b[1] / 6.0
+                        aux_b[0] / 3.0
                         + node
                         * (
-                            aux_b[2] / 10.0
+                            aux_b[1] / 6.0
                             + node
                             * (
-                                aux_b[3] / 15.0
+                                aux_b[2] / 10.0
                                 + node
                                 * (
-                                    aux_b[4] / 21.0
-                                    + node * (aux_b[5] / 28.0 + node * aux_b[6] / 36.0)
+                                    aux_b[3] / 15.0
+                                    + node
+                                    * (
+                                        aux_b[4] / 21.0
+                                        + node
+                                        * (aux_b[5] / 28.0 + node * aux_b[6] / 36.0)
+                                    )
                                 )
                             )
                         )
                     )
                 )
+                / 2.0
             )
-            / 2.0
         )
 
         return x
@@ -453,24 +458,30 @@ class IAS15:
         """
         Calculate the auxiliary velocity used to calculate aux_b and aux_g
         """
-        v = v0 + v_err_comp_sum + dt * node * (
-            a0
-            + node
+        v = (
+            v0
+            + v_err_comp_sum
+            + dt
+            * node
             * (
-                aux_b[0] / 2.0
+                a0
                 + node
                 * (
-                    aux_b[1] / 3.0
+                    aux_b[0] / 2.0
                     + node
                     * (
-                        aux_b[2] / 4.0
+                        aux_b[1] / 3.0
                         + node
                         * (
-                            aux_b[3] / 5.0
+                            aux_b[2] / 4.0
                             + node
                             * (
-                                aux_b[4] / 6.0
-                                + node * (aux_b[5] / 7.0 + node * aux_b[6] / 8.0)
+                                aux_b[3] / 5.0
+                                + node
+                                * (
+                                    aux_b[4] / 6.0
+                                    + node * (aux_b[5] / 7.0 + node * aux_b[6] / 8.0)
+                                )
                             )
                         )
                     )

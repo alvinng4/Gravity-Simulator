@@ -5,8 +5,22 @@ import numpy as np
 from common import acceleration
 from progress_bar import Progress_bar
 
+
 class RK_EMBEDDED:
-    def __init__(self, simulator, integrator, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance, is_c_lib):
+    def __init__(
+        self,
+        simulator,
+        integrator,
+        objects_count,
+        x,
+        v,
+        m,
+        G,
+        tf,
+        abs_tolerance,
+        rel_tolerance,
+        is_c_lib,
+    ):
         match integrator:
             case "rkf45":
                 order = 45
@@ -18,7 +32,7 @@ class RK_EMBEDDED:
                 order = 78
             case _:
                 raise ValueError("Invalid integrator!")
-            
+
         (
             self.power,
             self.power_test,
@@ -31,11 +45,17 @@ class RK_EMBEDDED:
 
         if is_c_lib == True:
             self.c_lib = simulator.c_lib
-            self.simulation_c_lib(objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance)
+            self.simulation_c_lib(
+                objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance
+            )
         elif is_c_lib == False:
-            self.simulation_numpy(objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance)
-        
-    def simulation_c_lib(self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance):
+            self.simulation_numpy(
+                objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance
+            )
+
+    def simulation_c_lib(
+        self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance
+    ):
         progress_bar = Progress_bar()
         with progress_bar:
             task = progress_bar.add_task("", total=tf)
@@ -50,7 +70,7 @@ class RK_EMBEDDED:
                 G,
                 abs_tolerance,
                 rel_tolerance,
-            ) 
+            )
             # Allocate for dense output:
             npts = 100000
             self.sol_state = np.zeros((npts, objects_count * 2 * 3))
@@ -93,21 +113,13 @@ class RK_EMBEDDED:
                     ctypes.c_int(np.shape(self.coeff)[-1]),
                     self.coeff.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.weights)),
-                    self.weights.ctypes.data_as(
-                        ctypes.POINTER(ctypes.c_double)
-                    ),
-                    self.weights_test.ctypes.data_as(
-                        ctypes.POINTER(ctypes.c_double)
-                    ),
+                    self.weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    self.weights_test.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_double(abs_tolerance),
                     ctypes.c_double(rel_tolerance),
-                    self.sol_state.ctypes.data_as(
-                        ctypes.POINTER(ctypes.c_double)
-                    ),
+                    self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.sol_time)),
-                    self.sol_time.ctypes.data_as(
-                        ctypes.POINTER(ctypes.c_double)
-                    ),
+                    self.sol_time.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.sol_dt)),
                     self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -118,7 +130,7 @@ class RK_EMBEDDED:
                 progress_bar.update(task, completed=t.value)
                 if rk_flag == 0:
                     pass
-            
+
                 # Extend buffer size if needed
                 elif rk_flag == 1:
                     self.sol_state = np.concatenate(
@@ -127,12 +139,8 @@ class RK_EMBEDDED:
                             np.zeros((npts, objects_count * 2 * 3)),
                         )
                     )
-                    self.sol_time = np.concatenate(
-                        (self.sol_time, np.zeros(npts))
-                    )
-                    self.sol_dt = np.concatenate(
-                        (self.sol_dt, np.zeros(npts))
-                    )
+                    self.sol_time = np.concatenate((self.sol_time, np.zeros(npts)))
+                    self.sol_dt = np.concatenate((self.sol_dt, np.zeros(npts)))
 
                 # End simulation as t = tf
                 elif rk_flag == 2:
@@ -142,7 +150,9 @@ class RK_EMBEDDED:
                     self.sol_dt = self.sol_dt[0 : store_count.value + 1]
                     break
 
-    def simulation_numpy(self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance):
+    def simulation_numpy(
+        self, objects_count, x, v, m, G, tf, abs_tolerance, rel_tolerance
+    ):
         a = acceleration(objects_count, x, m, G)
         initial_dt = self.rk_embedded_initial_time_step(
             objects_count,
@@ -194,7 +204,7 @@ class RK_EMBEDDED:
         weights_test,
         abs_tolerance: float,
         rel_tolerance: float,
-        store_every_n: int
+        store_every_n: int,
     ):
         """
         Perform simulation using rk_embedded methods
@@ -309,7 +319,10 @@ class RK_EMBEDDED:
                 # Store step:
                 if (count + 1) % store_every_n == 0:
                     sol_state[store_count + 1] = np.concatenate(
-                        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                        (
+                            np.reshape(x, objects_count * 3),
+                            np.reshape(v, objects_count * 3),
+                        )
                     )
                     sol_time[store_count + 1] = t
                     sol_dt[store_count + 1] = dt
@@ -317,7 +330,10 @@ class RK_EMBEDDED:
 
                 if t == tf:
                     sol_state[store_count] = np.concatenate(
-                        (np.reshape(x, objects_count * 3), np.reshape(v, objects_count * 3))
+                        (
+                            np.reshape(x, objects_count * 3),
+                            np.reshape(v, objects_count * 3),
+                        )
                     )
                     sol_time[store_count] = t
                     sol_dt[store_count] = dt
@@ -441,7 +457,13 @@ class RK_EMBEDDED:
                         [3.0 / 32.0, 9.0 / 32.0, 0.0, 0.0, 0.0],
                         [1932.0 / 2197.0, -7200.0 / 2197.0, 7296.0 / 2197.0, 0.0, 0.0],
                         [439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0, 0.0],
-                        [-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0],
+                        [
+                            -8.0 / 27.0,
+                            2.0,
+                            -3544.0 / 2565.0,
+                            1859.0 / 4104.0,
+                            -11.0 / 40.0,
+                        ],
                     ]
                 )
 
@@ -542,7 +564,20 @@ class RK_EMBEDDED:
                 # )
                 coeff = np.array(
                     [
-                        [2.0 / 27.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [
+                            2.0 / 27.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                        ],
                         [
                             1.0 / 36.0,
                             1.0 / 12.0,
