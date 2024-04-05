@@ -31,12 +31,14 @@ In development: WHFast integrator
     - [C library / Numpy (Optional)](#c-library--numpy-optional-1)
     - [Plotting dt (Optional)](#plotting-dt-optional)
     - [Comparing relative energy error (Optional)](#comparing-relative-energy-error-optional)
+* [Compensated summation](#compensated-summation)
 * [Available integrators](#available-integrators)
     - [Fixed step size methods](#fixed-step-size-methods)
     - [Embedded Runge-Kutta methods](#embdedded-runge-kutta-methods)
     - [IAS15](#IAS15)
+* [Data Sources](#data-sources)
 * [Feedback and Bugs](#feedback-and-bugs)
-* [Data references](#data-references)
+* [References](#references)
 * [Bibliography](#bibliography)
 
 ## Quick Start
@@ -216,7 +218,8 @@ python compare.py [-t|--title] <title>
 
 ## Compensated summation
 
-A method known as compensated summation is implemented in the plotting module.
+A method known as compensated summation [1], [4] is implemented in the plotting module.
+
 When we advance our system by $\text{d}t$, we have 
 
 $x_{n+1} = x_n + \delta x$
@@ -252,16 +255,22 @@ Recommended tolerance*: 1e-9
 
 *For reference only
 
+## Data Sources
+The solar system positions and velocities data at 1/Jan/2024 are collected from the Horizons System [2].
+Gravitational constant, and masses of the Sun and the planets are calaculated using the
+data from R.S. Park *et. al*. [3].
+
 ## Feedback and Bugs
 This is my first programming project after learning programming for 7 months, so there could be a lot of bugs.
 If you find any bugs or want to give me your feedback, please feel free to let me know by sending an email to alvinng324@gmail.com or open an issue.
 
-## Data References
-1. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
-2. Park, R.S., et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, Astronomical Journal, 161:105.
-
-## Bibliography 
-1. Rein, H., and D. S. Spiegel, 2014, "IAS15: A fast, adaptive, high-order integrator for gravitational dynamics,
+## References
+1. E. Hairer, C. Lubich, and G. Wanner, "Reducing Rounding Errors" in *Geometric Numerical Integration: Structure-Preserving Algorithms for Ordinary Differential Equations*. Springer, 2004, pp. 272-274.
+2. Horizons System, Jet Propulsion Laboratory, https://ssd.jpl.nasa.gov/horizons/
+3. R. S. Park, et al., 2021, “The JPL Planetary and Lunar Ephemerides DE440 and DE441”, https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf, Astronomical Journal, 161:105.
+4. Rein, H., and D. S. Spiegel, 2014, "IAS15: A fast, adaptive, high-order integrator for gravitational dynamics,
 accurate to machine precision over a billion orbits", Monthly Notices of the Royal Astronomical Society 446:
 1424–1437.
-2. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
+
+## Bibliography 
+1. Roa, Javier, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
