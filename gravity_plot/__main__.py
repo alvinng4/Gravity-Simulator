@@ -18,9 +18,9 @@ class Plotter:
     SIDEREAL_DAYS_PER_YEAR = 365.256363004
 
     def __init__(self):
-        #--------------------Read command line arguments-----------------------
+        # --------------------Read command line arguments--------------------
         self._read_command_line_arg()
-        
+
         # Use c library to perform simulation
         self.is_c_lib = self.args.numpy
         if self.is_c_lib:
@@ -37,13 +37,14 @@ class Plotter:
                 print("System message: Loading c_lib failed. Running with numpy.")
                 self.is_c_lib = False
 
-
         self.store_every_n = self.args.store_every_n
         if self.store_every_n < 1:
-            raise argparse.ArgumentTypeError("Store every nth points should be larger than 1!")
+            raise argparse.ArgumentTypeError(
+                "Store every nth points should be larger than 1!"
+            )
         self.is_plot_dt = self.args.dt
 
-        #--------------------------Initialize attributes-------------------------------
+        # --------------------Initialize attributes--------------------
         self.tolerance = None
         self.dt = None
         self.default_systems = [
@@ -116,7 +117,7 @@ class Plotter:
         try:
             # Restart once all the progress is finished
             while True:
-                # --------------------Read user input-----------------------
+                # --------------------Read user input--------------------
                 while True:
                     self._read_user_input()
                     self._print_user_input()
@@ -124,7 +125,7 @@ class Plotter:
                         print("")
                         break
 
-                # -------------------Launch simulation----------------------
+                # --------------------Launch simulation--------------------
                 self.simulator = Simulator(self)
                 self.simulator.initialize_system(self)
                 self.simulator.simulation()
@@ -137,7 +138,7 @@ class Plotter:
                     ):
                         self.trim_data()
 
-                # --------------------Plot the result-----------------------
+                # --------------------Plot the result--------------------
                 if self.ask_user_permission("Plot trajectory?"):
                     print("")
                     self._plot_trajectory()
@@ -157,13 +158,13 @@ class Plotter:
                 if self.is_plot_dt:
                     self._plot_dt()
 
-                # -----------------------Store data-------------------------
+                # --------------------Store data--------------------
                 print(f"Lines of data = {len(self.simulator.sol_time)}")
                 if self.ask_user_permission("Save simulation data?"):
                     print("")
                     self.save_result(self.is_compute_energy)
 
-                # -------Ask permission to restart the whole program-------
+                # --------------------Ask permission to restart the whole program--------------------
                 if not self.ask_user_permission(
                     "All plotting is done. Restart simulation?"
                 ):
@@ -433,7 +434,9 @@ class Plotter:
         while True:
             print("Available integrators: ")
             for i, integrator in enumerate(self.available_integrators):
-                print(f"{i + 1}. {self.available_integrators_to_printable_names[integrator]}")
+                print(
+                    f"{i + 1}. {self.available_integrators_to_printable_names[integrator]}"
+                )
             self.integrator = input("Enter integrator (Number or name): ")
             # Temporary string
             temp_str = ""
@@ -521,7 +524,9 @@ class Plotter:
 
     def _print_user_input(self):
         print(f"System: {self.system}")
-        print(f"Integrator: {self.available_integrators_to_printable_names[self.integrator]}")
+        print(
+            f"Integrator: {self.available_integrators_to_printable_names[self.integrator]}"
+        )
         if self.unit == "years":
             print(f"tf: {self.tf / self.SIDEREAL_DAYS_PER_YEAR:g} years")
         else:
@@ -561,44 +566,65 @@ class Plotter:
         self.args = parser.parse_args()
 
     def trim_data(self):
+        # --------------------Get user input--------------------
         while True:
             try:
-                desired_trim_size = input("\nEnter desired number of lines (Enter \"cancel\" to cancel): ").strip().lower()
+                desired_trim_size = (
+                    input(
+                        '\nEnter desired number of lines (Enter "cancel" to cancel): '
+                    )
+                    .strip()
+                    .lower()
+                )
                 if desired_trim_size == "cancel":
                     print()
-                    is_trim_data = False 
+                    is_trim_data = False
                     break
                 else:
                     desired_trim_size = int(desired_trim_size)
             except ValueError:
                 print("Invalid input! Please try again.")
-                continue 
+                continue
 
             if desired_trim_size > len(self.simulator.sol_time):
                 print("Value too big! Please try again.")
                 continue
             if desired_trim_size == len(self.simulator.sol_time):
-                if self.ask_user_permission("The input value is equal to the original data size. Continue?"):
+                if self.ask_user_permission(
+                    "The input value is equal to the original data size. Continue?"
+                ):
                     print()
-                    is_trim_data = False 
-                    break 
+                    is_trim_data = False
+                    break
                 else:
                     continue
             elif desired_trim_size < 2:
                 print("Value too small! Please try again.")
                 continue
             else:
-                divide_factor = math.ceil(len(self.simulator.sol_time) / desired_trim_size)
+                divide_factor = math.ceil(
+                    len(self.simulator.sol_time) / desired_trim_size
+                )
                 trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
-                if self.ask_user_permission(f"The trimmed data size would be {trim_size}. Continue?"):
+                if self.ask_user_permission(
+                    f"The trimmed data size would be {trim_size}. Continue?"
+                ):
                     print()
                     is_trim_data = True
                     break
 
+        # --------------------Trim data--------------------
+
+        # Note: trim size is calculated in the the user input section:
+        # divide_factor = math.ceil(len(self.simulator.sol_time) / desired_trim_size)
+        # trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
+
         if is_trim_data == True:
             trimmed_sol_time = np.zeros(trim_size)
             trimmed_sol_dt = np.zeros(trim_size)
-            trimmed_sol_state = np.zeros((trim_size, self.simulator.objects_count * 3 * 2))
+            trimmed_sol_state = np.zeros(
+                (trim_size, self.simulator.objects_count * 3 * 2)
+            )
 
             j = 0
             for i in range(len(self.simulator.sol_time)):
@@ -649,7 +675,11 @@ class Plotter:
                 writer = csv.writer(file)
                 for count in progress_bar.track(range(len(self.simulator.sol_time))):
                     if is_compute_energy:
-                        row = np.insert(self.simulator.sol_state[count], 0, self.simulator.energy[count])
+                        row = np.insert(
+                            self.simulator.sol_state[count],
+                            0,
+                            self.simulator.energy[count],
+                        )
                         row = np.insert(row, 0, self.simulator.sol_dt[count])
                         row = np.insert(row, 0, self.simulator.sol_time[count])
                     else:
