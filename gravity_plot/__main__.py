@@ -68,6 +68,17 @@ class Plotter:
             "rkf78",
             "ias15",
         ]
+        self.available_integrators_to_printable_names = {
+            "euler": "Euler",
+            "euler_cromer": "Euler_Cromer",
+            "rk4": "RK4",
+            "leapfrog": "LeapFrog",
+            "rkf45": "RKF45",
+            "dopri": "DOPRI",
+            "dverk": "DVERK",
+            "rkf78": "RKF78",
+            "ias15": "IAS15",
+        }
         self.solar_like_systems = [
             "sun_earth_moon",
             "solar_system",
@@ -252,6 +263,7 @@ class Plotter:
         print()
 
     def _read_user_input(self):
+        # --------------------Check and Input systems--------------------
         while True:
             self.available_systems = self.default_systems.copy()
             file_path = Path(__file__).parent / "customized_systems.csv"
@@ -295,6 +307,7 @@ class Plotter:
 
             print("\nInvalid input. Please try again.\n")
 
+        # --------------------Customize system--------------------
         if self.system == "custom":
             print("\nCustomizing system...")
             while True:
@@ -398,6 +411,7 @@ class Plotter:
                     }
                 )
 
+        # --------------------Recommended settings for systems--------------------
         elif self.system in self.default_systems:
             print("")
             if self.ask_user_permission(
@@ -414,10 +428,12 @@ class Plotter:
                 return None
 
         print("")
+
+        # --------------------Input integrators--------------------
         while True:
             print("Available integrators: ")
             for i, integrator in enumerate(self.available_integrators):
-                print(f"{i + 1}. {integrator}")
+                print(f"{i + 1}. {self.available_integrators_to_printable_names[integrator]}")
             self.integrator = input("Enter integrator (Number or name): ")
             # Temporary string
             temp_str = ""
@@ -446,6 +462,7 @@ class Plotter:
 
             print("\nInvalid input. Please try again.\n")
 
+        # --------------------Input tf--------------------
         while True:
             print("")
             self.tf = input("Enter tf (d/yr): ")
@@ -466,6 +483,7 @@ class Plotter:
                     self.tf *= self.SIDEREAL_DAYS_PER_YEAR
                     break
 
+        # --------------------Input dt--------------------
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             while True:
                 print("")
@@ -503,7 +521,7 @@ class Plotter:
 
     def _print_user_input(self):
         print(f"System: {self.system}")
-        print(f"Integrator: {self.integrator}")
+        print(f"Integrator: {self.available_integrators_to_printable_names[self.integrator]}")
         if self.unit == "years":
             print(f"tf: {self.tf / self.SIDEREAL_DAYS_PER_YEAR:g} years")
         else:
