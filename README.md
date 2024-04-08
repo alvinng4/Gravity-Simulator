@@ -88,7 +88,7 @@ python gravity_sim
 | solar_system | Solar System with the Sun and the planets |
 
 > [!TIP]\
-> Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the difference
+> Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
 
 ### Control
@@ -127,7 +127,7 @@ python gravity_sim [-n|--numpy]
 ## Plotting module
 
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/b3e9c59e-7f92-4106-9558-b3a5a9848a5f" alt="Image" width="300">
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/0b905646-b10b-4b11-9554-5d87b4935393" alt="Image" width="300">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/e8ffa090-c39f-43c6-8465-89767c8c2069" alt="Image" width="300">
 
 ### Running the program
 
@@ -150,7 +150,7 @@ python gravity_plot
 | custom | Customize your own system |
 
 > [!TIP]\
-> Pyth-3-body is a highly chaotic orbit with close encounters, which is useful to test the difference
+> Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
 
 ### Customizing system
@@ -257,7 +257,7 @@ Recommended tolerance*: 1e-9
 
 ## Data Sources
 The solar system positions and velocities data at 1/Jan/2024 are collected from the Horizons System [2].
-Gravitational constant, and masses of the Sun and the planets are calaculated using the
+Gravitational constant, and masses of the solar system objects are calculated using the
 data from R.S. Park *et. al*. [3].
 
 ## Feedback and Bugs
