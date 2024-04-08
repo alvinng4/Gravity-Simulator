@@ -9,7 +9,7 @@ In development: WHFast integrator
 <video src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/f761e4cc-3cb6-494b-b251-c1a66809a27d" width="700"/>
 </video>
 
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/a606eb56-cd6e-4ed9-813a-c5128f5a19dd" alt="Image" width="400">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/d6e2d9f0-a762-43ce-876b-32e3ef75304e" alt="Image" width="400">
 
 ## Documentation
 * [Quick Start](#quick-start)
@@ -126,8 +126,8 @@ python gravity_sim [-n|--numpy]
 
 ## Plotting module
 
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/b3e9c59e-7f92-4106-9558-b3a5a9848a5f" alt="Image" width="300">
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/e8ffa090-c39f-43c6-8465-89767c8c2069" alt="Image" width="300">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/5633ec1e-0c20-43d2-bf4e-ad181cb5113f" alt="Image" width="300">
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/93f6da6d-fd3a-4998-9d4b-c2a071c234ee" alt="Image" width="300">
 
 ### Running the program
 
