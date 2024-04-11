@@ -208,8 +208,8 @@ class Plotter:
                     color=traj[0].get_color(),
                 )
 
-        ax1.set_xlabel("X (AU)")
-        ax1.set_ylabel("Y (AU)")
+        ax1.set_xlabel("$x$ (AU)")
+        ax1.set_ylabel("$y$ (AU)")
 
         if self.system in self.solar_like_systems:
             fig1.legend(loc="center right", borderaxespad=0.2)
@@ -231,7 +231,7 @@ class Plotter:
         )
         ax2.set_title("Relative energy error against time")
         ax2.set_xlabel(f"Time ({self.unit})")
-        ax2.set_ylabel("|(E(t)-E0)/E0|")
+        ax2.set_ylabel("$|(E(t)-E_0)/E_0|$")
 
         plt.show()
         print()
@@ -244,7 +244,7 @@ class Plotter:
         ax3.semilogy(self.simulator.sol_time, np.abs(self.simulator.energy))
         ax3.set_title("Total energy against time")
         ax3.set_xlabel(f"Time ({self.unit})")
-        ax3.set_ylabel("E(t)")
+        ax3.set_ylabel("$E(t)$")
 
         plt.show()
         print()
