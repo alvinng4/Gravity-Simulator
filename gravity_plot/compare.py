@@ -84,7 +84,7 @@ class Comparer:
         self.ax = self.fig.add_subplot(111)
         self.ax.set_title(self.title)
         self.ax.set_xlabel(f"Time ({self.unit})")
-        self.ax.set_ylabel("|(E(t)-E0)/E0|")
+        self.ax.set_ylabel("$|(E(t)-E_0)/E_0|$")
 
     def ask_files_info(self):
         """
