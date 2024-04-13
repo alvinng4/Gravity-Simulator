@@ -184,11 +184,11 @@ class Simulator:
                             self.objects_count = int(row[1])
                             self.m = row[2].strip("[]")
                             self.m = np.array(
-                                [float(item) for item in self.m.split(", ")]
+                                [float(item.strip()) for item in self.m.split(",")]
                             )
                             state_vec = row[3].strip("[]")
                             state_vec = np.array(
-                                [float(item) for item in state_vec.split(", ")]
+                                [float(item.strip()) for item in state_vec.split(",")]
                             )
                             x_vec = []
                             v_vec = []
