@@ -6,6 +6,23 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 
 In development: WHFast integrator
 
+Online demo for interactive module: \
+https://alvinng4.github.io/Gravity_Simulator_Web/
+
+Click *once* after you see the green bar with
+"Ready to start!", and you should see the main
+menu. Select a system to start. 
+
+This online demo is built with the pygbag package. 
+
+> [!TIP]\
+> Runs locally with ctypes would gives ~500x faster performance
+
+> [!Warning]\
+> If you accidently selected/clicked the window,
+> the FPS would drops significantly. To fix it, simply click
+> on something else outside the game window.
+
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/7305959b-79c6-44fb-bfe6-bb927431ca00" alt="Image" width="400">
 
 
