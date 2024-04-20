@@ -1,14 +1,19 @@
 ## Compilation
 Below is the command I used to compile the source files.
 
-On macbook air M1:
+On mac:
 ```
-gcc-13 -shared -fPIC -O3 c_lib.c -o c_lib.so
+gcc -shared -fPIC -O3 c_lib.c -o c_lib.dylib
 ```
 
 On windows:
 ```
 gcc -shared -fPIC -O3 c_lib.c -o c_lib.dll
+```
+
+On linux:
+```
+gcc -shared -fPIC -O3 c_lib.c -o c_lib.so
 ```
 
 After compilation, put the files into the `gravity_plot` or `gravity_sim` folder.
