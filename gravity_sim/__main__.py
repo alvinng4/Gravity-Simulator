@@ -44,7 +44,7 @@ class GravitySimulator:
                     )
                 elif platform.system() == "Darwin":
                     self.c_lib = ctypes.cdll.LoadLibrary(
-                        str(Path(__file__).parent / "c_lib.so")
+                        str(Path(__file__).parent / "c_lib.dylib")
                     )
                 elif platform.system() == "Linux":
                     self.c_lib = ctypes.cdll.LoadLibrary(
