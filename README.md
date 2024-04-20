@@ -4,10 +4,13 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 * Interactive module: real time simulation with the interactive simulator
 * Plotting module: customize your own system and generate a plot easily
 
-In development: WHFast integrator
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/7305959b-79c6-44fb-bfe6-bb927431ca00" alt="Image" width="400">
 
-Online demo for interactive module: \
-https://alvinng4.github.io/Gravity_Simulator_Web/
+
+<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/d6e2d9f0-a762-43ce-876b-32e3ef75304e" alt="Image" width="400">
+
+## Online demo for interactive module: 
+Link: https://alvinng4.github.io/Gravity_Simulator_Web/
 
 Click *once* after you see the green bar with
 "Ready to start!", and you should see the main
@@ -15,18 +18,12 @@ menu. Select a system to start.
 
 This online demo is built with the pygbag package. 
 
-> [!TIP]\
-> Runs locally with ctypes would gives ~500x faster performance
-
 > [!Warning]\
-> If you accidently selected/clicked the window,
+> In Safari, if you accidently selected/clicked the window,
 > the FPS would drops significantly. To fix it, simply click
 > on something else outside the game window.
 
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/7305959b-79c6-44fb-bfe6-bb927431ca00" alt="Image" width="400">
 
-
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/d6e2d9f0-a762-43ce-876b-32e3ef75304e" alt="Image" width="400">
 
 ## Documentation
 * [Quick Start](#quick-start)
