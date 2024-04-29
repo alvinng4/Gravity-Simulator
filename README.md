@@ -12,9 +12,9 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 ## Online demo for interactive module: 
 Link: https://alvinng4.github.io/Gravity_Simulator_Web/
 
-Click *once* after you see the green bar with
-"Ready to start!", and you should see the main
-menu. Select a system to start. 
+Click *once* after you see the green loading bar showing
+"Ready to start!". You should then see the main
+menu. Simply select a system to start. 
 
 This online demo is built with the pygbag package. 
 
@@ -33,17 +33,18 @@ This online demo is built with the pygbag package.
 * [Quick fix](#quick-fix)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program-2)
+    - [C library / Numpy (Optional)](#c-library--numpy-optional)
+    - [Changing the resolution (Optional)](#changing-the-resolution-optional)
     - [Available systems](#available-systems-1)
     - [Control](#control)
-    - [Changing the resolution](#changing-the-resolution)
-    - [C library / Numpy (Optional)](#c-library--numpy-optional)
 * [Plotting module](#plotting-module)
     - [Running the program](#running-the-program-1)
+    - [C library / Numpy (Optional)](#c-library--numpy-optional-1)
+    - [Plotting dt (Optional)](#plotting-dt-optional)
+    - [Store every nth point (Optional)](#store-every-nth-point-optional)
     - [Available systems](#available-systems)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
-    - [C library / Numpy (Optional)](#c-library--numpy-optional-1)
-    - [Plotting dt (Optional)](#plotting-dt-optional)
     - [Comparing relative energy error (Optional)](#comparing-relative-energy-error-optional)
 * [Compensated summation](#compensated-summation)
 * [Available integrators](#available-integrators)
@@ -91,8 +92,24 @@ python gravity_plot [-n|--numpy]
 ### Running the program
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
-python gravity_sim
+python gravity_sim [-n|--numpy] [-r|--resolution <width> <height>]
 ```
+
+### C library / Numpy (Optional)
+By default, the module utilize C to improve performance.
+Numpy is about 500 to 1000 times slower.
+Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
+If you want to use numpy, run the program with
+```
+python gravity_sim [-n|--numpy]
+```
+
+### Changing the resolution (Optional)
+The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
+```
+python3 gravity_sim [-r|--resolution <width> <height>]
+```
+
 ### Available systems
 | System | Description |
 |:-------|:------------| 
@@ -123,21 +140,6 @@ between fixed and variable step size integrators.
 > [!WARNING]\
 > Switching integrators or changing dt in the middle of simulation may produce some numerical error.
 
-### Changing the resolution
-The default resolution is set to the user's screen size. However, you can set your own resolution by the following command:
-```
-python3 gravity_sim [-r|--resolution] <width> <height>
-```
-
-### C library / Numpy (Optional)
-By default, the module utilize the code written in C to improve performance.
-Numpy is about 500 to 1000 times slower and produces slightly more error.
-Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
-If you want to use numpy, run the program with
-```
-python gravity_sim [-n|--numpy]
-```
-
 ## Plotting module
 
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/5633ec1e-0c20-43d2-bf4e-ad181cb5113f" alt="Image" width="300">
@@ -147,8 +149,33 @@ python gravity_sim [-n|--numpy]
 
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
-python gravity_plot
+python gravity_plot [-n|--numpy] [-d|--dt] [-s|--store_every_n=<int>]
 ```
+
+### C library / Numpy (Optional)
+By default, the module utilize the code written in C to improve performance.
+Numpy is about 500 to 1000 times slower and produces slightly more error.
+Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
+If you want to use numpy, run the program with
+```
+python gravity_plot [-n|--numpy]
+```
+
+### Plotting dt (Optional)
+It might be useful to visualize the dt for adaptive step size integrators. 
+If you want to plot the dt, simply run the program with
+```
+python gravity_plot [-d|--dt]
+```
+
+### Store every nth point (Optional)
+With long integration time and short dt, there would be a lot of unnecessary solutions stored in the memory, 
+which causes the program to slows down significantly and may even terminates itself. 
+To fix this, run the following command to store every nth point
+```
+python gravity_plot [-s|--store_every_n=<int>]
+```
+The program would also ask if you want to trim the solutions after the simulation.
 
 ### Available systems
 | System | Description |
@@ -167,63 +194,11 @@ python gravity_plot
 > Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
 
-### Customizing system
-If you want to setup your own system, choose the "custom" option.
-Note that the default unit is in solar masses, AU and days.
-
-The system data will be saved once all the required information has been entered.
-If you wish to make any changes, you can access the file at 
-```
-gravity_simulator/gravity_plot/customized_systems.csv
-``` 
-The data follow the format
-```
-Name, Number of objects, [m1, m2], [x1, y1, z1, ..., vx1, vy1, vz1, ...]
-```
-### Saving the data
-After each simulation, the program would ask if you want to save the data.
-If you chose to do so, the numerical data will be stored in the following folder:
-```
-gravity_simulator/gravity_plot/results
-```
-The data except time will be in the default unit (solar masses, AU and days), and follow this format:
-```
-time(tf unit), dt(days), total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
-```
-Total energy will be stored as `0.0` if user chose not to compute energy.
-
-### Store every nth point (Optional)
-With long integration time and short dt, there would be a lot of unnecessary solutions stored in the memory, 
-which causes the program to slows down significantly and may even terminates itself. 
-To fix this, run the following command to store every nth point
-```
-python gravity_plot [-s|--store_every_n] <int value>
-```
-The program would also ask if you want to trim the solutions after the simulation.
-
-### C library / Numpy (Optional)
-By default, the module utilize the code written in C to improve performance.
-Numpy is about 500 to 1000 times slower and produces slightly more error.
-Nevertheless, the calculation in C and numpy are almost identical and gives similar result.
-If you want to use numpy, run the program with
-```
-python gravity_plot [-n|--numpy]
-```
-
-### Plotting dt (Optional)
-It might be useful to visualize the dt for adaptive step size integrators. 
-If you want to plot the dt, simply run the program with
-```
-python gravity_plot [-d|--dt]
-```
-
 ### Comparing relative energy error (Optional)
 To compare the relative energy error of multiple simulations, 
 You can run `compare.py` inside the `gravity_plot` folder.
 The chosen data inside the `gravity_plot/results` folder would be read to generate a plot. 
-This module is not included in the main program.
-
-If you want to customize the title of the graph, run the program with the following argument:
+This module is not included in the main program, but can be run with
 ```
 python compare.py [-t|--title] <title>
 ```
@@ -249,7 +224,7 @@ Fixed step size integrators are simple methods to simulate the system with the g
 |:-----------|
 | Euler |
 | Euler Cromer |
-| Fourth Order Runge-Kutta |
+| Fourth Order Runge-Kutta (RK4) |
 | Leapfrog |
 
 ### Embedded Runge-Kutta methods
