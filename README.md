@@ -200,7 +200,7 @@ You can run `compare.py` inside the `gravity_plot` folder.
 The chosen data inside the `gravity_plot/results` folder would be read to generate a plot. 
 This module is not included in the main program, but can be run with
 ```
-python compare.py [-t|--title] <title>
+python compare.py [-t|--title <title>]
 ```
 
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/bb0703fa-0e67-483f-a63e-0fb1c934666e" alt="Image" width="400">
