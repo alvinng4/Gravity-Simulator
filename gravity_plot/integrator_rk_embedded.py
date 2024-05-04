@@ -1,3 +1,11 @@
+"""
+Embedded Runge-Kutta Integrators
+
+Some of the codes are adapted from the following book with modifications: 
+Moving Planets Around: An Introduction to N-Body 
+Simulations Applied to Exoplanetary Systems, Chapter 6
+"""
+
 import ctypes
 
 import numpy as np
@@ -388,9 +396,6 @@ class RK_EMBEDDED:
         Calculate the initial time step for embedded rk method
 
         Modified: Return dt * 1e-2 since this function gives initial dt thats too large
-
-        Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
-        Chapter 6, Page 92 - 94
         """
         tolerance_scale_x = abs_tolerance + rel_tolerance * np.abs(x)
         tolerance_scale_v = abs_tolerance + rel_tolerance * np.abs(v)
@@ -430,9 +435,6 @@ class RK_EMBEDDED:
     def rk_embedded_butcher_tableaus(order):
         """
         Butcher tableaus for embedded rk
-
-        Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
-        Chapter 6, Page 100 - 101
 
         :raise ValueError: If order is not in [45, 54, 78, 65]
         :return: power, power_test, coeff, weights, weights_test
