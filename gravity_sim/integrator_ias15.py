@@ -1,3 +1,11 @@
+"""
+IAS15 Integrator
+
+Some of the codes are adapted from the following book with modifications: 
+Moving Planets Around: An Introduction to N-Body 
+Simulations Applied to Exoplanetary Systems, Chapter 8
+"""
+
 import ctypes 
 
 import numpy as np
@@ -315,9 +323,6 @@ class IAS15:
     ) -> float:
         """
         Calculate the initial time step for IAS15
-
-        Reference: Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems
-        Chapter 8, Page 149
         """
         d_0 = np.max(np.abs(x))
         d_1 = np.max(np.abs(a))

@@ -1,3 +1,8 @@
+"""
+Fixed step size integrator:
+Euler, Euler-Cromer, Runge-Kutta 4th order, Leapfrog
+"""
+
 import ctypes
 import math
 

@@ -54,7 +54,7 @@ This online demo is built with the pygbag package.
 * [Data Sources](#data-sources)
 * [Feedback and Bugs](#feedback-and-bugs)
 * [References](#references)
-* [Bibliography](#bibliography)
+* [Acknowledgement](#acknowledgement)
 
 ## Quick Start
 
@@ -261,5 +261,6 @@ If you find any bugs or want to give me your feedback, please feel free to let m
 accurate to machine precision over a billion orbits", Monthly Notices of the Royal Astronomical Society 446:
 1424–1437.
 
-## Bibliography 
-1. J. Roa, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
+## Acknowledgement
+The integrators in this project were developed with great assistance from the following book: 
+* J. Roa, et al. *Moving Planets Around: An Introduction to N-Body Simulations Applied to Exoplanetary Systems*, MIT Press, 2020
