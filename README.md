@@ -32,20 +32,18 @@ This online demo is built with the pygbag package.
     - [Running the program](#running-the-program)
 * [Quick fix](#quick-fix)
 * [Interactive module](#interactive-module)
-    - [Running the program](#running-the-program-2)
+    - [Running the program](#running-the-program-1)
     - [C library / Numpy (Optional)](#c-library--numpy-optional)
     - [Changing the resolution (Optional)](#changing-the-resolution-optional)
-    - [Available systems](#available-systems-1)
+    - [Available systems](#available-systems)
     - [Control](#control)
 * [Plotting module](#plotting-module)
-    - [Running the program](#running-the-program-1)
+    - [Running the program](#running-the-program-2)
     - [C library / Numpy (Optional)](#c-library--numpy-optional-1)
-    - [Plotting dt (Optional)](#plotting-dt-optional)
     - [Store every nth point (Optional)](#store-every-nth-point-optional)
-    - [Available systems](#available-systems)
+    - [Available systems](#available-systems-1)
     - [Customizing system](#customizing-system)
     - [Saving the data](#saving-the-data)
-    - [Comparing relative energy error (Optional)](#comparing-relative-energy-error-optional)
 * [Compensated summation](#compensated-summation)
 * [Available integrators](#available-integrators)
     - [Fixed step size methods](#fixed-step-size-methods)
@@ -149,7 +147,7 @@ between fixed and variable step size integrators.
 
 Once you have downloaded the source files, navigate to the directory of the source files in terminal and run
 ```
-python gravity_plot [-n|--numpy] [-d|--dt] [-s|--store_every_n=<int>]
+python gravity_plot [-n|--numpy] [-s|--store_every_n=<int>]
 ```
 
 ### C library / Numpy (Optional)
@@ -159,13 +157,6 @@ Nevertheless, the calculation in C and numpy are almost identical and gives simi
 If you want to use numpy, run the program with
 ```
 python gravity_plot [-n|--numpy]
-```
-
-### Plotting dt (Optional)
-It might be useful to visualize the dt for adaptive step size integrators. 
-If you want to plot the dt, simply run the program with
-```
-python gravity_plot [-d|--dt]
 ```
 
 ### Store every nth point (Optional)
@@ -194,6 +185,20 @@ The program would also ask if you want to trim the solutions after the simulatio
 > Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
 
+### Customizing system
+If you want to setup your own system, choose the "custom" option.
+Note that the default unit is in solar masses, AU and days.
+
+The system data will be saved once all the required information has been entered.
+If you wish to make any changes, you can access the file at 
+```
+gravity_simulator/gravity_plot/customized_systems.csv
+``` 
+The data follow the format
+```
+Name, Number of objects, [m1, m2], [x1, y1, z1, ..., vx1, vy1, vz1, ...]
+```
+
 ### Saving the data
 After each simulation, the program would ask if you want to save the data.
 If you chose to do so, the numerical data will be stored in the following folder:
@@ -204,17 +209,6 @@ The data will be in the default unit (solar masses, AU and days), and follow thi
 ```
 time, dt, total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
 ```
-
-### Comparing relative energy error (Optional)
-To compare the relative energy error of multiple simulations, 
-You can run `compare.py` inside the `gravity_plot` folder.
-The chosen data inside the `gravity_plot/results` folder would be read to generate a plot. 
-This module is not included in the main program, but can be run with
-```
-python compare.py [-t|--title <title>]
-```
-
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/bb0703fa-0e67-483f-a63e-0fb1c934666e" alt="Image" width="400">
 
 ## Compensated summation
 
