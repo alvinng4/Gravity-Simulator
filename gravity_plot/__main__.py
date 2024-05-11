@@ -46,7 +46,6 @@ class Plotter:
             raise argparse.ArgumentTypeError(
                 "Store every nth points should be larger than 1!"
             )
-        self.is_plot_dt = self.args.dt
 
         # --------------------Initialize attributes--------------------
         self.tolerance = None
@@ -119,66 +118,115 @@ class Plotter:
     def run_prog(self):
         # Catch KeyboardInterrupt
         try:
-            # Restart once all the progress is finished
+            # Restart program once the loop is finished.
             while True:
-                # --------------------Read user input--------------------
-                while True:
-                    self._read_user_input()
-                    self._print_user_input()
-                    if self.ask_user_permission("Proceed?"):
-                        print("")
-                        break
+                print("\nGravity simulator")
+                print("Exit the program anytime by hitting Ctrl + C\n")
+                self._user_interface_before_simulation()
+                if self.is_simulate == True:
+                    self._launch_simulation()
+                    self.data_size = len(self.simulator.sol_time) 
+                    if self.data_size > 20000:
+                        if self.ask_user_permission(
+                            f"There are {self.data_size} lines of data. Do you want to trim the data?"
+                        ):
+                            self.trim_data()
+                        else:
+                            print()
 
-                # --------------------Launch simulation--------------------
-                self.simulator = Simulator(self)
-                self.simulator.initialize_system(self)
-                self.simulator.simulation()
-                if self.unit == "years":
-                    self.simulator.sol_time /= self.SIDEREAL_DAYS_PER_YEAR
+                self.computed_energy = False 
+                self._user_interface_after_simulation()
 
-                if len(self.simulator.sol_time) > 20000:
-                    if self.ask_user_permission(
-                        f"There are {len(self.simulator.sol_time)} lines of data. Do you want to trim the data?"
-                    ):
-                        self.trim_data()
-                    else:
-                        print()
-
-                # --------------------Plot the result--------------------
-                if self.ask_user_permission("Plot trajectory?"):
-                    print("")
-                    self._plot_trajectory()
-
-                self.is_compute_energy = False
-                if self.ask_user_permission("Compute energy?"):
-                    print("")
-                    self.is_compute_energy = True
-                    self.simulator.compute_energy()
-
-                    if self.ask_user_permission("Plot relative energy error?"):
-                        print("")
-                        self._plot_rel_energy()
-
-                # self._plot_tot_energy() # Warnings: The unit is in solar masses, AU and day.
-
-                if self.is_plot_dt:
-                    self._plot_dt()
-
-                # --------------------Store data--------------------
-                print(f"Lines of data = {len(self.simulator.sol_time)}")
-                if self.ask_user_permission("Save simulation data?"):
-                    print("")
-                    self.save_result(self.is_compute_energy)
-
-                # --------------------Ask permission to restart the whole program--------------------
-                if not self.ask_user_permission(
-                    "All plotting is done. Restart simulation?"
-                ):
-                    print("Exiting the program...")
-                    break
 
         except KeyboardInterrupt:
             print("\nKeyboard Interrupt detected (Cltr + C). Exiting the program...")
+
+    def _user_interface_before_simulation(self):
+        while True:
+            print("Select an action:")
+            print("1. Launch simulation")
+            print("2. Read simulation data")
+
+            try:
+                action = int(input("Enter action (Number): "))
+                if action < 1 or action > 2:
+                    raise ValueError
+                else:
+                    break
+            except ValueError:
+                print("Invalid input. Please try again.")
+                print()
+                continue
+                
+        print()
+        match action:
+            case 1:
+                self.is_simulate = True
+            case 2:
+                self.is_simulate = False
+                print("Reading data is currently in development. Launching simulation instead.")
+                self.is_simulate = True
+                print()
+                pass
+
+    def _user_interface_after_simulation(self):
+        while True:
+            print("Select an action:")
+            print("1. Plot trajectory")
+            print("2. Plot relative energy error")
+            print("3. Plot dt")
+            print("4. Trim data")
+            print("5. Save simulation data")
+            print("6. Restart program")
+            print("7. Exit")
+
+            try:
+                action = int(input("Enter action (Number): "))
+                if action < 1 or action > 7:
+                    raise ValueError
+            except ValueError:
+                print("Invalid input. Please try again.")
+                print()
+                continue
+            
+            print()
+            match action:
+                case 1:
+                    self._plot_trajectory()
+                case 2:
+                    if not self.computed_energy:
+                        self.simulator.compute_energy()
+                        self.computed_energy = True
+                    self._plot_rel_energy()
+                case 3:
+                    self._plot_dt()
+                case 4:
+                    print(f"There are {self.data_size} lines of data.")
+                    self.trim_data()
+                case 5:
+                    if not self.computed_energy:
+                        self.simulator.compute_energy()
+                        self.computed_energy = True
+                    self._save_result()
+                case 6:
+                    break
+                case 7:
+                    print("Exiting the program...")
+                    exit(0)
+
+    def _launch_simulation(self):
+        while True:
+            self._read_user_simulation_input()
+            self._print_user_simulation_input()
+            if self.ask_user_permission("Proceed?"):
+                print("")
+                break
+            
+        self.simulator = Simulator(self)
+        self.simulator.initialize_system(self)
+        self.simulator.simulation()
+        if self.unit == "years":
+            self.simulator.sol_time /= self.SIDEREAL_DAYS_PER_YEAR
 
     def _plot_trajectory(self):
         print("Plotting trajectory...(Please check the window)")
@@ -223,6 +271,11 @@ class Plotter:
         print()
 
     def _plot_rel_energy(self):
+        if not self.computed_energy:
+            if self.ask_user_permission("WARNING: Energy has not been computed. Compute energy?"):
+                self.simulator.compute_energy()
+                self.computed_energy = True
+
         print("Plotting relative energy error...(Please check the window)")
         fig2 = plt.figure()
         ax2 = fig2.add_subplot(111)
@@ -269,7 +322,7 @@ class Plotter:
         plt.show()
         print()
 
-    def _read_user_input(self):
+    def _read_user_simulation_input(self):
         # --------------------Check and Input systems--------------------
         while True:
             self.available_systems = self.default_systems.copy()
@@ -281,8 +334,6 @@ class Plotter:
                 for row in reader:
                     self.available_systems.append(row[0])
 
-            print("\nGravity simulator")
-            print("Exit the program anytime by hitting Ctrl + C\n")
             print("Available systems:")
             for i, system in enumerate(self.available_systems):
                 print(f"{i + 1}. {system}")
@@ -528,7 +579,7 @@ class Plotter:
                     print("Invalid value. Please try again.")
         print("")
 
-    def _print_user_input(self):
+    def _print_user_simulation_input(self):
         print(f"System: {self.system}")
         print(
             f"Integrator: {self.available_integrators_to_printable_names[self.integrator]}"
@@ -556,8 +607,6 @@ class Plotter:
             
             print(f"Estimated number of points to be stored: {store_npts}")
         
-
-
         print("")
 
     def _read_command_line_arg(self):
@@ -567,12 +616,6 @@ class Plotter:
             "-n",
             action="store_false",
             help="disable c_lib and use numpy",
-        )
-        parser.add_argument(
-            "--dt",
-            "-d",
-            action="store_true",
-            help="plot dt",
         )
         parser.add_argument(
             "--store_every_n",
@@ -589,7 +632,7 @@ class Plotter:
             try:
                 desired_trim_size = (
                     input(
-                        '\nEnter desired number of lines (Enter "cancel" to cancel): '
+                        '\nEnter desired data size (Enter "cancel" to cancel): '
                     )
                     .strip()
                     .lower()
@@ -604,10 +647,10 @@ class Plotter:
                 print("Invalid input! Please try again.")
                 continue
 
-            if desired_trim_size > len(self.simulator.sol_time):
+            if desired_trim_size > self.data_size:
                 print("Value too big! Please try again.")
                 continue
-            if desired_trim_size == len(self.simulator.sol_time):
+            if desired_trim_size == self.data_size:
                 if self.ask_user_permission(
                     "The input value is equal to the original data size. Continue?"
                 ):
@@ -621,9 +664,9 @@ class Plotter:
                 continue
             else:
                 divide_factor = math.ceil(
-                    len(self.simulator.sol_time) / desired_trim_size
+                    self.data_size / desired_trim_size
                 )
-                trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
+                trim_size = math.floor(self.data_size / divide_factor) + 1
                 if self.ask_user_permission(
                     f"The trimmed data size would be {trim_size}. Continue?"
                 ):
@@ -634,8 +677,8 @@ class Plotter:
         # --------------------Trim data--------------------
 
         # Note: trim size is calculated in the the user input section:
-        # divide_factor = math.ceil(len(self.simulator.sol_time) / desired_trim_size)
-        # trim_size = math.floor(len(self.simulator.sol_time) / divide_factor) + 1
+        # divide_factor = math.ceil(self.data_size / desired_trim_size)
+        # trim_size = math.floor(self.data_size / divide_factor) + 1
 
         if is_trim_data == True:
             trimmed_sol_time = np.zeros(trim_size)
@@ -643,33 +686,47 @@ class Plotter:
             trimmed_sol_state = np.zeros(
                 (trim_size, self.simulator.objects_count * 3 * 2)
             )
+            if self.computed_energy == True:
+                trimmed_energy = np.zeros(trim_size)
 
             j = 0
-            for i in range(len(self.simulator.sol_time)):
+            for i in range(self.data_size):
                 if i % divide_factor == 0:
                     trimmed_sol_time[j] = self.simulator.sol_time[i]
                     trimmed_sol_dt[j] = self.simulator.sol_dt[i]
                     trimmed_sol_state[j] = self.simulator.sol_state[i]
+                    if self.computed_energy == True:
+                        trimmed_energy[j] = self.simulator.energy[i]
                     j += 1
 
             if trimmed_sol_time[-1] != self.simulator.sol_time[-1]:
                 trimmed_sol_time[-1] = self.simulator.sol_time[-1]
                 trimmed_sol_dt[-1] = self.simulator.sol_dt[-1]
                 trimmed_sol_state[-1] = self.simulator.sol_state[-1]
+                if self.computed_energy == True:
+                    trimmed_energy[-1] = self.simulator.energy[-1]
 
-            print(f"Trimmed data size = {len(trimmed_sol_time)}")
+            self.data_size = len(trimmed_sol_time) 
+            print(f"Trimmed data size = {self.data_size}")
             print()
 
             self.simulator.sol_time = trimmed_sol_time
             self.simulator.sol_dt = trimmed_sol_dt
             self.simulator.sol_state = trimmed_sol_state
+            if self.computed_energy == True:
+                self.simulator.energy = trimmed_energy
 
-    def save_result(self, is_compute_energy):
+    def _save_result(self):
         """
         Save the result in a csv file
         Unit: Solar masses, AU, day
         Format: time(self.unit), dt(days), total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
+        if not self.computed_energy:
+            if self.ask_user_permission("WARNING: Energy has not been computed. Compute energy?"):
+                self.simulator.compute_energy()
+                self.computed_energy = True
+
         print("Storing simulation results...")
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
@@ -687,12 +744,12 @@ class Plotter:
             )
         )
 
-        progress_bar = Progress_bar()
-        with progress_bar:
-            with open(file_path, "w", newline="") as file:
-                writer = csv.writer(file)
-                for count in progress_bar.track(range(len(self.simulator.sol_time))):
-                    if is_compute_energy:
+        if self.computed_energy:
+            progress_bar = Progress_bar()
+            with progress_bar:
+                with open(file_path, "w", newline="") as file:
+                    writer = csv.writer(file)
+                    for count in progress_bar.track(range(self.data_size)):
                         row = np.insert(
                             self.simulator.sol_state[count],
                             0,
@@ -700,13 +757,24 @@ class Plotter:
                         )
                         row = np.insert(row, 0, self.simulator.sol_dt[count])
                         row = np.insert(row, 0, self.simulator.sol_time[count])
-                    else:
-                        row = np.insert(self.simulator.sol_state[count], 0, 0)
-                        row = np.insert(row, 0, self.simulator.sol_dt[count])
-                        row = np.insert(row, 0, self.simulator.sol_time[count])
-                    writer.writerow(row.tolist())
+                        writer.writerow(row.tolist())
+            print(f"Storing completed. Please check {file_path}")
+        else:
+            if self.ask_user_permission(
+                "WARNING: Energy has not been computed. The energy data will be stored as zeros. Proceed?"
+            ):
+                progress_bar = Progress_bar()
+                with progress_bar:
+                    with open(file_path, "w", newline="") as file:
+                        writer = csv.writer(file)
+                        for count in progress_bar.track(range(self.data_size)):
+                            row = np.insert(self.simulator.sol_state[count], 0, 0)
+                            row = np.insert(row, 0, self.simulator.sol_dt[count])
+                            row = np.insert(row, 0, self.simulator.sol_time[count])
+                            writer.writerow(row.tolist())
+                
+                print(f"Storing completed. Please check {file_path}")
 
-        print(f"Storing completed. Please check {file_path}")
         print("")
 
     @staticmethod
