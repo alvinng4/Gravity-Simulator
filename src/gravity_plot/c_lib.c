@@ -9,7 +9,7 @@
     #define WIN32DLL_API 
 #endif
 
-#define real double
+typedef double real;
 
 real abs_max_vec(const real *restrict vec, int vec_length);
 real abs_max_vec_array(const real (*restrict arr)[3], int objects_count);
