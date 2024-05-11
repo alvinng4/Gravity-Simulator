@@ -720,7 +720,7 @@ class Plotter:
         """
         Save the result in a csv file
         Unit: Solar masses, AU, day
-        Format: time(self.unit), dt(days), total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
+        Format: time, dt, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
         if not self.computed_energy:
             if self.ask_user_permission("WARNING: Energy has not been computed. Compute energy?"):
@@ -730,8 +730,6 @@ class Plotter:
         print("Storing simulation results...")
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
-        if self.unit == "years":
-            self.tf /= self.SIDEREAL_DAYS_PER_YEAR
         file_path = (
             Path(__file__).parent
             / "results"

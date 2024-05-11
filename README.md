@@ -194,6 +194,17 @@ The program would also ask if you want to trim the solutions after the simulatio
 > Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
 
+### Saving the data
+After each simulation, the program would ask if you want to save the data.
+If you chose to do so, the numerical data will be stored in the following folder:
+```
+gravity-simulator/gravity_plot/results
+```
+The data will be in the default unit (solar masses, AU and days), and follow this format:
+```
+time, dt, total energy, x1, y1, z1, ... vx1, vy1, vz1, ...
+```
+
 ### Comparing relative energy error (Optional)
 To compare the relative energy error of multiple simulations, 
 You can run `compare.py` inside the `gravity_plot` folder.
