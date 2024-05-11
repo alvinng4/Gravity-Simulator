@@ -191,10 +191,11 @@ class Plotter:
             print("1. Plot trajectory")
             print("2. Plot relative energy error")
             print("3. Plot dt")
-            print("4. Trim data")
-            print("5. Save simulation data")
-            print("6. Restart program")
-            print("7. Exit")
+            print("4. Read data size")
+            print("5. Trim data")
+            print("6. Save simulation data")
+            print("7. Restart program")
+            print("8. Exit")
 
             try:
                 action = int(input("Enter action (Number): "))
@@ -218,15 +219,18 @@ class Plotter:
                     self._plot_dt()
                 case 4:
                     print(f"There are {self.data_size} lines of data.")
-                    self.trim_data()
+                    print()
                 case 5:
+                    print(f"There are {self.data_size} lines of data.")
+                    self.trim_data()
+                case 6:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
                         self.computed_energy = True
                     self._save_result()
-                case 6:
-                    break
                 case 7:
+                    break
+                case 8:
                     print("Exiting the program...")
                     sys.exit(0)
 
