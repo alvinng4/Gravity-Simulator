@@ -6,6 +6,8 @@ import math
 from pathlib import Path
 import platform
 import re
+import sys
+import timeit
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,6 +50,7 @@ class Plotter:
             )
 
         # --------------------Initialize attributes--------------------
+        self.simulator = Simulator(self)
         self.tolerance = None
         self.dt = None
         self.default_systems = [
@@ -124,19 +127,36 @@ class Plotter:
                 print("Exit the program anytime by hitting Ctrl + C\n")
                 self._user_interface_before_simulation()
                 if self.is_simulate == True:
+                    self.computed_energy = False
                     self._launch_simulation()
-                    self.data_size = len(self.simulator.sol_time) 
-                    if self.data_size > 20000:
-                        if self.ask_user_permission(
-                            f"There are {self.data_size} lines of data. Do you want to trim the data?"
-                        ):
-                            self.trim_data()
-                        else:
-                            print()
 
-                self.computed_energy = False 
+                else:
+                    self.computed_energy = True
+                    (
+                        self.simulator.objects_count,
+                        self.simulator.sol_time,
+                        self.simulator.sol_dt,
+                        self.simulator.energy,
+                        self.simulator.sol_state,
+                    ) = self._read_simulation_data()
+
+                self.data_size = len(self.simulator.sol_time)
+                if self.data_size > 20000:
+                    if self.ask_user_permission(
+                        f"There are {self.data_size} lines of data. Do you want to trim the data?"
+                    ):
+                        self.trim_data()
+                    else:
+                        print()
+
+                if self.tf_unit == "years":
+                    self.sol_time_in_tf_unit = (
+                        self.simulator.sol_time / self.SIDEREAL_DAYS_PER_YEAR
+                    )
+                else:
+                    self.sol_time_in_tf_unit = self.simulator.sol_time
+
                 self._user_interface_after_simulation()
-
 
         except KeyboardInterrupt:
             print("\nKeyboard Interrupt detected (Cltr + C). Exiting the program...")
@@ -157,17 +177,13 @@ class Plotter:
                 print("Invalid input. Please try again.")
                 print()
                 continue
-                
+
         print()
         match action:
             case 1:
                 self.is_simulate = True
             case 2:
                 self.is_simulate = False
-                print("Reading data is currently in development. Launching simulation instead.")
-                self.is_simulate = True
-                print()
-                pass
 
     def _user_interface_after_simulation(self):
         while True:
@@ -188,7 +204,7 @@ class Plotter:
                 print("Invalid input. Please try again.")
                 print()
                 continue
-            
+
             print()
             match action:
                 case 1:
@@ -212,7 +228,7 @@ class Plotter:
                     break
                 case 7:
                     print("Exiting the program...")
-                    exit(0)
+                    sys.exit(0)
 
     def _launch_simulation(self):
         while True:
@@ -221,31 +237,59 @@ class Plotter:
             if self.ask_user_permission("Proceed?"):
                 print("")
                 break
-            
-        self.simulator = Simulator(self)
+
         self.simulator.initialize_system(self)
         self.simulator.simulation()
-        if self.unit == "years":
-            self.simulator.sol_time /= self.SIDEREAL_DAYS_PER_YEAR
 
     def _plot_trajectory(self):
         print("Plotting trajectory...(Please check the window)")
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(111, aspect="equal")
         # Get specific colors if the system is solar-like
+        match self.system:
+            case "sun_earth_moon":
+                objs_name = ["Sun", "Earth", "Moon"]
+            case "solar_system":
+                objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                ]
+            case "solar_system_plus":
+                objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                    "Pluto",
+                    "Ceres",
+                    "Vesta",
+                ]
+
         if self.system in self.solar_like_systems:
             for i in range(self.simulator.objects_count):
                 traj = ax1.plot(
                     self.simulator.sol_state[:, i * 3],
                     self.simulator.sol_state[:, 1 + i * 3],
-                    color=self.solar_like_systems_colors[self.simulator.objs_name[i]],
+                    color=self.solar_like_systems_colors[objs_name[i]],
                 )
                 ax1.plot(
                     self.simulator.sol_state[-1, i * 3],
                     self.simulator.sol_state[-1, 1 + i * 3],
                     "o",
                     color=traj[0].get_color(),
-                    label=self.simulator.objs_name[i],
+                    label=objs_name[i],
                 )
         else:
             for i in range(self.simulator.objects_count):
@@ -272,7 +316,9 @@ class Plotter:
 
     def _plot_rel_energy(self):
         if not self.computed_energy:
-            if self.ask_user_permission("WARNING: Energy has not been computed. Compute energy?"):
+            if self.ask_user_permission(
+                "WARNING: Energy has not been computed. Compute energy?"
+            ):
                 self.simulator.compute_energy()
                 self.computed_energy = True
 
@@ -280,14 +326,14 @@ class Plotter:
         fig2 = plt.figure()
         ax2 = fig2.add_subplot(111)
         ax2.semilogy(
-            self.simulator.sol_time,
+            self.sol_time_in_tf_unit,
             np.abs(
                 (self.simulator.energy - self.simulator.energy[0])
                 / self.simulator.energy[0]
             ),
         )
         ax2.set_title("Relative energy error against time")
-        ax2.set_xlabel(f"Time ({self.unit})")
+        ax2.set_xlabel(f"Time ({self.tf_unit})")
         ax2.set_ylabel("$|(E(t)-E_0)/E_0|$")
 
         plt.show()
@@ -298,9 +344,9 @@ class Plotter:
         print("Plotting total energy...(Please check the window)")
         fig3 = plt.figure()
         ax3 = fig3.add_subplot(111)
-        ax3.semilogy(self.simulator.sol_time, np.abs(self.simulator.energy))
+        ax3.semilogy(self.sol_time_in_tf_unit, np.abs(self.simulator.energy))
         ax3.set_title("Total energy against time")
-        ax3.set_xlabel(f"Time ({self.unit})")
+        ax3.set_xlabel(f"Time ({self.tf_unit})")
         ax3.set_ylabel("$E(t)$")
 
         plt.show()
@@ -313,10 +359,10 @@ class Plotter:
         print("Plotting dt...(Please check the window)")
         fig4 = plt.figure()
         ax4 = fig4.add_subplot(111)
-        ax4.scatter(self.simulator.sol_time, self.simulator.sol_dt, s=0.1)
+        ax4.scatter(self.sol_time_in_tf_unit, self.simulator.sol_dt, s=0.1)
         ax4.set_yscale("log")
         ax4.set_title("dt against time")
-        ax4.set_xlabel(f"Time ({self.unit})")
+        ax4.set_xlabel(f"Time ({self.tf_unit})")
         ax4.set_ylabel("dt(days)")
 
         plt.show()
@@ -477,10 +523,10 @@ class Plotter:
             ):
                 print("")
                 self.integrator = "ias15"
-                self.tf, self.unit, self.tolerance = self.recommended_settings[
+                self.tf, self.tf_unit, self.tolerance = self.recommended_settings[
                     self.system
                 ]
-                if self.unit == "years":
+                if self.tf_unit == "years":
                     self.tf *= self.SIDEREAL_DAYS_PER_YEAR
 
                 return None
@@ -536,10 +582,10 @@ class Plotter:
                     continue
 
                 if matches.group(2) not in ["year", "y"]:
-                    self.unit = "days"
+                    self.tf_unit = "days"
                     break
                 else:
-                    self.unit = "years"
+                    self.tf_unit = "years"
                     self.tf *= self.SIDEREAL_DAYS_PER_YEAR
                     break
 
@@ -584,7 +630,7 @@ class Plotter:
         print(
             f"Integrator: {self.available_integrators_to_printable_names[self.integrator]}"
         )
-        if self.unit == "years":
+        if self.tf_unit == "years":
             print(f"tf: {self.tf / self.SIDEREAL_DAYS_PER_YEAR:g} years")
         else:
             print(f"tf: {self.tf} days")
@@ -603,10 +649,12 @@ class Plotter:
 
             store_npts = npts
             if self.store_every_n != 1:
-                store_npts = math.floor((npts - 1) / self.store_every_n) + 1  # + 1 for t0
-            
+                store_npts = (
+                    math.floor((npts - 1) / self.store_every_n) + 1
+                )  # + 1 for t0
+
             print(f"Estimated number of points to be stored: {store_npts}")
-        
+
         print("")
 
     def _read_command_line_arg(self):
@@ -631,9 +679,7 @@ class Plotter:
         while True:
             try:
                 desired_trim_size = (
-                    input(
-                        '\nEnter desired data size (Enter "cancel" to cancel): '
-                    )
+                    input('\nEnter desired data size (Enter "cancel" to cancel): ')
                     .strip()
                     .lower()
                 )
@@ -663,9 +709,7 @@ class Plotter:
                 print("Value too small! Please try again.")
                 continue
             else:
-                divide_factor = math.ceil(
-                    self.data_size / desired_trim_size
-                )
+                divide_factor = math.ceil(self.data_size / desired_trim_size)
                 trim_size = math.floor(self.data_size / divide_factor) + 1
                 if self.ask_user_permission(
                     f"The trimmed data size would be {trim_size}. Continue?"
@@ -706,7 +750,7 @@ class Plotter:
                 if self.computed_energy == True:
                     trimmed_energy[-1] = self.simulator.energy[-1]
 
-            self.data_size = len(trimmed_sol_time) 
+            self.data_size = len(trimmed_sol_time)
             print(f"Trimmed data size = {self.data_size}")
             print()
 
@@ -716,6 +760,13 @@ class Plotter:
             if self.computed_energy == True:
                 self.simulator.energy = trimmed_energy
 
+            if self.tf_unit == "years":
+                self.sol_time_in_tf_unit = (
+                    self.simulator.sol_time / self.SIDEREAL_DAYS_PER_YEAR
+                )
+            else:
+                self.sol_time_in_tf_unit = self.simulator.sol_time
+
     def _save_result(self):
         """
         Save the result in a csv file
@@ -723,24 +774,37 @@ class Plotter:
         Format: time, dt, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
         if not self.computed_energy:
-            if self.ask_user_permission("WARNING: Energy has not been computed. Compute energy?"):
+            if self.ask_user_permission(
+                "WARNING: Energy has not been computed. Compute energy?"
+            ):
                 self.simulator.compute_energy()
                 self.computed_energy = True
 
         print("Storing simulation results...")
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
-        file_path = (
-            Path(__file__).parent
-            / "results"
-            / (
-                str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-                + f"_{self.system}_"
-                + f"{self.tf:g}{self.unit[0]}_"
-                + f"{self.integrator}"
-                + ".csv"
+        if self.is_simulate:
+            file_path = (
+                Path(__file__).parent
+                / "results"
+                / (
+                    str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                    + f"_{self.system}_"
+                    + f"{(self.tf / self.SIDEREAL_DAYS_PER_YEAR):g}{self.tf_unit[0]}_"
+                    + f"{self.integrator}"
+                    + ".csv"
+                )
             )
-        )
+        else:
+            file_path = (
+                Path(__file__).parent
+                / "results"
+                / (
+                    str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                    + f"_{self.system}"
+                    + ".csv"
+                )
+            )
 
         if self.computed_energy:
             progress_bar = Progress_bar()
@@ -770,7 +834,7 @@ class Plotter:
                             row = np.insert(row, 0, self.simulator.sol_dt[count])
                             row = np.insert(row, 0, self.simulator.sol_time[count])
                             writer.writerow(row.tolist())
-                
+
                 print(f"Storing completed. Please check {file_path}")
 
         print("")
@@ -787,6 +851,106 @@ class Plotter:
                     return False
 
             print("Invalid input. Please try again.\n")
+
+    def _read_simulation_data(self):
+        self.system = "read_data"
+        read_folder_path = Path(__file__).parent / "results"
+
+        while True:
+            read_file_path = input(
+                "Enter absolute path to the file, or the complete file name if it is inside gravity_plot/results: "
+            ).strip()
+            read_file_path = read_folder_path / read_file_path
+
+            if read_file_path.is_file():
+                break
+            else:
+                print("File not found! Please try again.")
+
+        # Get object_count
+        try:
+            with open(read_file_path, "r") as file:
+                reader = csv.reader(file)
+                objects_count = round((len(next(reader)) - 3) / (3 * 2))
+        except FileNotFoundError:
+            sys.exit("Error: file is not found. Exiting the program")
+
+        # Read data
+        start = timeit.default_timer()
+        try:
+            with open(read_file_path, "r") as file:
+                reader = csv.reader(file)
+
+                # Allocate memory
+                sol_time = np.zeros(50000)
+                sol_dt = np.zeros(50000)
+                energy = np.zeros(50000)
+                sol_state = np.zeros((50000, objects_count * 3 * 2))
+
+                print()
+                print("Reading data...")
+
+                i = 0
+                for row in reader:
+                    sol_time[i] = row[0]
+                    sol_dt[i] = row[1]
+                    energy[i] = row[2]
+                    for j in range(objects_count):
+                        sol_state[i][j * 3 + 0] = row[3 + j * 3 + 0]
+                        sol_state[i][j * 3 + 1] = row[3 + j * 3 + 1]
+                        sol_state[i][j * 3 + 2] = row[3 + j * 3 + 2]
+                        sol_state[i][objects_count * 3 + j * 3 + 0] = row[
+                            3 + objects_count * 3 + j * 3 + 0
+                        ]
+                        sol_state[i][objects_count * 3 + j * 3 + 1] = row[
+                            3 + objects_count * 3 + j * 3 + 1
+                        ]
+                        sol_state[i][objects_count * 3 + j * 3 + 2] = row[
+                            3 + objects_count * 3 + j * 3 + 2
+                        ]
+
+                    i += 1
+
+                    # Extending memory buffer
+                    if i % 50000 == 0:
+                        sol_time = np.concatenate((sol_time, np.zeros(50000)))
+                        sol_dt = np.concatenate((sol_dt, np.zeros(50000)))
+                        energy = np.concatenate((energy, np.zeros(50000)))
+                        sol_state = np.concatenate(
+                            (sol_state, np.zeros((50000, objects_count * 3 * 2)))
+                        )
+
+                stop = timeit.default_timer()
+                print("Reading completed.\n")
+                print(f"Run time: {(stop - start):.3f} s")
+                print("")
+
+                while True:
+                    print("")
+                    self.tf_unit = input("Enter tf unit for plotting (d/yr): ")
+                    if matches := re.search(
+                        r"(day|year|d|y)?", self.tf_unit, re.IGNORECASE
+                    ):
+                        if matches.group(1) not in ["year", "y"]:
+                            self.tf_unit = "days"
+                        else:
+                            self.tf_unit = "years"
+
+                        if self.ask_user_permission(
+                            f"Unit for tf is {self.tf_unit}. Proceed?"
+                        ):
+                            break
+
+                return (
+                    objects_count,
+                    sol_time[:i],
+                    sol_dt[:i],
+                    energy[:i],
+                    sol_state[:i],
+                )
+
+        except FileNotFoundError:
+            sys.exit("Error: file is not found. Exiting the program")
 
 
 if __name__ == "__main__":

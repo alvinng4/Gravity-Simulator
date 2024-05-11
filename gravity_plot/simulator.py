@@ -163,16 +163,16 @@ class Simulator:
         if plotter.is_c_lib:
             self.c_lib = plotter.c_lib
 
+    def initialize_system(self, plotter):
         self.store_every_n = plotter.store_every_n
         self.system = plotter.system
         self.integrator = plotter.integrator
         self.tf = plotter.tf
-        self.unit = plotter.unit
+        self.unit = plotter.tf_unit
         self.tolerance = plotter.tolerance
         self.dt = plotter.dt
         self.G = self.CONSTANT_G
 
-    def initialize_system(self, plotter):
         # Read information of the customized system
         if self.system not in plotter.default_systems:
             file_path = Path(__file__).parent / "customized_systems.csv"
@@ -278,7 +278,6 @@ class Simulator:
                     self.x = np.array([R1, R2, R3])
                     self.v = np.array([V1, V2, V3])
                     self.objects_count = 3
-                    self.objs_name = ["Sun", "Earth", "Moon"]
 
                 case "figure-8":
                     R1 = np.array([0.970043, -0.24308753, 0.0])
@@ -372,17 +371,6 @@ class Simulator:
                     self.x = np.array([R1, R2, R3, R4, R5, R6, R7, R8, R9])
                     self.v = np.array([V1, V2, V3, V4, V5, V6, V7, V8, V9])
                     self.objects_count = 9
-                    self.objs_name = [
-                        "Sun",
-                        "Mercury",
-                        "Venus",
-                        "Earth",
-                        "Mars",
-                        "Jupiter",
-                        "Saturn",
-                        "Uranus",
-                        "Neptune",
-                    ]
 
                 case "solar_system_plus":
                     self.m = np.array(
@@ -473,20 +461,6 @@ class Simulator:
                         [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12]
                     )
                     self.objects_count = 12
-                    self.objs_name = [
-                        "Sun",
-                        "Mercury",
-                        "Venus",
-                        "Earth",
-                        "Mars",
-                        "Jupiter",
-                        "Saturn",
-                        "Uranus",
-                        "Neptune",
-                        "Pluto",
-                        "Ceres",
-                        "Vesta",
-                    ]
 
     def simulation(self):
         print("Simulating the system...")
