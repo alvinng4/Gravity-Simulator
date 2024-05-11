@@ -141,7 +141,7 @@ class Plotter:
                     ) = self._read_simulation_data()
 
                 self.data_size = len(self.simulator.sol_time)
-                if self.data_size > 20000:
+                if self.data_size > 50000:
                     if self.ask_user_permission(
                         f"There are {self.data_size} lines of data. Do you want to trim the data?"
                     ):
@@ -194,12 +194,13 @@ class Plotter:
             print("4. Read data size")
             print("5. Trim data")
             print("6. Save simulation data")
-            print("7. Restart program")
-            print("8. Exit")
+            print("7. Compare relative energy error")
+            print("8. Restart program")
+            print("9. Exit")
 
             try:
                 action = int(input("Enter action (Number): "))
-                if action < 1 or action > 7:
+                if action < 1 or action > 9:
                     raise ValueError
             except ValueError:
                 print("Invalid input. Please try again.")
@@ -229,8 +230,13 @@ class Plotter:
                         self.computed_energy = True
                     self._save_result()
                 case 7:
-                    break
+                    if not self.computed_energy:
+                        self.simulator.compute_energy()
+                        self.computed_energy = True
+                    self._compare_rel_energy()
                 case 8:
+                    break
+                case 9:
                     print("Exiting the program...")
                     sys.exit(0)
 
@@ -930,7 +936,6 @@ class Plotter:
                 print("")
 
                 while True:
-                    print("")
                     self.tf_unit = input("Enter tf unit for plotting (d/yr): ")
                     if matches := re.search(
                         r"(day|year|d|y)?", self.tf_unit, re.IGNORECASE
@@ -956,6 +961,96 @@ class Plotter:
         except FileNotFoundError:
             sys.exit("Error: file is not found. Exiting the program")
 
+    def _compare_rel_energy(self):
+        if not self.computed_energy:
+            if self.ask_user_permission(
+                "WARNING: Energy has not been computed. Compute energy?"
+            ):
+                self.simulator.compute_energy()
+                self.computed_energy = True
+
+        filepaths_to_labels = {}
+        filepaths_to_labels["current"] = input("Enter plot label for current set of data in memory: ")
+
+        read_folder_path = Path(__file__).parent / "results"
+        
+        while True:
+            num_of_data = len(filepaths_to_labels)
+            if num_of_data >= 2:
+                if not self.ask_user_permission(f"There are {num_of_data} sets of data. Continue adding new files?"):
+                    break                    
+            while True:
+                print()
+                read_file_path = input("Enter absolute path of new file to compare, or the complete file name if it is inside gravity_plot/results: ")
+                read_file_path = read_folder_path / read_file_path
+
+                if read_file_path.is_file():
+                    label = input("Enter plot label for this file: ")
+                    filepaths_to_labels[read_file_path] = label
+                    break
+                else:
+                    print("File not found! Please try again.")
+
+        print()
+        print("Plotting relative energy error...(Please check the window)")
+
+        fig5 = plt.figure()
+        ax5 = fig5.add_subplot(111)
+        ax5.set_xlabel(f"Time ({self.tf_unit})")
+        ax5.set_ylabel("$|(E(t)-E_0)/E_0|$")
+
+        for filepath in filepaths_to_labels:
+            if filepath == "current":
+                ax5.semilogy(
+                    self.sol_time_in_tf_unit,
+                    np.abs((self.simulator.energy - self.simulator.energy[0]) / self.simulator.energy[0]),
+                    label=filepaths_to_labels[filepath],
+                )
+            else:
+                try:
+                    with open(filepath, "r") as file:
+                        reader = csv.reader(file)
+
+                        # Allocate memory
+                        sol_time = np.zeros(50000)
+                        energy = np.zeros(50000)
+
+                        i = 0
+                        for row in reader:
+                            sol_time[i] = row[0]
+                            energy[i] = row[2]
+                            i += 1
+
+                            # Extending memory buffer
+                            if i % 50000 == 0:
+                                sol_time = np.concatenate(
+                                    (sol_time, np.zeros(50000))
+                                )
+                                energy = np.concatenate(
+                                    (energy, np.zeros(50000))
+                                )
+
+                        sol_time = sol_time[:i]
+                        energy = energy[:i]
+
+                        if self.tf_unit == "years":
+                            sol_time /= self.SIDEREAL_DAYS_PER_YEAR
+
+                        ax5.semilogy(
+                            sol_time,
+                            np.abs((energy - energy[0]) / energy[0]),
+                            label=filepaths_to_labels[filepath],
+                        )
+
+                except FileNotFoundError:
+                    sys.exit("Error: file is not found. Exiting the program")
+
+        fig5.legend(loc=7)
+        fig5.tight_layout()
+        fig5.subplots_adjust(right=0.8)
+        plt.show()
+
+        print()
 
 if __name__ == "__main__":
     plotter = Plotter()
