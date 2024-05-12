@@ -119,6 +119,7 @@ python3 gravity_sim [-r|--resolution <width> <height>]
 > [!TIP]\
 > Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
+For RK4, the largest dt to produce desired result is 2e-8 days.
 
 ### Control
 
@@ -184,6 +185,7 @@ The program would also ask if you want to trim the solutions after the simulatio
 > [!TIP]\
 > Pythagorean three body orbit is a highly chaotic orbit with close encounters, which is useful to test the difference
 between fixed and variable step size integrators.
+For RK4, the largest dt to produce desired result is 2e-8 days.
 
 ### Customizing system
 If you want to setup your own system, choose the "custom" option.
