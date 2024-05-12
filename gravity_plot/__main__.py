@@ -9,14 +9,14 @@ import re
 import sys
 import timeit
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from simulator import Simulator
+from plotter import Plotter
 from progress_bar import Progress_bar
 
 
-class Plotter:
+class GravitySimulator:
     SIDEREAL_DAYS_PER_YEAR = 365.256363004
 
     def __init__(self):
@@ -211,16 +211,16 @@ class Plotter:
             print()
             match action:
                 case 1:
-                    self._plot_2d_trajectory()
+                    Plotter._plot_2d_trajectory(self)
                 case 2:
-                    self._plot_3d_trajectory()
+                    Plotter._plot_3d_trajectory(self)
                 case 3:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
                         self.computed_energy = True
-                    self._plot_rel_energy()
+                    Plotter._plot_rel_energy(self)
                 case 4:
-                    self._plot_dt()
+                    Plotter._plot_dt(self)
                 case 5:
                     print(f"There are {self.data_size} lines of data.")
                     print()
@@ -236,7 +236,7 @@ class Plotter:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
                         self.computed_energy = True
-                    self._plot_compare_rel_energy()
+                    Plotter._plot_compare_rel_energy(self)
                 case 9:
                     break
                 case 10:
@@ -253,335 +253,6 @@ class Plotter:
 
         self.simulator.initialize_system(self)
         self.simulator.simulation()
-
-    def _plot_2d_trajectory(self):
-        print("Plotting 2D trajectory (xy plane)...(Please check the window)")
-        fig = plt.figure()
-        ax = fig.add_subplot(111, aspect="equal")
-
-        ax.set_xlabel("$x$ (AU)")
-        ax.set_ylabel("$y$ (AU)")
-        
-        # Get specific colors if the system is solar-like
-        match self.system:
-            case "sun_earth_moon":
-                objs_name = ["Sun", "Earth", "Moon"]
-            case "solar_system":
-                objs_name = [
-                    "Sun",
-                    "Mercury",
-                    "Venus",
-                    "Earth",
-                    "Mars",
-                    "Jupiter",
-                    "Saturn",
-                    "Uranus",
-                    "Neptune",
-                ]
-            case "solar_system_plus":
-                objs_name = [
-                    "Sun",
-                    "Mercury",
-                    "Venus",
-                    "Earth",
-                    "Mars",
-                    "Jupiter",
-                    "Saturn",
-                    "Uranus",
-                    "Neptune",
-                    "Pluto",
-                    "Ceres",
-                    "Vesta",
-                ]
-
-        if self.system in self.solar_like_systems:
-            for i in range(self.simulator.objects_count):
-                traj = ax.plot(
-                    self.simulator.sol_state[:, i * 3],
-                    self.simulator.sol_state[:, 1 + i * 3],
-                    color=self.solar_like_systems_colors[objs_name[i]],
-                )
-                ax.plot(
-                    self.simulator.sol_state[-1, i * 3],
-                    self.simulator.sol_state[-1, 1 + i * 3],
-                    "o",
-                    color=traj[0].get_color(),
-                    label=objs_name[i],
-                )
-        else:
-            for i in range(self.simulator.objects_count):
-                traj = ax.plot(
-                    self.simulator.sol_state[:, i * 3],
-                    self.simulator.sol_state[:, 1 + i * 3],
-                )
-                ax.plot(
-                    self.simulator.sol_state[-1, i * 3],
-                    self.simulator.sol_state[-1, 1 + i * 3],
-                    "o",
-                    color=traj[0].get_color(),
-                )
-
-        if self.system in self.solar_like_systems:
-            fig.legend(loc="center right", borderaxespad=0.2)
-            fig.tight_layout()
-
-        plt.show()
-        print()
-
-    def _plot_3d_trajectory(self):
-        print("Plotting 3D trajectory...(Please check the window)")
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        ax.set_box_aspect([1.0, 1.0, 1.0])  
-        ax.set_xlabel("$x$ (AU)")
-        ax.set_ylabel("$y$ (AU)")
-        ax.set_zlabel("$z$ (AU)")
-
-        # Get specific colors if the system is solar-like
-        match self.system:
-            case "sun_earth_moon":
-                objs_name = ["Sun", "Earth", "Moon"]
-            case "solar_system":
-                objs_name = [
-                    "Sun",
-                    "Mercury",
-                    "Venus",
-                    "Earth",
-                    "Mars",
-                    "Jupiter",
-                    "Saturn",
-                    "Uranus",
-                    "Neptune",
-                ]
-            case "solar_system_plus":
-                objs_name = [
-                    "Sun",
-                    "Mercury",
-                    "Venus",
-                    "Earth",
-                    "Mars",
-                    "Jupiter",
-                    "Saturn",
-                    "Uranus",
-                    "Neptune",
-                    "Pluto",
-                    "Ceres",
-                    "Vesta",
-                ]
-
-        if self.system in self.solar_like_systems:
-            for i in range(self.simulator.objects_count):
-                traj = ax.plot(
-                    self.simulator.sol_state[:, i * 3],
-                    self.simulator.sol_state[:, i * 3 + 1],
-                    self.simulator.sol_state[:, i * 3 + 2],
-                    color=self.solar_like_systems_colors[objs_name[i]],
-                )
-                ax.plot(
-                    self.simulator.sol_state[-1, i * 3],
-                    self.simulator.sol_state[-1, i * 3 + 1],
-                    self.simulator.sol_state[-1, i * 3 + 2],
-                    "o",
-                    color=traj[0].get_color(),
-                    label=objs_name[i],
-                )
-        else:
-            for i in range(self.simulator.objects_count):
-                traj = ax.plot(
-                    self.simulator.sol_state[:, i * 3],
-                    self.simulator.sol_state[:, i * 3 + 1],
-                    self.simulator.sol_state[:, i * 3 + 2],
-                )
-                ax.plot(
-                    self.simulator.sol_state[-1, i * 3],
-                    self.simulator.sol_state[-1, i * 3 + 1],
-                    self.simulator.sol_state[-1, i * 3 + 2],
-                    "o",
-                    color=traj[0].get_color(),
-                )
-        
-        if self.system in self.solar_like_systems:
-            fig.legend(loc="center right", borderaxespad=0.2)
-            fig.tight_layout()
-
-        self._set_3d_axes_equal(ax)
-        plt.show()
-        print()
-
-    @staticmethod
-    def _set_3d_axes_equal(ax):
-        """
-        Make axes of 3D plot have equal scale
-
-        Input
-        ax: a matplotlib axis, e.g., as output from plt.gca().
-
-        Reference: karlo, https://stackoverflow.com/questions/13685386/how-to-set-the-equal-aspect-ratio-for-all-axes-x-y-z
-        """
-
-        x_limits = ax.get_xlim3d()
-        y_limits = ax.get_ylim3d()
-        z_limits = ax.get_zlim3d()
-
-        x_range = abs(x_limits[1] - x_limits[0])
-        x_middle = np.mean(x_limits)
-        y_range = abs(y_limits[1] - y_limits[0])
-        y_middle = np.mean(y_limits)
-        z_range = abs(z_limits[1] - z_limits[0])
-        z_middle = np.mean(z_limits)
-
-        # The plot bounding box is a sphere in the sense of the infinity
-        # norm, hence I call half the max range the plot radius.
-        plot_radius = 0.5*max([x_range, y_range, z_range])
-
-        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
-        
-    def _plot_rel_energy(self):
-        if not self.computed_energy:
-            if self.ask_user_permission(
-                "WARNING: Energy has not been computed. Compute energy?"
-            ):
-                self.simulator.compute_energy()
-                self.computed_energy = True
-
-        print("Plotting relative energy error...(Please check the window)")
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogy(
-            self.sol_time_in_tf_unit,
-            np.abs(
-                (self.simulator.energy - self.simulator.energy[0])
-                / self.simulator.energy[0]
-            ),
-        )
-        ax.set_title("Relative energy error against time")
-        ax.set_xlabel(f"Time ({self.tf_unit})")
-        ax.set_ylabel("$|(E(t)-E_0)/E_0|$")
-
-        plt.show()
-        print()
-
-    def _plot_tot_energy(self):
-        # WARNING: The unit is in solar masses, AU and day
-        print("Plotting total energy...(Please check the window)")
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.semilogy(self.sol_time_in_tf_unit, np.abs(self.simulator.energy))
-        ax.set_title("Total energy against time")
-        ax.set_xlabel(f"Time ({self.tf_unit})")
-        ax.set_ylabel("$E(t)$")
-
-        plt.show()
-        print()
-
-    def _plot_dt(self):
-        """
-        Plot dt(days)
-        """
-        print("Plotting dt...(Please check the window)")
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.scatter(self.sol_time_in_tf_unit, self.simulator.sol_dt, s=0.1)
-        ax.set_yscale("log")
-        ax.set_title("dt against time")
-        ax.set_xlabel(f"Time ({self.tf_unit})")
-        ax.set_ylabel("dt(days)")
-
-        plt.show()
-        print()
-
-    def _plot_compare_rel_energy(self):
-        if not self.computed_energy:
-            if self.ask_user_permission(
-                "WARNING: Energy has not been computed. Compute energy?"
-            ):
-                self.simulator.compute_energy()
-                self.computed_energy = True
-
-        filepaths_to_labels = {}
-        filepaths_to_labels["current"] = input("Enter plot label for current set of data in memory: ")
-
-        read_folder_path = Path(__file__).parent / "results"
-        
-        while True:
-            num_of_data = len(filepaths_to_labels)
-            if num_of_data >= 2:
-                if not self.ask_user_permission(f"There are {num_of_data} sets of data. Continue adding new files?"):
-                    break                    
-            while True:
-                print()
-                read_file_path = input("Enter absolute path of new file to compare, or the complete file name if it is inside gravity_plot/results: ")
-                read_file_path = read_folder_path / read_file_path
-
-                if read_file_path.is_file():
-                    label = input("Enter plot label for this file: ")
-                    filepaths_to_labels[read_file_path] = label
-                    break
-                else:
-                    print("File not found! Please try again.")
-
-        print()
-        print("Plotting relative energy error...(Please check the window)")
-
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlabel(f"Time ({self.tf_unit})")
-        ax.set_ylabel("$|(E(t)-E_0)/E_0|$")
-
-        for filepath in filepaths_to_labels:
-            if filepath == "current":
-                ax.semilogy(
-                    self.sol_time_in_tf_unit,
-                    np.abs((self.simulator.energy - self.simulator.energy[0]) / self.simulator.energy[0]),
-                    label=filepaths_to_labels[filepath],
-                )
-            else:
-                try:
-                    with open(filepath, "r") as file:
-                        reader = csv.reader(file)
-
-                        # Allocate memory
-                        sol_time = np.zeros(50000)
-                        energy = np.zeros(50000)
-
-                        i = 0
-                        for row in reader:
-                            sol_time[i] = row[0]
-                            energy[i] = row[2]
-                            i += 1
-
-                            # Extending memory buffer
-                            if i % 50000 == 0:
-                                sol_time = np.concatenate(
-                                    (sol_time, np.zeros(50000))
-                                )
-                                energy = np.concatenate(
-                                    (energy, np.zeros(50000))
-                                )
-
-                        sol_time = sol_time[:i]
-                        energy = energy[:i]
-
-                        if self.tf_unit == "years":
-                            sol_time /= self.SIDEREAL_DAYS_PER_YEAR
-
-                        ax.semilogy(
-                            sol_time,
-                            np.abs((energy - energy[0]) / energy[0]),
-                            label=filepaths_to_labels[filepath],
-                        )
-
-                except FileNotFoundError:
-                    sys.exit("Error: file is not found. Exiting the program")
-
-        fig.legend(loc=7)
-        fig.tight_layout()
-        fig.subplots_adjust(right=0.8)
-        plt.show()
-
-        print()
 
     def _read_user_simulation_input(self):
         # --------------------Check and Input systems--------------------
@@ -1167,5 +838,5 @@ class Plotter:
             sys.exit("Error: file is not found. Exiting the program")
 
 if __name__ == "__main__":
-    plotter = Plotter()
-    plotter.run_prog()
+    grav_plot = GravitySimulator()
+    grav_plot.run_prog()
