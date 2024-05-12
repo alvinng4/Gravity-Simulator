@@ -88,8 +88,8 @@ class IAS15:
         x_err_comp_sum = np.zeros((objects_count, 3))
         v_err_comp_sum = np.zeros((objects_count, 3))
 
-        count = ctypes.c_uint(0)
-        store_count = ctypes.c_uint(0)
+        count = ctypes.c_int(0)
+        store_count = ctypes.c_int(0)
         progress_bar = Progress_bar()
         with progress_bar:
             task = progress_bar.add_task("", total=tf)
@@ -120,7 +120,6 @@ class IAS15:
                     self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.sol_time)),
                     self.sol_time.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                    ctypes.c_int(len(self.sol_dt)),
                     self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_double(safety_fac),
                     ctypes.c_double(exponent),

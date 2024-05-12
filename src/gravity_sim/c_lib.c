@@ -9,10 +9,10 @@
     #define WIN32DLL_API 
 #endif
 
-#define real double
+typedef double real;
 
 real abs_max_vec(const real *restrict vec, int vec_length);
-real abs_max_vec_array(const real (*restrict arr)[3], int objects_count);
+real abs_max_vec_array(real (*restrict arr)[3], int objects_count);
 real vec_norm(const real *restrict vec, int vec_length);
 real compute_energy(
     int objects_count, 
@@ -23,7 +23,7 @@ real compute_energy(
 );
 void acceleration(
     int objects_count, 
-    const real (*restrict x)[3], 
+    real (*restrict x)[3], 
     real (*restrict a)[3], 
     const real *restrict m, 
     real G
@@ -104,7 +104,6 @@ void ias15(
     real *restrict t, 
     real *restrict dt, 
     real expected_time_scale, 
-    int *restrict count, 
     real tolerance,
     real tolerance_pc,
     real safety_fac,
@@ -150,8 +149,8 @@ void ias15_step(
 void ias15_approx_pos(
     int objects_count,
     real (*restrict x)[3],
-    const real (*restrict v)[3],
-    const real (*restrict a)[3],
+    real (*restrict v)[3],
+    real (*restrict a)[3],
     real node,
     real *restrict aux_b,
     real dt
@@ -159,7 +158,7 @@ void ias15_approx_pos(
 void ias15_approx_vel(
     int objects_count,
     real (*restrict v)[3],
-    const real (*restrict a)[3],
+    real (*restrict a)[3],
     real node,
     real *restrict aux_b,
     real dt
@@ -204,7 +203,7 @@ WIN32DLL_API real abs_max_vec(const real *restrict vec, int vec_length)
     return max;
 }
 
-WIN32DLL_API real abs_max_vec_array(const real (*restrict arr)[3], int objects_count)
+WIN32DLL_API real abs_max_vec_array(real (*restrict arr)[3], int objects_count)
 {
     // Find the max absolute value in a 1D array
     real max = 0;
@@ -296,7 +295,7 @@ WIN32DLL_API real compute_energy(
 
 WIN32DLL_API void acceleration(
     int objects_count, 
-    const real (*restrict x)[3], 
+    real (*restrict x)[3], 
     real (*restrict a)[3], 
     const real *restrict m, 
     real G
@@ -762,7 +761,6 @@ WIN32DLL_API void ias15(
     real *restrict t, 
     real *restrict dt, 
     real expected_time_scale, 
-    int *restrict count, 
     real tolerance,
     real tolerance_pc,
     real safety_fac,
@@ -986,8 +984,8 @@ WIN32DLL_API void ias15_step(
 WIN32DLL_API void ias15_approx_pos(
     int objects_count,
     real (*restrict x)[3],
-    const real (*restrict v)[3],
-    const real (*restrict a)[3],
+    real (*restrict v)[3],
+    real (*restrict a)[3],
     real node,
     real *restrict aux_b,
     real dt
@@ -1037,7 +1035,7 @@ WIN32DLL_API void ias15_approx_pos(
 WIN32DLL_API void ias15_approx_vel(
     int objects_count,
     real (*restrict v)[3],
-    const real (*restrict a)[3],
+    real (*restrict a)[3],
     real node,
     real *restrict aux_b,
     real dt
