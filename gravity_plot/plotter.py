@@ -7,8 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import PillowWriter
 
-from progress_bar import Progress_bar
-
 class Plotter:
 
     @staticmethod
@@ -53,12 +51,14 @@ class Plotter:
                 ]
 
         if grav_plot.system in grav_plot.solar_like_systems:
+            # Plot with solar system colors
             for i in range(grav_plot.simulator.objects_count):
                 traj = ax.plot(
                     grav_plot.simulator.sol_state[:, i * 3],
                     grav_plot.simulator.sol_state[:, 1 + i * 3],
                     color=grav_plot.solar_like_systems_colors[objs_name[i]],
                 )
+                # Plot the last position as a filled circle
                 ax.plot(
                     grav_plot.simulator.sol_state[-1, i * 3],
                     grav_plot.simulator.sol_state[-1, 1 + i * 3],
@@ -67,11 +67,13 @@ class Plotter:
                     label=objs_name[i],
                 )
         else:
+            # Plot with random colors
             for i in range(grav_plot.simulator.objects_count):
                 traj = ax.plot(
                     grav_plot.simulator.sol_state[:, i * 3],
                     grav_plot.simulator.sol_state[:, 1 + i * 3],
                 )
+                # Plot the last position as a filled circle
                 ax.plot(
                     grav_plot.simulator.sol_state[-1, i * 3],
                     grav_plot.simulator.sol_state[-1, 1 + i * 3],
@@ -129,6 +131,7 @@ class Plotter:
                 ]
 
         if grav_plot.system in grav_plot.solar_like_systems:
+            # Plot with solar system colors
             for i in range(grav_plot.simulator.objects_count):
                 traj = ax.plot(
                     grav_plot.simulator.sol_state[:, i * 3],
@@ -136,6 +139,7 @@ class Plotter:
                     grav_plot.simulator.sol_state[:, i * 3 + 2],
                     color=grav_plot.solar_like_systems_colors[objs_name[i]],
                 )
+                # Plot the last position as a filled circle
                 ax.plot(
                     grav_plot.simulator.sol_state[-1, i * 3],
                     grav_plot.simulator.sol_state[-1, i * 3 + 1],
@@ -145,12 +149,14 @@ class Plotter:
                     label=objs_name[i],
                 )
         else:
+            # Plot with random colors
             for i in range(grav_plot.simulator.objects_count):
                 traj = ax.plot(
                     grav_plot.simulator.sol_state[:, i * 3],
                     grav_plot.simulator.sol_state[:, i * 3 + 1],
                     grav_plot.simulator.sol_state[:, i * 3 + 2],
                 )
+                # Plot the last position as a filled circle
                 ax.plot(
                     grav_plot.simulator.sol_state[-1, i * 3],
                     grav_plot.simulator.sol_state[-1, i * 3 + 1],
@@ -191,7 +197,7 @@ class Plotter:
 
         # The plot bounding box is a sphere in the sense of the infinity
         # norm, hence I call half the max range the plot radius.
-        plot_radius = 0.5*max([x_range, y_range, z_range])
+        plot_radius = 0.5 * max([x_range, y_range, z_range])
 
         ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
         ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
@@ -300,17 +306,21 @@ class Plotter:
 
         writer = PillowWriter(fps=fps)
         with writer.saving(fig, file_path, dpi):
+            # Plot once every nth point
             for i in range(grav_plot.data_size):
                 if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
                     continue
 
                 if grav_plot.system in grav_plot.solar_like_systems:
+                    # Plot with solar system colors
+                    # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
                             grav_plot.simulator.sol_state[:(i + 1), j * 3],
                             grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
                             color=grav_plot.solar_like_systems_colors[objs_name[j]],
                         )
+                        # Plot the current position as a filled circle
                         ax.plot(
                             grav_plot.simulator.sol_state[i, j * 3],
                             grav_plot.simulator.sol_state[i, j * 3 + 1],
@@ -318,14 +328,18 @@ class Plotter:
                             color=traj[0].get_color(),
                             label=objs_name[j],
                         )
+                    # Add legend at the beginning
                     if i == 0:
                         fig.legend(loc="center right", borderaxespad=0.2)
                 else:
+                    # Plot with random colors
+                    # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
                             grav_plot.simulator.sol_state[:(i + 1), j * 3],
                             grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
                         )
+                        # Plot the current position as a filled circle
                         ax.plot(
                             grav_plot.simulator.sol_state[i, j * 3],
                             grav_plot.simulator.sol_state[i, j * 3 + 1],
@@ -333,9 +347,14 @@ class Plotter:
                             color=traj[0].get_color(),
                         )
 
+                # Set axis labels before capturing the frame
                 ax.set_xlabel("$x$ (AU)")
                 ax.set_ylabel("$y$ (AU)")
+
+                # Capture the frame
                 writer.grab_frame()
+
+                # Clear the plot to prepare for the next frame
                 ax.clear()
 
         print(f"Output completed! Please check {file_path}")
@@ -385,13 +404,15 @@ class Plotter:
         file_path /= (file_name + ".gif")
 
         writer = PillowWriter(fps=fps)
-
         with writer.saving(fig, file_path, dpi):
+            # Plot once every nth point
             for i in range(grav_plot.data_size):
                 if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
                     continue
 
                 if grav_plot.system in grav_plot.solar_like_systems:
+                    # Plot with solar system colors
+                    # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
                             grav_plot.simulator.sol_state[:(i + 1), j * 3],
@@ -399,6 +420,7 @@ class Plotter:
                             grav_plot.simulator.sol_state[:(i + 1), j * 3 + 2],
                             color=grav_plot.solar_like_systems_colors[objs_name[j]],
                         )
+                        # Plot the current position as a filled circle
                         ax.plot(
                             grav_plot.simulator.sol_state[i, j * 3],
                             grav_plot.simulator.sol_state[i, j * 3 + 1],
@@ -407,15 +429,19 @@ class Plotter:
                             color=traj[0].get_color(),
                             label=objs_name[j],
                         )
+                    # Add legend at the beginning
                     if i == 0:
-                            fig.legend(loc="center right")
+                        fig.legend(loc="center right") 
                 else:
+                    # Plot with random colors
+                    # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
                             grav_plot.simulator.sol_state[:(i + 1), j * 3],
                             grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
                             grav_plot.simulator.sol_state[:(i + 1), j * 3 + 2],
                         )
+                        # Plot the current position as a filled circle
                         ax.plot(
                             grav_plot.simulator.sol_state[i, j * 3],
                             grav_plot.simulator.sol_state[i, j * 3 + 1],
@@ -424,11 +450,16 @@ class Plotter:
                             color=traj[0].get_color(),
                         )
 
+                # Set axis labels and setting 3d axes scale before capturing the frame
                 ax.set_xlabel("$x$ (AU)")
                 ax.set_ylabel("$y$ (AU)")
                 ax.set_zlabel("$z$ (AU)")
                 Plotter.set_3d_axes_equal(ax)
+
+                # Capture the frame
                 writer.grab_frame()
+
+                # Clear the plot to prepare for the next frame
                 ax.clear()
 
         print(f"Output completed! Please check {file_path}")
