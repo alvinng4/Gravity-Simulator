@@ -217,12 +217,11 @@ class GravitySimulator:
                 case 2:
                     Plotter.plot_3d_trajectory(self)
                 case 3:
-                    fps, plot_every_nth_point = Plotter.ask_user_input_animation(self)
-                    Plotter.animation_2d_traj_gif(self, fps, plot_every_nth_point)
+                    fps, plot_every_nth_point, file_name, dpi = Plotter.ask_user_input_animation(self)
+                    Plotter.animation_2d_traj_gif(self, fps, plot_every_nth_point, file_name, dpi)
                 case 4:
-                    print()
-                    print("Still in development!")
-                    print()
+                    fps, plot_every_nth_point, file_name, dpi = Plotter.ask_user_input_animation(self)
+                    Plotter.animation_3d_traj_gif(self, fps, plot_every_nth_point, file_name, dpi)
                 case 5:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
