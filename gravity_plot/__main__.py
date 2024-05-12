@@ -190,18 +190,20 @@ class GravitySimulator:
             print("Select an action:")
             print("1. Plot 2D trajectory (xy plane)")
             print("2. Plot 3D trajectory")
-            print("3. Plot relative energy error")
-            print("4. Plot dt")
-            print("5. Read data size")
-            print("6. Trim data")
-            print("7. Save simulation data")
-            print("8. Compare relative energy error")
-            print("9. Restart program")
-            print("10. Exit")
+            print("3. Animate 2D trajectory (gif)")
+            print("4. Animate 3D trajectory (gif)")
+            print("5. Plot relative energy error")
+            print("6. Plot dt")
+            print("7. Read data size")
+            print("8. Trim data")
+            print("9. Save simulation data")
+            print("10. Compare relative energy error")
+            print("11. Restart program")
+            print("12. Exit")
 
             try:
                 action = int(input("Enter action (Number): "))
-                if action < 1 or action > 10:
+                if action < 1 or action > 12:
                     raise ValueError
             except ValueError:
                 print("Invalid input. Please try again.")
@@ -211,35 +213,42 @@ class GravitySimulator:
             print()
             match action:
                 case 1:
-                    Plotter._plot_2d_trajectory(self)
+                    Plotter.plot_2d_trajectory(self)
                 case 2:
-                    Plotter._plot_3d_trajectory(self)
+                    Plotter.plot_3d_trajectory(self)
                 case 3:
+                    fps, plot_every_nth_point = Plotter.ask_user_input_animation(self)
+                    Plotter.animation_2d_traj_gif(self, fps, plot_every_nth_point)
+                case 4:
+                    print()
+                    print("Still in development!")
+                    print()
+                case 5:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
                         self.computed_energy = True
-                    Plotter._plot_rel_energy(self)
-                case 4:
-                    Plotter._plot_dt(self)
-                case 5:
+                    Plotter.plot_rel_energy(self)
+                case 6:
+                    Plotter.plot_dt(self)
+                case 7:
                     print(f"There are {self.data_size} lines of data.")
                     print()
-                case 6:
+                case 8:
                     print(f"There are {self.data_size} lines of data.")
                     self.trim_data()
-                case 7:
+                case 9:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
                         self.computed_energy = True
                     self._save_result()
-                case 8:
+                case 10:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
                         self.computed_energy = True
-                    Plotter._plot_compare_rel_energy(self)
-                case 9:
+                    Plotter.plot_compare_rel_energy(self)
+                case 11:
                     break
-                case 10:
+                case 12:
                     print("Exiting the program...")
                     sys.exit(0)
 

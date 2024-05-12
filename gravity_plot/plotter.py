@@ -1,14 +1,18 @@
 import csv
+import math
 from pathlib import Path
 import sys 
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import PillowWriter
+
+from progress_bar import Progress_bar
 
 class Plotter:
 
     @staticmethod
-    def _plot_2d_trajectory(grav_plot):
+    def plot_2d_trajectory(grav_plot):
         print("Plotting 2D trajectory (xy plane)...(Please check the window)")
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
@@ -83,7 +87,7 @@ class Plotter:
         print()
 
     @staticmethod
-    def _plot_3d_trajectory(grav_plot):
+    def plot_3d_trajectory(grav_plot):
         print("Plotting 3D trajectory...(Please check the window)")
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
@@ -164,7 +168,127 @@ class Plotter:
         print()
     
     @staticmethod
-    def _set_3d_axes_equal(ax):
+    def ask_user_input_animation(grav_plot):
+        while True:
+            while True:
+                try:
+                    fps = int(input("Enter FPS (int): "))
+                    print()
+                    break
+                except ValueError:
+                    print("Invalid input! Please try again.")
+                    print()
+
+            print(f"There are {grav_plot.data_size} lines of data.")
+            print(f"For FPS = {fps}, the gif would last for about {grav_plot.data_size / fps:.2f} s.")
+
+            while True:
+                try:
+                    plot_every_nth_point = int(input("Plot every nth point (int): "))
+                    break
+                except ValueError:
+                    print("Invalid input! Please try again.")
+
+            total_frame_size = math.floor(grav_plot.data_size / plot_every_nth_point) + 1
+            
+            print(f"FPS = {fps}")
+            print(f"Plot every nth point: {plot_every_nth_point}")
+            print(f"Estimated total frame: about {total_frame_size}")
+            print(f"Estimated time length: {(total_frame_size / fps):.2f} s")
+
+            if grav_plot.ask_user_permission("Proceed?"):
+                print()
+                break
+
+        return fps, plot_every_nth_point
+    
+    @staticmethod 
+    def animation_2d_traj_gif(grav_plot, fps, plot_every_nth_point):
+        print("Animating 2D trajectory (xy plane) in .gif...")
+        fig = plt.figure()
+        ax = fig.add_subplot(111, aspect="equal")
+
+        ax.set_xlabel("$x$ (AU)")
+        ax.set_ylabel("$y$ (AU)")
+        
+        # Get specific colors if the system is solar-like
+        match grav_plot.system:
+            case "sun_earth_moon":
+                objs_name = ["Sun", "Earth", "Moon"]
+            case "solar_system":
+                objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                ]
+            case "solar_system_plus":
+                objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                    "Pluto",
+                    "Ceres",
+                    "Vesta",
+                ]
+
+        if grav_plot.system in grav_plot.solar_like_systems:
+                    fig.legend(loc="center right", borderaxespad=0.2)
+                    fig.tight_layout()
+
+        writer = PillowWriter(fps=fps)
+        progress_bar = Progress_bar()
+        with writer.saving(fig, "test.gif", 100):
+            for i in progress_bar.track(range(grav_plot.data_size)):
+                if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
+                    continue
+
+                if grav_plot.system in grav_plot.solar_like_systems:
+                    for j in range(grav_plot.simulator.objects_count):
+                        traj = ax.plot(
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
+                            color=grav_plot.solar_like_systems_colors[objs_name[j]],
+                        )
+                        ax.plot(
+                            grav_plot.simulator.sol_state[i, j * 3],
+                            grav_plot.simulator.sol_state[i, j * 3 + 1],
+                            "o",
+                            color=traj[0].get_color(),
+                            label=objs_name[j],
+                        )
+                else:
+                    for j in range(grav_plot.simulator.objects_count):
+                        traj = ax.plot(
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
+                        )
+                        ax.plot(
+                            grav_plot.simulator.sol_state[i, j * 3],
+                            grav_plot.simulator.sol_state[i, j * 3 + 1],
+                            "o",
+                            color=traj[0].get_color(),
+                        )
+
+                writer.grab_frame()
+                ax.clear()
+
+        print("Done!")
+
+
+    @staticmethod
+    def set_3d_axes_equal(ax):
         """
         Make axes of 3D plot have equal scale
 
@@ -194,7 +318,7 @@ class Plotter:
         ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
     @staticmethod      
-    def _plot_rel_energy(grav_plot):
+    def plot_rel_energy(grav_plot):
         if not grav_plot.computed_energy:
             if grav_plot.ask_user_permission(
                 "WARNING: Energy has not been computed. Compute energy?"
@@ -220,7 +344,7 @@ class Plotter:
         print()
 
     @staticmethod
-    def _plot_tot_energy(grav_plot):
+    def plot_tot_energy(grav_plot):
         # WARNING: The unit is in solar masses, AU and day
         print("Plotting total energy...(Please check the window)")
         fig = plt.figure()
@@ -234,7 +358,7 @@ class Plotter:
         print()
 
     @staticmethod
-    def _plot_dt(grav_plot):
+    def plot_dt(grav_plot):
         """
         Plot dt(days)
         """
@@ -251,7 +375,7 @@ class Plotter:
         print()
 
     @staticmethod
-    def _plot_compare_rel_energy(grav_plot):
+    def plot_compare_rel_energy(grav_plot):
         if not grav_plot.computed_energy:
             if grav_plot.ask_user_permission(
                 "WARNING: Energy has not been computed. Compute energy?"
