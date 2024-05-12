@@ -101,8 +101,8 @@ class RK_EMBEDDED:
 
             t = ctypes.c_double(0.0)
             dt = ctypes.c_double(dt)
-            count = ctypes.c_uint(0)
-            store_count = ctypes.c_uint(0)
+            count = ctypes.c_int(0)
+            store_count = ctypes.c_int(0)
             while t.value <= tf:
                 rk_flag = self.c_lib.rk_embedded(
                     ctypes.c_int(objects_count),
@@ -128,7 +128,6 @@ class RK_EMBEDDED:
                     self.sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_int(len(self.sol_time)),
                     self.sol_time.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-                    ctypes.c_int(len(self.sol_dt)),
                     self.sol_dt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     x_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     v_err_comp_sum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),

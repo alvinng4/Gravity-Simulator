@@ -43,8 +43,8 @@ class FIXED_STEP_SIZE_INTEGRATOR:
         v_err_comp_sum = np.zeros((objects_count, 3))
 
         progress_bar = Progress_bar()
-        count = ctypes.c_ulong(0)
-        store_count = ctypes.c_uint(0)
+        count = ctypes.c_long(0)
+        store_count = ctypes.c_int(0)
         with progress_bar:
             task = progress_bar.add_task("", total=store_npts)
             match integrator:
@@ -55,8 +55,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(dt),
-                            ctypes.c_double(tf),
-                            ctypes.c_ulong(npts),
+                            ctypes.c_long(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
@@ -82,8 +81,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(dt),
-                            ctypes.c_double(tf),
-                            ctypes.c_ulong(npts),
+                            ctypes.c_long(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
@@ -109,8 +107,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(dt),
-                            ctypes.c_double(tf),
-                            ctypes.c_ulong(npts),
+                            ctypes.c_long(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
@@ -136,8 +133,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(dt),
-                            ctypes.c_double(tf),
-                            ctypes.c_ulong(npts),
+                            ctypes.c_long(npts),
                             m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                             ctypes.c_double(G),
                             self.sol_state.ctypes.data_as(
