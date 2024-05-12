@@ -49,7 +49,6 @@ class IAS15:
         
         # Simulation
         if simulator.is_c_lib == True:
-            count = ctypes.c_int(0)
             temp_simulation_time = ctypes.c_double(simulator.stats.simulation_time)
             temp_dt = ctypes.c_double(self.dt)
             temp_ias15_refine_flag = ctypes.c_int(self.ias15_refine_flag)
@@ -72,7 +71,6 @@ class IAS15:
                 ctypes.byref(temp_simulation_time), 
                 ctypes.byref(temp_dt),
                 ctypes.c_double(expected_time_scale),
-                ctypes.byref(count),
                 ctypes.c_double(tolerance),
                 ctypes.c_double(self.tolerance_pc),
                 ctypes.c_double(self.safety_fac),
