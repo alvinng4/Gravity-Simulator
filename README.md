@@ -6,8 +6,7 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/7305959b-79c6-44fb-bfe6-bb927431ca00" alt="Image" width="400">
 
-
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/d6e2d9f0-a762-43ce-876b-32e3ef75304e" alt="Image" width="400">
+<img src="./examples/solar_3d.gif" alt="Image" width="400">
 
 ## Online demo for interactive module: 
 Link: https://alvinng4.github.io/Gravity_Simulator_Web/
@@ -43,6 +42,7 @@ This online demo is built with the pygbag package.
     - [Store every nth point (Optional)](#store-every-nth-point-optional)
     - [Available systems](#available-systems-1)
     - [Customizing system](#customizing-system)
+    - [Output animation in .gif](#output-animation-in-gif)
     - [Saving the data](#saving-the-data)
 * [Compensated summation](#compensated-summation)
 * [Available integrators](#available-integrators)
@@ -140,7 +140,7 @@ between fixed and variable step size integrators.
 
 ## Plotting module
 
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/5633ec1e-0c20-43d2-bf4e-ad181cb5113f" alt="Image" width="300">
+<img src="./examples/pyth-3-body_rk4.gif" alt="Image" width="300">
 <img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/93f6da6d-fd3a-4998-9d4b-c2a071c234ee" alt="Image" width="300">
 
 ### Running the program
@@ -198,6 +198,17 @@ The data follow the format
 ```
 Name, Number of objects, [m1, m2], [x1, y1, z1, ..., vx1, vy1, vz1, ...]
 ```
+
+### Output animation in .gif
+
+You may output the trajectory in 2D / 3D as an animation in .gif.
+The output file would be stored in `gravity_plot/result`.
+
+To generate the animation, the program would ask for the following information:
+* FPS: Frames per second
+* Plot every nth point
+* File name without extension
+* Dots per inch (dpi): this would affect the resolution
 
 ### Saving the data
 After each simulation, the program would ask if you want to save the data.
