@@ -4,7 +4,7 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 * Interactive module: real time simulation with the interactive simulator
 * Plotting module: customize your own system and generate a plot easily
 
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/7305959b-79c6-44fb-bfe6-bb927431ca00" alt="Image" width="400">
+<img src="./examples/grav_sim.png" alt="Image" width="400">
 
 <img src="./examples/solar_3d.gif" alt="Image" width="400">
 
@@ -142,7 +142,7 @@ For RK4, the largest dt to produce desired result is 2e-8 days.
 ## Plotting module
 
 <img src="./examples/pyth-3-body_rk4.gif" alt="Image" width="300">
-<img src="https://github.com/alvinng4/Gravity-Simulator/assets/154572722/93f6da6d-fd3a-4998-9d4b-c2a071c234ee" alt="Image" width="300">
+<img src="./examples/rel_energy.png" alt="Image" width="300">
 
 ### Running the program
 
