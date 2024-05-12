@@ -210,6 +210,9 @@ To generate the animation, the program would ask for the following information:
 * File name without extension
 * Dots per inch (dpi): this would affect the resolution
 
+> [!TIP]\
+> If you are using variable step size integrators, the gif may look weird as the step size are not constant.
+
 ### Saving the data
 After each simulation, the program would ask if you want to save the data.
 If you chose to do so, the numerical data will be stored in the following folder:
