@@ -209,6 +209,8 @@ class Plotter:
             while True:
                 try:
                     fps = int(input("Enter FPS (int): "))
+                    if fps <= 0:
+                        raise ValueError
                     print()
                     break
                 except ValueError:
@@ -221,6 +223,8 @@ class Plotter:
             while True:
                 try:
                     plot_every_nth_point = int(input("Plot every nth point (int): "))
+                    if plot_every_nth_point <= 0 or plot_every_nth_point > grav_plot.data_size:
+                        raise ValueError
                     print()
                     break
                 except ValueError:
@@ -241,6 +245,8 @@ class Plotter:
             while True:
                 try:
                     dpi = int(input("Enter dots per inch (dpi) in int (recommended value is 200): "))
+                    if dpi <= 0:
+                        raise ValueError
                     print()
                     break
                 except ValueError:
