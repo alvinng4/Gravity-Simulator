@@ -163,10 +163,40 @@ class Plotter:
             fig.legend(loc="center right", borderaxespad=0.2)
             fig.tight_layout()
 
-        Plotter._set_3d_axes_equal(ax)
+        Plotter.set_3d_axes_equal(ax)
         plt.show()
         print()
     
+    @staticmethod
+    def set_3d_axes_equal(ax):
+        """
+        Make axes of 3D plot have equal scale
+
+        Input
+        ax: a matplotlib axis, e.g., as output from plt.gca().
+
+        Reference: karlo, https://stackoverflow.com/questions/13685386/how-to-set-the-equal-aspect-ratio-for-all-axes-x-y-z
+        """
+
+        x_limits = ax.get_xlim3d()
+        y_limits = ax.get_ylim3d()
+        z_limits = ax.get_zlim3d()
+
+        x_range = abs(x_limits[1] - x_limits[0])
+        x_middle = np.mean(x_limits)
+        y_range = abs(y_limits[1] - y_limits[0])
+        y_middle = np.mean(y_limits)
+        z_range = abs(z_limits[1] - z_limits[0])
+        z_middle = np.mean(z_limits)
+
+        # The plot bounding box is a sphere in the sense of the infinity
+        # norm, hence I call half the max range the plot radius.
+        plot_radius = 0.5*max([x_range, y_range, z_range])
+
+        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
     @staticmethod
     def ask_user_input_animation(grav_plot):
         while True:
@@ -180,37 +210,58 @@ class Plotter:
                     print()
 
             print(f"There are {grav_plot.data_size} lines of data.")
-            print(f"For FPS = {fps}, the gif would last for about {grav_plot.data_size / fps:.2f} s.")
+            print(f"For FPS = {fps}, the gif would last for about {grav_plot.data_size / fps:.2f} s if plot every nth point = 1.")
 
             while True:
                 try:
                     plot_every_nth_point = int(input("Plot every nth point (int): "))
+                    print()
                     break
                 except ValueError:
                     print("Invalid input! Please try again.")
+                    print()
 
             total_frame_size = math.floor(grav_plot.data_size / plot_every_nth_point) + 1
             
+            while True:
+                try:
+                    file_name = input("Enter file name without extension (carefully, the program cannot check the validity of the filename): ")
+                    print()
+                    break
+                except ValueError:
+                    print("Invalid input! Please try again.")
+                    print()
+            
+            while True:
+                try:
+                    dpi = int(input("Enter dots per inch (dpi) in int (recommended value is 200): "))
+                    print()
+                    break
+                except ValueError:
+                    print("Invalid input! Please try again.")
+                    print()
+
             print(f"FPS = {fps}")
             print(f"Plot every nth point: {plot_every_nth_point}")
             print(f"Estimated total frame: about {total_frame_size}")
             print(f"Estimated time length: {(total_frame_size / fps):.2f} s")
+            print(f"File name: {file_name}")
+            print(f"dpi: {dpi}")
 
             if grav_plot.ask_user_permission("Proceed?"):
                 print()
                 break
+            else:
+                print()
 
-        return fps, plot_every_nth_point
+        return fps, plot_every_nth_point, file_name, dpi
     
     @staticmethod 
-    def animation_2d_traj_gif(grav_plot, fps, plot_every_nth_point):
+    def animation_2d_traj_gif(grav_plot, fps, plot_every_nth_point, file_name, dpi):
         print("Animating 2D trajectory (xy plane) in .gif...")
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
 
-        ax.set_xlabel("$x$ (AU)")
-        ax.set_ylabel("$y$ (AU)")
-        
         # Get specific colors if the system is solar-like
         match grav_plot.system:
             case "sun_earth_moon":
@@ -243,14 +294,13 @@ class Plotter:
                     "Vesta",
                 ]
 
-        if grav_plot.system in grav_plot.solar_like_systems:
-                    fig.legend(loc="center right", borderaxespad=0.2)
-                    fig.tight_layout()
+        file_path = Path(__file__).parent / "results"
+        file_path.mkdir(parents=True, exist_ok=True)
+        file_path /= (file_name + ".gif")
 
         writer = PillowWriter(fps=fps)
-        progress_bar = Progress_bar()
-        with writer.saving(fig, "test.gif", 100):
-            for i in progress_bar.track(range(grav_plot.data_size)):
+        with writer.saving(fig, file_path, dpi):
+            for i in range(grav_plot.data_size):
                 if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
                     continue
 
@@ -268,6 +318,8 @@ class Plotter:
                             color=traj[0].get_color(),
                             label=objs_name[j],
                         )
+                    if i == 0:
+                        fig.legend(loc="center right", borderaxespad=0.2)
                 else:
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
@@ -281,42 +333,107 @@ class Plotter:
                             color=traj[0].get_color(),
                         )
 
+                ax.set_xlabel("$x$ (AU)")
+                ax.set_ylabel("$y$ (AU)")
                 writer.grab_frame()
                 ax.clear()
 
-        print("Done!")
-
+        print(f"Output completed! Please check {file_path}")
+        print()
 
     @staticmethod
-    def set_3d_axes_equal(ax):
-        """
-        Make axes of 3D plot have equal scale
+    def animation_3d_traj_gif(grav_plot, fps, plot_every_nth_point, file_name, dpi):
+        print("Animating 3D trajectory in .gif...")
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+        ax.set_box_aspect([1.0, 1.0, 1.0])  
 
-        Input
-        ax: a matplotlib axis, e.g., as output from plt.gca().
+        # Get specific colors if the system is solar-like
+        match grav_plot.system:
+            case "sun_earth_moon":
+                objs_name = ["Sun", "Earth", "Moon"]
+            case "solar_system":
+                objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                ]
+            case "solar_system_plus":
+                objs_name = [
+                    "Sun",
+                    "Mercury",
+                    "Venus",
+                    "Earth",
+                    "Mars",
+                    "Jupiter",
+                    "Saturn",
+                    "Uranus",
+                    "Neptune",
+                    "Pluto",
+                    "Ceres",
+                    "Vesta",
+                ]
 
-        Reference: karlo, https://stackoverflow.com/questions/13685386/how-to-set-the-equal-aspect-ratio-for-all-axes-x-y-z
-        """
+        file_path = Path(__file__).parent / "results"
+        file_path.mkdir(parents=True, exist_ok=True)
+        file_path /= (file_name + ".gif")
 
-        x_limits = ax.get_xlim3d()
-        y_limits = ax.get_ylim3d()
-        z_limits = ax.get_zlim3d()
+        writer = PillowWriter(fps=fps)
 
-        x_range = abs(x_limits[1] - x_limits[0])
-        x_middle = np.mean(x_limits)
-        y_range = abs(y_limits[1] - y_limits[0])
-        y_middle = np.mean(y_limits)
-        z_range = abs(z_limits[1] - z_limits[0])
-        z_middle = np.mean(z_limits)
+        with writer.saving(fig, file_path, dpi):
+            for i in range(grav_plot.data_size):
+                if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
+                    continue
 
-        # The plot bounding box is a sphere in the sense of the infinity
-        # norm, hence I call half the max range the plot radius.
-        plot_radius = 0.5*max([x_range, y_range, z_range])
+                if grav_plot.system in grav_plot.solar_like_systems:
+                    for j in range(grav_plot.simulator.objects_count):
+                        traj = ax.plot(
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 2],
+                            color=grav_plot.solar_like_systems_colors[objs_name[j]],
+                        )
+                        ax.plot(
+                            grav_plot.simulator.sol_state[i, j * 3],
+                            grav_plot.simulator.sol_state[i, j * 3 + 1],
+                            grav_plot.simulator.sol_state[i, j * 3 + 2],
+                            "o",
+                            color=traj[0].get_color(),
+                            label=objs_name[j],
+                        )
+                    if i == 0:
+                            fig.legend(loc="center right")
+                else:
+                    for j in range(grav_plot.simulator.objects_count):
+                        traj = ax.plot(
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
+                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 2],
+                        )
+                        ax.plot(
+                            grav_plot.simulator.sol_state[i, j * 3],
+                            grav_plot.simulator.sol_state[i, j * 3 + 1],
+                            grav_plot.simulator.sol_state[i, j * 3 + 2],
+                            "o",
+                            color=traj[0].get_color(),
+                        )
 
-        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+                ax.set_xlabel("$x$ (AU)")
+                ax.set_ylabel("$y$ (AU)")
+                ax.set_zlabel("$z$ (AU)")
+                Plotter.set_3d_axes_equal(ax)
+                writer.grab_frame()
+                ax.clear()
 
+        print(f"Output completed! Please check {file_path}")
+        print()
+        
     @staticmethod      
     def plot_rel_energy(grav_plot):
         if not grav_plot.computed_energy:
