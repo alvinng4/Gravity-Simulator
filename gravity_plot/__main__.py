@@ -754,6 +754,8 @@ class GravitySimulator:
             read_file_path = input(
                 "Enter absolute path to the file, or the complete file name if it is inside gravity_plot/results: "
             ).strip()
+            if not read_file_path.endswith(".csv"):
+                read_file_path += ".csv"
             read_file_path = read_folder_path / read_file_path
 
             if read_file_path.is_file():
