@@ -158,23 +158,23 @@ class Simulator:
         ],
     }
 
-    def __init__(self, plotter):
-        self.is_c_lib = plotter.is_c_lib
-        if plotter.is_c_lib:
-            self.c_lib = plotter.c_lib
+    def __init__(self, grav_plot):
+        self.is_c_lib = grav_plot.is_c_lib
+        if grav_plot.is_c_lib:
+            self.c_lib = grav_plot.c_lib
 
-    def initialize_system(self, plotter):
-        self.store_every_n = plotter.store_every_n
-        self.system = plotter.system
-        self.integrator = plotter.integrator
-        self.tf = plotter.tf
-        self.unit = plotter.tf_unit
-        self.tolerance = plotter.tolerance
-        self.dt = plotter.dt
+    def initialize_system(self, grav_plot):
+        self.store_every_n = grav_plot.store_every_n
+        self.system = grav_plot.system
+        self.integrator = grav_plot.integrator
+        self.tf = grav_plot.tf
+        self.unit = grav_plot.tf_unit
+        self.tolerance = grav_plot.tolerance
+        self.dt = grav_plot.dt
         self.G = self.CONSTANT_G
 
         # Read information of the customized system
-        if self.system not in plotter.default_systems:
+        if self.system not in grav_plot.default_systems:
             file_path = Path(__file__).parent / "customized_systems.csv"
             try:
                 with open(file_path, "r") as file:
