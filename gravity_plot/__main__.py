@@ -355,14 +355,14 @@ class GravitySimulator:
 
             self.system = system_name
             objects_count = get_int("Number of objects: ", larger_than=0)
+            print()
 
             print("Note: The default unit is M_sun, AU and day, G=0.00029591220828411.")
-
             masses = []
             for i in range(objects_count):
                 masses.append(get_float(f"Please enter the mass for object {i + 1}: "))
 
-            state_vec = []
+            x = np.zeros(objects_count * 3)
             for i in range(objects_count):
                 for j in range(3):
                     match j:
@@ -372,10 +372,9 @@ class GravitySimulator:
                             variable = "y"
                         case 2:
                             variable = "z"
-                    state_vec.append(
-                        get_float(f"Please enter {variable} for object {i + 1}: ")
-                    )
-
+                    x[i * 3 + j] = get_float(f"Please enter {variable} for object {i + 1}: ")
+                    
+            v = np.zeros(objects_count * 3)
             for i in range(objects_count):
                 for j in range(3):
                     match j:
@@ -385,24 +384,12 @@ class GravitySimulator:
                             variable = "y"
                         case 2:
                             variable = "z"
-                    state_vec.append(
-                        get_float(f"Please enter v{variable} for object {i + 1}: ")
-                    )
+                    v[i * 3 + j] = get_float(f"Please enter v{variable} for object {i + 1}: ")
 
             file_path = Path(__file__).parent / "customized_systems.csv"
             with open(file_path, "a", newline="") as file:
-                writer = csv.DictWriter(
-                    file,
-                    fieldnames=["system_name", "objects_count", "masses", "state_vec"],
-                )
-                writer.writerow(
-                    {
-                        "system_name": system_name,
-                        "objects_count": objects_count,
-                        "masses": masses,
-                        "state_vec": state_vec,
-                    }
-                )
+                writer = csv.writer(file)
+                writer.writerow([system_name, objects_count] + masses + x.tolist() + v.tolist())
 
         # --------------------Recommended settings for systems--------------------
         elif self.system in self.default_systems:
