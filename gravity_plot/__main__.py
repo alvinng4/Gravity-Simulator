@@ -223,9 +223,10 @@ class GravitySimulator:
                         plot_every_nth_point,
                         file_name,
                         dpi,
+                        is_dynamic_axes,
                     ) = Plotter.ask_user_input_animation(self)
                     Plotter.animation_2d_traj_gif(
-                        self, fps, plot_every_nth_point, file_name, dpi
+                        self, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
                     )
                 case 4:
                     (
@@ -233,9 +234,10 @@ class GravitySimulator:
                         plot_every_nth_point,
                         file_name,
                         dpi,
+                        is_dynamic_axes,
                     ) = Plotter.ask_user_input_animation(self)
                     Plotter.animation_3d_traj_gif(
-                        self, fps, plot_every_nth_point, file_name, dpi
+                        self, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
                     )
                 case 5:
                     if not self.computed_energy:

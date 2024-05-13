@@ -6,7 +6,7 @@ This is a Newtonian N-body gravity simulator which projects the results on the x
 
 <img src="./examples/grav_sim.png" alt="Image" width="400">
 
-<img src="./examples/solar_3d.gif" alt="Image" width="400">
+<img src="./examples/solar_plus_3d.gif" alt="Image" width="400">
 
 ## Online demo for interactive module: 
 Link: https://alvinng4.github.io/Gravity_Simulator_Web/
@@ -211,6 +211,7 @@ To generate the animation, the program would ask for the following information:
 * Plot every nth point
 * File name without extension
 * Dots per inch (dpi): this would affect the resolution
+* Dynamic axes limit: rescale the axes limit dynamically
 
 > [!TIP]\
 > If you are using variable step size integrators, the gif may look weird as the step size are not constant.
