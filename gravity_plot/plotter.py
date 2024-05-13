@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import PillowWriter
 
 from common import get_bool
+from common import get_int
+from common import get_float
 
 
 class Plotter:
@@ -178,70 +180,34 @@ class Plotter:
     @staticmethod
     def ask_user_input_animation(dim: int, grav_plot):
         while True:
-            while True:
-                try:
-                    fps = int(input("Enter FPS (int): "))
-                    if fps <= 0:
-                        raise ValueError
-                    print()
-                    break
-                except ValueError:
-                    print("Invalid input! Please try again.")
-                    print()
+            fps = get_float("Enter FPS: ", larger_than=0)
+            print()
 
             print(f"There are {grav_plot.data_size} lines of data.")
             print(
-                f"For FPS = {fps}, the gif would last for about {grav_plot.data_size / fps:.2f} s if plot every nth point = 1."
+                f"For FPS = {fps:.1f}, the gif would last for about {grav_plot.data_size / fps:.1f} s if plot every nth point = 1."
             )
 
-            while True:
-                try:
-                    plot_every_nth_point = int(input("Plot every nth point (int): "))
-                    if (
-                        plot_every_nth_point <= 0
-                        or plot_every_nth_point > grav_plot.data_size
-                    ):
-                        raise ValueError
-                    print()
-                    break
-                except ValueError:
-                    print("Invalid input! Please try again.")
-                    print()
-
-            total_frame_size = (
-                math.floor(grav_plot.data_size / plot_every_nth_point) + 1
+            plot_every_nth_point = get_int(
+                "Plot every nth point (int): ",
+                larger_than=0,
+                smaller_than=grav_plot.data_size,
             )
+            print()
 
-            while True:
-                try:
-                    file_name = input(
-                        "Enter file name without extension (carefully, the program cannot check the validity of the filename): "
-                    )
-                    print()
-                    break
-                except ValueError:
-                    print("Invalid input! Please try again.")
-                    print()
+            file_name = input(
+                "Enter file name without extension (carefully, the program cannot check the validity of the filename): "
+            )
+            print()
 
-            while True:
-                try:
-                    dpi = int(
-                        input(
-                            "Enter dots per inch (dpi) in int (recommended value is 200): "
-                        )
-                    )
-                    if dpi <= 0:
-                        raise ValueError
-                    print()
-                    break
-                except ValueError:
-                    print("Invalid input! Please try again.")
-                    print()
-
+            dpi = get_float(
+                "Enter dots per inch (dpi) (recommended value is 200): ",
+                larger_than=0,
+            )
+            print()
 
             is_dynamic_axes = get_bool("Set dynamic axes limit?")
             print()
-
 
             axes_lim = None
             is_custom_axes = False
@@ -250,47 +216,36 @@ class Plotter:
                     is_custom_axes = True
                     print()
 
-                    while True:
-                        try:
-                            xlim_min = float(input("Enter min x-axis limit (AU): "))
-                            xlim_max = float(input("Enter max x-axis limit (AU): "))
-                            break
-                        except ValueError:
-                            print("Invalid input! Please try again.")
-                            print()
+                    xlim_min = get_float("Enter min x-axis limit (AU): ")
+                    xlim_max = get_float("Enter max x-axis limit (AU): ")
+                    ylim_min = get_float("Enter min y-axis limit (AU): ")
+                    ylim_max = get_float("Enter max y-axis limit (AU): ")
 
-                    while True:
-                        try:
-                            ylim_min = float(input("Enter min y-axis limit (AU): "))
-                            ylim_max = float(input("Enter max y-axis limit (AU): "))
-                            break
-                        except ValueError:
-                            print("Invalid input! Please try again.")
-                            print()
-                    
-                    axes_lim = [xlim_min, xlim_max, ylim_min, ylim_max]
-                    if dim == 3:
-                        while True:
-                            try:
-                                zlim_min = float(input("Enter min z-axis limit (AU): "))
-                                zlim_max = float(input("Enter max z-axis limit (AU): "))
-                                break
-                            except ValueError:
-                                print("Invalid input! Please try again.")
-                                print()
-                                continue
+                    if dim == 2:
+                        axes_lim = [xlim_min, xlim_max, ylim_min, ylim_max]
+                    elif dim == 3:
+                        zlim_min = get_float("Enter min z-axis limit (AU): ")
+                        zlim_max = get_float("Enter max z-axis limit (AU): ")
 
-                        axes_lim.append(zlim_min)
-                        axes_lim.append(zlim_max)
-
+                        axes_lim = [
+                            xlim_min,
+                            xlim_max,
+                            ylim_min,
+                            ylim_max,
+                            zlim_min,
+                            zlim_max,
+                        ]
                 print()
 
-            print(f"FPS = {fps}")
+            print(f"FPS = {fps:.1f}")
             print(f"Plot every nth point: {plot_every_nth_point}")
+            total_frame_size = (
+                math.floor(grav_plot.data_size / plot_every_nth_point) + 1
+            )
             print(f"Estimated total frame: about {total_frame_size}")
-            print(f"Estimated time length: {(total_frame_size / fps):.2f} s")
+            print(f"Estimated time length: {(total_frame_size / fps):.1f} s")
             print(f"File name: {file_name}")
-            print(f"dpi: {dpi}")
+            print(f"dpi: {dpi:.1f}")
             print(f"Dynamic axes limits: {is_dynamic_axes}")
 
             if not is_dynamic_axes:
@@ -316,11 +271,27 @@ class Plotter:
             else:
                 print()
 
-        return fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_custom_axes, axes_lim, is_cancel
+        return (
+            fps,
+            plot_every_nth_point,
+            file_name,
+            dpi,
+            is_dynamic_axes,
+            is_custom_axes,
+            axes_lim,
+            is_cancel,
+        )
 
     @staticmethod
     def animation_2d_traj_gif(
-        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_custom_axes, axes_lim
+        grav_plot,
+        fps,
+        plot_every_nth_point,
+        file_name,
+        dpi,
+        is_dynamic_axes,
+        is_custom_axes,
+        axes_lim,
     ):
         print("Animating 2D trajectory (xy plane) in .gif...")
         fig = plt.figure()
@@ -435,7 +406,14 @@ class Plotter:
 
     @staticmethod
     def animation_3d_traj_gif(
-        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_custom_axes, axes_lim
+        grav_plot,
+        fps,
+        plot_every_nth_point,
+        file_name,
+        dpi,
+        is_dynamic_axes,
+        is_custom_axes,
+        axes_lim,
     ):
         print("Animating 3D trajectory in .gif...")
         fig = plt.figure()
@@ -490,7 +468,7 @@ class Plotter:
             else:
                 xlim_min, xlim_max = Plotter.get_axes_lim(3, grav_plot)
                 ylim_min = xlim_min
-                ylim_max = xlim_max 
+                ylim_max = xlim_max
                 zlim_min = xlim_min
                 zlim_max = xlim_max
 
@@ -554,7 +532,7 @@ class Plotter:
 
                 # Set equal aspect ratio to prevent distortion
                 ax.set_aspect("equal")
-                
+
                 # Capture the frame
                 writer.grab_frame()
 

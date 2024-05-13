@@ -8,7 +8,7 @@ def get_bool(msg: str) -> bool:
     Get boolean input from user
 
     Args: msg (str): Message to display to user
-    Display: "msg (y/n):"
+    Print: "{msg} (y/n): "
     Returns: bool
     """
     while True:
@@ -21,6 +21,90 @@ def get_bool(msg: str) -> bool:
                 return False
 
         print("Invalid input. Please try again.\n")
+
+
+def get_int(
+    msg: str,
+    larger_than: int = None,
+    smaller_than: int = None,
+    allow_cancel: bool = False,
+) -> int:
+    """
+    Get integer input from user
+
+    Args: msg (str): Message to display to user
+          larger_than (int): Value must be larger than this
+          smaller_than (int): Value must be smaller than this
+          allow_cancel (bool): Allow user to enter "cancel" to cancel input
+    Print: "{msg}"
+    Returns: int, None if allow_cancel is True and user enters "cancel"
+    """
+    while True:
+        try:
+            value = input(f"{msg}")
+            if allow_cancel and value.strip().lower() == "cancel":
+                return None
+            else:
+                value = int(value)
+
+            if (larger_than is None or value > larger_than) and (
+                smaller_than is None or value < smaller_than
+            ):
+                return value
+
+            if larger_than is not None and value <= larger_than:
+                print("Value too small! Please try again.")
+                print()
+
+            elif smaller_than is not None and value >= smaller_than:
+                print("Value too big! Please try again.")
+                print()
+
+        except ValueError:
+            print("Invalid input. Please try again.")
+            print()
+
+
+def get_float(
+    msg: str,
+    larger_than: float = None,
+    smaller_than: float = None,
+    allow_cancel: bool = False,
+) -> float:
+    """
+    Get integer input from user
+
+    Args: msg (str): Message to display to user
+          larger_than (float): Value must be larger than this
+          smaller_than (float): Value must be smaller than this
+          allow_cancel (bool): Allow user to enter "cancel" to cancel input
+    Print: "{msg}"
+    Returns: float, None if allow_cancel is True and user enters "cancel"
+    """
+    while True:
+        try:
+            value = input(f"{msg}")
+            if allow_cancel and value.strip().lower() == "cancel":
+                return None
+            else:
+                value = float(value)
+
+            if (larger_than is None or value > larger_than) and (
+                smaller_than is None or value < smaller_than
+            ):
+                return value
+
+            if larger_than is not None and value <= larger_than:
+                print("Value too small! Please try again.")
+                print()
+
+            elif smaller_than is not None and value >= smaller_than:
+                print("Value too big! Please try again.")
+                print()
+
+        except ValueError:
+            print("Invalid input. Please try again.")
+            print()
 
 
 def acceleration(objects_count, x, m, G):
