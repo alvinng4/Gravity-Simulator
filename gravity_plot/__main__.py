@@ -11,6 +11,7 @@ import timeit
 
 import numpy as np
 
+from common import get_bool
 from simulator import Simulator
 from plotter import Plotter
 from progress_bar import Progress_bar
@@ -142,7 +143,7 @@ class GravitySimulator:
 
                 self.data_size = len(self.simulator.sol_time)
                 if self.data_size > 50000:
-                    if self.ask_user_permission(
+                    if get_bool(
                         f"There are {self.data_size} lines of data. Do you want to trim the data?"
                     ):
                         self.trim_data()
@@ -217,11 +218,25 @@ class GravitySimulator:
                 case 2:
                     Plotter.plot_3d_trajectory(self)
                 case 3:
-                    fps, plot_every_nth_point, file_name, dpi = Plotter.ask_user_input_animation(self)
-                    Plotter.animation_2d_traj_gif(self, fps, plot_every_nth_point, file_name, dpi)
+                    (
+                        fps,
+                        plot_every_nth_point,
+                        file_name,
+                        dpi,
+                    ) = Plotter.ask_user_input_animation(self)
+                    Plotter.animation_2d_traj_gif(
+                        self, fps, plot_every_nth_point, file_name, dpi
+                    )
                 case 4:
-                    fps, plot_every_nth_point, file_name, dpi = Plotter.ask_user_input_animation(self)
-                    Plotter.animation_3d_traj_gif(self, fps, plot_every_nth_point, file_name, dpi)
+                    (
+                        fps,
+                        plot_every_nth_point,
+                        file_name,
+                        dpi,
+                    ) = Plotter.ask_user_input_animation(self)
+                    Plotter.animation_3d_traj_gif(
+                        self, fps, plot_every_nth_point, file_name, dpi
+                    )
                 case 5:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
@@ -255,7 +270,7 @@ class GravitySimulator:
         while True:
             self._read_user_simulation_input()
             self._print_user_simulation_input()
-            if self.ask_user_permission("Proceed?"):
+            if get_bool("Proceed?"):
                 print("")
                 break
 
@@ -412,9 +427,7 @@ class GravitySimulator:
         # --------------------Recommended settings for systems--------------------
         elif self.system in self.default_systems:
             print("")
-            if self.ask_user_permission(
-                "Do you want to use the recommended settings for this system?"
-            ):
+            if get_bool("Do you want to use the recommended settings for this system?"):
                 print("")
                 self.integrator = "ias15"
                 self.tf, self.tf_unit, self.tolerance = self.recommended_settings[
@@ -591,7 +604,7 @@ class GravitySimulator:
                 print("Value too big! Please try again.")
                 continue
             if desired_trim_size == self.data_size:
-                if self.ask_user_permission(
+                if get_bool(
                     "The input value is equal to the original data size. Continue?"
                 ):
                     print()
@@ -605,9 +618,7 @@ class GravitySimulator:
             else:
                 divide_factor = math.ceil(self.data_size / desired_trim_size)
                 trim_size = math.floor(self.data_size / divide_factor) + 1
-                if self.ask_user_permission(
-                    f"The trimmed data size would be {trim_size}. Continue?"
-                ):
+                if get_bool(f"The trimmed data size would be {trim_size}. Continue?"):
                     print()
                     is_trim_data = True
                     break
@@ -668,9 +679,7 @@ class GravitySimulator:
         Format: time, dt, total energy, x1, y1, z1, x2, y2, z2, ... vx1, vy1, vz1, vx2, vy2, vz2, ...
         """
         if not self.computed_energy:
-            if self.ask_user_permission(
-                "WARNING: Energy has not been computed. Compute energy?"
-            ):
+            if get_bool("WARNING: Energy has not been computed. Compute energy?"):
                 self.simulator.compute_energy()
                 self.computed_energy = True
 
@@ -716,7 +725,7 @@ class GravitySimulator:
                         writer.writerow(row.tolist())
             print(f"Storing completed. Please check {file_path}")
         else:
-            if self.ask_user_permission(
+            if get_bool(
                 "WARNING: Energy has not been computed. The energy data will be stored as zeros. Proceed?"
             ):
                 progress_bar = Progress_bar()
@@ -732,19 +741,6 @@ class GravitySimulator:
                 print(f"Storing completed. Please check {file_path}")
 
         print("")
-
-    @staticmethod
-    def ask_user_permission(msg):
-        while True:
-            if matches := re.search(
-                r"^\s*(yes|no|y|n)\s*$", input(f"{msg} (y/n): "), re.IGNORECASE
-            ):
-                if matches.group(1).lower() in ["y", "yes"]:
-                    return True
-                elif matches.group(1).lower() in ["n", "no"]:
-                    return False
-
-            print("Invalid input. Please try again.\n")
 
     def _read_simulation_data(self):
         self.system = "read_data"
@@ -831,9 +827,7 @@ class GravitySimulator:
                         else:
                             self.tf_unit = "years"
 
-                        if self.ask_user_permission(
-                            f"Unit for tf is {self.tf_unit}. Proceed?"
-                        ):
+                        if get_bool(f"Unit for tf is {self.tf_unit}. Proceed?"):
                             break
 
                 return (
@@ -846,6 +840,7 @@ class GravitySimulator:
 
         except FileNotFoundError:
             sys.exit("Error: file is not found. Exiting the program")
+
 
 if __name__ == "__main__":
     grav_plot = GravitySimulator()

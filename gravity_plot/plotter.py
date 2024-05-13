@@ -1,14 +1,16 @@
 import csv
 import math
 from pathlib import Path
-import sys 
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import PillowWriter
 
-class Plotter:
+from common import get_bool
 
+
+class Plotter:
     @staticmethod
     def plot_2d_trajectory(grav_plot):
         print("Plotting 2D trajectory (xy plane)...(Please check the window)")
@@ -17,7 +19,7 @@ class Plotter:
 
         ax.set_xlabel("$x$ (AU)")
         ax.set_ylabel("$y$ (AU)")
-        
+
         # Get specific colors if the system is solar-like
         match grav_plot.system:
             case "sun_earth_moon":
@@ -93,7 +95,7 @@ class Plotter:
         print("Plotting 3D trajectory...(Please check the window)")
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
-        ax.set_box_aspect([1.0, 1.0, 1.0])  
+        ax.set_box_aspect([1.0, 1.0, 1.0])
         ax.set_xlabel("$x$ (AU)")
         ax.set_ylabel("$y$ (AU)")
         ax.set_zlabel("$z$ (AU)")
@@ -164,7 +166,7 @@ class Plotter:
                     "o",
                     color=traj[0].get_color(),
                 )
-        
+
         if grav_plot.system in grav_plot.solar_like_systems:
             fig.legend(loc="center right", borderaxespad=0.2)
             fig.tight_layout()
@@ -172,7 +174,7 @@ class Plotter:
         Plotter.set_3d_axes_equal(ax)
         plt.show()
         print()
-    
+
     @staticmethod
     def set_3d_axes_equal(ax):
         """
@@ -218,12 +220,17 @@ class Plotter:
                     print()
 
             print(f"There are {grav_plot.data_size} lines of data.")
-            print(f"For FPS = {fps}, the gif would last for about {grav_plot.data_size / fps:.2f} s if plot every nth point = 1.")
+            print(
+                f"For FPS = {fps}, the gif would last for about {grav_plot.data_size / fps:.2f} s if plot every nth point = 1."
+            )
 
             while True:
                 try:
                     plot_every_nth_point = int(input("Plot every nth point (int): "))
-                    if plot_every_nth_point <= 0 or plot_every_nth_point > grav_plot.data_size:
+                    if (
+                        plot_every_nth_point <= 0
+                        or plot_every_nth_point > grav_plot.data_size
+                    ):
                         raise ValueError
                     print()
                     break
@@ -231,20 +238,28 @@ class Plotter:
                     print("Invalid input! Please try again.")
                     print()
 
-            total_frame_size = math.floor(grav_plot.data_size / plot_every_nth_point) + 1
-            
+            total_frame_size = (
+                math.floor(grav_plot.data_size / plot_every_nth_point) + 1
+            )
+
             while True:
                 try:
-                    file_name = input("Enter file name without extension (carefully, the program cannot check the validity of the filename): ")
+                    file_name = input(
+                        "Enter file name without extension (carefully, the program cannot check the validity of the filename): "
+                    )
                     print()
                     break
                 except ValueError:
                     print("Invalid input! Please try again.")
                     print()
-            
+
             while True:
                 try:
-                    dpi = int(input("Enter dots per inch (dpi) in int (recommended value is 200): "))
+                    dpi = int(
+                        input(
+                            "Enter dots per inch (dpi) in int (recommended value is 200): "
+                        )
+                    )
                     if dpi <= 0:
                         raise ValueError
                     print()
@@ -260,15 +275,15 @@ class Plotter:
             print(f"File name: {file_name}")
             print(f"dpi: {dpi}")
 
-            if grav_plot.ask_user_permission("Proceed?"):
+            if get_bool("Proceed?"):
                 print()
                 break
             else:
                 print()
 
         return fps, plot_every_nth_point, file_name, dpi
-    
-    @staticmethod 
+
+    @staticmethod
     def animation_2d_traj_gif(grav_plot, fps, plot_every_nth_point, file_name, dpi):
         print("Animating 2D trajectory (xy plane) in .gif...")
         fig = plt.figure()
@@ -308,7 +323,7 @@ class Plotter:
 
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
-        file_path /= (file_name + ".gif")
+        file_path /= file_name + ".gif"
 
         writer = PillowWriter(fps=fps)
         with writer.saving(fig, file_path, dpi):
@@ -322,8 +337,8 @@ class Plotter:
                     # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3 + 1],
                             color=grav_plot.solar_like_systems_colors[objs_name[j]],
                         )
                         # Plot the current position as a filled circle
@@ -342,8 +357,8 @@ class Plotter:
                     # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3 + 1],
                         )
                         # Plot the current position as a filled circle
                         ax.plot(
@@ -371,7 +386,7 @@ class Plotter:
         print("Animating 3D trajectory in .gif...")
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
-        ax.set_box_aspect([1.0, 1.0, 1.0])  
+        ax.set_box_aspect([1.0, 1.0, 1.0])
 
         # Get specific colors if the system is solar-like
         match grav_plot.system:
@@ -407,7 +422,7 @@ class Plotter:
 
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
-        file_path /= (file_name + ".gif")
+        file_path /= file_name + ".gif"
 
         writer = PillowWriter(fps=fps)
         with writer.saving(fig, file_path, dpi):
@@ -421,9 +436,9 @@ class Plotter:
                     # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 2],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3 + 1],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3 + 2],
                             color=grav_plot.solar_like_systems_colors[objs_name[j]],
                         )
                         # Plot the current position as a filled circle
@@ -437,15 +452,15 @@ class Plotter:
                         )
                     # Add legend at the beginning
                     if i == 0:
-                        fig.legend(loc="center right") 
+                        fig.legend(loc="center right")
                 else:
                     # Plot with random colors
                     # Plot the trajectory from the beginning to current position
                     for j in range(grav_plot.simulator.objects_count):
                         traj = ax.plot(
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3],
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 1],
-                            grav_plot.simulator.sol_state[:(i + 1), j * 3 + 2],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3 + 1],
+                            grav_plot.simulator.sol_state[: (i + 1), j * 3 + 2],
                         )
                         # Plot the current position as a filled circle
                         ax.plot(
@@ -470,13 +485,11 @@ class Plotter:
 
         print(f"Output completed! Please check {file_path}")
         print()
-        
-    @staticmethod      
+
+    @staticmethod
     def plot_rel_energy(grav_plot):
         if not grav_plot.computed_energy:
-            if grav_plot.ask_user_permission(
-                "WARNING: Energy has not been computed. Compute energy?"
-            ):
+            if get_bool("WARNING: Energy has not been computed. Compute energy?"):
                 grav_plot.simulator.compute_energy()
                 grav_plot.computed_energy = True
 
@@ -531,25 +544,29 @@ class Plotter:
     @staticmethod
     def plot_compare_rel_energy(grav_plot):
         if not grav_plot.computed_energy:
-            if grav_plot.ask_user_permission(
-                "WARNING: Energy has not been computed. Compute energy?"
-            ):
+            if get_bool("WARNING: Energy has not been computed. Compute energy?"):
                 grav_plot.simulator.compute_energy()
                 grav_plot.computed_energy = True
 
         filepaths_to_labels = {}
-        filepaths_to_labels["current"] = input("Enter plot label for current set of data in memory: ")
+        filepaths_to_labels["current"] = input(
+            "Enter plot label for current set of data in memory: "
+        )
 
         read_folder_path = Path(__file__).parent / "results"
-        
+
         while True:
             num_of_data = len(filepaths_to_labels)
             if num_of_data >= 2:
-                if not grav_plot.ask_user_permission(f"There are {num_of_data} sets of data. Continue adding new files?"):
-                    break                    
+                if not get_bool(
+                    f"There are {num_of_data} sets of data. Continue adding new files?"
+                ):
+                    break
             while True:
                 print()
-                read_file_path = input("Enter absolute path of new file to compare, or the complete file name if it is inside gravity_plot/results: ")
+                read_file_path = input(
+                    "Enter absolute path of new file to compare, or the complete file name if it is inside gravity_plot/results: "
+                )
                 read_file_path = read_folder_path / read_file_path
 
                 if read_file_path.is_file():
@@ -571,7 +588,10 @@ class Plotter:
             if filepath == "current":
                 ax.semilogy(
                     grav_plot.sol_time_in_tf_unit,
-                    np.abs((grav_plot.simulator.energy - grav_plot.simulator.energy[0]) / grav_plot.simulator.energy[0]),
+                    np.abs(
+                        (grav_plot.simulator.energy - grav_plot.simulator.energy[0])
+                        / grav_plot.simulator.energy[0]
+                    ),
                     label=filepaths_to_labels[filepath],
                 )
             else:
@@ -591,12 +611,8 @@ class Plotter:
 
                             # Extending memory buffer
                             if i % 50000 == 0:
-                                sol_time = np.concatenate(
-                                    (sol_time, np.zeros(50000))
-                                )
-                                energy = np.concatenate(
-                                    (energy, np.zeros(50000))
-                                )
+                                sol_time = np.concatenate((sol_time, np.zeros(50000)))
+                                energy = np.concatenate((energy, np.zeros(50000)))
 
                         sol_time = sol_time[:i]
                         energy = energy[:i]
