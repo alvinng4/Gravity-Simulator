@@ -254,13 +254,21 @@ class Plotter:
             print(f"dpi: {dpi}")
             print(f"Dynamic axes limits: {is_dynamic_axes}")
 
+            is_cancel = False
             if get_bool("Proceed?"):
                 print()
                 break
             else:
                 print()
 
-        return fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
+            if get_bool("Cancel? "):
+                is_cancel = True
+                print()
+                break
+            else:
+                print()
+
+        return fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_cancel
 
     @staticmethod
     def animation_2d_traj_gif(
