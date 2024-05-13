@@ -182,29 +182,20 @@ class Simulator:
                     for row in reader:
                         if self.system == row[0]:
                             self.objects_count = int(row[1])
-                            self.m = row[2].strip("[]")
-                            self.m = np.array(
-                                [float(item.strip()) for item in self.m.split(",")]
-                            )
-                            state_vec = row[3].strip("[]")
-                            state_vec = np.array(
-                                [float(item.strip()) for item in state_vec.split(",")]
-                            )
-                            x_vec = []
-                            v_vec = []
+                            self.m = np.zeros(self.objects_count)
                             for i in range(self.objects_count):
-                                x_vec.append([state_vec[i * 3 + j] for j in range(3)])
-                                v_vec.append(
-                                    [
-                                        state_vec[self.objects_count * 3 + i * 3 + j]
-                                        for j in range(3)
-                                    ]
-                                )
-                            self.x = np.array(x_vec)
-                            self.v = np.array(v_vec)
+                                self.m[i] = row[2 + i]
+                            
+                            self.x = np.zeros((self.objects_count, 3))
+                            self.v = np.zeros((self.objects_count, 3))
+                            for i in range(self.objects_count):
+                                for j in range(3):
+                                    self.x[i][j] = row[2 + self.objects_count + i * 3 + j]
+                                    self.v[i][j] = row[2 + self.objects_count + self.objects_count * 3 + i * 3 + j]
+
             except FileNotFoundError:
                 sys.exit(
-                    "Warning: customized_systems.csv not found in gravity_plot. Terminating program."
+                    "Error: customized_systems.csv not found in gravity_plot. Terminating program."
                 )
 
         else:
