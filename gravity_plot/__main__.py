@@ -224,10 +224,17 @@ class GravitySimulator:
                         file_name,
                         dpi,
                         is_dynamic_axes,
+                        is_cancel,
                     ) = Plotter.ask_user_input_animation(self)
-                    Plotter.animation_2d_traj_gif(
-                        self, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
-                    )
+                    if not is_cancel:
+                        Plotter.animation_2d_traj_gif(
+                            self,
+                            fps,
+                            plot_every_nth_point,
+                            file_name,
+                            dpi,
+                            is_dynamic_axes,
+                        )
                 case 4:
                     (
                         fps,
@@ -235,10 +242,17 @@ class GravitySimulator:
                         file_name,
                         dpi,
                         is_dynamic_axes,
+                        is_cancel,
                     ) = Plotter.ask_user_input_animation(self)
-                    Plotter.animation_3d_traj_gif(
-                        self, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
-                    )
+                    if not is_cancel:
+                        Plotter.animation_3d_traj_gif(
+                            self,
+                            fps,
+                            plot_every_nth_point,
+                            file_name,
+                            dpi,
+                            is_dynamic_axes,
+                        )
                 case 5:
                     if not self.computed_energy:
                         self.simulator.compute_energy()
