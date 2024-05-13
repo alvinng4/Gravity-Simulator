@@ -1,5 +1,5 @@
 # Gravity Simulator
-This is a Newtonian N-body gravity simulator which projects the results on the xy plane.
+This is a Newtonian N-body gravity simulator.
 
 * Interactive module: real time simulation with the interactive simulator
 * Plotting module: customize your own system and generate a plot easily
@@ -162,12 +162,13 @@ python gravity_plot [-n|--numpy]
 
 ### Store every nth point (Optional)
 With long integration time and short dt, there would be a lot of unnecessary solutions stored in the memory, 
-which causes the program to slows down significantly and may even terminates itself. 
+which causes the program to slow down significantly and may even terminates itself. 
+In general, a data size of 50000 - 100000 points should be enough for most purposes.
 To fix this, run the following command to store every nth point
 ```
 python gravity_plot [-s|--store_every_n=<int>]
 ```
-The program would also ask if you want to trim the solutions after the simulation.
+You may also trim the data after the simulation is finished.
 
 ### Available systems
 | System | Description |
@@ -217,8 +218,7 @@ To generate the animation, the program would ask for the following information:
 > If you are using variable step size integrators, the gif may look weird as the step size are not constant.
 
 ### Saving the data
-After each simulation, the program would ask if you want to save the data.
-If you chose to do so, the numerical data will be stored in the following folder:
+If you choose to save the data, the numerical data will be stored in the following folder:
 ```
 gravity-simulator/gravity_plot/results
 ```
