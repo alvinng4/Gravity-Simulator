@@ -12,6 +12,8 @@ import timeit
 import numpy as np
 
 from common import get_bool
+from common import get_int
+from common import get_float
 from simulator import Simulator
 from plotter import Plotter
 from progress_bar import Progress_bar
@@ -163,23 +165,15 @@ class GravitySimulator:
             print("\nKeyboard Interrupt detected (Cltr + C). Exiting the program...")
 
     def _user_interface_before_simulation(self):
-        while True:
-            print("Select an action:")
-            print("1. Launch simulation")
-            print("2. Read simulation data")
-
-            try:
-                action = int(input("Enter action (Number): "))
-                if action < 1 or action > 2:
-                    raise ValueError
-                else:
-                    break
-            except ValueError:
-                print("Invalid input. Please try again.")
-                print()
-                continue
-
+        msg = (
+            "Select an action:\n"
+            + "1. Launch simulation\n"
+            + "2. Read simulation data\n"
+            + "Enter action (Number): "
+        )
+        action = get_int(msg, larger_than=0, smaller_than=3)
         print()
+
         match action:
             case 1:
                 self.is_simulate = True
@@ -187,31 +181,27 @@ class GravitySimulator:
                 self.is_simulate = False
 
     def _user_interface_after_simulation(self):
+        msg = (
+            "Select an action:\n"
+            + "1. Plot 2D trajectory (xy plane)\n"
+            + "2. Plot 3D trajectory\n"
+            + "3. Animate 2D trajectory (gif)\n"
+            + "4. Animate 3D trajectory (gif)\n"
+            + "5. Plot relative energy error\n"
+            + "6. Plot dt\n"
+            + "7. Read data size\n"
+            + "8. Trim data\n"
+            + "9. Save simulation data\n"
+            + "10. Compare relative energy error\n"
+            + "11. Restart program\n"
+            + "12. Exit\n"
+            + "Enter action (Number): "
+        )
+
         while True:
-            print("Select an action:")
-            print("1. Plot 2D trajectory (xy plane)")
-            print("2. Plot 3D trajectory")
-            print("3. Animate 2D trajectory (gif)")
-            print("4. Animate 3D trajectory (gif)")
-            print("5. Plot relative energy error")
-            print("6. Plot dt")
-            print("7. Read data size")
-            print("8. Trim data")
-            print("9. Save simulation data")
-            print("10. Compare relative energy error")
-            print("11. Restart program")
-            print("12. Exit")
-
-            try:
-                action = int(input("Enter action (Number): "))
-                if action < 1 or action > 12:
-                    raise ValueError
-            except ValueError:
-                print("Invalid input. Please try again.")
-                print()
-                continue
-
+            action = get_int(msg, larger_than=0, smaller_than=13)
             print()
+
             match action:
                 case 1:
                     Plotter.plot_2d_trajectory(self)
@@ -364,32 +354,14 @@ class GravitySimulator:
                         break
 
             self.system = system_name
-            while True:
-                try:
-                    objects_count = int(input("Number of objects: ").strip())
-                    if objects_count <= 0:
-                        raise ValueError
-                    else:
-                        break
-                except ValueError:
-                    print("Invalid input. Please try again.")
+            objects_count = get_int("Number of objects: ", larger_than=0)
 
             print("Note: The default unit is M_sun, AU and day, G=0.00029591220828411.")
 
             masses = []
             for i in range(objects_count):
-                while True:
-                    try:
-                        masses.append(
-                            float(
-                                input(
-                                    f"Please enter the mass for object {i + 1}: "
-                                ).strip()
-                            )
-                        )
-                        break
-                    except ValueError:
-                        print("Invalid input! Please try again.")
+                masses.append(get_float(f"Please enter the mass for object {i + 1}: "))
+
             state_vec = []
             for i in range(objects_count):
                 for j in range(3):
@@ -400,18 +372,10 @@ class GravitySimulator:
                             variable = "y"
                         case 2:
                             variable = "z"
-                    while True:
-                        try:
-                            state_vec.append(
-                                float(
-                                    input(
-                                        f"Please enter {variable} for object {i + 1}: "
-                                    ).strip()
-                                )
-                            )
-                            break
-                        except ValueError:
-                            print("Invalid input! Please try again.")
+                    state_vec.append(
+                        get_float(f"Please enter {variable} for object {i + 1}: ")
+                    )
+
             for i in range(objects_count):
                 for j in range(3):
                     match j:
@@ -421,18 +385,10 @@ class GravitySimulator:
                             variable = "y"
                         case 2:
                             variable = "z"
-                    while True:
-                        try:
-                            state_vec.append(
-                                float(
-                                    input(
-                                        f"Please enter v{variable} for object {i + 1}: "
-                                    ).strip()
-                                )
-                            )
-                            break
-                        except ValueError:
-                            print("Invalid input! Please try again.")
+                    state_vec.append(
+                        get_float(f"Please enter v{variable} for object {i + 1}: ")
+                    )
+
             file_path = Path(__file__).parent / "customized_systems.csv"
             with open(file_path, "a", newline="") as file:
                 writer = csv.DictWriter(
@@ -545,15 +501,8 @@ class GravitySimulator:
                         break
 
         elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78", "ias15"]:
-            while True:
-                try:
-                    print("")
-                    self.tolerance = float(input("Enter tolerance: "))
-                    if self.tolerance <= 0:
-                        raise ValueError
-                    break
-                except ValueError:
-                    print("Invalid value. Please try again.")
+            self.tolerance = get_float("Enter tolerance: ", larger_than=0)
+
         print("")
 
     def _print_user_simulation_input(self):
@@ -608,43 +557,24 @@ class GravitySimulator:
     def trim_data(self):
         # --------------------Get user input--------------------
         while True:
-            try:
-                desired_trim_size = (
-                    input('\nEnter desired data size (Enter "cancel" to cancel): ')
-                    .strip()
-                    .lower()
-                )
-                if desired_trim_size == "cancel":
-                    print()
-                    is_trim_data = False
-                    break
-                else:
-                    desired_trim_size = int(desired_trim_size)
-            except ValueError:
-                print("Invalid input! Please try again.")
-                continue
+            print()
+            desired_trim_size = get_int(
+                'Enter desired data size (Enter "cancel" to cancel): ',
+                larger_than=1,
+                smaller_than=self.data_size,
+                allow_cancel=True,
+            )
+            if desired_trim_size is None:  # User entered "cancel"
+                is_trim_data = False
+                print()
+                break
 
-            if desired_trim_size > self.data_size:
-                print("Value too big! Please try again.")
-                continue
-            if desired_trim_size == self.data_size:
-                if get_bool(
-                    "The input value is equal to the original data size. Continue?"
-                ):
-                    print()
-                    is_trim_data = False
-                    break
-                else:
-                    continue
-            elif desired_trim_size < 2:
-                print("Value too small! Please try again.")
-                continue
             else:
                 divide_factor = math.ceil(self.data_size / desired_trim_size)
                 trim_size = math.floor(self.data_size / divide_factor) + 1
                 if get_bool(f"The trimmed data size would be {trim_size}. Continue?"):
-                    print()
                     is_trim_data = True
+                    print()
                     break
 
         # --------------------Trim data--------------------
