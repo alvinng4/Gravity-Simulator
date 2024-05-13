@@ -401,6 +401,7 @@ class Plotter:
                 # Clear the plot to prepare for the next frame
                 ax.clear()
 
+        plt.close("all")
         print(f"Output completed! Please check {file_path}")
         print()
 
@@ -539,6 +540,7 @@ class Plotter:
                 # Clear the plot to prepare for the next frame
                 ax.clear()
 
+        plt.close("all")
         print(f"Output completed! Please check {file_path}")
         print()
 
