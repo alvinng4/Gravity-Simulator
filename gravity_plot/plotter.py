@@ -176,36 +176,6 @@ class Plotter:
         print()
 
     @staticmethod
-    def set_3d_axes_equal(ax):
-        """
-        Make axes of 3D plot have equal scale
-
-        Input
-        ax: a matplotlib axis, e.g., as output from plt.gca().
-
-        Reference: karlo, https://stackoverflow.com/questions/13685386/how-to-set-the-equal-aspect-ratio-for-all-axes-x-y-z
-        """
-
-        x_limits = ax.get_xlim3d()
-        y_limits = ax.get_ylim3d()
-        z_limits = ax.get_zlim3d()
-
-        x_range = abs(x_limits[1] - x_limits[0])
-        x_middle = np.mean(x_limits)
-        y_range = abs(y_limits[1] - y_limits[0])
-        y_middle = np.mean(y_limits)
-        z_range = abs(z_limits[1] - z_limits[0])
-        z_middle = np.mean(z_limits)
-
-        # The plot bounding box is a sphere in the sense of the infinity
-        # norm, hence I call half the max range the plot radius.
-        plot_radius = 0.5 * max([x_range, y_range, z_range])
-
-        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
-
-    @staticmethod
     def ask_user_input_animation(grav_plot):
         while True:
             while True:
@@ -268,12 +238,21 @@ class Plotter:
                     print("Invalid input! Please try again.")
                     print()
 
+            while True:
+                try:
+                    is_dynamic_axes = get_bool("Set dynamic axes limit?")
+                    break
+                except ValueError:
+                    print("Invalid input! Please try again.")
+                    print()
+
             print(f"FPS = {fps}")
             print(f"Plot every nth point: {plot_every_nth_point}")
             print(f"Estimated total frame: about {total_frame_size}")
             print(f"Estimated time length: {(total_frame_size / fps):.2f} s")
             print(f"File name: {file_name}")
             print(f"dpi: {dpi}")
+            print(f"Dynamic axes limits: {is_dynamic_axes}")
 
             if get_bool("Proceed?"):
                 print()
@@ -281,10 +260,12 @@ class Plotter:
             else:
                 print()
 
-        return fps, plot_every_nth_point, file_name, dpi
+        return fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
 
     @staticmethod
-    def animation_2d_traj_gif(grav_plot, fps, plot_every_nth_point, file_name, dpi):
+    def animation_2d_traj_gif(
+        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
+    ):
         print("Animating 2D trajectory (xy plane) in .gif...")
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
@@ -324,6 +305,9 @@ class Plotter:
         file_path = Path(__file__).parent / "results"
         file_path.mkdir(parents=True, exist_ok=True)
         file_path /= file_name + ".gif"
+
+        if not is_dynamic_axes:
+            lim_min, lim_max = Plotter.get_axes_lim(2, grav_plot)
 
         writer = PillowWriter(fps=fps)
         with writer.saving(fig, file_path, dpi):
@@ -372,6 +356,10 @@ class Plotter:
                 ax.set_xlabel("$x$ (AU)")
                 ax.set_ylabel("$y$ (AU)")
 
+                if not is_dynamic_axes:
+                    ax.set_xlim([lim_min, lim_max])
+                    ax.set_ylim([lim_min, lim_max])
+
                 # Capture the frame
                 writer.grab_frame()
 
@@ -382,7 +370,9 @@ class Plotter:
         print()
 
     @staticmethod
-    def animation_3d_traj_gif(grav_plot, fps, plot_every_nth_point, file_name, dpi):
+    def animation_3d_traj_gif(
+        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
+    ):
         print("Animating 3D trajectory in .gif...")
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
@@ -425,6 +415,10 @@ class Plotter:
         file_path /= file_name + ".gif"
 
         writer = PillowWriter(fps=fps)
+
+        if not is_dynamic_axes:
+            lim_max, lim_min = Plotter.get_axes_lim(3, grav_plot)
+
         with writer.saving(fig, file_path, dpi):
             # Plot once every nth point
             for i in range(grav_plot.data_size):
@@ -475,7 +469,13 @@ class Plotter:
                 ax.set_xlabel("$x$ (AU)")
                 ax.set_ylabel("$y$ (AU)")
                 ax.set_zlabel("$z$ (AU)")
-                Plotter.set_3d_axes_equal(ax)
+
+                if not is_dynamic_axes:
+                    ax.set_xlim3d([lim_min, lim_max])
+                    ax.set_ylim3d([lim_min, lim_max])
+                    ax.set_zlim3d([lim_min, lim_max])
+                else:
+                    Plotter.set_3d_axes_equal(ax)
 
                 # Capture the frame
                 writer.grab_frame()
@@ -485,6 +485,105 @@ class Plotter:
 
         print(f"Output completed! Please check {file_path}")
         print()
+
+    @staticmethod
+    def set_3d_axes_equal(ax):
+        """
+        Make axes of 3D plot have equal scale
+
+        Input
+        ax: a matplotlib axis, e.g., as output from plt.gca().
+
+        Reference: karlo, https://stackoverflow.com/questions/13685386/how-to-set-the-equal-aspect-ratio-for-all-axes-x-y-z
+        """
+
+        x_limits = ax.get_xlim3d()
+        y_limits = ax.get_ylim3d()
+        z_limits = ax.get_zlim3d()
+
+        x_range = abs(x_limits[1] - x_limits[0])
+        x_middle = np.mean(x_limits)
+        y_range = abs(y_limits[1] - y_limits[0])
+        y_middle = np.mean(y_limits)
+        z_range = abs(z_limits[1] - z_limits[0])
+        z_middle = np.mean(z_limits)
+
+        # The plot bounding box is a sphere in the sense of the infinity
+        # norm, hence I call half the max range the plot radius.
+        plot_radius = 0.5 * max([x_range, y_range, z_range])
+
+        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+    @staticmethod
+    def get_axes_lim(dim: int, grav_plot):
+        """
+        Calculate axes limits if user chooses static axes limits
+
+        args: dim (int): dimension of the plot
+              grav_plot
+
+        return: lim_min, lim_max (float): maximum and minimum axes limits
+        """
+        if dim == 2:
+            xmax = np.max(grav_plot.simulator.sol_state[:, 0 * 3])
+            xmin = np.min(grav_plot.simulator.sol_state[:, 0 * 3])
+            ymax = np.max(grav_plot.simulator.sol_state[:, 0 * 3 + 1])
+            ymin = np.min(grav_plot.simulator.sol_state[:, 0 * 3 + 1])
+
+            for i in range(grav_plot.simulator.objects_count):
+                xmax = max(xmax, np.max(grav_plot.simulator.sol_state[:, i * 3]))
+                xmin = min(xmin, np.min(grav_plot.simulator.sol_state[:, i * 3]))
+                ymax = max(ymax, np.max(grav_plot.simulator.sol_state[:, i * 3 + 1]))
+                ymin = min(ymin, np.min(grav_plot.simulator.sol_state[:, i * 3 + 1]))
+
+            lim_max = max(xmax, ymax)
+            lim_min = min(xmin, ymin)
+
+            if lim_max > 0:
+                lim_max *= 1.1
+            else:
+                lim_max *= 0.9
+
+            if lim_min < 0:
+                lim_min *= 1.1
+            else:
+                lim_min *= 0.9
+
+        elif dim == 3:
+            xmax = np.max(grav_plot.simulator.sol_state[:, 0 * 3])
+            xmin = np.min(grav_plot.simulator.sol_state[:, 0 * 3])
+            ymax = np.max(grav_plot.simulator.sol_state[:, 0 * 3 + 1])
+            ymin = np.min(grav_plot.simulator.sol_state[:, 0 * 3 + 1])
+            zmax = np.max(grav_plot.simulator.sol_state[:, 0 * 3 + 2])
+            zmin = np.min(grav_plot.simulator.sol_state[:, 0 * 3 + 2])
+
+            for i in range(1, grav_plot.simulator.objects_count):
+                xmax = max(xmax, np.max(grav_plot.simulator.sol_state[:, i * 3]))
+                xmin = min(xmin, np.min(grav_plot.simulator.sol_state[:, i * 3]))
+                ymax = max(ymax, np.max(grav_plot.simulator.sol_state[:, i * 3 + 1]))
+                ymin = min(ymin, np.min(grav_plot.simulator.sol_state[:, i * 3 + 1]))
+                zmax = max(zmax, np.max(grav_plot.simulator.sol_state[:, i * 3 + 2]))
+                zmin = min(zmin, np.min(grav_plot.simulator.sol_state[:, i * 3 + 2]))
+
+            lim_max = max(xmax, ymax, zmax)
+            lim_min = min(xmin, ymin, zmin)
+
+            if lim_max > 0:
+                lim_max *= 1.1
+            else:
+                lim_max *= 0.9
+
+            if lim_min < 0:
+                lim_min *= 1.1
+            else:
+                lim_min *= 0.9
+
+        else:
+            raise ValueError("Invalid dimension")
+
+        return lim_min, lim_max
 
     @staticmethod
     def plot_rel_energy(grav_plot):
