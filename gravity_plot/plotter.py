@@ -176,7 +176,7 @@ class Plotter:
         print()
 
     @staticmethod
-    def ask_user_input_animation(grav_plot):
+    def ask_user_input_animation(dim: int, grav_plot):
         while True:
             while True:
                 try:
@@ -238,13 +238,52 @@ class Plotter:
                     print("Invalid input! Please try again.")
                     print()
 
-            while True:
-                try:
-                    is_dynamic_axes = get_bool("Set dynamic axes limit?")
-                    break
-                except ValueError:
-                    print("Invalid input! Please try again.")
+
+            is_dynamic_axes = get_bool("Set dynamic axes limit?")
+            print()
+
+
+            axes_lim = None
+            is_custom_axes = False
+            if not is_dynamic_axes:
+                if get_bool("Set your own axes limit?"):
+                    is_custom_axes = True
                     print()
+
+                    while True:
+                        try:
+                            xlim_min = float(input("Enter min x-axis limit (AU): "))
+                            xlim_max = float(input("Enter max x-axis limit (AU): "))
+                            break
+                        except ValueError:
+                            print("Invalid input! Please try again.")
+                            print()
+
+                    while True:
+                        try:
+                            ylim_min = float(input("Enter min y-axis limit (AU): "))
+                            ylim_max = float(input("Enter max y-axis limit (AU): "))
+                            break
+                        except ValueError:
+                            print("Invalid input! Please try again.")
+                            print()
+                    
+                    axes_lim = [xlim_min, xlim_max, ylim_min, ylim_max]
+                    if dim == 3:
+                        while True:
+                            try:
+                                zlim_min = float(input("Enter min z-axis limit (AU): "))
+                                zlim_max = float(input("Enter max z-axis limit (AU): "))
+                                break
+                            except ValueError:
+                                print("Invalid input! Please try again.")
+                                print()
+                                continue
+
+                        axes_lim.append(zlim_min)
+                        axes_lim.append(zlim_max)
+
+                print()
 
             print(f"FPS = {fps}")
             print(f"Plot every nth point: {plot_every_nth_point}")
@@ -254,6 +293,15 @@ class Plotter:
             print(f"dpi: {dpi}")
             print(f"Dynamic axes limits: {is_dynamic_axes}")
 
+            if not is_dynamic_axes:
+                print(f"Customize axes limits: {is_custom_axes}")
+
+            if is_custom_axes:
+                print(f"x-axis (AU): {axes_lim[0]} to {axes_lim[1]}")
+                print(f"y-axis (AU): {axes_lim[2]} to {axes_lim[3]}")
+                if dim == 3:
+                    print(f"z-axis (AU): {axes_lim[4]} to {axes_lim[5]}")
+
             is_cancel = False
             if get_bool("Proceed?"):
                 print()
@@ -261,18 +309,18 @@ class Plotter:
             else:
                 print()
 
-            if get_bool("Cancel? "):
+            if get_bool("Return to menu?"):
                 is_cancel = True
                 print()
                 break
             else:
                 print()
 
-        return fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_cancel
+        return fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_custom_axes, axes_lim, is_cancel
 
     @staticmethod
     def animation_2d_traj_gif(
-        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
+        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_custom_axes, axes_lim
     ):
         print("Animating 2D trajectory (xy plane) in .gif...")
         fig = plt.figure()
@@ -315,7 +363,15 @@ class Plotter:
         file_path /= file_name + ".gif"
 
         if not is_dynamic_axes:
-            lim_min, lim_max = Plotter.get_axes_lim(2, grav_plot)
+            if is_custom_axes:
+                xlim_min = axes_lim[0]
+                xlim_max = axes_lim[1]
+                ylim_min = axes_lim[2]
+                ylim_max = axes_lim[3]
+            else:
+                xlim_min, xlim_max = Plotter.get_axes_lim(2, grav_plot)
+                ylim_min = xlim_min
+                ylim_max = xlim_max
 
         writer = PillowWriter(fps=fps)
         with writer.saving(fig, file_path, dpi):
@@ -365,8 +421,8 @@ class Plotter:
                 ax.set_ylabel("$y$ (AU)")
 
                 if not is_dynamic_axes:
-                    ax.set_xlim([lim_min, lim_max])
-                    ax.set_ylim([lim_min, lim_max])
+                    ax.set_xlim([xlim_min, xlim_max])
+                    ax.set_ylim([ylim_min, ylim_max])
 
                 # Capture the frame
                 writer.grab_frame()
@@ -379,12 +435,11 @@ class Plotter:
 
     @staticmethod
     def animation_3d_traj_gif(
-        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes
+        grav_plot, fps, plot_every_nth_point, file_name, dpi, is_dynamic_axes, is_custom_axes, axes_lim
     ):
         print("Animating 3D trajectory in .gif...")
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")
-        ax.set_box_aspect([1.0, 1.0, 1.0])
 
         # Get specific colors if the system is solar-like
         match grav_plot.system:
@@ -425,7 +480,19 @@ class Plotter:
         writer = PillowWriter(fps=fps)
 
         if not is_dynamic_axes:
-            lim_max, lim_min = Plotter.get_axes_lim(3, grav_plot)
+            if is_custom_axes:
+                xlim_min = axes_lim[0]
+                xlim_max = axes_lim[1]
+                ylim_min = axes_lim[2]
+                ylim_max = axes_lim[3]
+                zlim_min = axes_lim[4]
+                zlim_max = axes_lim[5]
+            else:
+                xlim_min, xlim_max = Plotter.get_axes_lim(3, grav_plot)
+                ylim_min = xlim_min
+                ylim_max = xlim_max 
+                zlim_min = xlim_min
+                zlim_max = xlim_max
 
         with writer.saving(fig, file_path, dpi):
             # Plot once every nth point
@@ -479,12 +546,15 @@ class Plotter:
                 ax.set_zlabel("$z$ (AU)")
 
                 if not is_dynamic_axes:
-                    ax.set_xlim3d([lim_min, lim_max])
-                    ax.set_ylim3d([lim_min, lim_max])
-                    ax.set_zlim3d([lim_min, lim_max])
+                    ax.set_xlim3d([xlim_min, xlim_max])
+                    ax.set_ylim3d([ylim_min, ylim_max])
+                    ax.set_zlim3d([zlim_min, zlim_max])
                 else:
                     Plotter.set_3d_axes_equal(ax)
 
+                # Set equal aspect ratio to prevent distortion
+                ax.set_aspect("equal")
+                
                 # Capture the frame
                 writer.grab_frame()
 
