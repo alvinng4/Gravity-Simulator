@@ -372,8 +372,10 @@ class GravitySimulator:
                             variable = "y"
                         case 2:
                             variable = "z"
-                    x[i * 3 + j] = get_float(f"Please enter {variable} for object {i + 1}: ")
-                    
+                    x[i * 3 + j] = get_float(
+                        f"Please enter {variable} for object {i + 1}: "
+                    )
+
             v = np.zeros(objects_count * 3)
             for i in range(objects_count):
                 for j in range(3):
@@ -384,12 +386,16 @@ class GravitySimulator:
                             variable = "y"
                         case 2:
                             variable = "z"
-                    v[i * 3 + j] = get_float(f"Please enter v{variable} for object {i + 1}: ")
+                    v[i * 3 + j] = get_float(
+                        f"Please enter v{variable} for object {i + 1}: "
+                    )
 
             file_path = Path(__file__).parent / "customized_systems.csv"
             with open(file_path, "a", newline="") as file:
                 writer = csv.writer(file)
-                writer.writerow([system_name, objects_count] + masses + x.tolist() + v.tolist())
+                writer.writerow(
+                    [system_name, objects_count] + masses + x.tolist() + v.tolist()
+                )
 
         # --------------------Recommended settings for systems--------------------
         elif self.system in self.default_systems:

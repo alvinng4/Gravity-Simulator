@@ -185,13 +185,21 @@ class Simulator:
                             self.m = np.zeros(self.objects_count)
                             for i in range(self.objects_count):
                                 self.m[i] = row[2 + i]
-                            
+
                             self.x = np.zeros((self.objects_count, 3))
                             self.v = np.zeros((self.objects_count, 3))
                             for i in range(self.objects_count):
                                 for j in range(3):
-                                    self.x[i][j] = row[2 + self.objects_count + i * 3 + j]
-                                    self.v[i][j] = row[2 + self.objects_count + self.objects_count * 3 + i * 3 + j]
+                                    self.x[i][j] = row[
+                                        2 + self.objects_count + i * 3 + j
+                                    ]
+                                    self.v[i][j] = row[
+                                        2
+                                        + self.objects_count
+                                        + self.objects_count * 3
+                                        + i * 3
+                                        + j
+                                    ]
 
             except FileNotFoundError:
                 sys.exit(
