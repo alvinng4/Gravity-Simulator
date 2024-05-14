@@ -1,9 +1,9 @@
 ## Compilation
 Below is the command I used to compile the source files.
 
-On mac:
+On mac (gcc-13 (Homebrew GCC 13.2.0) 13.2.0):
 ```
-gcc -shared -fPIC -O3 -std=c99 -Wall -Wextra -Wpedantic -Wmisleading-indentation c_lib.c -o c_lib.dylib
+gcc-13 -shared -fPIC -O3 -std=gnu99 -Wall -Wextra -Wpedantic -Wmisleading-indentation c_lib.c -o c_lib.dylib
 ```
 
 On windows:
