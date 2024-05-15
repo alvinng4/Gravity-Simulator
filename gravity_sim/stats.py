@@ -263,7 +263,7 @@ class Stats:
                     (290, self.ias15_board.rect.centery + 5),
                     4,
                 )
-            
+
     def check_button(self, grav_sim, mouse_pos) -> None:
         """Check if there is any click on the buttons"""
         if self.settings.is_hide_gui == False:

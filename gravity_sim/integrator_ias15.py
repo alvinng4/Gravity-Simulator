@@ -6,14 +6,16 @@ Moving Planets Around: An Introduction to N-Body
 Simulations Applied to Exoplanetary Systems, Chapter 8
 """
 
-import ctypes 
+import ctypes
 
 import numpy as np
 
 from common import acceleration
 
+
 class IAS15:
     """IAS15 integrator"""
+
     def __init__(self):
         # Recommended tolerance: 1e-9
 
@@ -28,11 +30,24 @@ class IAS15:
 
         # Initializing auxiliary variables
         self.nodes, self.dim_nodes = self._ias15_radau_spacing()
-        self.aux_c = self._ias15_aux_c()    
+        self.aux_c = self._ias15_aux_c()
         self.aux_r = self._ias15_aux_r()
 
-    def simulation(self, simulator, objects_count, m, G, tolerance, expected_time_scale, max_iteration, min_iteration):
-        if simulator.is_initialize == True and simulator.is_initialize_integrator == "ias15":
+    def simulation(
+        self,
+        simulator,
+        objects_count,
+        m,
+        G,
+        tolerance,
+        expected_time_scale,
+        max_iteration,
+        min_iteration,
+    ):
+        if (
+            simulator.is_initialize == True
+            and simulator.is_initialize_integrator == "ias15"
+        ):
             # Initializing auxiliary variables
             self.aux_b0 = np.zeros((self.dim_nodes - 1, objects_count, 3))
             self.aux_b = np.zeros((self.dim_nodes - 1, objects_count, 3))
@@ -41,12 +56,14 @@ class IAS15:
 
             simulator.a = acceleration(objects_count, simulator.x, m, G)
 
-            self.dt = self._ias15_initial_time_step(objects_count, 15, simulator.x, simulator.v, simulator.a, m, G)
+            self.dt = self._ias15_initial_time_step(
+                objects_count, 15, simulator.x, simulator.v, simulator.a, m, G
+            )
 
             self.ias15_refine_flag = 0
 
             simulator.is_initialize = False
-        
+
         # Simulation
         if simulator.is_c_lib == True:
             temp_simulation_time = ctypes.c_double(simulator.stats.simulation_time)
@@ -54,21 +71,21 @@ class IAS15:
             temp_ias15_refine_flag = ctypes.c_int(self.ias15_refine_flag)
 
             simulator.c_lib.ias15(
-                ctypes.c_int(objects_count), 
-                simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                ctypes.c_double(G), 
+                ctypes.c_int(objects_count),
+                simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                ctypes.c_double(G),
                 ctypes.c_int(self.dim_nodes),
-                self.nodes.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                self.aux_c.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                self.aux_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                self.aux_b0.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                self.aux_b.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                self.aux_g.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                self.aux_e.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                ctypes.byref(temp_simulation_time), 
+                self.nodes.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.aux_c.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.aux_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.aux_b0.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.aux_b.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.aux_g.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.aux_e.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                ctypes.byref(temp_simulation_time),
                 ctypes.byref(temp_dt),
                 ctypes.c_double(expected_time_scale),
                 ctypes.c_double(tolerance),
@@ -129,9 +146,11 @@ class IAS15:
                 )
 
                 count += 1
-                if count >= min_iteration and simulator.stats.simulation_time > (t0 + expected_time_scale * 1e-5):
+                if count >= min_iteration and simulator.stats.simulation_time > (
+                    t0 + expected_time_scale * 1e-5
+                ):
                     break
-    
+
     @staticmethod
     def _ias15_step(
         objects_count,
@@ -188,7 +207,7 @@ class IAS15:
                 aux_b0 = aux_b
                 if np.max(np.abs(delta_b7)) / np.max(np.abs(aux_a[-1])) < tolerance_pc:
                     break
-                
+
             # Advance step
             x = ias15_approx_pos(x0, v0, a0, 1.0, aux_b, dt)
             v = ias15_approx_vel(v0, a0, 1.0, aux_b, dt)
@@ -197,7 +216,7 @@ class IAS15:
             # Estimate relative error
             error_b7 = np.max(np.abs(aux_b[-1])) / np.max(np.abs(a))
             error = (error_b7 / tolerance) ** exponent
-            
+
             # Step-size for the next step
             if error != 0:
                 dt_new = dt / error
@@ -342,7 +361,7 @@ class IAS15:
         dt = min(100 * dt_0, dt_1)
 
         return dt
-    
+
     @staticmethod
     def _ias15_radau_spacing():
         """
@@ -515,7 +534,10 @@ class IAS15:
                 (
                     (
                         (
-                            (((F8 - F1) * aux_r[7, 0] - aux_g[0]) * aux_r[7, 1] - aux_g[1])
+                            (
+                                ((F8 - F1) * aux_r[7, 0] - aux_g[0]) * aux_r[7, 1]
+                                - aux_g[1]
+                            )
                             * aux_r[7, 2]
                             - aux_g[2]
                         )
@@ -612,7 +634,11 @@ class IAS15:
             + aux_b[1]
         )
         aux_e[2] = q3 * (
-            aux_b[6] * 35.0 + aux_b[5] * 20.0 + aux_b[4] * 10.0 + aux_b[3] * 4.0 + aux_b[2]
+            aux_b[6] * 35.0
+            + aux_b[5] * 20.0
+            + aux_b[4] * 10.0
+            + aux_b[3] * 4.0
+            + aux_b[2]
         )
         aux_e[3] = q4 * (aux_b[6] * 35.0 + aux_b[5] * 15.0 + aux_b[4] * 5.0 + aux_b[3])
         aux_e[4] = q5 * (aux_b[6] * 21.0 + aux_b[5] * 6.0 + aux_b[4])
@@ -622,4 +648,3 @@ class IAS15:
         aux_b = aux_e + delta_aux_b
 
         return aux_b, aux_e
-

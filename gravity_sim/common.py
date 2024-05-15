@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def acceleration(objects_count, x, m, G):
     """
     Calculate acceleration by a = - GM/r^3 vec{r}
@@ -11,7 +12,7 @@ def acceleration(objects_count, x, m, G):
     for j in range(objects_count):
         for k in range(j + 1, objects_count):
             R = x[j] - x[k]
-            temp_value = G * R / np.linalg.norm(R) ** 3 
+            temp_value = G * R / np.linalg.norm(R) ** 3
             temp_a[j * objects_count + k] = -temp_value * m[k]
             temp_a[k * objects_count + j] = temp_value * m[j]
 
@@ -19,6 +20,7 @@ def acceleration(objects_count, x, m, G):
     a = np.sum(temp_a, axis=1)
 
     return a
+
 
 def compute_energy(objects_count, x, v, m, G):
     E = 0
@@ -28,7 +30,7 @@ def compute_energy(objects_count, x, v, m, G):
             R = x[j] - x[k]
             norm = np.linalg.norm(R)
             if norm != 0:
-                E -= G * m[j] * m[k] / norm 
+                E -= G * m[j] * m[k] / norm
             else:
                 return np.nan
     return E

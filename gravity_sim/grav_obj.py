@@ -184,22 +184,25 @@ class Grav_obj(Sprite):
                 sys.exit(
                     "Error: Image not found. Make sure the image path provided for Grav_obj is correct."
                 )
-                
+
     def update(self, gravity_sim):
         if self.remove_out_of_range_objs():
-            gravity_sim.simulator.is_initialize = True   
+            gravity_sim.simulator.is_initialize = True
         else:
             self.update_apparent_pos()
 
     def remove_out_of_range_objs(self):
         """Remove object when position is out of range"""
-        if abs(self.params["r1"]) > self.settings.MAX_RANGE or abs(self.params["r2"]) > self.settings.MAX_RANGE or abs(self.params["r3"]) > self.settings.MAX_RANGE:
+        if (
+            abs(self.params["r1"]) > self.settings.MAX_RANGE
+            or abs(self.params["r2"]) > self.settings.MAX_RANGE
+            or abs(self.params["r3"]) > self.settings.MAX_RANGE
+        ):
             self.kill()
             print("System message: Out of range object removed.")
-            return True 
+            return True
         else:
-            return False  
-               
+            return False
 
     def update_apparent_pos(self):
         """Update the apparent position of all grav_objs with camera"""
@@ -215,7 +218,6 @@ class Grav_obj(Sprite):
         except TypeError:
             pass
 
-
     def create_star(grav_sim, mouse_pos, camera_pos, drag_mouse_pos, drag_camera_pos):
         main_dir_path = os.path.dirname(__file__)
         path_sun = os.path.join(main_dir_path, "assets/images/sun.png")
@@ -226,14 +228,23 @@ class Grav_obj(Sprite):
             * grav_sim.settings.new_star_mass_scale
         )
         R = Grav_obj.SOLAR_RADIUS * (m ** (1.0 / 3.0))
-        new_star_r1 = (mouse_pos[0] - grav_sim.screen.get_rect().centerx + camera_pos[0]) / grav_sim.settings.distance_scale
-        new_star_r2 = -(mouse_pos[1] - grav_sim.screen.get_rect().centery + camera_pos[1])/ grav_sim.settings.distance_scale
+        new_star_r1 = (
+            mouse_pos[0] - grav_sim.screen.get_rect().centerx + camera_pos[0]
+        ) / grav_sim.settings.distance_scale
+        new_star_r2 = (
+            -(mouse_pos[1] - grav_sim.screen.get_rect().centery + camera_pos[1])
+            / grav_sim.settings.distance_scale
+        )
         new_star_r3 = 0.0
 
         # Check if two objects has the exact same position, which would causes error
-        flag = True 
+        flag = True
         for grav_obj in grav_sim.grav_objs:
-            if new_star_r1 == grav_obj.params["r1"] and new_star_r2 == grav_obj.params["r2"] and new_star_r3 == grav_obj.params["r3"]:
+            if (
+                new_star_r1 == grav_obj.params["r1"]
+                and new_star_r2 == grav_obj.params["r2"]
+                and new_star_r3 == grav_obj.params["r3"]
+            ):
                 flag = False
 
         if flag == True:
@@ -247,12 +258,14 @@ class Grav_obj(Sprite):
                         (drag_mouse_pos[0] - mouse_pos[0])
                         + (drag_camera_pos[0] - camera_pos[0])
                     )
-                    * grav_sim.settings.new_star_speed_scale * Settings.NEW_STAR_SPEED_CONVERT_FACTOR,
+                    * grav_sim.settings.new_star_speed_scale
+                    * Settings.NEW_STAR_SPEED_CONVERT_FACTOR,
                     "v2": (
                         (drag_mouse_pos[1] - mouse_pos[1])
                         + (drag_camera_pos[1] - camera_pos[1])
                     )
-                    * grav_sim.settings.new_star_speed_scale * Settings.NEW_STAR_SPEED_CONVERT_FACTOR,
+                    * grav_sim.settings.new_star_speed_scale
+                    * Settings.NEW_STAR_SPEED_CONVERT_FACTOR,
                     "v3": 0.0,
                     "m": m,
                     "R": R,

@@ -449,7 +449,7 @@ class GravitySimulator:
                                 int(matches.group(1)) - 1
                             ]
                             break
-            
+
             print()
             print("Invalid input. Please try again.")
             print()
