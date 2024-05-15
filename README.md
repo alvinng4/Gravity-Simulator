@@ -213,12 +213,9 @@ To generate the animation, the program would ask for the following information:
 * FPS: Frames per second
 * Desired time length of the output file
 * File name without extension
-* Dots per inch (dpi): this would affect the resolution
+* Dots per inch (dpi): the resolution of the output file
 * Dynamic axes limit: rescale the axes limit dynamically
-* Maintain fixed dt: try to maintain fixed time step in the animation, useful if you are using variable time step integrators
-
-> [!TIP]\
-> If you are using variable step size integrators, the gif may look weird as the step size are not constant.
+* Maintain fixed dt: useful if you are using variable time step integrators
 
 ### Saving the data
 If you choose to save the data, the numerical data will be stored in the following folder:
