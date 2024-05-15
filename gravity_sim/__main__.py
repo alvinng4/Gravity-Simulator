@@ -122,7 +122,7 @@ class GravitySimulator:
         if math.isnan(self.stats.total_energy):
             self._kill_all_objects()
             print("System message: removed all objects due to infinity energy error.")
-    
+
     def _kill_all_objects(self):
         for grav_obj in self.grav_objs:
             grav_obj.kill()

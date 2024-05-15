@@ -7,6 +7,7 @@ import ctypes
 
 from common import acceleration
 
+
 class FIXED_STEP_SIZE_INTEGRATOR:
     """Fixed step size integrators: Euler, Euler Cromer, RK4, Leap Frog"""
 
@@ -21,15 +22,15 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         simulator.is_initialize = False
 
                     simulator.c_lib.euler(
-                        ctypes.c_int(objects_count), 
-                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        ctypes.c_double(G), 
-                        ctypes.c_double(dt), 
-                        ctypes.c_int(time_speed)
+                        ctypes.c_int(objects_count),
+                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        ctypes.c_double(G),
+                        ctypes.c_double(dt),
+                        ctypes.c_int(time_speed),
                     )
-                
+
                 case "euler_cromer":
                     if (
                         simulator.is_initialize == True
@@ -38,13 +39,13 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         simulator.is_initialize = False
 
                     simulator.c_lib.euler_cromer(
-                        ctypes.c_int(objects_count), 
-                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        ctypes.c_double(G), 
-                        ctypes.c_double(dt), 
-                        ctypes.c_int(time_speed)
+                        ctypes.c_int(objects_count),
+                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        ctypes.c_double(G),
+                        ctypes.c_double(dt),
+                        ctypes.c_int(time_speed),
                     )
 
                 case "rk4":
@@ -55,13 +56,13 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         simulator.is_initialize = False
 
                     simulator.c_lib.rk4(
-                        ctypes.c_int(objects_count), 
-                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        ctypes.c_double(G), 
-                        ctypes.c_double(dt), 
-                        ctypes.c_int(time_speed)
+                        ctypes.c_int(objects_count),
+                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        ctypes.c_double(G),
+                        ctypes.c_double(dt),
+                        ctypes.c_int(time_speed),
                     )
 
                 case "leapfrog":
@@ -70,23 +71,23 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         and simulator.is_initialize_integrator == "leapfrog"
                     ):
                         simulator.c_lib.acceleration(
-                            ctypes.c_int(objects_count), 
-                            simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                            simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                            m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                            ctypes.c_double(G), 
+                            ctypes.c_int(objects_count),
+                            simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                            ctypes.c_double(G),
                         )
                         simulator.is_initialize = False
 
                     simulator.c_lib.leapfrog(
-                        ctypes.c_int(objects_count), 
-                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                        ctypes.c_double(G), 
-                        ctypes.c_double(dt), 
-                        ctypes.c_int(time_speed)
+                        ctypes.c_int(objects_count),
+                        simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        simulator.a.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                        ctypes.c_double(G),
+                        ctypes.c_double(dt),
+                        ctypes.c_int(time_speed),
                     )
 
         elif simulator.is_c_lib == False:
@@ -98,8 +99,10 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    simulator.x, simulator.v = self._euler(objects_count, simulator.x, simulator.v, m, G, dt, time_speed)
-                
+                    simulator.x, simulator.v = self._euler(
+                        objects_count, simulator.x, simulator.v, m, G, dt, time_speed
+                    )
+
                 case "euler_cromer":
                     if (
                         simulator.is_initialize == True
@@ -107,7 +110,9 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                     ):
                         simulator.is_initialize = False
 
-                    simulator.x, simulator.v = self._euler_cromer(objects_count, simulator.x, simulator.v, m, G, dt, time_speed)
+                    simulator.x, simulator.v = self._euler_cromer(
+                        objects_count, simulator.x, simulator.v, m, G, dt, time_speed
+                    )
 
                 case "rk4":
                     if (
@@ -131,9 +136,7 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         simulator.is_initialize == True
                         and simulator.is_initialize_integrator == "leapfrog"
                     ):
-                        simulator.a = acceleration(
-                            objects_count, simulator.x, m, G
-                        )
+                        simulator.a = acceleration(objects_count, simulator.x, m, G)
                         simulator.is_initialize = False
 
                     simulator.x, simulator.v, simulator.a = self._leapfrog(
@@ -147,21 +150,20 @@ class FIXED_STEP_SIZE_INTEGRATOR:
                         time_speed,
                     )
 
-
     @staticmethod
     def _euler(objects_count, x, v, m, G, dt, time_speed):
         for _ in range(time_speed):
             a = acceleration(objects_count, x, m, G)
             x += v * dt
-            v += a * dt 
+            v += a * dt
 
-        return x, v 
+        return x, v
 
     @staticmethod
     def _euler_cromer(objects_count, x, v, m, G, dt, time_speed):
         for _ in range(time_speed):
             a = acceleration(objects_count, x, m, G)
-            v += a * dt             
+            v += a * dt
             x += v * dt
 
         return x, v

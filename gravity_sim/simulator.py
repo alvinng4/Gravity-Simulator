@@ -8,6 +8,7 @@ from integrator_fixed_step_size import FIXED_STEP_SIZE_INTEGRATOR
 from integrator_rk_embedded import RK_EMBEDDED
 from integrator_ias15 import IAS15
 
+
 class Simulator:
     def __init__(self, grav_sim):
         self.is_c_lib = grav_sim.is_c_lib
@@ -47,9 +48,7 @@ class Simulator:
                 self.settings.dt,
                 self.settings.time_speed,
             )
-            self.stats.simulation_time += (
-                self.settings.dt * self.settings.time_speed
-            )
+            self.stats.simulation_time += self.settings.dt * self.settings.time_speed
         else:
             match self.current_integrator:
                 # Fixed step size integrators
@@ -62,8 +61,8 @@ class Simulator:
                         Grav_obj.G,
                         self.settings.dt,
                         self.settings.time_speed,
-                        )
-                    
+                    )
+
                     self.stats.simulation_time += (
                         self.settings.dt * self.settings.time_speed
                     )
@@ -97,9 +96,9 @@ class Simulator:
             try:
                 self.stats.total_energy = self.c_lib.compute_energy(
                     ctypes.c_int(self.stats.objects_count),
-                    self.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                    self.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                    self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
+                    self.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    self.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                    self.m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                     ctypes.c_double(Grav_obj.G),
                 )
             except:
@@ -173,4 +172,3 @@ class Simulator:
             self.current_integrator = "rkf78"
         elif self.is_ias15 == True:
             self.current_integrator = "ias15"
-

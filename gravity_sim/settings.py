@@ -7,7 +7,7 @@ class Settings:
     # If you want to change the default integrator, go to simulator.py __init__
     MAX_FPS = 60
     BG_COLOR = (0, 0, 0)  # Background color
-    MAX_RANGE = 100000 # Max object distance from origin
+    MAX_RANGE = 100000  # Max object distance from origin
 
     DEFAULT_STAR_IMG_SCALE = 5000
     DEFAULT_PLANET_IMG_SCALE = 100000
@@ -48,7 +48,9 @@ class Settings:
     DEFAULT_CHANGE_PLANET_IMG_SCALE_SPEED = 10000
     DEFAULT_CHANGE_DISTANCE_SCALE_SPEED = 10
 
-    NEW_STAR_SPEED_CONVERT_FACTOR = 1e-4 # Multiply with new_star_speed_scale to get the actual scale
+    NEW_STAR_SPEED_CONVERT_FACTOR = (
+        1e-4  # Multiply with new_star_speed_scale to get the actual scale
+    )
 
     def __init__(
         self,

@@ -11,6 +11,7 @@ from common import get_bool
 from common import get_float
 from progress_bar import Progress_bar
 
+
 class Plotter:
     @staticmethod
     def plot_2d_trajectory(grav_plot):
@@ -244,7 +245,7 @@ class Plotter:
                 "Try to maintain fixed dt for the animation? (useful if you are using variable dt)"
             ):
                 is_maintain_fixed_dt = True
-            
+
             print()
 
             print(f"FPS = {fps:.1f}")
@@ -354,7 +355,7 @@ class Plotter:
                 xlim_min, xlim_max = Plotter.get_axes_lim(2, grav_plot)
                 ylim_min = xlim_min
                 ylim_max = xlim_max
-        
+
         writer = PillowWriter(fps=fps)
         progress_bar = Progress_bar()
         if not is_maintain_fixed_dt:
@@ -362,7 +363,9 @@ class Plotter:
                 with progress_bar:
                     # Plot once every nth point
                     for i in progress_bar.track(range(grav_plot.data_size)):
-                        if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
+                        if i % plot_every_nth_point != 0 and i != (
+                            grav_plot.data_size - 1
+                        ):
                             continue
 
                         if grav_plot.system in grav_plot.solar_like_systems:
@@ -372,7 +375,9 @@ class Plotter:
                                 traj = ax.plot(
                                     grav_plot.simulator.sol_state[: (i + 1), j * 3],
                                     grav_plot.simulator.sol_state[: (i + 1), j * 3 + 1],
-                                    color=grav_plot.solar_like_systems_colors[objs_name[j]],
+                                    color=grav_plot.solar_like_systems_colors[
+                                        objs_name[j]
+                                    ],
                                 )
                                 # Plot the current position as a filled circle
                                 ax.plot(
@@ -420,7 +425,9 @@ class Plotter:
         else:
             with writer.saving(fig, file_path, dpi):
                 with progress_bar:
-                    frame_size = math.floor(grav_plot.data_size / plot_every_nth_point) + 1
+                    frame_size = (
+                        math.floor(grav_plot.data_size / plot_every_nth_point) + 1
+                    )
                     plot_time = np.linspace(
                         grav_plot.simulator.sol_time[0],
                         grav_plot.simulator.sol_time[-1],
@@ -429,15 +436,21 @@ class Plotter:
                     # Plot once every nth point
                     for i in progress_bar.track(range(frame_size)):
                         # Search the index with the closest value of time
-                        index = np.searchsorted(grav_plot.simulator.sol_time, plot_time[i])
+                        index = np.searchsorted(
+                            grav_plot.simulator.sol_time, plot_time[i]
+                        )
                         if grav_plot.system in grav_plot.solar_like_systems:
                             # Plot with solar system colors
                             # Plot the trajectory from the beginning to current position
                             for j in range(grav_plot.simulator.objects_count):
                                 traj = ax.plot(
                                     grav_plot.simulator.sol_state[: (index + 1), j * 3],
-                                    grav_plot.simulator.sol_state[: (index + 1), j * 3 + 1],
-                                    color=grav_plot.solar_like_systems_colors[objs_name[j]],
+                                    grav_plot.simulator.sol_state[
+                                        : (index + 1), j * 3 + 1
+                                    ],
+                                    color=grav_plot.solar_like_systems_colors[
+                                        objs_name[j]
+                                    ],
                                 )
                                 # Plot the current position as a filled circle
                                 ax.plot(
@@ -456,7 +469,9 @@ class Plotter:
                             for j in range(grav_plot.simulator.objects_count):
                                 traj = ax.plot(
                                     grav_plot.simulator.sol_state[: (index + 1), j * 3],
-                                    grav_plot.simulator.sol_state[: (index + 1), j * 3 + 1],
+                                    grav_plot.simulator.sol_state[
+                                        : (index + 1), j * 3 + 1
+                                    ],
                                 )
                                 # Plot the current position as a filled circle
                                 ax.plot(
@@ -560,7 +575,9 @@ class Plotter:
                 with progress_bar:
                     # Plot once every nth point
                     for i in progress_bar.track(range(grav_plot.data_size)):
-                        if i % plot_every_nth_point != 0 and i != (grav_plot.data_size - 1):
+                        if i % plot_every_nth_point != 0 and i != (
+                            grav_plot.data_size - 1
+                        ):
                             continue
 
                         if grav_plot.system in grav_plot.solar_like_systems:
@@ -571,7 +588,9 @@ class Plotter:
                                     grav_plot.simulator.sol_state[: (i + 1), j * 3],
                                     grav_plot.simulator.sol_state[: (i + 1), j * 3 + 1],
                                     grav_plot.simulator.sol_state[: (i + 1), j * 3 + 2],
-                                    color=grav_plot.solar_like_systems_colors[objs_name[j]],
+                                    color=grav_plot.solar_like_systems_colors[
+                                        objs_name[j]
+                                    ],
                                 )
                                 # Plot the current position as a filled circle
                                 ax.plot(
@@ -638,16 +657,24 @@ class Plotter:
                     # Plot once every nth point
                     for i in progress_bar.track(range(frame_size)):
                         # Search the index with the closest value of time
-                        index = np.searchsorted(grav_plot.simulator.sol_time, plot_time[i])
+                        index = np.searchsorted(
+                            grav_plot.simulator.sol_time, plot_time[i]
+                        )
                         if grav_plot.system in grav_plot.solar_like_systems:
                             # Plot with solar system colors
                             # Plot the trajectory from the beginning to current position
                             for j in range(grav_plot.simulator.objects_count):
                                 traj = ax.plot(
                                     grav_plot.simulator.sol_state[: (index + 1), j * 3],
-                                    grav_plot.simulator.sol_state[: (index + 1), j * 3 + 1],
-                                    grav_plot.simulator.sol_state[: (index + 1), j * 3 + 2],
-                                    color=grav_plot.solar_like_systems_colors[objs_name[j]],
+                                    grav_plot.simulator.sol_state[
+                                        : (index + 1), j * 3 + 1
+                                    ],
+                                    grav_plot.simulator.sol_state[
+                                        : (index + 1), j * 3 + 2
+                                    ],
+                                    color=grav_plot.solar_like_systems_colors[
+                                        objs_name[j]
+                                    ],
                                 )
                                 # Plot the current position as a filled circle
                                 ax.plot(
@@ -667,8 +694,12 @@ class Plotter:
                             for j in range(grav_plot.simulator.objects_count):
                                 traj = ax.plot(
                                     grav_plot.simulator.sol_state[: (index + 1), j * 3],
-                                    grav_plot.simulator.sol_state[: (index + 1), j * 3 + 1],
-                                    grav_plot.simulator.sol_state[: (index + 1), j * 3 + 2],
+                                    grav_plot.simulator.sol_state[
+                                        : (index + 1), j * 3 + 1
+                                    ],
+                                    grav_plot.simulator.sol_state[
+                                        : (index + 1), j * 3 + 2
+                                    ],
                                 )
                                 # Plot the current position as a filled circle
                                 ax.plot(

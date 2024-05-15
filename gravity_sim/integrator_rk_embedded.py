@@ -15,9 +15,24 @@ from common import acceleration
 
 class RK_EMBEDDED:
     """Embedded RK integrators: RKF45, DOPRI, DVERK, RKF78"""
-    def simulation(self, simulator, objects_count, m, G, abs_tolerance, rel_tolerance, expected_time_scale, max_iteration, min_iteration):
+
+    def simulation(
+        self,
+        simulator,
+        objects_count,
+        m,
+        G,
+        abs_tolerance,
+        rel_tolerance,
+        expected_time_scale,
+        max_iteration,
+        min_iteration,
+    ):
         # Initialization
-        if simulator.is_initialize == True and simulator.is_initialize_integrator == simulator.current_integrator:
+        if (
+            simulator.is_initialize == True
+            and simulator.is_initialize_integrator == simulator.current_integrator
+        ):
             match simulator.current_integrator:
                 case "rkf45":
                     order = 45
@@ -29,7 +44,7 @@ class RK_EMBEDDED:
                     order = 78
                 case _:
                     raise ValueError("Invalid integrator!")
-                
+
             (
                 self.power,
                 self.power_test,
@@ -37,10 +52,8 @@ class RK_EMBEDDED:
                 self.weights,
                 self.weights_test,
             ) = self._rk_embedded_butcher_tableaus(order)
-            
-            simulator.a = acceleration(
-                objects_count, simulator.x, m, G
-            )
+
+            simulator.a = acceleration(objects_count, simulator.x, m, G)
             self.rk_dt = self._rk_embedded_initial_time_step(
                 objects_count,
                 self.power,
@@ -60,31 +73,27 @@ class RK_EMBEDDED:
         temp_rk_dt = ctypes.c_double(self.rk_dt)
         if simulator.is_c_lib == True:
             simulator.c_lib.rk_embedded(
-                ctypes.c_int(objects_count), 
-                simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), 
-                ctypes.c_double(G), 
+                ctypes.c_int(objects_count),
+                simulator.x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                simulator.v.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                m.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                ctypes.c_double(G),
                 ctypes.c_double(expected_time_scale),
-                ctypes.byref(temp_simulation_time), 
+                ctypes.byref(temp_simulation_time),
                 ctypes.byref(temp_rk_dt),
                 ctypes.c_int(self.power),
                 ctypes.c_int(self.power_test),
                 ctypes.c_int(np.shape(self.coeff)[-1]),
                 self.coeff.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                 ctypes.c_int(len(self.weights)),
-                self.weights.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_double)
-                ),
-                self.weights_test.ctypes.data_as(
-                    ctypes.POINTER(ctypes.c_double)
-                ),
+                self.weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                self.weights_test.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
                 ctypes.c_int(max_iteration),
                 ctypes.c_int(min_iteration),
                 ctypes.c_double(abs_tolerance),
                 ctypes.c_double(rel_tolerance),
             )
-            simulator.stats.simulation_time = temp_simulation_time.value 
+            simulator.stats.simulation_time = temp_simulation_time.value
             self.rk_dt = temp_rk_dt.value
 
         elif simulator.is_c_lib == False:
@@ -112,7 +121,6 @@ class RK_EMBEDDED:
                 abs_tolerance,
                 rel_tolerance,
             )
-
 
     @staticmethod
     def _rk_embedded(
@@ -190,9 +198,9 @@ class RK_EMBEDDED:
             )
 
             # Sum up all the elements of x/tol and v/tol, square and divide by the total number of elements
-            sum = np.sum(np.square(error_estimation_delta_x / tolerance_scale_x)) + np.sum(
-                np.square(error_estimation_delta_v / tolerance_scale_v)
-            )
+            sum = np.sum(
+                np.square(error_estimation_delta_x / tolerance_scale_x)
+            ) + np.sum(np.square(error_estimation_delta_v / tolerance_scale_v))
             error = (sum / (objects_count * 3 * 2)) ** 0.5
 
             if error <= 1 or actual_dt == expected_time_scale * 1e-12:
@@ -200,9 +208,11 @@ class RK_EMBEDDED:
                 x = x_1
                 v = v_1
 
-            if error == 0.0: # Prevent extreme cases where the error is smaller than machine zero
+            if (
+                error == 0.0
+            ):  # Prevent extreme cases where the error is smaller than machine zero
                 dt_new = actual_dt
-            else:    
+            else:
                 dt_new = actual_dt * safety_fac / error ** (1.0 / (1.0 + min_power))
             # Prevent dt to be too small or too large relative to the last time step
             if dt_new > safety_fac_max * actual_dt:
@@ -215,7 +225,9 @@ class RK_EMBEDDED:
             if dt_new / expected_time_scale < 1e-12:
                 actual_dt = expected_time_scale * 1e-12
 
-            if i >= min_iteration and t > (simulation_time + expected_time_scale * 1e-5):
+            if i >= min_iteration and t > (
+                simulation_time + expected_time_scale * 1e-5
+            ):
                 return x, v, t, actual_dt
 
         # Return values once it reaches max iterations
@@ -300,7 +312,13 @@ class RK_EMBEDDED:
                         [3.0 / 32.0, 9.0 / 32.0, 0.0, 0.0, 0.0],
                         [1932.0 / 2197.0, -7200.0 / 2197.0, 7296.0 / 2197.0, 0.0, 0.0],
                         [439.0 / 216.0, -8.0, 3680.0 / 513.0, -845.0 / 4104.0, 0.0],
-                        [-8.0 / 27.0, 2.0, -3544.0 / 2565.0, 1859.0 / 4104.0, -11.0 / 40.0],
+                        [
+                            -8.0 / 27.0,
+                            2.0,
+                            -3544.0 / 2565.0,
+                            1859.0 / 4104.0,
+                            -11.0 / 40.0,
+                        ],
                     ]
                 )
 
@@ -401,7 +419,20 @@ class RK_EMBEDDED:
                 # )
                 coeff = np.array(
                     [
-                        [2.0 / 27.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [
+                            2.0 / 27.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                        ],
                         [
                             1.0 / 36.0,
                             1.0 / 12.0,
