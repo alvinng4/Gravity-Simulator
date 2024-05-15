@@ -183,16 +183,27 @@ class Plotter:
             fps = get_float("Enter FPS: ", larger_than=0)
             print()
 
-            print(f"There are {grav_plot.data_size} lines of data.")
-            print(
-                f"For FPS = {fps:.1f}, the gif would last for about {grav_plot.data_size / fps:.1f} s if plot every nth point = 1."
-            )
+            while True:
+                desired_time = get_float(
+                    "Enter desired time length for the gif (in seconds): ",
+                    larger_than=0,
+                )
+                if desired_time <= grav_plot.data_size / fps:
+                    break
+                else:
+                    print(
+                        f"For FPS = {fps:.1f}, the maximum length is {(grav_plot.data_size / fps):.1f} s!"
+                    )
+                    print()
 
-            plot_every_nth_point = get_int(
-                "Plot every nth point (int): ",
-                larger_than=0,
-                smaller_than=grav_plot.data_size,
+            print()
+
+            plot_every_nth_point = math.floor(grav_plot.data_size / (desired_time * fps))
+            print(f"Plot every nth point: {plot_every_nth_point}")
+            frame_size = (
+                math.floor(grav_plot.data_size / plot_every_nth_point) + 2
             )
+            print(f"Estimated time length: {(frame_size / fps):.1f} s")
             print()
 
             file_name = input(
@@ -206,7 +217,7 @@ class Plotter:
             )
             print()
 
-            is_dynamic_axes = get_bool("Set dynamic axes limit?")
+            is_dynamic_axes = get_bool("Use dynamic axes limit?")
             print()
 
             axes_lim = None
@@ -239,14 +250,11 @@ class Plotter:
 
             print(f"FPS = {fps:.1f}")
             print(f"Plot every nth point: {plot_every_nth_point}")
-            total_frame_size = (
-                math.floor(grav_plot.data_size / plot_every_nth_point) + 1
-            )
-            print(f"Estimated total frame: about {total_frame_size}")
-            print(f"Estimated time length: {(total_frame_size / fps):.1f} s")
+            print(f"Estimated frame size: about {frame_size} frames")
+            print(f"Estimated time length: {(frame_size / fps):.1f} s")
             print(f"File name: {file_name}")
             print(f"dpi: {dpi:.1f}")
-            print(f"Dynamic axes limits: {is_dynamic_axes}")
+            print(f"Use dynamic axes limits: {is_dynamic_axes}")
 
             if not is_dynamic_axes:
                 print(f"Customize axes limits: {is_custom_axes}")
