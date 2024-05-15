@@ -415,7 +415,7 @@ class GravitySimulator:
 
                 return None
 
-        print("")
+        print()
 
         # --------------------Input integrators--------------------
         while True:
@@ -449,12 +449,14 @@ class GravitySimulator:
                                 int(matches.group(1)) - 1
                             ]
                             break
+            
+            print()
+            print("Invalid input. Please try again.")
+            print()
 
-            print("\nInvalid input. Please try again.\n")
-
+        print()
         # --------------------Input tf--------------------
         while True:
-            print("")
             self.tf = input("Enter tf (d/yr): ")
             if matches := re.search(
                 r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?", self.tf, re.IGNORECASE
@@ -463,6 +465,7 @@ class GravitySimulator:
                     self.tf = float(matches.group(1))
                 else:
                     print("Invalid input. Please try again.")
+                    print()
                     continue
 
                 if matches.group(2) not in ["year", "y"]:
@@ -476,7 +479,6 @@ class GravitySimulator:
         # --------------------Input dt--------------------
         if self.integrator in ["euler", "euler_cromer", "rk4", "leapfrog"]:
             while True:
-                print("")
                 self.dt = input("Enter dt (d/yr): ")
                 if matches := re.search(
                     r"([0-9]*\.?[0-9]*)(?:\.|\W*)*(day|year|d|y)?\s*",
@@ -486,7 +488,8 @@ class GravitySimulator:
                     if matches.group(1):
                         self.dt = float(matches.group(1))
                     else:
-                        print("\nInvalid input. Please try again.")
+                        print("Invalid input. Please try again.")
+                        print()
                         continue
 
                     if matches.group(2) not in ["year", "y"]:
@@ -500,7 +503,7 @@ class GravitySimulator:
         elif self.integrator in ["rkf45", "dopri", "dverk", "rkf78", "ias15"]:
             self.tolerance = get_float("Enter tolerance: ", larger_than=0)
 
-        print("")
+        print()
 
     def _print_user_simulation_input(self):
         print(f"System: {self.system}")

@@ -180,7 +180,6 @@ class Plotter:
     def ask_user_input_animation(dim: int, grav_plot):
         while True:
             fps = get_float("Enter FPS: ", larger_than=0)
-            print()
 
             while True:
                 desired_time = get_float(
@@ -208,23 +207,17 @@ class Plotter:
             file_name = input(
                 "Enter file name without extension (carefully, the program cannot check the validity of the filename): "
             )
-            print()
-
             dpi = get_float(
                 "Enter dots per inch (dpi) (recommended value is 200): ",
                 larger_than=0,
             )
-            print()
-
             is_dynamic_axes = get_bool("Use dynamic axes limit?")
-            print()
 
             axes_lim = None
             is_custom_axes = False
             if not is_dynamic_axes:
                 if get_bool("Set your own axes limit?"):
                     is_custom_axes = True
-                    print()
 
                     xlim_min = get_float("Enter min x-axis limit (AU): ")
                     xlim_max = get_float("Enter max x-axis limit (AU): ")
@@ -245,14 +238,14 @@ class Plotter:
                             zlim_min,
                             zlim_max,
                         ]
-                print()
 
             is_maintain_fixed_dt = False
             if get_bool(
                 "Try to maintain fixed dt for the animation? (useful if you are using variable dt)"
             ):
                 is_maintain_fixed_dt = True
-                print()
+            
+            print()
 
             print(f"FPS = {fps:.1f}")
             print(f"Plot every nth point: {plot_every_nth_point}")
