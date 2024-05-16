@@ -169,11 +169,15 @@ class Plotter:
                     color=traj[0].get_color(),
                 )
 
+        Plotter.set_3d_axes_equal(ax)
+
+        # Legend for solar_like systems
         if grav_plot.system in grav_plot.solar_like_systems:
-            fig.legend(loc="center right", borderaxespad=0.2)
+            ax.legend(loc="center right", bbox_to_anchor=(1.325, 0.5))
+                right=0.7
+            )  # Adjust the right boundary of the plot to make room for the legend
             fig.tight_layout()
 
-        Plotter.set_3d_axes_equal(ax)
         plt.show()
         print()
 
@@ -601,9 +605,15 @@ class Plotter:
                                     color=traj[0].get_color(),
                                     label=objs_name[j],
                                 )
-                            # Add legend at the beginning
+
+                            # Add legend
+                            ax.legend(loc="center right", bbox_to_anchor=(1.325, 0.5))
+
+                            # Adjust figure for the legend
                             if i == 0:
-                                fig.legend(loc="center right")
+                                fig.subplots_adjust(right=0.7)
+                                fig.tight_layout()
+
                         else:
                             # Plot with random colors
                             # Plot the trajectory from the beginning to current position
@@ -685,9 +695,15 @@ class Plotter:
                                     color=traj[0].get_color(),
                                     label=objs_name[j],
                                 )
-                            # Add legend at the beginning
+
+                            # Add legend
+                            ax.legend(loc="center right", bbox_to_anchor=(1.325, 0.5))
+
+                            # Adjust figure for the legend
                             if i == 0:
-                                fig.legend(loc="center right")
+                                fig.subplots_adjust(right=0.7)
+                                fig.tight_layout()
+
                         else:
                             # Plot with random colors
                             # Plot the trajectory from the beginning to current position
