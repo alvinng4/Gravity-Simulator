@@ -141,7 +141,7 @@ For RK4, the largest dt to produce desired result is 2e-8 days.
 
 ## Plotting module
 
-<img src="./examples/pyth-3-body_rk4.gif" alt="Image" width="300">
+<img src="./examples/pyth-3-body_ias15_fix_dt.gif" alt="Image" width="300">
 <img src="./examples/rel_energy.png" alt="Image" width="300">
 
 ### Running the program

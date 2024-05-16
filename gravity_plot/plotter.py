@@ -177,8 +177,8 @@ class Plotter:
             fig.subplots_adjust(
                 right=0.7
             )  # Adjust the right boundary of the plot to make room for the legend
-            fig.tight_layout()
 
+        fig.tight_layout()
         plt.show()
         print()
 
