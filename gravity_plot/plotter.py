@@ -174,6 +174,7 @@ class Plotter:
         # Legend for solar_like systems
         if grav_plot.system in grav_plot.solar_like_systems:
             ax.legend(loc="center right", bbox_to_anchor=(1.325, 0.5))
+            fig.subplots_adjust(
                 right=0.7
             )  # Adjust the right boundary of the plot to make room for the legend
             fig.tight_layout()
