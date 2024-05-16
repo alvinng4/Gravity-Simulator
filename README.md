@@ -13,7 +13,8 @@ Link: https://alvinng4.github.io/Gravity_Simulator_Web/
 
 Click *once* after you see the green loading bar showing
 "Ready to start!". You should then see the main
-menu. Simply select a system to start. 
+menu. From there, simply select a system to start. 
+See [controls](#controls) for basic controls.
 
 This online demo is built with the pygbag package. 
 
@@ -21,7 +22,6 @@ This online demo is built with the pygbag package.
 > In Safari, if you accidently selected/clicked the window,
 > the FPS would drops significantly. To fix it, simply click
 > on something else outside the game window.
-
 
 
 ## Documentation
@@ -35,7 +35,7 @@ This online demo is built with the pygbag package.
     - [C library / Numpy (Optional)](#c-library--numpy-optional)
     - [Changing the resolution (Optional)](#changing-the-resolution-optional)
     - [Available systems](#available-systems)
-    - [Control](#control)
+    - [Controls](#controls)
 * [Plotting module](#plotting-module)
     - [Running the program](#running-the-program-2)
     - [C library / Numpy (Optional)](#c-library--numpy-optional-1)
@@ -121,7 +121,7 @@ python3 gravity_sim [-r|--resolution <width> <height>]
 between fixed and variable step size integrators.
 For RK4, the largest dt to produce desired result is 2e-8 days.
 
-### Control
+### Controls
 
 | Action | Control |
 |:-------|:------------| 
