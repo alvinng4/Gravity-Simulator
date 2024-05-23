@@ -77,6 +77,15 @@ Plotting module: run the following command in terminal
 ```
 python gravity_plot
 ```
+
+### Check if the C library are running properly
+If the C library was failed to be loaded, you should see the following message in your terminal window
+```
+System message: Loading c_lib failed. Running with numpy.
+```
+This does not affect the simulation result, but running with numpy could cause the program to be 500 to 1400 times slower.
+To fix this, you may need to recompile the library from the src folder.
+
 ## Quick fix
 If the program keeps crashing, running with numpy may fix the problem. However, the program could run about 500 to 1000 times slower. To run with numpy, run the following command in terminal
 ```
