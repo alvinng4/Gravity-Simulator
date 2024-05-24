@@ -1,8 +1,8 @@
 # Gravity Simulator
 This is a Newtonian N-body gravity simulator.
 
-* Interactive module: real time simulation with the interactive simulator
-* Plotting module: customize your own system and generate a plot easily
+* Interactive module: real time interactive N-body simulation
+* Plotting module: customize your own system and generating plots
 
 <img src="./examples/grav_sim.png" alt="Image" width="400">
 
@@ -29,8 +29,8 @@ This online demo is built with the pygbag package.
     - [Python version](#python-version)
     - [Installation](#installation)
     - [Running the program](#running-the-program)
-    - [Check if the C libraries are loaded properly (Optional)](#check-if-the-c-library-are-loaded-properly-optional)
-* [Quick fix](#quick-fix)
+    - [Check if the C libraries are loaded properly (Optional)](#check-if-the-c-libraries-are-loaded-properly-optional)
+* [Program keeps crashing. What should I do?](#program-keeps-crashing-what-should-i-do)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program-1)
     - [C library / Numpy (Optional)](#c-library--numpy-optional)
@@ -80,21 +80,25 @@ python gravity_plot
 ```
 
 ### Check if the C libraries are loaded properly (Optional)
-If the C library was failed to load after running the program, you should see the following message in your terminal window
+If the C libraries cannot be loaded after running the program, you should see the following message in your terminal window
 ```
 System message: Loading c_lib failed. Running with numpy.
 ```
 This does not affect the simulation result, but running with numpy could cause the program to be 500 to 1400 times slower.
 To fix this, you may need to recompile the library from the `src` folder.
 
-## Quick fix
-If the program keeps crashing, running with numpy may fix the problem. However, the program could run about 500 to 1000 times slower. To run with numpy, run the following command in terminal
+## Program keeps crashing. What should I do?
+
+First, make sure that you are running with python version >= 3.10 and have installed all the required packages. If yes, try running the program with numpy and see if the problem gets fixed. 
+To run with numpy, execute the following command in terminal:
 ```
-python gravity_sim [-n|--numpy]
+python gravity_sim --numpy
 ```
 ```
-python gravity_plot [-n|--numpy]
+python gravity_plot --numpy
 ```
+However, note that the program could run about 500 to 1400 times slower with numpy.
+If the problem persists, please feel free to let me know by opening an issue.
 
 ## Interactive module
 ### Running the program
