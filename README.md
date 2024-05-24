@@ -29,6 +29,7 @@ This online demo is built with the pygbag package.
     - [Python version](#python-version)
     - [Installation](#installation)
     - [Running the program](#running-the-program)
+    - [Check if the C libraries are loaded properly (Optional)](#check-if-the-c-libraries-are-loaded-properly-optional)
 * [Program keeps crashing. What should I do?](#program-keeps-crashing-what-should-i-do)
 * [Interactive module](#interactive-module)
     - [Running the program](#running-the-program-1)
@@ -77,6 +78,15 @@ Plotting module: run the following command in terminal
 ```
 python gravity_plot
 ```
+
+### Check if the C libraries are loaded properly (Optional)
+If the C libraries cannot be loaded after running the program, you should see the following message in your terminal window
+```
+System message: Loading c_lib failed. Running with numpy.
+```
+This does not affect the simulation result, but running with numpy could cause the program to be 500 to 1400 times slower.
+To fix this, you may need to recompile the library from the `src` folder.
+
 ## Program keeps crashing. What should I do?
 
 First, make sure that you are running with python version >= 3.10 and have installed all the required packages. If yes, try running the program with numpy and see if the problem gets fixed. 
