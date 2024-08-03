@@ -6,11 +6,15 @@ Warning: This script will take a lot of storage space on your computer (probably
          When combining the individual frames, the pillow library will take a lot of memories.
          You may reduce the frame sizes or integration time if you run out of memory.
          It will ask user's permission to erase the data after the video is generated.
+
+Note: Technically you can also create nice looking solar system animations by setting N = 0 and 
+      expanding the axes limits.
 """
 
 import csv
 from pathlib import Path
 import sys
+sys.path.append(str(Path(__file__).parent.parent))
 
 import numpy as np
 import PIL
@@ -19,7 +23,7 @@ import matplotlib.pyplot as plt
 from gravity_sim import GravitySimulator
 from gravity_sim.common import get_bool
 
-N = 50000
+N = 5
 FPS = 30
 DPI = 300
 
@@ -97,7 +101,7 @@ def main():
     system.center_of_mass_correction()
 
     # ---------- Simulation ---------- #
-    file_path = Path(__file__).parent / "gravity_sim" / "results"
+    file_path = Path(__file__).parent.parent / "gravity_sim" / "results"
     file_path.mkdir(parents=True, exist_ok=True)
     data_path = file_path / "asteroid_belt_sim.csv"
 

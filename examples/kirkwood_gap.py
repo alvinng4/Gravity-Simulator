@@ -19,6 +19,7 @@ TODO: Calculations for the 2D scatter plot is not vectorized and is extremely sl
 import csv
 from pathlib import Path
 import sys
+sys.path.append(str(Path(__file__).parent.parent))
 
 import numpy as np
 import PIL
@@ -86,7 +87,7 @@ def main():
     system.name = f"kirkwood_gap_N{N}"
 
     # ---------- Simulation ---------- #
-    file_path = Path(__file__).parent / "gravity_sim" / "results"
+    file_path = Path(__file__).parent.parent / "gravity_sim" / "results"
     file_path.mkdir(parents=True, exist_ok=True)
     data_path = file_path / "kirkwood_gap_sim.csv"
 
