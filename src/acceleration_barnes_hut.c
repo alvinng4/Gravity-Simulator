@@ -790,7 +790,6 @@ IN_FILE int _compute_acceleration(
 {
     typedef struct Stack
     {
-        real acceleration[3];
         int node;
         int processed_children;
         struct Stack *last;
@@ -807,9 +806,7 @@ IN_FILE int _compute_acceleration(
         stack->processed_children = -1;
         stack->last = NULL;
         stack->node = 0;
-        stack->acceleration[0] = 0.0;
-        stack->acceleration[1] = 0.0;
-        stack->acceleration[2] = 0.0;
+        double acceleration[3] = {0.0, 0.0, 0.0};
 
         int level = 1;
 
@@ -851,9 +848,9 @@ IN_FILE int _compute_acceleration(
 
                         // Calculate the acceleration
                         const real temp_value = G / (R_norm * R_norm * R_norm);
-                        stack->acceleration[0] -= temp_value * R[0] * m_j;
-                        stack->acceleration[1] -= temp_value * R[1] * m_j;
-                        stack->acceleration[2] -= temp_value * R[2] * m_j;
+                        acceleration[0] -= temp_value * R[0] * m_j;
+                        acceleration[1] -= temp_value * R[1] * m_j;
+                        acceleration[2] -= temp_value * R[2] * m_j;
                     }
 
                     stack->processed_children = j;
@@ -891,9 +888,6 @@ IN_FILE int _compute_acceleration(
                     if (!criteria_met)
                     {
                         Stack *new_item = &(stack_pool[level + 1]);
-                        new_item->acceleration[0] = 0.0;
-                        new_item->acceleration[1] = 0.0;
-                        new_item->acceleration[2] = 0.0;
                         new_item->node = child_j;
                         new_item->last = stack;
                         new_item->processed_children = -1;
@@ -913,9 +907,9 @@ IN_FILE int _compute_acceleration(
                         );
 
                         const real temp_value = G / (R_norm * R_norm * R_norm);
-                        stack->acceleration[0] -= temp_value * R[0] * tree_total_mass[child_j];
-                        stack->acceleration[1] -= temp_value * R[1] * tree_total_mass[child_j];
-                        stack->acceleration[2] -= temp_value * R[2] * tree_total_mass[child_j];
+                        acceleration[0] -= temp_value * R[0] * tree_total_mass[child_j];
+                        acceleration[1] -= temp_value * R[1] * tree_total_mass[child_j];
+                        acceleration[2] -= temp_value * R[2] * tree_total_mass[child_j];
 
                         stack->processed_children = j;
                         continue;
@@ -930,10 +924,6 @@ IN_FILE int _compute_acceleration(
                 {
                     break;
                 }
-
-                parent->acceleration[0] += stack->acceleration[0];
-                parent->acceleration[1] += stack->acceleration[1];
-                parent->acceleration[2] += stack->acceleration[2];
                 
                 stack = parent;
                 stack->processed_children += 1;
@@ -941,9 +931,9 @@ IN_FILE int _compute_acceleration(
             }
         }
 
-        a[idx_i * 3 + 0] = stack->acceleration[0];
-        a[idx_i * 3 + 1] = stack->acceleration[1];
-        a[idx_i * 3 + 2] = stack->acceleration[2];
+        a[idx_i * 3 + 0] = acceleration[0];
+        a[idx_i * 3 + 1] = acceleration[1];
+        a[idx_i * 3 + 2] = acceleration[2];
     }
 
     return SUCCESS;
