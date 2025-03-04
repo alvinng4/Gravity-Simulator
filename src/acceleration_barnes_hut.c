@@ -10,88 +10,88 @@
 #define MORTON_MAX_LEVEL 21 // Maximum level for 64-bit Morton index, don't change
 
 
-// For debug only
-void print_octree_node(
-    real *restrict x,
-    real *restrict m,
-    const int *restrict sorted_indices,
-    int node_idx,
-    int *restrict tree_start_particle_sorted_idx,
-    int *restrict tree_num_particles,
-    int *restrict tree_num_internal_children,
-    int *restrict tree_idx_first_internal_child,
-    real *restrict tree_total_mass,
-    real *restrict tree_center_of_mass_x,
-    real *restrict tree_center_of_mass_y,
-    real *restrict tree_center_of_mass_z,
-    int indent
-)
-{
-    // Print indent spaces
-    for (int i = 0; i < indent; ++i)
-    printf("  ");
+// // For debug only
+// void print_octree_node(
+//     real *restrict x,
+//     real *restrict m,
+//     const int *restrict sorted_indices,
+//     int node_idx,
+//     int *restrict tree_start_particle_sorted_idx,
+//     int *restrict tree_num_particles,
+//     int *restrict tree_num_internal_children,
+//     int *restrict tree_idx_first_internal_child,
+//     real *restrict tree_total_mass,
+//     real *restrict tree_center_of_mass_x,
+//     real *restrict tree_center_of_mass_y,
+//     real *restrict tree_center_of_mass_z,
+//     int indent
+// )
+// {
+//     // Print indent spaces
+//     for (int i = 0; i < indent; ++i)
+//     printf("  ");
 
-    // Print summary info about the node
-    printf("Node %d:\n", node_idx);
+//     // Print summary info about the node
+//     printf("Node %d:\n", node_idx);
 
-    for (int i = 0; i < indent; ++i) printf("  ");
-    printf("  Num Particles: %d, Num children: %d\n",
-        tree_num_particles[node_idx],
-        tree_num_internal_children[node_idx]
-    );
+//     for (int i = 0; i < indent; ++i) printf("  ");
+//     printf("  Num Particles: %d, Num children: %d\n",
+//         tree_num_particles[node_idx],
+//         tree_num_internal_children[node_idx]
+//     );
 
-    if (tree_num_internal_children[node_idx] > 0)
-    {
-        for (int i = 0; i < indent; ++i) printf("  ");
-        printf("  Center of Mass: (%.4g, %.4g, %.4g), Total Mass: %.7g\n",
-            tree_center_of_mass_x[node_idx],
-            tree_center_of_mass_y[node_idx],
-            tree_center_of_mass_z[node_idx],
-            tree_total_mass[node_idx]
-        );
-    }
-    else
-    {
-        for (int i = 0; i < tree_num_particles[node_idx]; i++)
-        {
-            int particle_idx = sorted_indices[tree_start_particle_sorted_idx[node_idx] + i];
-            for (int j = 0; j < indent; ++j) printf("  ");
-            printf("  Particle %d: (%.4g, %.4g, %.4g), m = %.4g\n",
-                particle_idx,
-                x[particle_idx * 3 + 0],
-                x[particle_idx * 3 + 1],
-                x[particle_idx * 3 + 2],
-                m[particle_idx]
-            );
-        }
-    }
+//     if (tree_num_internal_children[node_idx] > 0)
+//     {
+//         for (int i = 0; i < indent; ++i) printf("  ");
+//         printf("  Center of Mass: (%.4g, %.4g, %.4g), Total Mass: %.7g\n",
+//             tree_center_of_mass_x[node_idx],
+//             tree_center_of_mass_y[node_idx],
+//             tree_center_of_mass_z[node_idx],
+//             tree_total_mass[node_idx]
+//         );
+//     }
+//     else
+//     {
+//         for (int i = 0; i < tree_num_particles[node_idx]; i++)
+//         {
+//             int particle_idx = sorted_indices[tree_start_particle_sorted_idx[node_idx] + i];
+//             for (int j = 0; j < indent; ++j) printf("  ");
+//             printf("  Particle %d: (%.4g, %.4g, %.4g), m = %.4g\n",
+//                 particle_idx,
+//                 x[particle_idx * 3 + 0],
+//                 x[particle_idx * 3 + 1],
+//                 x[particle_idx * 3 + 2],
+//                 m[particle_idx]
+//             );
+//         }
+//     }
 
-    // Recurse on internal children (if any)
-    int num_children = tree_num_internal_children[node_idx];
-    if (num_children > 0) 
-    {
-        int first_child = tree_idx_first_internal_child[node_idx];
-        for (int i = 0; i < num_children; ++i)
-        {
-            int child_idx = first_child + i;
-            print_octree_node(
-                x,
-                m,
-                sorted_indices,
-                child_idx,
-                tree_start_particle_sorted_idx,
-                tree_num_particles,
-                tree_num_internal_children,
-                tree_idx_first_internal_child,
-                tree_total_mass,
-                tree_center_of_mass_x,
-                tree_center_of_mass_y,
-                tree_center_of_mass_z,
-                indent + 1
-            );
-        }
-    }
-}
+//     // Recurse on internal children (if any)
+//     int num_children = tree_num_internal_children[node_idx];
+//     if (num_children > 0) 
+//     {
+//         int first_child = tree_idx_first_internal_child[node_idx];
+//         for (int i = 0; i < num_children; ++i)
+//         {
+//             int child_idx = first_child + i;
+//             print_octree_node(
+//                 x,
+//                 m,
+//                 sorted_indices,
+//                 child_idx,
+//                 tree_start_particle_sorted_idx,
+//                 tree_num_particles,
+//                 tree_num_internal_children,
+//                 tree_idx_first_internal_child,
+//                 tree_total_mass,
+//                 tree_center_of_mass_x,
+//                 tree_center_of_mass_y,
+//                 tree_center_of_mass_z,
+//                 indent + 1
+//             );
+//         }
+//     }
+// }
 
 /**
  * \brief Calculate the bounding box of the system
@@ -192,6 +192,17 @@ IN_FILE void _compute_3d_morton_indices_level_21(
     }
 }
 
+/**
+ * \brief Perform radix sort on the particles based on their Morton indices
+ * 
+ * \param object_count Number of objects
+ * \param morton_indices Array of Morton indices
+ * \param indices Array of indices
+ * \param level Level of the Morton indices
+ * 
+ * \retval SUCCESS if successful
+ * \retval ERROR_BARNES_HUT_RADIX_SORT_MEMORY_ALLOC if memory allocation fails
+ */
 IN_FILE int _radix_sort_particles_morton_index(
     const int object_count,
     int64 *restrict morton_indices,
@@ -307,6 +318,16 @@ err_memory:
     return return_code;
 }
 
+/**
+ * \brief Perform binary search to find the number of particles in each octant
+ * 
+ * \param leaf_morton_indices_deepest_level Array of Morton indices
+ * \param node_morton_index_level Morton index of the node
+ * \param start_idx Start index of the particles in the node
+ * \param end_idx End index of the particles in the node
+ * \param leaf_level Level of the leaf nodes
+ * \param num_particles_per_octant Array to store the number of particles in each octant
+ */
 IN_FILE void _binary_search_num_particles_per_octant(
     const int64 *restrict leaf_morton_indices_deepest_level,
     const int64 node_morton_index_level,
@@ -354,6 +375,28 @@ IN_FILE void _binary_search_num_particles_per_octant(
     }
 }
 
+/**
+ * \brief Set up a new internal node
+ * 
+ * \param allocated_internal_nodes Pointer to the number of allocated internal nodes
+ * \param internal_node_count Pointer to the number of internal nodes
+ * \param level Node level
+ * \param width Node width
+ * \param node Node index
+ * \param node_morton_index_level Morton index of the node at the current level
+ * \param leaf_morton_indices_deepest_level Pointer to array of Morton indices
+ * \param tree_num_internal_children Pointer to array of number of internal children
+ * \param tree_idx_first_internal_child Pointer to array of index of the first internal child
+ * \param tree_start_particle_sorted_idx Pointer to array of start index of particles in the node
+ * \param tree_num_particles Pointer to array of number of particles in the node
+ * \param tree_total_mass Pointer to array of total mass of the node
+ * \param tree_center_of_mass_x Pointer to array of x-coordinate of the center of mass
+ * \param tree_center_of_mass_y Pointer to array of y-coordinate of the center of mass
+ * \param tree_center_of_mass_z Pointer to array of z-coordinate of the center of mass
+ * 
+ * \retval SUCCESS if successful
+ * \retval error_code if there is an error
+ */
 IN_FILE int _setup_node(
     int *restrict allocated_internal_nodes,
     int *restrict internal_node_count,
@@ -492,6 +535,28 @@ err_memory_realloc:
     return return_code;
 }
 
+/**
+ * \brief Construct the octree
+ * 
+ * \param allocated_internal_nodes Pointer to the number of allocated internal nodes
+ * \param x Array of position vectors
+ * \param m Array of masses
+ * \param width Width of the bounding box
+ * \param sorted_indices Array of sorted indices
+ * \param leaf_morton_indices_deepest_level Array of Morton indices
+ * \param morton_max_level Maximum level of the Morton indices
+ * \param tree_start_particle_sorted_idx Pointer to array of start index of particles in the node
+ * \param tree_num_particles Pointer to array of number of particles in the node
+ * \param tree_num_internal_children Pointer to array of number of internal children
+ * \param tree_idx_first_internal_child Pointer to array of index of the first internal child
+ * \param tree_total_mass Pointer to array of total mass of the node
+ * \param tree_center_of_mass_x Pointer to array of x-coordinate of the center of mass
+ * \param tree_center_of_mass_y Pointer to array of y-coordinate of the center of mass
+ * \param tree_center_of_mass_z Pointer to array of z-coordinate of the center of mass
+ * 
+ * \retval SUCCESS if successful
+ * \retval error_code if there is an error
+ */
 IN_FILE int _construct_octree(
     int *restrict allocated_internal_nodes,
     const real *restrict x,
@@ -662,6 +727,13 @@ err_setup_node:
     return return_code;
 }
 
+/**
+ * \brief Check if two Morton indices are included in the same octant
+ * 
+ * \param morton_index_i Morton index of the first object at the deepest level
+ * \param morton_index_j Morton index of the second object at the deepest level
+ * \param level Level of the Morton indices
+ */
 IN_FILE bool _check_if_included(
     const int64 morton_index_i,
     const int64 morton_index_j,
@@ -671,6 +743,30 @@ IN_FILE bool _check_if_included(
     return (morton_index_i >> (3 * (MORTON_MAX_LEVEL - level))) == (morton_index_j >> (3 * (MORTON_MAX_LEVEL - level)));
 }
 
+/**
+ * \brief Compute the acceleration of the particles
+ * 
+ * \param a Array of acceleration vectors
+ * \param objects_count Number of objects
+ * \param x Array of position vectors
+ * \param m Array of masses
+ * \param G Gravitational constant
+ * \param softening_length Softening length
+ * \param opening_angle Opening angle
+ * \param width Width of the bounding box
+ * \param leaf_morton_indices_deepest_level Array of Morton indices
+ * \param sorted_indices Array of sorted indices
+ * \param tree_start_particle_sorted_idx Array of start index of particles in the node
+ * \param tree_num_particles Array of number of particles in the node
+ * \param tree_num_internal_children Array of number of internal children
+ * \param tree_idx_first_internal_child Array of index of the first internal child
+ * \param tree_total_mass Array of total mass of the node
+ * \param tree_center_of_mass_x Array of x-coordinate of the center of mass
+ * \param tree_center_of_mass_y Array of y-coordinate of the center of mass
+ * \param tree_center_of_mass_z Array of z-coordinate of the center of mass
+ * 
+ * \retval SUCCESS if successful
+ */
 IN_FILE int _compute_acceleration(
     real *restrict a,
     const int objects_count,
@@ -682,14 +778,14 @@ IN_FILE int _compute_acceleration(
     const real width,
     const int64 *restrict leaf_morton_indices_deepest_level,
     const int *restrict sorted_indices,
-    int *restrict tree_start_particle_sorted_idx,
-    int *restrict tree_num_particles,
-    int *restrict tree_num_internal_children,
-    int *restrict tree_idx_first_internal_child,
-    real *restrict tree_total_mass,
-    real *restrict tree_center_of_mass_x,
-    real *restrict tree_center_of_mass_y,
-    real *restrict tree_center_of_mass_z
+    const int *restrict tree_start_particle_sorted_idx,
+    const int *restrict tree_num_particles,
+    const int *restrict tree_num_internal_children,
+    const int *restrict tree_idx_first_internal_child,
+    const real *restrict tree_total_mass,
+    const real *restrict tree_center_of_mass_x,
+    const real *restrict tree_center_of_mass_y,
+    const real *restrict tree_center_of_mass_z
 )
 {
     typedef struct Stack
