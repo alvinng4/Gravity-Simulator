@@ -14,6 +14,11 @@
 #define ACCELERATION_METHOD_MASSLESS 1
 #define ACCELERATION_METHOD_BARNES_HUT 2
 
+#ifdef USE_CUDA
+    #define ACCELERATION_METHOD_CUDA_PAIRWISE 100
+    #define ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT 101
+#endif
+
 /**
  * \brief Return acceleration method flag based on the input string
  * 
@@ -23,8 +28,8 @@
  * \retval ERROR_UNKNOWN_ACCELERATION_METHOD If the acceleration method is not recognized
  */
 int get_acceleration_method_flag(
-    const char *restrict acceleration_method,
-    uint *restrict acceleration_method_flag
+    const char *__restrict acceleration_method,
+    uint *__restrict acceleration_method_flag
 );
 
 /**
@@ -38,9 +43,9 @@ int get_acceleration_method_flag(
  * \retval ERROR_UNKNOWN_ACCELERATION_CODE If the acceleration code is not recognized
  */
 int acceleration(
-    real *restrict a,
-    const System *restrict system,
-    AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    AccelerationParam *__restrict acceleration_param
 );
 
 /**
@@ -54,9 +59,9 @@ int acceleration(
  * \retval error code if errors occurred
  */
 int acceleration_barnes_hut(
-    real *restrict a,
-    const System *restrict system,
-    const AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
 );
 
 #endif

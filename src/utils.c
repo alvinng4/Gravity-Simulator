@@ -15,13 +15,13 @@ WIN32DLL_API void free_memory_real(real *ptr)
 }
 
 WIN32DLL_API int compute_energy_step(
-    const System *restrict system,
-    real *restrict energy
+    const System *__restrict system,
+    real *__restrict energy
 )
 {
-    const real *restrict x = system->x;
-    const real *restrict v = system->v;
-    const real *restrict m = system->m;
+    const real *__restrict x = system->x;
+    const real *__restrict v = system->v;
+    const real *__restrict m = system->m;
     const real G = system->G;
     const int objects_count = system->objects_count;
 
@@ -53,13 +53,13 @@ WIN32DLL_API int compute_energy_step(
 
 WIN32DLL_API void compute_energy_python(
     const int objects_count,
-    const double *restrict m,
+    const double *__restrict m,
     const real G,
     const int npts,
-    int *restrict count,
-    real *restrict energy,
-    const double (*restrict sol_state)[objects_count * 6],
-    int *restrict is_exit
+    int *__restrict count,
+    real *__restrict energy,
+    const double (*__restrict sol_state)[objects_count * 6],
+    int *__restrict is_exit
 )
 {
     while (*count < npts)
@@ -102,12 +102,12 @@ WIN32DLL_API void compute_energy_python(
 
 WIN32DLL_API void compute_linear_momentum_python(
     const int objects_count,
-    const double *restrict m,
+    const double *__restrict m,
     const int npts,
-    int *restrict count,
-    double *restrict linear_momentum,
-    const double (*restrict sol_state)[objects_count * 6],
-    int *restrict is_exit
+    int *__restrict count,
+    double *__restrict linear_momentum,
+    const double (*__restrict sol_state)[objects_count * 6],
+    int *__restrict is_exit
 )
 {
     while (*count < npts)
@@ -133,12 +133,12 @@ WIN32DLL_API void compute_linear_momentum_python(
 
 WIN32DLL_API void compute_angular_momentum_python(
     const int objects_count,
-    const double *restrict m,
+    const double *__restrict m,
     const int npts,
-    int *restrict count,
-    double *restrict angular_momentum,
-    const double (*restrict sol_state)[objects_count * 6],
-    int *restrict is_exit
+    int *__restrict count,
+    double *__restrict angular_momentum,
+    const double (*__restrict sol_state)[objects_count * 6],
+    int *__restrict is_exit
 )
 {
     while (*count < npts)

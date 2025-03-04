@@ -12,18 +12,18 @@
 
 // // For debug only
 // void print_octree_node(
-//     real *restrict x,
-//     real *restrict m,
-//     const int *restrict sorted_indices,
+//     real *__restrict x,
+//     real *__restrict m,
+//     const int *__restrict sorted_indices,
 //     int node_idx,
-//     int *restrict tree_start_particle_sorted_idx,
-//     int *restrict tree_num_particles,
-//     int *restrict tree_num_internal_children,
-//     int *restrict tree_idx_first_internal_child,
-//     real *restrict tree_total_mass,
-//     real *restrict tree_center_of_mass_x,
-//     real *restrict tree_center_of_mass_y,
-//     real *restrict tree_center_of_mass_z,
+//     int *__restrict tree_start_particle_sorted_idx,
+//     int *__restrict tree_num_particles,
+//     int *__restrict tree_num_internal_children,
+//     int *__restrict tree_idx_first_internal_child,
+//     real *__restrict tree_total_mass,
+//     real *__restrict tree_center_of_mass_x,
+//     real *__restrict tree_center_of_mass_y,
+//     real *__restrict tree_center_of_mass_z,
 //     int indent
 // )
 // {
@@ -103,9 +103,9 @@
  */
 IN_FILE void _calculate_bounding_box(
     const int objects_count,
-    const real *restrict x,
-    real *restrict center,
-    real *restrict width
+    const real *__restrict x,
+    real *__restrict center,
+    real *__restrict width
 )
 {
     /* Find the width of the bounding box */
@@ -148,10 +148,10 @@ IN_FILE void _calculate_bounding_box(
  * \ref https://stackoverflow.com/a/18528775, Stack Overflow
  */
 IN_FILE void _compute_3d_morton_indices_level_21(
-    int64 *restrict morton_indices,
+    int64 *__restrict morton_indices,
     const int object_count,
-    const real *restrict x,
-    const real *restrict center,
+    const real *__restrict x,
+    const real *__restrict center,
     const real width
 )
 {
@@ -205,8 +205,8 @@ IN_FILE void _compute_3d_morton_indices_level_21(
  */
 IN_FILE int _radix_sort_particles_morton_index(
     const int object_count,
-    int64 *restrict morton_indices,
-    int *restrict indices,
+    int64 *__restrict morton_indices,
+    int *__restrict indices,
     const int level
 )
 {
@@ -221,9 +221,9 @@ IN_FILE int _radix_sort_particles_morton_index(
     const int num_passes = (num_significant_bits + RADIX_BITS - 1) / RADIX_BITS;
 
     /* Allocate memory */
-    int64 *restrict temp_morton_indices = malloc(object_count * sizeof(int64));
-    int *restrict temp_indices = malloc(object_count * sizeof(int));
-    int *restrict count = malloc(RADIX_SIZE * sizeof(int));
+    int64 *__restrict temp_morton_indices = malloc(object_count * sizeof(int64));
+    int *__restrict temp_indices = malloc(object_count * sizeof(int));
+    int *__restrict count = malloc(RADIX_SIZE * sizeof(int));
     if (!temp_morton_indices || !temp_indices || !count)
     {
         return_code = ERROR_BARNES_HUT_RADIX_SORT_MEMORY_ALLOC;
@@ -329,12 +329,12 @@ err_memory:
  * \param num_particles_per_octant Array to store the number of particles in each octant
  */
 IN_FILE void _binary_search_num_particles_per_octant(
-    const int64 *restrict leaf_morton_indices_deepest_level,
+    const int64 *__restrict leaf_morton_indices_deepest_level,
     const int64 node_morton_index_level,
     const int start_idx,
     const int end_idx,
     const int leaf_level,
-    int *restrict num_particles_per_octant
+    int *__restrict num_particles_per_octant
 )
 {
     const int64 prefix = node_morton_index_level * 8;
@@ -398,13 +398,13 @@ IN_FILE void _binary_search_num_particles_per_octant(
  * \retval error_code if there is an error
  */
 IN_FILE int _setup_node(
-    int *restrict allocated_internal_nodes,
-    int *restrict internal_node_count,
+    int *__restrict allocated_internal_nodes,
+    int *__restrict internal_node_count,
     const int level,
     const real width,
     const int node,
     const int64 node_morton_index_level,
-    const int64 *restrict leaf_morton_indices_deepest_level,
+    const int64 *__restrict leaf_morton_indices_deepest_level,
     int **tree_num_internal_children,
     int **tree_idx_first_internal_child,
     int **tree_start_particle_sorted_idx,
@@ -558,12 +558,12 @@ err_memory_realloc:
  * \retval error_code if there is an error
  */
 IN_FILE int _construct_octree(
-    int *restrict allocated_internal_nodes,
-    const real *restrict x,
-    const real *restrict m,
+    int *__restrict allocated_internal_nodes,
+    const real *__restrict x,
+    const real *__restrict m,
     const real width,
-    const int *restrict sorted_indices,
-    const int64 *restrict leaf_morton_indices_deepest_level,
+    const int *__restrict sorted_indices,
+    const int64 *__restrict leaf_morton_indices_deepest_level,
     const int morton_max_level,
     int **tree_start_particle_sorted_idx,
     int **tree_num_particles,
@@ -768,24 +768,24 @@ IN_FILE bool _check_if_included(
  * \retval SUCCESS if successful
  */
 IN_FILE int _compute_acceleration(
-    real *restrict a,
+    real *__restrict a,
     const int objects_count,
-    const real *restrict x,
-    const real *restrict m,
+    const real *__restrict x,
+    const real *__restrict m,
     const real G,
     const real softening_length,
     const real opening_angle,
     const real width,
-    const int64 *restrict leaf_morton_indices_deepest_level,
-    const int *restrict sorted_indices,
-    const int *restrict tree_start_particle_sorted_idx,
-    const int *restrict tree_num_particles,
-    const int *restrict tree_num_internal_children,
-    const int *restrict tree_idx_first_internal_child,
-    const real *restrict tree_total_mass,
-    const real *restrict tree_center_of_mass_x,
-    const real *restrict tree_center_of_mass_y,
-    const real *restrict tree_center_of_mass_z
+    const int64 *__restrict leaf_morton_indices_deepest_level,
+    const int *__restrict sorted_indices,
+    const int *__restrict tree_start_particle_sorted_idx,
+    const int *__restrict tree_num_particles,
+    const int *__restrict tree_num_internal_children,
+    const int *__restrict tree_idx_first_internal_child,
+    const real *__restrict tree_total_mass,
+    const real *__restrict tree_center_of_mass_x,
+    const real *__restrict tree_center_of_mass_y,
+    const real *__restrict tree_center_of_mass_z
 )
 {
     typedef struct Stack
@@ -950,16 +950,16 @@ IN_FILE int _compute_acceleration(
 }
 
 WIN32DLL_API int acceleration_barnes_hut(
-    real *restrict a,
-    const System *restrict system,
-    AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    AccelerationParam *__restrict acceleration_param
 )
 {
     int return_code;
 
     const int objects_count = system->objects_count;
-    const real *restrict x = system->x;
-    const real *restrict m = system->m;
+    const real *__restrict x = system->x;
+    const real *__restrict m = system->m;
     const real G = system->G;
     const real softening_length = acceleration_param->softening_length; 
     const real opening_angle = acceleration_param->opening_angle;

@@ -68,9 +68,9 @@ typedef struct StoringParam
 
 typedef struct Solutions 
 {
-    double *restrict sol_state;
-    double *restrict sol_time;
-    double *restrict sol_dt;
+    double *__restrict sol_state;
+    double *__restrict sol_time;
+    double *__restrict sol_dt;
     int64 *sol_size_;
 } Solutions;
 
@@ -85,7 +85,7 @@ typedef struct SimulationStatus
 typedef struct Settings
 {
     int verbose;
-    bool *restrict is_exit;
+    bool *__restrict is_exit;
 } Settings;
 
 typedef struct SimulationParam

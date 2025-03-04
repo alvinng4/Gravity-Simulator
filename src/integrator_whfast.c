@@ -32,8 +32,8 @@
  */
 IN_FILE void whfast_kick(
     const int objects_count,
-    real *restrict jacobi_v,
-    const real *restrict a,
+    real *__restrict jacobi_v,
+    const real *__restrict a,
     const real dt
 );
 
@@ -56,17 +56,17 @@ IN_FILE void whfast_kick(
  * \param verbose Verbosity level
  */
 IN_FILE int whfast_drift(
-    System *restrict system,
-    real *restrict jacobi_x,
-    real *restrict jacobi_v,
-    const real *restrict eta,
+    System *__restrict system,
+    real *__restrict jacobi_x,
+    real *__restrict jacobi_v,
+    const real *__restrict eta,
     const real dt,
     const real kepler_tol,
     const int kepler_max_iter,
     const bool kepler_auto_remove,
     const real kepler_auto_remove_tol,
-    bool *restrict kepler_failed_bool_array,
-    bool *restrict kepler_failed_flag,
+    bool *__restrict kepler_failed_bool_array,
+    bool *__restrict kepler_failed_flag,
     const int verbose
 );
 
@@ -79,10 +79,10 @@ IN_FILE int whfast_drift(
  * \param eta Array of cumulative masses
  */
 IN_FILE void cartesian_to_jacobi(
-    System *restrict system,
-    real *restrict jacobi_x,
-    real *restrict jacobi_v,
-    const real *restrict eta
+    System *__restrict system,
+    real *__restrict jacobi_x,
+    real *__restrict jacobi_v,
+    const real *__restrict eta
 );
 
 /**
@@ -94,10 +94,10 @@ IN_FILE void cartesian_to_jacobi(
  * \param eta Array of cumulative masses
  */
 IN_FILE void jacobi_to_cartesian(
-    System *restrict system,
-    const real *restrict jacobi_x,
-    const real *restrict jacobi_v,
-    const real *restrict eta
+    System *__restrict system,
+    const real *__restrict jacobi_x,
+    const real *__restrict jacobi_v,
+    const real *__restrict eta
 );
 
 /**
@@ -114,10 +114,10 @@ IN_FILE void jacobi_to_cartesian(
  */
 IN_FILE int stumpff_functions(
     real z,
-    real *restrict c0,
-    real *restrict c1,
-    real *restrict c2,
-    real *restrict c3
+    real *__restrict c0,
+    real *__restrict c1,
+    real *__restrict c2,
+    real *__restrict c3
 );
 
 /**
@@ -136,10 +136,10 @@ IN_FILE int stumpff_functions(
  * \retval SUCCESS If exit successfully
  */
 IN_FILE int whfast_acceleration_pairwise(
-    real *restrict a,
+    real *__restrict a,
     const System *system,
-    real *restrict jacobi_x,
-    const real *restrict eta,
+    real *__restrict jacobi_x,
+    const real *__restrict eta,
     const AccelerationParam *acceleration_param
 );
 
@@ -164,10 +164,10 @@ IN_FILE int whfast_acceleration_pairwise(
  */
 
 IN_FILE int whfast_acceleration_massless(
-    real *restrict a,
+    real *__restrict a,
     const System *system,
-    real *restrict jacobi_x,
-    const real *restrict eta,
+    real *__restrict jacobi_x,
+    const real *__restrict eta,
     const AccelerationParam *acceleration_param
 );
 
@@ -185,10 +185,10 @@ WIN32DLL_API int whfast(
     int return_code;
 
     IN_FILE int (*whfast_acceleration)(
-        real *restrict a,
+        real *__restrict a,
         const System *system,
-        real *restrict jacobi_x,
-        const real *restrict eta,
+        real *__restrict jacobi_x,
+        const real *__restrict eta,
         const AccelerationParam *acceleration_param
     );
 
@@ -207,7 +207,7 @@ WIN32DLL_API int whfast(
     }
 
     int objects_count = system->objects_count;
-    real *restrict m = system->m;
+    real *__restrict m = system->m;
 
     const real dt = integrator_param->dt;
     const int64 n_steps = simulation_param->n_steps_;
@@ -219,11 +219,11 @@ WIN32DLL_API int whfast(
     const real kepler_auto_remove_tol = integrator_param->whfast_kepler_auto_remove_tol;
 
     /* Allocate memory for calculation */
-    real *restrict jacobi_x = calloc(objects_count * 3, sizeof(real));
-    real *restrict jacobi_v = malloc(objects_count * 3 * sizeof(real));
-    real *restrict temp_jacobi_v = malloc(objects_count * 3 * sizeof(real));
-    real *restrict a = malloc(objects_count * 3 * sizeof(real));
-    real *restrict eta = malloc(objects_count * sizeof(real));
+    real *__restrict jacobi_x = calloc(objects_count * 3, sizeof(real));
+    real *__restrict jacobi_v = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict temp_jacobi_v = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict a = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict eta = malloc(objects_count * sizeof(real));
 
     if (
         !jacobi_x
@@ -401,8 +401,8 @@ err_unknown_acc_method:
 
 IN_FILE void whfast_kick(
     const int objects_count,
-    real *restrict jacobi_v,
-    const real *restrict a,
+    real *__restrict jacobi_v,
+    const real *__restrict a,
     const real dt
 )
 {
@@ -415,24 +415,24 @@ IN_FILE void whfast_kick(
 }
 
 IN_FILE int whfast_drift(
-    System *restrict system,
-    real *restrict jacobi_x,
-    real *restrict jacobi_v,
-    const real *restrict eta,
+    System *__restrict system,
+    real *__restrict jacobi_x,
+    real *__restrict jacobi_v,
+    const real *__restrict eta,
     const real dt,
     const real kepler_tol,
     const int kepler_max_iter,
     const bool kepler_auto_remove,
     const real kepler_auto_remove_tol,
-    bool *restrict kepler_failed_bool_array,
-    bool *restrict kepler_failed_flag,
+    bool *__restrict kepler_failed_bool_array,
+    bool *__restrict kepler_failed_flag,
     const int verbose
 )
 {
     int return_code;
 
     const int objects_count = system->objects_count;
-    const real *restrict m = system->m;
+    const real *__restrict m = system->m;
     const real G = system->G;
     for (int i = 1; i < objects_count; i++)
     {
@@ -544,18 +544,18 @@ err_stumpff:
 }
 
 IN_FILE void cartesian_to_jacobi(
-    System *restrict system,
-    real *restrict jacobi_x,
-    real *restrict jacobi_v,
-    const real *restrict eta
+    System *__restrict system,
+    real *__restrict jacobi_x,
+    real *__restrict jacobi_v,
+    const real *__restrict eta
 )
 {
     real x_cm[3];
     real v_cm[3];
     const int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
-    const real *restrict m = system->m;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
+    const real *__restrict m = system->m;
 
     x_cm[0] = m[0] * x[0];
     x_cm[1] = m[0] * x[1];
@@ -587,18 +587,18 @@ IN_FILE void cartesian_to_jacobi(
 }
 
 IN_FILE void jacobi_to_cartesian(
-    System *restrict system,
-    const real *restrict jacobi_x,
-    const real *restrict jacobi_v,
-    const real *restrict eta
+    System *__restrict system,
+    const real *__restrict jacobi_x,
+    const real *__restrict jacobi_v,
+    const real *__restrict eta
 )
 {
     real x_cm[3];
     real v_cm[3];
     const int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
-    const real *restrict m = system->m;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
+    const real *__restrict m = system->m;
 
     x_cm[0] = eta[objects_count - 1] * jacobi_x[0];
     x_cm[1] = eta[objects_count - 1] * jacobi_x[1];
@@ -634,10 +634,10 @@ IN_FILE void jacobi_to_cartesian(
 
 IN_FILE int stumpff_functions(
     real z,
-    real *restrict c0,
-    real *restrict c1,
-    real *restrict c2,
-    real *restrict c3
+    real *__restrict c0,
+    real *__restrict c1,
+    real *__restrict c2,
+    real *__restrict c3
 )
 {
     int return_code;
@@ -695,16 +695,16 @@ err_z_inf:
 }
 
 IN_FILE int whfast_acceleration_pairwise(
-    real *restrict a,
+    real *__restrict a,
     const System *system,
-    real *restrict jacobi_x,
-    const real *restrict eta,
+    real *__restrict jacobi_x,
+    const real *__restrict eta,
     const AccelerationParam *acceleration_param
 )
 {
     const int objects_count = system->objects_count;
-    const real *restrict x = system->x;
-    const real *restrict m = system->m;
+    const real *__restrict x = system->x;
+    const real *__restrict m = system->m;
     const real G = system->G;
 
     const real softening_length = acceleration_param->softening_length;
@@ -810,18 +810,18 @@ IN_FILE int whfast_acceleration_pairwise(
 }
 
 IN_FILE int whfast_acceleration_massless(
-    real *restrict a,
+    real *__restrict a,
     const System *system,
-    real *restrict jacobi_x,
-    const real *restrict eta,
+    real *__restrict jacobi_x,
+    const real *__restrict eta,
     const AccelerationParam *acceleration_param
 )
 {
     int return_code;
 
     const int objects_count = system->objects_count;
-    const real *restrict x = system->x;
-    const real *restrict m = system->m;
+    const real *__restrict x = system->x;
+    const real *__restrict m = system->m;
     const real G = system->G;
 
     const real softening_length = acceleration_param->softening_length;
@@ -850,8 +850,8 @@ IN_FILE int whfast_acceleration_massless(
     }
 
     /* Find the indices of massive and massless objects */
-    int *restrict massive_indices = malloc(massive_objects_count * sizeof(int));
-    int *restrict massless_indices = malloc(massless_objects_count * sizeof(int));
+    int *__restrict massive_indices = malloc(massive_objects_count * sizeof(int));
+    int *__restrict massless_indices = malloc(massless_objects_count * sizeof(int));
     massive_objects_count = 0;
     massless_objects_count = 0;
 

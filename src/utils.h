@@ -25,8 +25,8 @@ void free_memory_real(real *ptr);
  * \return SUCCESS if the energy is computed successfully
  */
 int compute_energy_step(
-    const System *restrict system,
-    real *restrict energy
+    const System *__restrict system,
+    real *__restrict energy
 );
 
 /**
@@ -43,13 +43,13 @@ int compute_energy_step(
  */
 void compute_energy_python(
     const int objects_count,
-    const double *restrict m,
+    const double *__restrict m,
     const real G,
     const int npts,
-    int *restrict count,
-    real *restrict energy,
-    const double (*restrict sol_state)[objects_count * 6],
-    int *restrict is_exit
+    int *__restrict count,
+    real *__restrict energy,
+    const double (*__restrict sol_state)[objects_count * 6],
+    int *__restrict is_exit
 );
 
 /**
@@ -65,12 +65,12 @@ void compute_energy_python(
  */
 void compute_linear_momentum_python(
     const int objects_count,
-    const double *restrict m,
+    const double *__restrict m,
     const int npts,
-    int *restrict count,
-    double *restrict linear_momentum,
-    const double (*restrict sol_state)[objects_count * 6],
-    int *restrict is_exit
+    int *__restrict count,
+    double *__restrict linear_momentum,
+    const double (*__restrict sol_state)[objects_count * 6],
+    int *__restrict is_exit
 );
 
 /**
@@ -86,12 +86,12 @@ void compute_linear_momentum_python(
  */
 void compute_angular_momentum_python(
     const int objects_count,
-    const double *restrict m,
+    const double *__restrict m,
     const int npts,
-    int *restrict count,
-    double *restrict angular_momentum,
-    const double (*restrict sol_state)[objects_count * 6],
-    int *restrict is_exit
+    int *__restrict count,
+    double *__restrict angular_momentum,
+    const double (*__restrict sol_state)[objects_count * 6],
+    int *__restrict is_exit
 );
 
 #endif

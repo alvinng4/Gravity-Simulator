@@ -29,14 +29,14 @@
  * 
  * \param nodes 1D array of size 8 to be modified
  */
-IN_FILE void _initialize_radau_spacing(real *restrict nodes);
+IN_FILE void _initialize_radau_spacing(real *__restrict nodes);
 
 /**
  * \brief Initialize the auxiliary coefficients aux_c for IAS15
  * 
  * \param aux_c 1D array of length 49 to be modified
  */ 
-IN_FILE void _initialize_aux_c(real *restrict aux_c);
+IN_FILE void _initialize_aux_c(real *__restrict aux_c);
 
 /**
  * \brief Initialize auxiliary coefficients aux_r for IAS15
@@ -59,11 +59,11 @@ IN_FILE void _initialize_aux_r(real *aux_r);
  * \retval ERROR_IAS15_INITIAL_DT_NEGATIVE If initial_dt is negative
  */
 IN_FILE int _initial_dt(
-    real *restrict initial_dt,
+    real *__restrict initial_dt,
     const int power,
     System *system,
     AccelerationParam *acceleration_param,
-    real *restrict a
+    real *__restrict a
 );
 
 /**
@@ -82,14 +82,14 @@ IN_FILE int _initial_dt(
  */
 IN_FILE void _approx_pos_pc(
     int objects_count,
-    real *restrict x,
-    real *restrict x0,
-    real *restrict v0,
-    real *restrict a0,
+    real *__restrict x,
+    real *__restrict x0,
+    real *__restrict v0,
+    real *__restrict a0,
     real node,
-    real *restrict aux_b,
+    real *__restrict aux_b,
     real dt,
-    real *restrict x_err_comp_sum
+    real *__restrict x_err_comp_sum
 );
 
 /**
@@ -107,13 +107,13 @@ IN_FILE void _approx_pos_pc(
  */
 IN_FILE void _approx_vel_pc(
     int objects_count,
-    real *restrict v,
-    real *restrict v0,
-    real *restrict a0,
+    real *__restrict v,
+    real *__restrict v0,
+    real *__restrict a0,
     real node,
-    real *restrict aux_b,
+    real *__restrict aux_b,
     real dt,
-    real *restrict v_err_comp_sum
+    real *__restrict v_err_comp_sum
 );
 
 /**
@@ -132,13 +132,13 @@ IN_FILE void _approx_vel_pc(
  */
 IN_FILE void _approx_pos_step(
     int objects_count,
-    real *restrict x,
-    real *restrict x0,
-    real *restrict v0,
-    real *restrict a0,
-    real *restrict aux_b,
+    real *__restrict x,
+    real *__restrict x0,
+    real *__restrict v0,
+    real *__restrict a0,
+    real *__restrict aux_b,
     real dt,
-    real *restrict temp_x_err_comp_sum
+    real *__restrict temp_x_err_comp_sum
 );
 
 /**
@@ -156,12 +156,12 @@ IN_FILE void _approx_pos_step(
  */
 IN_FILE void _approx_vel_step(
     int objects_count,
-    real *restrict v,
-    real *restrict v0,
-    real *restrict a0,
-    real *restrict aux_b,
+    real *__restrict v,
+    real *__restrict v0,
+    real *__restrict a0,
+    real *__restrict aux_b,
     real dt,
-    real *restrict temp_v_err_comp_sum
+    real *__restrict temp_v_err_comp_sum
 );
 
 /**
@@ -177,9 +177,9 @@ IN_FILE void _approx_vel_step(
 IN_FILE void _compute_aux_b(
     const int objects_count,
     const int dim_nodes_minus_1,
-    real *restrict aux_b,
-    const real *restrict aux_g,
-    const real *restrict aux_c,
+    real *__restrict aux_b,
+    const real *__restrict aux_g,
+    const real *__restrict aux_c,
     const int i
 );
 
@@ -197,11 +197,11 @@ IN_FILE void _compute_aux_b(
 IN_FILE void _compute_aux_g(
     const int objects_count,
     const int dim_nodes,
-    real *restrict aux_g,
-    const real *restrict aux_r,
-    const real *restrict aux_a,
+    real *__restrict aux_g,
+    const real *__restrict aux_r,
+    const real *__restrict aux_a,
     const int i,
-    real *restrict F
+    real *__restrict F
 );
 
 /**
@@ -219,9 +219,9 @@ IN_FILE void _compute_aux_g(
 IN_FILE void _refine_aux_b(
     int objects_count,
     int dim_nodes_minus_1,
-    real *restrict aux_b,
-    real *restrict aux_e,
-    real *restrict delta_aux_b,
+    real *__restrict aux_b,
+    real *__restrict aux_e,
+    real *__restrict delta_aux_b,
     real dt,
     real dt_new,
     bool refine_flag
@@ -242,8 +242,8 @@ WIN32DLL_API int ias15(
 
     /* Initialization */
     int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
 
     // tolerance
     real tolerance = integrator_param->tolerance;
@@ -265,13 +265,13 @@ WIN32DLL_API int ias15(
     const int dim_nodes = 8;
     const int dim_nodes_minus_1 = 7;
     const int dim_nodes_minus_2 = 6;
-    real *restrict nodes = malloc(dim_nodes * sizeof(real));
-    real *restrict aux_c = calloc(7 * 7, sizeof(real));
-    real *restrict aux_r = calloc(8 * 8, sizeof(real));
-    real *restrict aux_b0 = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
-    real *restrict aux_b = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
-    real *restrict aux_g = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
-    real *restrict aux_e = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
+    real *__restrict nodes = malloc(dim_nodes * sizeof(real));
+    real *__restrict aux_c = calloc(7 * 7, sizeof(real));
+    real *__restrict aux_r = calloc(8 * 8, sizeof(real));
+    real *__restrict aux_b0 = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
+    real *__restrict aux_b = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
+    real *__restrict aux_g = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
+    real *__restrict aux_e = calloc((dim_nodes - 1) * objects_count * 3, sizeof(real));
     if (!nodes || !aux_c || !aux_r || !aux_b0 || !aux_b || !aux_g || !aux_e)
     {
         return_code = ERROR_IAS15_AUX_MEMORY_ALLOC;
@@ -282,24 +282,24 @@ WIN32DLL_API int ias15(
     _initialize_aux_r(aux_r);
 
     // Arrays
-    real *restrict a = malloc(objects_count * 3 * sizeof(real));
-    real *restrict aux_a = calloc(dim_nodes * objects_count * 3, sizeof(real));
-    real *restrict x_1 = calloc(objects_count * 3, sizeof(real));
-    real *restrict v_1 = calloc(objects_count * 3, sizeof(real));
-    real *restrict a_1 = calloc(objects_count * 3, sizeof(real));
-    real *restrict delta_b7 = calloc(objects_count * 3, sizeof(real));
+    real *__restrict a = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict aux_a = calloc(dim_nodes * objects_count * 3, sizeof(real));
+    real *__restrict x_1 = calloc(objects_count * 3, sizeof(real));
+    real *__restrict v_1 = calloc(objects_count * 3, sizeof(real));
+    real *__restrict a_1 = calloc(objects_count * 3, sizeof(real));
+    real *__restrict delta_b7 = calloc(objects_count * 3, sizeof(real));
 
     // Array for compute aux_g
-    real *restrict F = calloc(8 * objects_count * 3, sizeof(real));
+    real *__restrict F = calloc(8 * objects_count * 3, sizeof(real));
 
     // Array for refine aux_b
-    real *restrict delta_aux_b = calloc(dim_nodes_minus_1 * objects_count * 3, sizeof(real));
+    real *__restrict delta_aux_b = calloc(dim_nodes_minus_1 * objects_count * 3, sizeof(real));
 
     // Arrays for compensated summation
-    real *restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
 
     if (
         !a || 
@@ -570,7 +570,7 @@ err_aux_memory:
     return return_code;
 }
 
-IN_FILE void _initialize_radau_spacing(real *restrict nodes)
+IN_FILE void _initialize_radau_spacing(real *__restrict nodes)
 {
     nodes[0] = 0.0L;
     nodes[1] = 0.056262560536922146465652191032L;
@@ -582,7 +582,7 @@ IN_FILE void _initialize_radau_spacing(real *restrict nodes)
     nodes[7] = 0.977520613561287501891174500429L;
 }
 
-IN_FILE void _initialize_aux_c(real *restrict aux_c)
+IN_FILE void _initialize_aux_c(real *__restrict aux_c)
 {
     for (int i = 0; i < 7; i++)
     {
@@ -656,22 +656,22 @@ void _initialize_aux_r(real *aux_r)
 }
 
 IN_FILE int _initial_dt(
-    real *restrict initial_dt,
+    real *__restrict initial_dt,
     const int power,
     System *system,
     AccelerationParam *acceleration_param,
-    real *restrict a
+    real *__restrict a
 )
 {
     int return_code;
 
     const int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
 
     /* Allocate memory and declare variables */
-    real *restrict x_1 = malloc(objects_count * 3 * sizeof(real));
-    real *restrict a_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict x_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict a_1 = malloc(objects_count * 3 * sizeof(real));
     if (!x_1 || !a_1)
     {
         return_code = ERROR_IAS15_INITIAL_DT_MEMORY_ALLOC;
@@ -766,14 +766,14 @@ error_memory:
 
 IN_FILE void _approx_pos_pc(
     int objects_count,
-    real *restrict x,
-    real *restrict x0,
-    real *restrict v0,
-    real *restrict a0,
+    real *__restrict x,
+    real *__restrict x0,
+    real *__restrict v0,
+    real *__restrict a0,
     real node,
-    real *restrict aux_b,
+    real *__restrict aux_b,
     real dt,
-    real *restrict x_err_comp_sum
+    real *__restrict x_err_comp_sum
 )
 {   
     for (int j = 0; j < objects_count; j++)
@@ -826,13 +826,13 @@ IN_FILE void _approx_pos_pc(
 
 IN_FILE void _approx_vel_pc(
     int objects_count,
-    real *restrict v,
-    real *restrict v0,
-    real *restrict a0,
+    real *__restrict v,
+    real *__restrict v0,
+    real *__restrict a0,
     real node,
-    real *restrict aux_b,
+    real *__restrict aux_b,
     real dt,
-    real *restrict v_err_comp_sum
+    real *__restrict v_err_comp_sum
 )
 {
     for (int j = 0; j < objects_count; j++)
@@ -879,13 +879,13 @@ IN_FILE void _approx_vel_pc(
 
 IN_FILE void _approx_pos_step(
     int objects_count,
-    real *restrict x,
-    real *restrict x0,
-    real *restrict v0,
-    real *restrict a0,
-    real *restrict aux_b,
+    real *__restrict x,
+    real *__restrict x0,
+    real *__restrict v0,
+    real *__restrict a0,
+    real *__restrict aux_b,
     real dt,
-    real *restrict temp_x_err_comp_sum
+    real *__restrict temp_x_err_comp_sum
 )
 {   
     for (int j = 0; j < objects_count; j++)
@@ -913,12 +913,12 @@ IN_FILE void _approx_pos_step(
 
 IN_FILE void _approx_vel_step(
     int objects_count,
-    real *restrict v,
-    real *restrict v0,
-    real *restrict a0,
-    real *restrict aux_b,
+    real *__restrict v,
+    real *__restrict v0,
+    real *__restrict a0,
+    real *__restrict aux_b,
     real dt,
-    real *restrict temp_v_err_comp_sum
+    real *__restrict temp_v_err_comp_sum
 )
 {
     for (int j = 0; j < objects_count; j++)
@@ -944,9 +944,9 @@ IN_FILE void _approx_vel_step(
 IN_FILE void _compute_aux_b(
     const int objects_count,
     const int dim_nodes_minus_1,
-    real *restrict aux_b,
-    const real *restrict aux_g,
-    const real *restrict aux_c,
+    real *__restrict aux_b,
+    const real *__restrict aux_g,
+    const real *__restrict aux_c,
     const int i
 )
 {
@@ -1076,11 +1076,11 @@ IN_FILE void _compute_aux_b(
 IN_FILE void _compute_aux_g(
     const int objects_count,
     const int dim_nodes,
-    real *restrict aux_g,
-    const real *restrict aux_r,
-    const real *restrict aux_a,
+    real *__restrict aux_g,
+    const real *__restrict aux_r,
+    const real *__restrict aux_a,
     const int i,
-    real *restrict F
+    real *__restrict F
 )
 {
     // Retrieve required accelerations
@@ -1235,9 +1235,9 @@ IN_FILE void _compute_aux_g(
 IN_FILE void _refine_aux_b(
     int objects_count,
     int dim_nodes_minus_1,
-    real *restrict aux_b,
-    real *restrict aux_e,
-    real *restrict delta_aux_b,
+    real *__restrict aux_b,
+    real *__restrict aux_e,
+    real *__restrict delta_aux_b,
     real dt,
     real dt_new,
     bool refine_flag
