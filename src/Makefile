@@ -16,6 +16,7 @@ else
     ifeq ($(UNAME_S), Linux)
         TARGET = c_lib.so
         CFLAGS += -fPIC
+        # CFLAGS += -fPIC -fsanitize=address -fsanitize=undefined
         CUDA_FLAGS += -fPIC
     else ifeq ($(UNAME_S), Darwin)
         TARGET = c_lib.dylib
@@ -28,6 +29,10 @@ ifeq ($(USE_CUDA), 1)
     CFLAGS += -DUSE_CUDA
     OBJS += $(CUDA_OBJS)
     LIBS += $(CUDA_LIBS)
+endif
+
+ifeq ($(USE_OPENMP), 1)
+    CFLAGS += -fopenmp -DUSE_OPENMP
 endif
 
 .PHONY: all clean
