@@ -6,12 +6,10 @@
     #include <omp.h>
 #endif
 
+#include "acceleration_barnes_hut.h"
 #include "error.h"
 #include "gravity_sim.h"
 #include "math_functions.h"
-
-#define MAX_NUM_PARTICLES_PER_LEAF 1
-#define MORTON_MAX_LEVEL 21 // Maximum level for 64-bit Morton index, don't change
 
 
 // // For debug only
@@ -576,6 +574,7 @@ err_memory_realloc:
  * \brief Construct the octree
  * 
  * \param allocated_internal_nodes Pointer to the number of allocated internal nodes
+ * \param actual_num_internal_nodes Pointer to the number of internal nodes
  * \param x Array of position vectors
  * \param m Array of masses
  * \param width Width of the bounding box
@@ -596,6 +595,7 @@ err_memory_realloc:
  */
 IN_FILE int _construct_octree(
     int *__restrict allocated_internal_nodes,
+    int *__restrict actual_num_internal_nodes,
     const real *__restrict x,
     const real *__restrict m,
     const real width,
@@ -758,6 +758,8 @@ IN_FILE int _construct_octree(
         }
     }
 
+    *actual_num_internal_nodes = internal_node_count;
+
     return SUCCESS;
 
 err_setup_node:
@@ -778,6 +780,156 @@ IN_FILE bool _check_if_included(
 )
 {
     return (morton_index_i >> (3 * (MORTON_MAX_LEVEL - level))) == (morton_index_j >> (3 * (MORTON_MAX_LEVEL - level)));
+}
+
+WIN32DLL_API int barnes_hut_setup_octree(
+    real *__restrict width,
+    int *__restrict allocated_internal_nodes,
+    int *__restrict actual_num_internal_nodes,
+    const int objects_count,
+    const real *__restrict x,
+    const real *__restrict m,
+    int64 **leaf_morton_indices_deepest_level,
+    int **sorted_indices,
+    int **tree_start_particle_sorted_idx,
+    int **tree_num_particles,
+    int **tree_num_internal_children,
+    int **tree_idx_first_internal_child,
+    real **tree_total_mass,
+    real **tree_center_of_mass_x,
+    real **tree_center_of_mass_y,
+    real **tree_center_of_mass_z
+)
+{   
+    int return_code;
+
+    /* Find the width and center of the bounding box */
+    real center[3];
+    _calculate_bounding_box(objects_count, x, center, width);
+
+    /* Construct the octree */
+    // Allocate memory
+    *leaf_morton_indices_deepest_level = malloc(objects_count * sizeof(int64));
+    *sorted_indices = malloc(objects_count * sizeof(int));
+    if (!leaf_morton_indices_deepest_level || !sorted_indices)
+    {
+        return_code = ERROR_BARNES_HUT_MORTON_INDICES_MEMORY_ALLOC;
+        goto err_morton_indices_memory_alloc;
+    }
+
+    for (int i = 0; i < objects_count; i++)
+    {
+        (*sorted_indices)[i] = i;
+    }
+    _compute_3d_morton_indices_level_21(
+        *leaf_morton_indices_deepest_level,
+        objects_count,
+        x,
+        center,
+        *width
+    );
+    return_code = _radix_sort_particles_morton_index(
+        objects_count,
+        *leaf_morton_indices_deepest_level,
+        *sorted_indices,
+        MORTON_MAX_LEVEL
+    );
+    if (return_code != SUCCESS)
+    {
+        goto err_radix_sort;
+    }
+
+    // Allocate memory for the octree
+    int factor = 1;
+    if (MAX_NUM_PARTICLES_PER_LEAF <= 2)
+    {
+        factor = 2;
+    }
+    *allocated_internal_nodes = factor * objects_count;
+
+    // Start index of the particles in the node
+    *tree_start_particle_sorted_idx = malloc(*allocated_internal_nodes * sizeof(int));
+
+    // Number of particles in the node
+    *tree_num_particles = malloc(*allocated_internal_nodes * sizeof(int));
+
+    // Number of internal children of the node (i.e. not leaf)
+    *tree_num_internal_children = malloc(*allocated_internal_nodes * sizeof(int));
+
+    // Index to the first internal child of the node
+    *tree_idx_first_internal_child = malloc(*allocated_internal_nodes * sizeof(int));
+
+    // Total mass of the node
+    *tree_total_mass = malloc(*allocated_internal_nodes * sizeof(real));
+
+    // Center of mass of the node
+    *tree_center_of_mass_x = malloc(*allocated_internal_nodes * sizeof(real));
+    *tree_center_of_mass_y = malloc(*allocated_internal_nodes * sizeof(real));
+    *tree_center_of_mass_z = malloc(*allocated_internal_nodes * sizeof(real));
+
+    if (
+        !(*tree_start_particle_sorted_idx) ||
+        !(*tree_num_particles) ||
+        !(*tree_num_internal_children) ||
+        !(*tree_idx_first_internal_child) ||
+        !(*tree_total_mass) ||
+        !(*tree_center_of_mass_x) ||
+        !(*tree_center_of_mass_y) ||
+        !(*tree_center_of_mass_z)
+    )
+    {
+        return_code = ERROR_BARNES_HUT_OCTREE_MEMORY_ALLOC;
+        goto err_octree_memory_alloc;
+    }
+
+    (*tree_start_particle_sorted_idx)[0] = 0;
+    (*tree_num_particles)[0] = objects_count;
+    (*tree_num_internal_children)[0] = 0;
+    (*tree_center_of_mass_x)[0] = center[0];
+    (*tree_center_of_mass_y)[0] = center[1];
+    (*tree_center_of_mass_z)[0] = center[2];
+
+    return_code = _construct_octree(
+        allocated_internal_nodes,
+        actual_num_internal_nodes,
+        x,
+        m,
+        *width,
+        *sorted_indices,
+        *leaf_morton_indices_deepest_level,
+        MORTON_MAX_LEVEL,
+        tree_start_particle_sorted_idx,
+        tree_num_particles,
+        tree_num_internal_children,
+        tree_idx_first_internal_child,
+        tree_total_mass,
+        tree_center_of_mass_x,
+        tree_center_of_mass_y,
+        tree_center_of_mass_z
+    );
+    if (return_code != SUCCESS)
+    {
+        goto err_octree;
+    }
+
+    return SUCCESS;
+
+err_octree:
+err_octree_memory_alloc:
+    free(*tree_center_of_mass_z);
+    free(*tree_center_of_mass_y);
+    free(*tree_center_of_mass_x);
+    free(*tree_total_mass);
+    free(*tree_idx_first_internal_child);
+    free(*tree_num_internal_children);
+    free(*tree_num_particles);
+    free(*tree_start_particle_sorted_idx);
+err_morton_indices_memory_alloc:
+err_radix_sort:
+    free(*leaf_morton_indices_deepest_level);
+    free(*sorted_indices);
+
+    return return_code;
 }
 
 /**
@@ -979,7 +1131,7 @@ IN_FILE int _compute_acceleration(
 WIN32DLL_API int acceleration_barnes_hut(
     real *__restrict a,
     const System *__restrict system,
-    AccelerationParam *__restrict acceleration_param
+    const AccelerationParam *__restrict acceleration_param
 )
 {
     int return_code;
@@ -999,101 +1151,31 @@ WIN32DLL_API int acceleration_barnes_hut(
         a[i * 3 + 2] = 0.0;
     }
 
-    /* Find the width and center of the bounding box */
-    real center[3];
-    real width;
-    _calculate_bounding_box(objects_count, x, center, &width);
-
     /* Construct the octree */
     // Allocate memory
-    int64 *leaf_morton_indices_deepest_level = malloc(objects_count * sizeof(int64));
-    int *sorted_indices = malloc(objects_count * sizeof(int));
-    if (!leaf_morton_indices_deepest_level || !sorted_indices)
-    {
-        return_code = ERROR_BARNES_HUT_MORTON_INDICES_MEMORY_ALLOC;
-        goto err_morton_indices_memory_alloc;
-    }
+    real width;
+    int64 *leaf_morton_indices_deepest_level;
+    int *sorted_indices;
+    int allocated_internal_nodes;
+    int actual_num_internal_nodes;
+    int *tree_start_particle_sorted_idx;
+    int *tree_num_particles;
+    int *tree_num_internal_children;
+    int *tree_idx_first_internal_child;
+    real *tree_total_mass;
+    real *tree_center_of_mass_x;
+    real *tree_center_of_mass_y;
+    real *tree_center_of_mass_z;
 
-    for (int i = 0; i < objects_count; i++)
-    {
-        sorted_indices[i] = i;
-    }
-    _compute_3d_morton_indices_level_21(
-        leaf_morton_indices_deepest_level,
-        objects_count,
-        x,
-        center,
-        width
-    );
-    return_code = _radix_sort_particles_morton_index(
-        objects_count,
-        leaf_morton_indices_deepest_level,
-        sorted_indices,
-        MORTON_MAX_LEVEL
-    );
-    if (return_code != SUCCESS)
-    {
-        goto err_radix_sort;
-    }
-
-    // Allocate memory for the octree
-    int factor = 1;
-    if (MAX_NUM_PARTICLES_PER_LEAF <= 2)
-    {
-        factor = 2;
-    }
-    int allocated_internal_nodes = factor * objects_count;
-
-    // Start index of the particles in the node
-    int *tree_start_particle_sorted_idx = malloc(allocated_internal_nodes * sizeof(int));
-
-    // Number of particles in the node
-    int *tree_num_particles = malloc(allocated_internal_nodes * sizeof(int));
-
-    // Number of internal children of the node (i.e. not leaf)
-    int *tree_num_internal_children = malloc(allocated_internal_nodes * sizeof(int));
-
-    // Index to the first internal child of the node
-    int *tree_idx_first_internal_child = malloc(allocated_internal_nodes * sizeof(int));
-
-    // Total mass of the node
-    real *tree_total_mass = malloc(allocated_internal_nodes * sizeof(real));
-
-    // Center of mass of the node
-    real *tree_center_of_mass_x = malloc(allocated_internal_nodes * sizeof(real));
-    real *tree_center_of_mass_y = malloc(allocated_internal_nodes * sizeof(real));
-    real *tree_center_of_mass_z = malloc(allocated_internal_nodes * sizeof(real));
-
-    if (
-        !tree_start_particle_sorted_idx ||
-        !tree_num_particles ||
-        !tree_num_internal_children ||
-        !tree_idx_first_internal_child ||
-        !tree_total_mass ||
-        !tree_center_of_mass_x ||
-        !tree_center_of_mass_y ||
-        !tree_center_of_mass_z
-    )
-    {
-        return_code = ERROR_BARNES_HUT_OCTREE_MEMORY_ALLOC;
-        goto err_octree_memory_alloc;
-    }
-
-    tree_start_particle_sorted_idx[0] = 0;
-    tree_num_particles[0] = objects_count;
-    tree_num_internal_children[0] = 0;
-    tree_center_of_mass_x[0] = center[0];
-    tree_center_of_mass_y[0] = center[1];
-    tree_center_of_mass_z[0] = center[2];
-
-    return_code = _construct_octree(
+    return_code = barnes_hut_setup_octree(
+        &width,
         &allocated_internal_nodes,
+        &actual_num_internal_nodes,
+        objects_count,
         x,
         m,
-        width,
-        sorted_indices,
-        leaf_morton_indices_deepest_level,
-        MORTON_MAX_LEVEL,
+        &leaf_morton_indices_deepest_level,
+        &sorted_indices,
         &tree_start_particle_sorted_idx,
         &tree_num_particles,
         &tree_num_internal_children,
@@ -1108,6 +1190,7 @@ WIN32DLL_API int acceleration_barnes_hut(
         goto err_octree;
     }
 
+    /* Compute the acceleration */
     return_code = _compute_acceleration(
         a,
         objects_count,
@@ -1165,7 +1248,6 @@ WIN32DLL_API int acceleration_barnes_hut(
 
 err_acceleration:
 err_octree:
-err_octree_memory_alloc:
     free(tree_start_particle_sorted_idx);
     free(tree_num_particles);
     free(tree_num_internal_children);
@@ -1174,8 +1256,6 @@ err_octree_memory_alloc:
     free(tree_center_of_mass_x);
     free(tree_center_of_mass_y);
     free(tree_center_of_mass_z);
-err_radix_sort:
-err_morton_indices_memory_alloc:
     free(leaf_morton_indices_deepest_level);
     free(sorted_indices);
     return return_code;
