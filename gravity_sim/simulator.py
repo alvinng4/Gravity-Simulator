@@ -27,7 +27,8 @@ class Simulator:
         "barnes_hut",
         "pairwise_cuda",
         "pairwise_cuda_float",
-        "barnes_hut_cuda"
+        "barnes_hut_cuda",
+        "barnes_hut_cuda_float",
     ]
     AVAILABLE_STORING_METHODS = ["default", "flush", "disabled"]
     AVAILABLE_INTEGRATORS = [
