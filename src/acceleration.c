@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "acceleration.h"
+#include "acceleration_barnes_hut.h"
 #include "error.h"
 #include "gravity_sim.h"
 

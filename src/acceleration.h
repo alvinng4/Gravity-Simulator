@@ -50,20 +50,4 @@ int acceleration(
     AccelerationParam *__restrict acceleration_param
 );
 
-/**
- * \brief Compute acceleration with Barnes-Hut algorithm
- * 
- * \param a Array of acceleration vectors to be modified
- * \param system Pointer to the gravitational system
- * \param acceleration_param Pointer to the acceleration parameters
- * 
- * \retval SUCCESS If the computation is successful
- * \retval error code if errors occurred
- */
-int acceleration_barnes_hut(
-    real *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
-);
-
 #endif
