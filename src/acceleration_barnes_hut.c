@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_OPENMP
+    #include <omp.h>
+#endif
+
 #include "error.h"
 #include "gravity_sim.h"
 #include "math_functions.h"
@@ -147,7 +151,7 @@ IN_FILE void _calculate_bounding_box(
  * 
  * \ref https://stackoverflow.com/a/18528775, Stack Overflow
  */
-IN_FILE void _compute_3d_morton_indices_level_21(
+ IN_FILE void _compute_3d_morton_indices_level_21(
     int64 *__restrict morton_indices,
     const int object_count,
     const real *__restrict x,
@@ -167,30 +171,63 @@ IN_FILE void _compute_3d_morton_indices_level_21(
         int64 n_y = y_i * (1 << 21);
         int64 n_z = z_i * (1 << 21);
 
-        n_x &= 0x1fffff;
-        n_x = (n_x | n_x << 32) & 0x1f00000000ffff;
-        n_x = (n_x | n_x << 16) & 0x1f0000ff0000ff;
-        n_x = (n_x | n_x << 8)  & 0x100f00f00f00f00f;
-        n_x = (n_x | n_x << 4)  & 0x10c30c30c30c30c3;
-        n_x = (n_x | n_x << 2)  & 0x1249249249249249;
-        
-        n_y &= 0x1fffff;
-        n_y = (n_y | n_y << 32) & 0x1f00000000ffff;
-        n_y = (n_y | n_y << 16) & 0x1f0000ff0000ff;
-        n_y = (n_y | n_y << 8)  & 0x100f00f00f00f00f;
-        n_y = (n_y | n_y << 4)  & 0x10c30c30c30c30c3;
-        n_y = (n_y | n_y << 2)  & 0x1249249249249249;
+        int64 morton_index = 0;
+        for (int i = 0; i < 21; ++i) {
+            morton_index |= (n_x & 1) << (3 * i);
+            morton_index |= (n_y & 1) << (3 * i + 1);
+            morton_index |= (n_z & 1) << (3 * i + 2);
+            n_x >>= 1;
+            n_y >>= 1;
+            n_z >>= 1;
+        }
 
-        n_z &= 0x1fffff;
-        n_z = (n_z | n_z << 32) & 0x1f00000000ffff;
-        n_z = (n_z | n_z << 16) & 0x1f0000ff0000ff;
-        n_z = (n_z | n_z << 8)  & 0x100f00f00f00f00f;
-        n_z = (n_z | n_z << 4)  & 0x10c30c30c30c30c3;
-        n_z = (n_z | n_z << 2)  & 0x1249249249249249;
-
-        morton_indices[i] = n_x | (n_y << 1) | (n_z << 2);
+        morton_indices[i] = morton_index;
     }
 }
+// IN_FILE void _compute_3d_morton_indices_level_21(
+//     int64 *__restrict morton_indices,
+//     const int object_count,
+//     const real *__restrict x,
+//     const real *__restrict center,
+//     const real width
+// )
+// {
+//     for (int i = 0; i < object_count; i++)
+//     {
+//         /* Normalize the position */
+//         const real x_i = (x[i * 3 + 0] - center[0]) / width + 0.5;
+//         const real y_i = (x[i * 3 + 1] - center[1]) / width + 0.5;
+//         const real z_i = (x[i * 3 + 2] - center[2]) / width + 0.5;
+
+//         /* Compute the morton indices */
+//         int64 n_x = x_i * (1 << 21);
+//         int64 n_y = y_i * (1 << 21);
+//         int64 n_z = z_i * (1 << 21);
+
+//         n_x &= 0x1fffff;
+//         n_x = (n_x | n_x << 32) & 0x1f00000000ffff;
+//         n_x = (n_x | n_x << 16) & 0x1f0000ff0000ff;
+//         n_x = (n_x | n_x << 8)  & 0x100f00f00f00f00f;
+//         n_x = (n_x | n_x << 4)  & 0x10c30c30c30c30c3;
+//         n_x = (n_x | n_x << 2)  & 0x1249249249249249;
+        
+//         n_y &= 0x1fffff;
+//         n_y = (n_y | n_y << 32) & 0x1f00000000ffff;
+//         n_y = (n_y | n_y << 16) & 0x1f0000ff0000ff;
+//         n_y = (n_y | n_y << 8)  & 0x100f00f00f00f00f;
+//         n_y = (n_y | n_y << 4)  & 0x10c30c30c30c30c3;
+//         n_y = (n_y | n_y << 2)  & 0x1249249249249249;
+
+//         n_z &= 0x1fffff;
+//         n_z = (n_z | n_z << 32) & 0x1f00000000ffff;
+//         n_z = (n_z | n_z << 16) & 0x1f0000ff0000ff;
+//         n_z = (n_z | n_z << 8)  & 0x100f00f00f00f00f;
+//         n_z = (n_z | n_z << 4)  & 0x10c30c30c30c30c3;
+//         n_z = (n_z | n_z << 2)  & 0x1249249249249249;
+
+//         morton_indices[i] = n_x | (n_y << 1) | (n_z << 2);
+//     }
+// }
 
 /**
  * \brief Perform radix sort on the particles based on their Morton indices
@@ -587,7 +624,7 @@ IN_FILE int _construct_octree(
     int return_code;
 
     /* Create a stack pool */
-    Stack stack_pool[MORTON_MAX_LEVEL];
+    Stack stack_pool[MORTON_MAX_LEVEL + 1];
     Stack *stack = &(stack_pool[0]);
 
     stack->node = 0;
@@ -795,13 +832,16 @@ IN_FILE int _compute_acceleration(
         struct Stack *last;
     } Stack;
 
+#ifdef USE_OPENMP
+    #pragma omp parallel for schedule(dynamic, 64)
+#endif
     for (int i = 0; i < objects_count; i++)
     {
         const int idx_i = sorted_indices[i];    // Actually not necessary, we can use i directly
         const int64 morton_index_i = leaf_morton_indices_deepest_level[idx_i];
         const real x_i[3] = {x[idx_i * 3 + 0], x[idx_i * 3 + 1], x[idx_i * 3 + 2]};
         
-        Stack stack_pool[MORTON_MAX_LEVEL];
+        Stack stack_pool[MORTON_MAX_LEVEL + 1];
         Stack *stack = &(stack_pool[0]);
         stack->processed_children = -1;
         stack->last = NULL;
