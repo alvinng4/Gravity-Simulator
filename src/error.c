@@ -78,7 +78,6 @@ IN_FILE int get_error_msg(const int error_code, char **error_msg)
             *error_msg = "C library error: Failed to reallocate memory for octree internal nodes in acceleration_barnes_hut() for _setup_node().\n";
             return SUCCESS;
 
-
         // CUDA pairwise acceleration error
         case ERROR_CUDA_PAIRWISE_MEMORY_ALLOC:
             *error_msg = "C library error: Failed to allocate GPU memory in acceleration_cuda_pairwise().\n";   
@@ -90,7 +89,16 @@ IN_FILE int get_error_msg(const int error_code, char **error_msg)
             *error_msg = "C library error: Failed to copy data from GPU to CPU in acceleration_cuda_pairwise().\n";
             return SUCCESS;
 
-    
+        // CUDA Barnes-Hut acceleration error
+        case ERROR_CUDA_BARNES_HUT_MEMORY_ALLOC:
+            *error_msg = "C library error: Failed to allocate GPU memory in _compute_acceleration() for acceleration_barnes_hut_cuda().\n";   
+            return SUCCESS;
+        case ERROR_CUDA_BARNES_HUT_MEMCPY_CPU_TO_GPU:
+            *error_msg = "C library error: Failed to copy data from CPU to GPU in _compute_acceleration() for acceleration_barnes_hut_cuda().\n";
+            return SUCCESS; 
+        case ERROR_CUDA_BARNES_HUT_MEMCPY_GPU_TO_CPU:
+            *error_msg = "C library error: Failed to copy data from GPU to CPU in _compute_acceleration() for acceleration_barnes_hut_cuda().\n";
+            return SUCCESS;
 
         /* Solution storing (general) */
         // Storing error (general)

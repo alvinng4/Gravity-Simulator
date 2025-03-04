@@ -6,7 +6,7 @@ OBJS = $(SRCS:.c=.o)
 
 CUDA_FLAGS = -Xcompiler
 CUDA_LIBS = -lcudart -lstdc++
-CUDA_SRCS = acceleration_cuda.cu
+CUDA_SRCS = acceleration_cuda.cu acceleration_barnes_hut_cuda.cu
 CUDA_OBJS = $(CUDA_SRCS:.cu=.o)
 
 ifeq ($(OS),Windows_NT)

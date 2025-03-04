@@ -21,7 +21,14 @@ from .gravitational_system import GravitationalSystem
 
 class Simulator:
     DAYS_PER_YEAR = 365.242189
-    AVAILABLE_ACCELERATION_METHODS = ["pairwise", "massless", "barnes_hut", "pairwise_cuda", "pairwise_cuda_float"]
+    AVAILABLE_ACCELERATION_METHODS = [
+        "pairwise",
+        "massless",
+        "barnes_hut",
+        "pairwise_cuda",
+        "pairwise_cuda_float",
+        "barnes_hut_cuda"
+    ]
     AVAILABLE_STORING_METHODS = ["default", "flush", "disabled"]
     AVAILABLE_INTEGRATORS = [
         "euler",
