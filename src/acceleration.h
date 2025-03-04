@@ -13,7 +13,6 @@
 #define ACCELERATION_METHOD_PAIRWISE 0
 #define ACCELERATION_METHOD_MASSLESS 1
 #define ACCELERATION_METHOD_BARNES_HUT 2
-#define ACCELERATION_METHOD_FAST_MULTIPOLE 3
 
 /**
  * \brief Return acceleration method flag based on the input string
@@ -52,7 +51,7 @@ int acceleration(
  * \param acceleration_param Pointer to the acceleration parameters
  * 
  * \retval SUCCESS If the computation is successful
- * \retval
+ * \retval error code if errors occurred
  */
 int acceleration_barnes_hut(
     real *restrict a,
