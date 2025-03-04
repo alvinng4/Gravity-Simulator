@@ -115,6 +115,12 @@ WIN32DLL_API int euler(
         }
     }
 
+    free(x_0);
+    free(v_0);
+    free(a);
+    free(x_err_comp_sum);
+    free(v_err_comp_sum);
+
     return SUCCESS;
 
 err_user_interrupt:
@@ -223,6 +229,12 @@ WIN32DLL_API int euler_cromer(
             goto err_user_interrupt;
         }
     }
+
+    free(x_0);
+    free(v_0);
+    free(a);
+    free(x_err_comp_sum);
+    free(v_err_comp_sum);
 
     return SUCCESS;
 
@@ -409,6 +421,19 @@ WIN32DLL_API int rk4(
         }
     }
 
+    free(x_0);
+    free(v_0);
+    free(vk1);
+    free(vk2);
+    free(vk3);
+    free(vk4);
+    free(xk1);
+    free(xk2);
+    free(xk3);
+    free(xk4);
+    free(x_err_comp_sum);
+    free(v_err_comp_sum);
+
     return SUCCESS;
 
 err_user_interrupt:
@@ -566,6 +591,12 @@ WIN32DLL_API int leapfrog(
             goto err_user_interrupt;
         }
     }
+
+    free(temp_x);
+    free(temp_v);
+    free(a);
+    free(x_err_comp_sum);
+    free(v_err_comp_sum);
 
     return SUCCESS;
 
