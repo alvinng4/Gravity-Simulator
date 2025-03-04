@@ -10,7 +10,7 @@
  * 
  * \return Norm of the vector
  */
-real vec_norm_3d(const real *restrict vec);
+real vec_norm_3d(const real *__restrict vec);
 
 /**
  * \brief Calculate the norm of a vector
@@ -20,7 +20,7 @@ real vec_norm_3d(const real *restrict vec);
  * 
  * \return Norm of the vector
  */
-real vec_norm(const real *restrict vec, int vec_length);
+real vec_norm(const real *__restrict vec, int vec_length);
 
 /**
  * \brief Calculate the absolute maximum value from a vector
@@ -30,7 +30,7 @@ real vec_norm(const real *restrict vec, int vec_length);
  * 
  * \return Absolute maximum value from the vector
  */
-real abs_max_vec(const real *restrict vec, int vec_length);
+real abs_max_vec(const real *__restrict vec, int vec_length);
 
 /**
  * \brief Calculate the dot product of two 3D vectors
@@ -41,8 +41,8 @@ real abs_max_vec(const real *restrict vec, int vec_length);
  * \return Dot product of the two vectors
  */
 real vec_dot_3d(
-    const real *restrict vec_1,
-    const real *restrict vec_2
+    const real *__restrict vec_1,
+    const real *__restrict vec_2
 );
 
 /**
@@ -55,8 +55,8 @@ real vec_dot_3d(
  * \return Dot product of the two vectors
  */
 real vec_dot(
-    const real *restrict vec_1,
-    const real *restrict vec_2,
+    const real *__restrict vec_1,
+    const real *__restrict vec_2,
     const int vec_length
 );
 

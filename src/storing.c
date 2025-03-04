@@ -8,8 +8,8 @@
 #include "utils.h"
 
 WIN32DLL_API int get_storing_method_flag(
-    const char *restrict storing_method,
-    uint *restrict storing_method_flag
+    const char *__restrict storing_method,
+    uint *__restrict storing_method_flag
 )
 {
     if (strcmp(storing_method, "default") == 0)
@@ -34,8 +34,8 @@ WIN32DLL_API int get_storing_method_flag(
 }
 
 WIN32DLL_API int allocate_solutions_memory(
-    Solutions *restrict solutions,
-    StoringParam *restrict storing_param,
+    Solutions *__restrict solutions,
+    StoringParam *__restrict storing_param,
     int objects_count
 )
 {
@@ -55,7 +55,7 @@ WIN32DLL_API int allocate_solutions_memory(
 }
 
 WIN32DLL_API int open_flush_file(
-    StoringParam *restrict storing_param
+    StoringParam *__restrict storing_param
 )
 {
     storing_param->flush_file_ = fopen(storing_param->flush_path, "a");
@@ -67,7 +67,7 @@ WIN32DLL_API int open_flush_file(
 }
 
 WIN32DLL_API int close_flush_file(
-    StoringParam *restrict storing_param
+    StoringParam *__restrict storing_param
 )
 {
     if (storing_param->storing_method_flag_ != STORING_METHOD_FLUSH)
@@ -88,17 +88,17 @@ WIN32DLL_API int close_flush_file(
 }
 
 WIN32DLL_API int flush_solution_step_to_csv_file(
-    FILE *restrict file,
-    const System *restrict system,
-    const SimulationStatus *restrict simulation_status,
-    Solutions *restrict solutions
+    FILE *__restrict file,
+    const System *__restrict system,
+    const SimulationStatus *__restrict simulation_status,
+    Solutions *__restrict solutions
 )
 {
     double energy;
     int return_code;
     int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
 
     return_code = compute_energy_step(system, &energy);
     if (return_code != SUCCESS)
@@ -134,14 +134,14 @@ error:
 }
 
 WIN32DLL_API int store_solution_step_to_memory(
-    const System *restrict system,
-    const SimulationStatus *restrict simulation_status,
-    Solutions *restrict solutions
+    const System *__restrict system,
+    const SimulationStatus *__restrict simulation_status,
+    Solutions *__restrict solutions
 )
 {
     const int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
     int64 sol_size = *(solutions->sol_size_);
 
     /* Store solution */
@@ -165,10 +165,10 @@ WIN32DLL_API int store_solution_step_to_memory(
 }
 
 WIN32DLL_API int store_solution_step(
-    StoringParam *restrict storing_param,
-    const System *restrict system,
-    const SimulationStatus *restrict simulation_status,
-    Solutions *restrict solutions
+    StoringParam *__restrict storing_param,
+    const System *__restrict system,
+    const SimulationStatus *__restrict simulation_status,
+    Solutions *__restrict solutions
 )
 {
     int return_code;
@@ -209,17 +209,17 @@ WIN32DLL_API int store_solution_step(
 }
 
 WIN32DLL_API int extend_sol_memory_buffer(
-    Solutions *restrict solutions,
-    StoringParam *restrict storing_param,
+    Solutions *__restrict solutions,
+    StoringParam *__restrict storing_param,
     const int objects_count
 )
 {
     int return_code;
 
     int64 buffer_size = storing_param->max_sol_size_ * 2;
-    double *restrict temp_sol_state = NULL;
-    double *restrict temp_sol_time = NULL;
-    double *restrict temp_sol_dt = NULL;
+    double *__restrict temp_sol_state = NULL;
+    double *__restrict temp_sol_time = NULL;
+    double *__restrict temp_sol_dt = NULL;
 
     temp_sol_state = realloc(
         solutions->sol_state,

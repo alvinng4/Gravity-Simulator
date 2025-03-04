@@ -5,8 +5,7 @@
 #include <string.h>
 
 #include "acceleration.h"
-// #include "acceleration_barnes_hut.h"
-// #include "acceleration_fast_multipole.h"
+#include "acceleration_cuda.cuh"
 #include "error.h"
 #include "gravity_sim.h"
 
@@ -20,9 +19,9 @@
  * \retval SUCCESS If the computation is successful
  */
 IN_FILE int acceleration_pairwise(
-    real *restrict a,
-    const System *restrict system,
-    const AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
 );
 
 /**
@@ -37,14 +36,14 @@ IN_FILE int acceleration_pairwise(
  * \retval ERROR_ACCELERATION_MASSLESS_MEMORY_ALLOC If failed to allocate memory
  */
 IN_FILE int acceleration_massless(
-    real *restrict a,
-    const System *restrict system,
-    const AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
 );
 
 WIN32DLL_API int get_acceleration_method_flag(
-    const char *restrict acceleration_method,
-    uint *restrict acceleration_method_flag
+    const char *__restrict acceleration_method,
+    uint *__restrict acceleration_method_flag
 )
 {
     if (strcmp(acceleration_method, "pairwise") == 0)
@@ -62,6 +61,18 @@ WIN32DLL_API int get_acceleration_method_flag(
         *acceleration_method_flag = ACCELERATION_METHOD_BARNES_HUT;
         return SUCCESS;
     }
+#ifdef USE_CUDA
+    else if (strcmp(acceleration_method, "pairwise_cuda") == 0)
+    {
+        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_PAIRWISE;
+        return SUCCESS;
+    }
+    else if (strcmp(acceleration_method, "pairwise_cuda_float") == 0)
+    {
+        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT;
+        return SUCCESS;
+    }
+#endif
     else
     {
         return ERROR_UNKNOWN_ACCELERATION_METHOD;
@@ -69,9 +80,9 @@ WIN32DLL_API int get_acceleration_method_flag(
 }
 
 WIN32DLL_API int acceleration(
-    real *restrict a,
-    const System *restrict system,
-    AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    AccelerationParam *__restrict acceleration_param
 )
 {
     switch (acceleration_param->acceleration_method_flag_)
@@ -82,15 +93,21 @@ WIN32DLL_API int acceleration(
             return acceleration_massless(a, system, acceleration_param);
         case ACCELERATION_METHOD_BARNES_HUT:
             return acceleration_barnes_hut(a, system, acceleration_param);
+#ifdef USE_CUDA
+        case ACCELERATION_METHOD_CUDA_PAIRWISE:
+            return acceleration_pairwise_cuda(a, system, acceleration_param);
+        case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
+            return acceleration_pairwise_cuda_float(a, system, acceleration_param);
+#endif
         default:
             return ERROR_UNKNOWN_ACCELERATION_CODE;
     }
 }
 
 IN_FILE int acceleration_pairwise(
-    real *restrict a,
-    const System *restrict system,
-    const AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
 )
 {
     const int objects_count = system->objects_count;
@@ -146,9 +163,9 @@ IN_FILE int acceleration_pairwise(
 }
 
 IN_FILE int acceleration_massless(
-    real *restrict a,
-    const System *restrict system,
-    const AccelerationParam *restrict acceleration_param
+    real *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
 )
 {
     const int objects_count = system->objects_count;
@@ -181,8 +198,8 @@ IN_FILE int acceleration_massless(
     }
 
     /* Find the indices of massive and massless objects */
-    int *restrict massive_indices = malloc(massive_objects_count * sizeof(int));
-    int *restrict massless_indices = malloc(massless_objects_count * sizeof(int));
+    int *__restrict massive_indices = malloc(massive_objects_count * sizeof(int));
+    int *__restrict massless_indices = malloc(massless_objects_count * sizeof(int));
     massive_objects_count = 0;
     massless_objects_count = 0;
 

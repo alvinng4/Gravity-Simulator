@@ -10,7 +10,7 @@
 #include "storing.h"
 
 // IN_FILE int initialize_system(
-//     System *restrict system
+//     System *__restrict system
 // );
 
 /**
@@ -25,8 +25,8 @@
  * \retval ERROR_UNKNOWN_INTEGRATOR_METHOD If the integrator is not recognized
  */
 IN_FILE int check_is_fixed_step_size_integrator(
-    const char *restrict integrator,
-    bool *restrict is_fixed_step_size_integrator
+    const char *__restrict integrator,
+    bool *__restrict is_fixed_step_size_integrator
 );
 
 /**
@@ -215,16 +215,13 @@ WIN32DLL_API int launch_simulation(
     return SUCCESS;
 
 error:
-    if (settings->verbose > 0)
-    {
-        print_error_msg(return_code);
-    }
+    print_error_msg(return_code);
     return ERROR_SIMULATION_FAILURE;
 }
 
 IN_FILE int check_is_fixed_step_size_integrator(
-    const char *restrict integrator,
-    bool *restrict is_fixed_step_size_integrator
+    const char *__restrict integrator,
+    bool *__restrict is_fixed_step_size_integrator
 )
 {
     if (
@@ -425,10 +422,10 @@ error:
 
 /* Commented as initialize_system() is not used */
 // IN_FILE int initialize_system(
-//     System *restrict system
+//     System *__restrict system
 // )
 // {
-//     const char *restrict system_name = system->system_name_to_be_initialized;
+//     const char *__restrict system_name = system->system_name_to_be_initialized;
 //     if (!system_name)
 //     {
 //         return ERROR_INITIALIZE_SYSTEM_NAME_NULL;

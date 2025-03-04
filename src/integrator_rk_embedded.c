@@ -32,7 +32,7 @@
  */
 IN_FILE int get_rk_embedded_order(
     const char *integrator,
-    int *restrict order
+    int *__restrict order
 )
 {
     if (strcmp(integrator, "rkf45") == 0)
@@ -80,10 +80,10 @@ IN_FILE int get_rk_embedded_order(
  */
 IN_FILE int rk_embedded_butcher_tableaus(
     const int order,
-    int *restrict power,
-    int *restrict power_test,
+    int *__restrict power,
+    int *__restrict power_test,
     real **coeff,
-    int *restrict len_weights,
+    int *__restrict len_weights,
     real **weights,
     real **weights_test
 )
@@ -339,7 +339,7 @@ error_code:
 IN_FILE int rk_embedded_initial_dt(
     real rel_tolerance,
     real abs_tolerance,
-    real *restrict initial_dt,
+    real *__restrict initial_dt,
     const int power,
     System *system,
     AccelerationParam *acceleration_param
@@ -348,16 +348,16 @@ IN_FILE int rk_embedded_initial_dt(
     int return_code;
 
     const int objects_count = system->objects_count;
-    real *restrict x = system->x;
-    real *restrict v = system->v;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
 
     /* Allocate memory and declare variables */
-    real *restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(real));
-    real *restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(real));
-    real *restrict x_1 = malloc(objects_count * 3 * sizeof(real));
-    real *restrict v_1 = malloc(objects_count * 3 * sizeof(real));
-    real *restrict a_1 = malloc(objects_count * 3 * sizeof(real));
-    real *restrict a = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict x_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict v_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict a_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict a = malloc(objects_count * 3 * sizeof(real));
     if (
         !tolerance_scale_x ||
         !tolerance_scale_v ||
@@ -559,7 +559,7 @@ WIN32DLL_API int rk_embedded(
     int stages = len_weights;
     int min_power = power < power_test ? power : power_test;
 
-    real *restrict error_estimation_delta_weights = malloc(len_weights * sizeof(real));
+    real *__restrict error_estimation_delta_weights = malloc(len_weights * sizeof(real));
     if (!error_estimation_delta_weights)
     {
         return_code = ERROR_RK_EMBEDDED_MEMORY_ALLOC;
@@ -581,9 +581,9 @@ WIN32DLL_API int rk_embedded(
     real safety_fac = pow(0.38, (1.0 / (1.0 + (real) min_power)));
 
     /* Allocate memory and declare variables */
-    real *restrict x = system->x;
-    real *restrict v = system->v;
-    real *restrict m = system->m;
+    real *__restrict x = system->x;
+    real *__restrict v = system->v;
+    real *__restrict m = system->m;
     const real G = system->G;
     const int objects_count = system->objects_count;
 
@@ -603,22 +603,22 @@ WIN32DLL_API int rk_embedded(
         .G = G,
     };
 
-    real *restrict v_1 = malloc(objects_count * 3 * sizeof(real));
-    real *restrict x_1 = malloc(objects_count * 3 * sizeof(real));
-    real *restrict vk = malloc(stages * objects_count * 3 * sizeof(real));
-    real *restrict xk = malloc(stages * objects_count * 3 * sizeof(real));    
-    real *restrict temp_v = malloc(objects_count * 3 * sizeof(real));
-    real *restrict temp_x = malloc(objects_count * 3 * sizeof(real));
-    real *restrict error_estimation_delta_v = malloc(objects_count * 3 * sizeof(real));
-    real *restrict error_estimation_delta_x = malloc(objects_count * 3 * sizeof(real));
-    real *restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(real));
-    real *restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict v_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict x_1 = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict vk = malloc(stages * objects_count * 3 * sizeof(real));
+    real *__restrict xk = malloc(stages * objects_count * 3 * sizeof(real));    
+    real *__restrict temp_v = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict temp_x = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict error_estimation_delta_v = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict error_estimation_delta_x = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(real));
+    real *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(real));
 
     // Compensated summation
-    real *restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    real *__restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
 
     if (
         !v_1 || 

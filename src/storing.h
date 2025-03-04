@@ -20,8 +20,8 @@
  * \retval ERROR_UNKNOWN_STORING_METHOD If the storing method is not recognized
  */
 int get_storing_method_flag(
-    const char *restrict storing_method,
-    uint *restrict storing_method_flag
+    const char *__restrict storing_method,
+    uint *__restrict storing_method_flag
 );
 
 /**
@@ -32,8 +32,8 @@ int get_storing_method_flag(
  * \param objects_count Number of objects in the system
  */
 int allocate_solutions_memory(
-    Solutions *restrict solutions,
-    StoringParam *restrict storing_param,
+    Solutions *__restrict solutions,
+    StoringParam *__restrict storing_param,
     int objects_count
 );
 
@@ -46,7 +46,7 @@ int allocate_solutions_memory(
  * \retval ERROR_FLUSH_FILE_OPEN If the file failed to open
  */
 int open_flush_file(
-    StoringParam *restrict storing_param
+    StoringParam *__restrict storing_param
 );
 
 /**
@@ -60,7 +60,7 @@ int open_flush_file(
  * \retval ERROR_FLUSH_FILE_CLOSE If the file failed to close
  */
 int close_flush_file(
-    StoringParam *restrict storing_param
+    StoringParam *__restrict storing_param
 );
 
 /**
@@ -75,10 +75,10 @@ int close_flush_file(
  * \retval error code If there is any error
  */
 int flush_solution_step_to_csv_file(
-    FILE *restrict file,
-    const System *restrict system,
-    const SimulationStatus *restrict simulation_status,
-    Solutions *restrict solutions
+    FILE *__restrict file,
+    const System *__restrict system,
+    const SimulationStatus *__restrict simulation_status,
+    Solutions *__restrict solutions
 );
 
 /**
@@ -91,9 +91,9 @@ int flush_solution_step_to_csv_file(
  * \retval SUCCESS If the solution is stored successfully
  */
 int store_solution_step_to_memory(
-    const System *restrict system,
-    const SimulationStatus *restrict simulation_status,
-    Solutions *restrict solutions
+    const System *__restrict system,
+    const SimulationStatus *__restrict simulation_status,
+    Solutions *__restrict solutions
 );
 
 /**
@@ -108,10 +108,10 @@ int store_solution_step_to_memory(
  * \retval error code If there is any error
  */
 int store_solution_step(
-    StoringParam *restrict storing_param,
-    const System *restrict system,
-    const SimulationStatus *restrict simulation_status,
-    Solutions *restrict solutions
+    StoringParam *__restrict storing_param,
+    const System *__restrict system,
+    const SimulationStatus *__restrict simulation_status,
+    Solutions *__restrict solutions
 );
 
 /**
@@ -125,8 +125,8 @@ int store_solution_step(
  * \retval ERROR_SOL_OUTPUT_EXTEND_MEMORY_REALLOC If the memory reallocation failed
  */
 int extend_sol_memory_buffer(
-    Solutions *restrict solutions,
-    StoringParam *restrict storing_param,
+    Solutions *__restrict solutions,
+    StoringParam *__restrict storing_param,
     const int objects_count
 );
 
