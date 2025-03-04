@@ -36,6 +36,12 @@ int acceleration_barnes_hut_cuda(
     const AccelerationParam *__restrict acceleration_param
 );
 
+int acceleration_barnes_hut_cuda_float(
+    double *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
+);
+
 
 
 
