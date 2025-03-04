@@ -832,7 +832,6 @@ IN_FILE int _compute_acceleration(
                             continue;
                         }
 
-                        const real m_j = m[idx_j];
                         real R[3];
 
                         // Calculate \vec{R} and its norm
@@ -847,10 +846,10 @@ IN_FILE int _compute_acceleration(
                         );
 
                         // Calculate the acceleration
-                        const real temp_value = G / (R_norm * R_norm * R_norm);
-                        acceleration[0] -= temp_value * R[0] * m_j;
-                        acceleration[1] -= temp_value * R[1] * m_j;
-                        acceleration[2] -= temp_value * R[2] * m_j;
+                        const real temp_value = G * m[idx_j] / (R_norm * R_norm * R_norm);
+                        acceleration[0] -= temp_value * R[0];
+                        acceleration[1] -= temp_value * R[1];
+                        acceleration[2] -= temp_value * R[2];
                     }
 
                     stack->processed_children = j;
@@ -871,14 +870,15 @@ IN_FILE int _compute_acceleration(
 
                     // Check Barnes-Hut criteria
                     real R[3];
+                    real norm_square;
                     if (!is_included)
                     {
                         R[0] = x_i[0] - tree_center_of_mass_x[child_j];
                         R[1] = x_i[1] - tree_center_of_mass_y[child_j];
                         R[2] = x_i[2] - tree_center_of_mass_z[child_j];
                         const real width_j = width / (2 << level);
-
-                        if (width_j / sqrt(R[0] * R[0] + R[1] * R[1] + R[2] * R[2]) < opening_angle)
+                        norm_square = R[0] * R[0] + R[1] * R[1] + R[2] * R[2];
+                        if (width_j / sqrt(norm_square) < opening_angle)
                         {
                             criteria_met = true;
                         }
@@ -900,10 +900,7 @@ IN_FILE int _compute_acceleration(
                     else
                     {
                         const real R_norm = sqrt(
-                            R[0] * R[0] + 
-                            R[1] * R[1] + 
-                            R[2] * R[2] +
-                            softening_length * softening_length
+                            norm_square + softening_length * softening_length
                         );
 
                         const real temp_value = G / (R_norm * R_norm * R_norm);

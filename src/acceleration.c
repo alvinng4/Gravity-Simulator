@@ -5,9 +5,12 @@
 #include <string.h>
 
 #include "acceleration.h"
-#include "acceleration_cuda.cuh"
 #include "error.h"
 #include "gravity_sim.h"
+
+#ifdef USE_CUDA
+    #include "acceleration_cuda.cuh"
+#endif
 
 /**
  * \brief Pairwise acceleration computation based on Newton's law of gravitational
@@ -72,6 +75,11 @@ WIN32DLL_API int get_acceleration_method_flag(
         *acceleration_method_flag = ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT;
         return SUCCESS;
     }
+    else if (strcmp(acceleration_method, "barnes_hut_cuda") == 0)
+    {
+        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_BARNES_HUT;
+        return SUCCESS;
+    }
 #endif
     else
     {
@@ -98,6 +106,8 @@ WIN32DLL_API int acceleration(
             return acceleration_pairwise_cuda(a, system, acceleration_param);
         case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
             return acceleration_pairwise_cuda_float(a, system, acceleration_param);
+        case ACCELERATION_METHOD_CUDA_BARNES_HUT:
+            return acceleration_barnes_hut_cuda(a, system, acceleration_param);
 #endif
         default:
             return ERROR_UNKNOWN_ACCELERATION_CODE;

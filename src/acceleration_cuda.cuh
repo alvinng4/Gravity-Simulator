@@ -26,8 +26,16 @@
         const AccelerationParam *__restrict acceleration_param
     );
 #ifdef __cplusplus
-    }
+}
 #endif
+
+
+int acceleration_barnes_hut_cuda(
+    double *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
+);
+
 
 
 
