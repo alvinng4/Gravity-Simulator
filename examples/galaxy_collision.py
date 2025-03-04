@@ -149,14 +149,14 @@ def main():
             if i == 1:  # Skip i = 0 to draw the first frame
                 grav_sim.launch_simulation(
                     gravitational_system=system,
-                    integrator="rk4",
-                    tf=2.5e5,
-                    dt=2.5e5,
+                    integrator="rkf45",
+                    tf=0.0,
+                    tolerance=1e-8,
                     acceleration_method="barnes_hut",
                     storing_method="disabled",
                     verbose=1,
                     disable_progress_bar=True,
-                    softening_length=0.01,
+                    softening_length=1.0,
                     opening_angle=1.0,
                     make_copy_system=False,
                     make_copy_params=False,
