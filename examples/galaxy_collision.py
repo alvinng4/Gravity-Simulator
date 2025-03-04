@@ -273,12 +273,12 @@ def load_init_conditions(system: GravitationalSystem, file_path: Path) -> None:
     # Galaxy 1
     x_1 = x.copy()[: (N // 2)]
     x_1[:, 0] -= 60.0
-    system.add(x=x, v=v, m=m)
+    system.add(x=x_1, v=v[: (N // 2)], m=m[: (N // 2)])
 
     # Galaxy 2
     x_2 = x.copy()[: (N // 2)]
     x_2[:, 0] += 60.0
-    system.add(x=x_2, v=v, m=m)
+    system.add(x=x_2, v=v[: (N // 2)], m=m[: (N // 2)])
 
     del x, v, m, init_conditions, x_1, x_2
 
