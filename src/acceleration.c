@@ -62,11 +62,6 @@ WIN32DLL_API int get_acceleration_method_flag(
         *acceleration_method_flag = ACCELERATION_METHOD_BARNES_HUT;
         return SUCCESS;
     }
-    else if (strcmp(acceleration_method, "fast_multipole") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_FAST_MULTIPOLE;
-        return SUCCESS;
-    }
     else
     {
         return ERROR_UNKNOWN_ACCELERATION_METHOD;
