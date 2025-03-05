@@ -34,7 +34,7 @@ int acceleration_barnes_hut(
         const int objects_count,
         const real *__restrict x,
         const real *__restrict m,
-        int64 **leaf_morton_indices_deepest_level,
+        uint64 **leaf_morton_indices_deepest_level,
         int **sorted_indices,
         int **tree_start_particle_sorted_idx,
         int **tree_num_particles,

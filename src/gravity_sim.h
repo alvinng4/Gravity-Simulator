@@ -24,6 +24,7 @@
 
 typedef unsigned int uint;
 typedef int64_t int64;
+typedef uint64_t uint64;
 typedef double real;
 
 typedef struct System
