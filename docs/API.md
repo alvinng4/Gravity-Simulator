@@ -18,7 +18,7 @@
 ### Prerequisite
 
 1. Python version 3.10 or higher. 
-2. Any C compiler that supports C99 (May not be needed if the program runs successfully)
+2. Any C compiler that supports C99
 
 ### Installation
 1. Download the source files, or clone this repository by
@@ -43,8 +43,15 @@
 
     To compile the C library, simply go to the src folder and run
     ```
-    make [CC=gcc]
+    make [CC=gcc] [USE_OPENMP=1] [USE_CUDA=1]
     ```
+    `CC`: To indicate which C compiler to use.
+    `USE_OPENMP=1`: To enable OpenMP acceleration.
+    `USE_CUDA=1`: To enable CUDA acceleration.
+
+    Note:
+    - If the program is compiled with openmp, the program will run with openmp by default, which could be slow if
+    $N$ is small. Use `export OMP_NUM_THREADS=1` to disable openmp.
 
 ### Some notes
 * The default unit for this project is solar masses, AU and days, with $G = 0.00029591220828411956 \text{ M}_\odot^{-1} \text{ AU}^3 \text{ day}^{-2}$.

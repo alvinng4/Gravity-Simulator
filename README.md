@@ -7,7 +7,8 @@ It aims to provide a toolbox for Newtonian gravity simulations and visualization
 Features:
 * Ten integrators including WHFast and IAS15
 * Barnes-Hut algorithm
-* CLI and API Interfaces
+* CLI (for simple usage) and API Interfaces
+* (Optional) OpenMP and CUDA acceleration
 * Multiple sample projects
 
 <img src="./examples/media/solar_plus_3d.gif" alt="Image" width="300">
