@@ -547,8 +547,8 @@ class GravitySimulatorAPI:
         if not isinstance(tf, (int, float)):
             raise TypeError(f"Expected int or float, but got {type(tf)}")
 
-        if tf <= 0.0:
-            raise ValueError("tf must be positive")
+        if tf < 0.0:
+            raise ValueError("tf must be non negative")
 
     @staticmethod
     def _print_simulation_input(
