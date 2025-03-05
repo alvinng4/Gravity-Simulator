@@ -149,41 +149,8 @@ IN_FILE void _calculate_bounding_box(
  * 
  * \ref https://stackoverflow.com/a/18528775, Stack Overflow
  */
- IN_FILE void _compute_3d_morton_indices_level_21(
-    int64 *__restrict morton_indices,
-    const int object_count,
-    const real *__restrict x,
-    const real *__restrict center,
-    const real width
-)
-{
-    for (int i = 0; i < object_count; i++)
-    {
-        /* Normalize the position */
-        const real x_i = (x[i * 3 + 0] - center[0]) / width + 0.5;
-        const real y_i = (x[i * 3 + 1] - center[1]) / width + 0.5;
-        const real z_i = (x[i * 3 + 2] - center[2]) / width + 0.5;
-
-        /* Compute the morton indices */
-        int64 n_x = x_i * (1 << 21);
-        int64 n_y = y_i * (1 << 21);
-        int64 n_z = z_i * (1 << 21);
-
-        int64 morton_index = 0;
-        for (int i = 0; i < 21; ++i) {
-            morton_index |= (n_x & 1) << (3 * i);
-            morton_index |= (n_y & 1) << (3 * i + 1);
-            morton_index |= (n_z & 1) << (3 * i + 2);
-            n_x >>= 1;
-            n_y >>= 1;
-            n_z >>= 1;
-        }
-
-        morton_indices[i] = morton_index;
-    }
-}
-// IN_FILE void _compute_3d_morton_indices_level_21(
-//     int64 *__restrict morton_indices,
+//  IN_FILE void _compute_3d_morton_indices_level_21(
+//     uint64 *__restrict morton_indices,
 //     const int object_count,
 //     const real *__restrict x,
 //     const real *__restrict center,
@@ -198,34 +165,67 @@ IN_FILE void _calculate_bounding_box(
 //         const real z_i = (x[i * 3 + 2] - center[2]) / width + 0.5;
 
 //         /* Compute the morton indices */
-//         int64 n_x = x_i * (1 << 21);
-//         int64 n_y = y_i * (1 << 21);
-//         int64 n_z = z_i * (1 << 21);
+//         uint64 n_x = x_i * (1 << 21);
+//         uint64 n_y = y_i * (1 << 21);
+//         uint64 n_z = z_i * (1 << 21);
 
-//         n_x &= 0x1fffff;
-//         n_x = (n_x | n_x << 32) & 0x1f00000000ffff;
-//         n_x = (n_x | n_x << 16) & 0x1f0000ff0000ff;
-//         n_x = (n_x | n_x << 8)  & 0x100f00f00f00f00f;
-//         n_x = (n_x | n_x << 4)  & 0x10c30c30c30c30c3;
-//         n_x = (n_x | n_x << 2)  & 0x1249249249249249;
-        
-//         n_y &= 0x1fffff;
-//         n_y = (n_y | n_y << 32) & 0x1f00000000ffff;
-//         n_y = (n_y | n_y << 16) & 0x1f0000ff0000ff;
-//         n_y = (n_y | n_y << 8)  & 0x100f00f00f00f00f;
-//         n_y = (n_y | n_y << 4)  & 0x10c30c30c30c30c3;
-//         n_y = (n_y | n_y << 2)  & 0x1249249249249249;
+//         uint64 morton_index = 0;
+//         for (int i = 0; i < 21; ++i) {
+//             morton_index |= (n_x & 1) << (3 * i);
+//             morton_index |= (n_y & 1) << (3 * i + 1);
+//             morton_index |= (n_z & 1) << (3 * i + 2);
+//             n_x >>= 1;
+//             n_y >>= 1;
+//             n_z >>= 1;
+//         }
 
-//         n_z &= 0x1fffff;
-//         n_z = (n_z | n_z << 32) & 0x1f00000000ffff;
-//         n_z = (n_z | n_z << 16) & 0x1f0000ff0000ff;
-//         n_z = (n_z | n_z << 8)  & 0x100f00f00f00f00f;
-//         n_z = (n_z | n_z << 4)  & 0x10c30c30c30c30c3;
-//         n_z = (n_z | n_z << 2)  & 0x1249249249249249;
-
-//         morton_indices[i] = n_x | (n_y << 1) | (n_z << 2);
+//         morton_indices[i] = morton_index;
 //     }
 // }
+IN_FILE void _compute_3d_morton_indices_level_21(
+    uint64 *__restrict morton_indices,
+    const int object_count,
+    const real *__restrict x,
+    const real *__restrict center,
+    const real width
+)
+{
+    for (int i = 0; i < object_count; i++)
+    {
+        /* Normalize the position */
+        const real x_i = (x[i * 3 + 0] - center[0]) / width + 0.5;
+        const real y_i = (x[i * 3 + 1] - center[1]) / width + 0.5;
+        const real z_i = (x[i * 3 + 2] - center[2]) / width + 0.5;
+
+        /* Compute the morton indices */
+        uint64 n_x = x_i * (1 << 21);
+        uint64 n_y = y_i * (1 << 21);
+        uint64 n_z = z_i * (1 << 21);
+
+        n_x &= 0x1fffff;
+        n_x = (n_x | n_x << 32) & 0x1f00000000ffff;
+        n_x = (n_x | n_x << 16) & 0x1f0000ff0000ff;
+        n_x = (n_x | n_x << 8)  & 0x100f00f00f00f00f;
+        n_x = (n_x | n_x << 4)  & 0x10c30c30c30c30c3;
+        n_x = (n_x | n_x << 2)  & 0x1249249249249249;
+        
+        n_y &= 0x1fffff;
+        n_y = (n_y | n_y << 32) & 0x1f00000000ffff;
+        n_y = (n_y | n_y << 16) & 0x1f0000ff0000ff;
+        n_y = (n_y | n_y << 8)  & 0x100f00f00f00f00f;
+        n_y = (n_y | n_y << 4)  & 0x10c30c30c30c30c3;
+        n_y = (n_y | n_y << 2)  & 0x1249249249249249;
+
+        n_z &= 0x1fffff;
+        n_z = (n_z | n_z << 32) & 0x1f00000000ffff;
+        n_z = (n_z | n_z << 16) & 0x1f0000ff0000ff;
+        n_z = (n_z | n_z << 8)  & 0x100f00f00f00f00f;
+        n_z = (n_z | n_z << 4)  & 0x10c30c30c30c30c3;
+        n_z = (n_z | n_z << 2)  & 0x1249249249249249;
+
+        morton_indices[i] = n_x | (n_y << 1) | (n_z << 2);
+    }
+}
 
 /**
  * \brief Perform radix sort on the particles based on their Morton indices
@@ -240,7 +240,7 @@ IN_FILE void _calculate_bounding_box(
  */
 IN_FILE int _radix_sort_particles_morton_index(
     const int object_count,
-    int64 *__restrict morton_indices,
+    uint64 *__restrict morton_indices,
     int *__restrict indices,
     const int level
 )
@@ -256,7 +256,7 @@ IN_FILE int _radix_sort_particles_morton_index(
     const int num_passes = (num_significant_bits + RADIX_BITS - 1) / RADIX_BITS;
 
     /* Allocate memory */
-    int64 *__restrict temp_morton_indices = malloc(object_count * sizeof(int64));
+    uint64 *__restrict temp_morton_indices = malloc(object_count * sizeof(uint64));
     int *__restrict temp_indices = malloc(object_count * sizeof(int));
     int *__restrict count = malloc(RADIX_SIZE * sizeof(int));
     if (!temp_morton_indices || !temp_indices || !count)
@@ -335,7 +335,7 @@ IN_FILE int _radix_sort_particles_morton_index(
     // Copy the sorted array to the original array
     if (is_temp)
     {
-        memcpy(morton_indices, temp_morton_indices, object_count * sizeof(int64));
+        memcpy(morton_indices, temp_morton_indices, object_count * sizeof(uint64));
         memcpy(indices, temp_indices, object_count * sizeof(int));
     }
     
@@ -364,30 +364,30 @@ err_memory:
  * \param num_particles_per_octant Array to store the number of particles in each octant
  */
 IN_FILE void _binary_search_num_particles_per_octant(
-    const int64 *__restrict leaf_morton_indices_deepest_level,
-    const int64 node_morton_index_level,
-    const int start_idx,
-    const int end_idx,
+    const uint64 *__restrict leaf_morton_indices_deepest_level,
+    const uint64 node_morton_index_level,
+    const uint start_idx,
+    const uint end_idx,
     const int leaf_level,
     int *__restrict num_particles_per_octant
 )
 {
-    const int64 prefix = node_morton_index_level * 8;
+    const uint64 prefix = node_morton_index_level * 8;
     const int level_shift = 3 * (MORTON_MAX_LEVEL - leaf_level);
 
     int cumulative_count = 0;
 
-    for (int i = 0; i < 8; i++)
+    for (uint i = 0; i < 8; i++)
     {
         // Binary search for the index of last i
         int left = start_idx + cumulative_count;
         int right = end_idx;
         while (left <= right)
         {
-            const int mid = left + (right - left) / 2;
-            const int mid_octant = ((leaf_morton_indices_deepest_level[mid] >> level_shift) - prefix);
+            const uint mid = left + (right - left) / 2;
+            const uint mid_octant = ((leaf_morton_indices_deepest_level[mid] >> level_shift) - prefix);
 
-            if (mid_octant < 0 || mid_octant > 7)
+            if (mid_octant > 7)
             {
                 printf("Warning: mid_octant out of range: %d\n", mid_octant);
             }
@@ -438,8 +438,8 @@ IN_FILE int _setup_node(
     const int level,
     const real width,
     const int node,
-    const int64 node_morton_index_level,
-    const int64 *__restrict leaf_morton_indices_deepest_level,
+    const uint64 node_morton_index_level,
+    const uint64 *__restrict leaf_morton_indices_deepest_level,
     int **tree_num_internal_children,
     int **tree_idx_first_internal_child,
     int **tree_start_particle_sorted_idx,
@@ -600,7 +600,7 @@ IN_FILE int _construct_octree(
     const real *__restrict m,
     const real width,
     const int *__restrict sorted_indices,
-    const int64 *__restrict leaf_morton_indices_deepest_level,
+    const uint64 *__restrict leaf_morton_indices_deepest_level,
     const int morton_max_level,
     int **tree_start_particle_sorted_idx,
     int **tree_num_particles,
@@ -672,7 +672,7 @@ IN_FILE int _construct_octree(
             const int start_idx = (*tree_start_particle_sorted_idx)[child];
             const int num_particles = (*tree_num_particles)[child];
 
-            const int64 child_morton_index_level = (leaf_morton_indices_deepest_level[start_idx] >> (3 * (MORTON_MAX_LEVEL - level)));
+            const uint64 child_morton_index_level = (leaf_morton_indices_deepest_level[start_idx] >> (3 * (MORTON_MAX_LEVEL - level)));
 
             if (num_particles <= MAX_NUM_PARTICLES_PER_LEAF || level >= morton_max_level)
             {
@@ -774,8 +774,8 @@ err_setup_node:
  * \param level Level of the Morton indices
  */
 IN_FILE bool _check_if_included(
-    const int64 morton_index_i,
-    const int64 morton_index_j,
+    const uint64 morton_index_i,
+    const uint64 morton_index_j,
     const int level
 )
 {
@@ -789,7 +789,7 @@ WIN32DLL_API int barnes_hut_setup_octree(
     const int objects_count,
     const real *__restrict x,
     const real *__restrict m,
-    int64 **leaf_morton_indices_deepest_level,
+    uint64 **leaf_morton_indices_deepest_level,
     int **sorted_indices,
     int **tree_start_particle_sorted_idx,
     int **tree_num_particles,
@@ -809,7 +809,7 @@ WIN32DLL_API int barnes_hut_setup_octree(
 
     /* Construct the octree */
     // Allocate memory
-    *leaf_morton_indices_deepest_level = malloc(objects_count * sizeof(int64));
+    *leaf_morton_indices_deepest_level = malloc(objects_count * sizeof(uint64));
     *sorted_indices = malloc(objects_count * sizeof(int));
     if (!leaf_morton_indices_deepest_level || !sorted_indices)
     {
@@ -965,7 +965,7 @@ IN_FILE int _compute_acceleration(
     const real softening_length,
     const real opening_angle,
     const real width,
-    const int64 *__restrict leaf_morton_indices_deepest_level,
+    const uint64 *__restrict leaf_morton_indices_deepest_level,
     const int *__restrict sorted_indices,
     const int *__restrict tree_start_particle_sorted_idx,
     const int *__restrict tree_num_particles,
@@ -990,7 +990,7 @@ IN_FILE int _compute_acceleration(
     for (int i = 0; i < objects_count; i++)
     {
         const int idx_i = sorted_indices[i];    // Actually not necessary, we can use i directly
-        const int64 morton_index_i = leaf_morton_indices_deepest_level[idx_i];
+        const uint64 morton_index_i = leaf_morton_indices_deepest_level[idx_i];
         const real x_i[3] = {x[idx_i * 3 + 0], x[idx_i * 3 + 1], x[idx_i * 3 + 2]};
         
         Stack stack_pool[MORTON_MAX_LEVEL + 1];
@@ -1154,7 +1154,7 @@ WIN32DLL_API int acceleration_barnes_hut(
     /* Construct the octree */
     // Allocate memory
     real width;
-    int64 *leaf_morton_indices_deepest_level;
+    uint64 *leaf_morton_indices_deepest_level;
     int *sorted_indices;
     int allocated_internal_nodes;
     int actual_num_internal_nodes;
