@@ -10,6 +10,7 @@
 #define UTILS_H
 
 #include "common.h"
+#include "pcg_basic.h"
 #include "system.h"
 
 
@@ -35,6 +36,26 @@ void free_memory_double(double *__restrict ptr);
  * \return Energy of the system
  */
 double compute_energy(const System *__restrict system);
+
+/**
+ * \brief Initialize the PCG random number generator
+ * 
+ * \return Initialized PCG random number generator
+ */
+pcg32_random_t init_pcg_rng(void);
+
+/**
+ * \brief Generate a random number in the range [min, max)
+ * 
+ * \param min Minimum value of the range
+ * \param max Maximum value of the range
+ * \param rng Pointer to the PCG random number generator
+ */
+double randrange(
+    const double min,
+    const double max,
+    pcg32_random_t *rng
+);
 
 // /**
 //  * \brief Compute the energy from solution state

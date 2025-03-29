@@ -6,12 +6,15 @@
  * \date March 2025
  */
 
+#include <math.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <sys/time.h>
 
 #include "common.h"
 #include "error.h"
 #include "math_functions.h"
+#include "pcg_basic.h"
 #include "system.h"
 #include "utils.h"
 
@@ -60,6 +63,27 @@ WIN32DLL_API double compute_energy(const System *__restrict system)
     }
 
     return energy;
+}
+
+WIN32DLL_API pcg32_random_t init_pcg_rng(void)
+{
+    pcg32_random_t rng;
+    pcg32_srandom_r(&rng, time(NULL), (intptr_t)&rng);
+
+    return rng;
+}
+
+WIN32DLL_API double randrange(
+    const double min,
+    const double max,
+    pcg32_random_t *rng
+)
+{
+    // Generate a random number in the range [0, 1)
+    const double random_number = ldexp(pcg32_random_r(rng), -32);
+
+    // Scale and shift to the desired range
+    return min + (max - min) * random_number;
 }
 
 // WIN32DLL_API void compute_energy_python(
