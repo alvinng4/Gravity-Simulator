@@ -587,7 +587,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
         const int num_times = num_times_acceleration_param[i];
 
         double *__restrict run_time = calloc(num_times, sizeof(double));
-        double l2_error = 0.0;
+        double mse = 0.0;
 
         if (!run_time)
         {
@@ -640,8 +640,9 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
                         reference_a[k * 3 + 1] - a[k * 3 + 1],
                         reference_a[k * 3 + 2] - a[k * 3 + 2]
                     };
-                    l2_error += vec_norm_3d(diff);
+                    mse += vec_norm_3d(diff);
                 }
+                mse = sqrt(mse / system->objects_count);
             }
         }
 
@@ -675,7 +676,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
         
         printf("    Number of times: %d\n", num_times);
         printf("    Avg time: %.3g (+- %.3g) s\n", compute_mean(run_time, num_times), compute_std(run_time, num_times, 1));
-        printf("    L2 error: %.3g\n", l2_error);
+        printf("    MSE: %.3g\n", mse);
         printf("\n");
 
         free(run_time);
