@@ -1,131 +1,141 @@
 /**
  * \file error.h
- * \author Ching Yin Ng
- * \brief Error codes and prototypes of error-related functions
+ * \brief Exception handling library
  * 
- * This file contains error codes and prototypes of error-related functions for the C library. 
- * \note Not all defined error codes are used. Some are reserved for future use.
+ * \details This header file contains error codes and prototypes of error-related functions. 
+ * 
+ * \author Ching-Yin Ng
+ * \date March 2025
  */
 
 #ifndef ERROR_H
 #define ERROR_H
 
-/* Negative one for unrecognized error code */
-#define ERROR_UNKNOWN_ERROR_CODE -1
-
-/* Zero is used to denote success */
-#define SUCCESS 0
-
-// 1 - 99: Reserved for error codes returning to python
-#define ERROR_SIMULATION_FAILURE 1
-#define ERROR_USER_INTERRUPT 2
-
-// 100 - 499: Error codes reserved for gravity_sim
-
-// Initialize system
-#define ERROR_INITIALIZE_SYSTEM_NAME_NULL 100
-#define ERROR_UNKNOWN_INITIALIZE_SYSTEM_NAME 101
-#define ERROR_INITIALIZE_SYSTEM_MEMORY_NOT_NULL 102
-#define ERROR_INITIALIZE_SYSTEM_MEMORY_ALLOC 103
-
-// Check if the system has NULL array
-#define ERROR_NULL_SYSTEM_POINTER 104
-
-// 300 - 399: Adaptive step size integrator error (general)
-#define ERROR_INITIAL_DT_NEGATIVE 300
+/* Error codes */
+#define GRAV_UNKNOWN_ERROR -1
+#define GRAV_SUCCESS 0
+#define GRAV_FAILURE 1
+#define GRAV_VALUE_ERROR 2
+#define GRAV_POINTER_ERROR 3
+#define GRAV_MEMORY_ERROR 4
+#define GRAV_OS_ERROR 5
+#define GRAV_NOT_IMPLEMENTED_ERROR 6
 
 
-/* Acceleration */
-// 500 - 1999: Reserved for acceleration error
+/* Traceback code */
+#define GRAV_TRACEBACK_NOT_INITIALIZED -1
+#define GRAV_TRACEBACK_SUCCESS 0
+#define GRAV_TRACEBACK_MALLOC_FAILED 1
+#define GRAV_TRACEBACK_TRUNCATED 2
+#define GRAV_TRACEBACK_SNPRINTF_FAILED 3
 
-// 500 - 599: Acceleration error (general)
-#define ERROR_UNKNOWN_ACCELERATION_METHOD 500
-#define ERROR_UNKNOWN_ACCELERATION_CODE 501
+typedef struct ErrorStatus
+{
+    int return_code;
+    char *traceback;
+    int traceback_code_;
+} ErrorStatus;
 
-// 600 - 609: Pairwise acceleration error
-// 610 - 619: Massless acceleration error
-#define ERROR_ACCELERATION_MASSLESS_MEMORY_ALLOC 610
-
-// 620 - 699: Barnes-Hut acceleration error
-#define ERROR_BARNES_HUT_MORTON_INDICES_MEMORY_ALLOC 620
-#define ERROR_BARNES_HUT_RADIX_SORT_MEMORY_ALLOC 621
-#define ERROR_BARNES_HUT_OCTREE_MEMORY_ALLOC 622
-#define ERROR_BARNES_HUT_SETUP_NODE_MEMORY_REALLOC 623
-
-// 1000 - 1099: CUDA pairwise acceleration error
-#define ERROR_CUDA_PAIRWISE_MEMORY_ALLOC 1000
-#define ERROR_CUDA_PAIRWISE_MEMCPY_CPU_TO_GPU 1001
-#define ERROR_CUDA_PAIRWISE_MEMCPY_GPU_TO_CPU 1002
-
-// 1100 - 1199: CUDA barnes-hut acceleration error
-#define ERROR_CUDA_BARNES_HUT_MEMORY_ALLOC 1100
-#define ERROR_CUDA_BARNES_HUT_MEMCPY_CPU_TO_GPU 1101
-#define ERROR_CUDA_BARNES_HUT_MEMCPY_GPU_TO_CPU 1102
-
-/* Output storage */
-// 2000 - 2099: Storing error (general)
-#define ERROR_UNKNOWN_STORING_METHOD 2000
-#define ERROR_SOL_OUTPUT_MEMORY_ALLOC 2001
-#define ERROR_SOL_SIZE_EXCEED_MEMORY_ALLOC 2002
-// #define ERROR_STORE_SOLUTION_STEP_METHOD_DISABLED 2003
-#define ERROR_STORE_SOLUTION_STEP_UNKNOWN_METHOD 2004
-#define ERROR_SOL_OUTPUT_EXTEND_MEMORY_REALLOC 2005
-
-
-// 2100 - 2199: Flush error
-#define ERROR_FLUSH_FILE_OPEN 2100
-#define ERROR_FLUSH_FILE_CLOSE 2101
-#define ERROR_FLUSH_FILE_CLOSE_IS_NULL 2102
-#define ERROR_FLUSH_FILE_CLOSE_NOT_FLUSH_METHOD 2103
-
-// 2500 - 2999: Settings error
-
-/* Integrator */
-// 3000 - 3099: Integrator error (general)
-#define ERROR_UNKNOWN_INTEGRATOR_METHOD 3000
-
-// 3100 - 3124: Euler integrator error
-#define ERROR_EULER_MEMORY_ALLOC 3100
-
-// 3125 - 3149: Euler-Cromer integrator error
-#define ERROR_EULER_CROMER_MEMORY_ALLOC 3125
-
-// 3150 - 3174: RK4 integrator error
-#define ERROR_RK4_MEMORY_ALLOC 3150
-
-// 3175 - 3199: LeapFrog integrator error
-#define ERROR_LEAPFROG_MEMORY_ALLOC 3175
-
-// 3200 - 3299: Embedded RK integrator error
-#define ERROR_UNKNOWN_RK_EMBEDDED_METHOD 3200
-#define ERROR_RK_EMBEDDED_BUTCHER_TABLEAUS_UNKNOWN_ORDER 3201
-#define ERROR_RK_EMBEDDED_BUTCHER_TABLEAUS_MEMORY_ALLOC 3202
-#define ERROR_RK_EMBEDDED_INITIAL_DT_MEMORY_ALLOC 3203
-#define ERROR_RK_EMBEDDED_INITIAL_DT_NON_POSITIVE 3204
-#define ERROR_RK_EMBEDDED_MEMORY_ALLOC 3205
-
-// 3300 - 3399: IAS15 integrator error
-#define ERROR_IAS15_INITIAL_DT_MEMORY_ALLOC 3300
-#define ERROR_IAS15_INITIAL_DT_NON_POSITIVE 3301
-#define ERROR_IAS15_AUX_MEMORY_ALLOC 3302
-#define ERROR_IAS15_MEMORY_ALLOC 3303
-
-// 3400 - 3499: WHFast integrator error
-#define ERROR_WHFAST_UNKNOWN_ACCELERATION_METHOD 3400
-#define ERROR_WHFAST_MEMORY_ALLOC 3401
-#define ERROR_WHFAST_KEPLER_AUTO_REMOVE_MEMORY_ALLOC 3402
-#define ERROR_WHFAST_ACC_MASSLESS_MEMORY_ALLOC 3403
-#define ERROR_WHFAST_STUMPFF_Z_INFINITE 3404
-#define ERROR_WHFAST_STUMPFF_Z_NAN 3405
-
-/* Functions prototypes */
 /**
- * \brief Print error message to stderr based on the error code
+ * \brief Wrapper for raise_warning function.
  * 
- * \param error_code Error code
- * 
- * \return None
+ * \param error_msg Error message.
  */
-void print_error_msg(const int error_code);
+#define WRAP_RAISE_WARNING(error_msg) \
+    raise_warning(error_msg, __FILE__, __LINE__, __func__)
 
+/**
+ * \brief Wrapper for raise_error function.
+ * 
+ * \param error_status ErrorStatus struct.
+ * \param error_code Error code.
+ * \param error_msg Error message.
+ * 
+ * \return ErrorStatus struct.
+ */
+#define WRAP_RAISE_ERROR(error_code, error_msg) \
+    raise_error(error_code, error_msg, __FILE__, __LINE__, __func__)
+
+/**
+ * \brief Wrapper for traceback function.
+ * 
+ * \param function_call Function call to be traced.
+ * 
+ * \return ErrorStatus struct.
+ */
+#define WRAP_TRACEBACK(function_call) \
+    traceback(function_call, #function_call, __FILE__, __LINE__, __func__)
+
+/**
+ * \brief Make a error status struct with return code set to SUCCESS.
+ * 
+ * \return ErrorStatus struct with return code set to SUCCESS.
+ */
+ErrorStatus make_success_error_status(void);
+
+/**
+ * \brief Raise a warning and print to stderr.
+ * 
+ * \param warning_msg Warning message.
+ * \param warning_file File where the warning occurs.
+ * \param warning_line Line number where the warning occurs.
+ * \param warning_func Function where the warning occurs.
+ */
+void raise_warning(
+    const char *__restrict warning_msg,
+    const char *__restrict warning_file,
+    const int warning_line,
+    const char *__restrict warning_func
+);
+
+/**
+ * \brief Raise an error.
+ * 
+ * \param error_code Error code.
+ * \param error_msg Error message.
+ * \param error_file File where the error occurs.
+ * \param error_line Line number where the error occurs.
+ * \param error_func Function where the error occurs.
+ * 
+ * \return ErrorStatus struct.
+ */
+ErrorStatus raise_error(
+    const int error_code,
+    const char *__restrict error_msg,
+    const char *__restrict error_file,
+    const int error_line,
+    const char *__restrict error_func
+);
+
+/**
+ * \brief Stack traceback if error occurs.
+ * 
+ * \param error_status Pointer to the error status struct.
+ * \param function_call_source_code Source code of the function call.
+ * \param error_file File where the error occurs.
+ * \param error_line Line number where the error occurs.
+ * \param error_func Function where the error occurs.
+ * 
+ * \return ErrorStatus struct.
+ */
+ErrorStatus traceback(
+    ErrorStatus error_status,
+    const char *__restrict function_call_source_code,
+    const char *__restrict error_file,
+    const int error_line,
+    const char *__restrict error_func
+);
+
+/**
+ * \brief Free the memory allocated for the traceback string.
+ */
+void free_traceback(ErrorStatus *__restrict error_status);
+
+/**
+ * \brief Print the traceback string to stderr and free the memory.
+ * 
+ * \param error_status Pointer to the error status struct.
+ */
+void print_and_free_traceback(ErrorStatus *__restrict error_status);
+ 
 #endif

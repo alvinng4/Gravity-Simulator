@@ -1,11 +1,11 @@
 /**
  * \file integrator_rk_embedded.c
- * \author Ching Yin Ng
  * \brief Function definitions for Embedded Runge-Kutta integrators
  * 
- * Function definitions for Embedded Runge-Kutta integrators. This is
- * a C implementation based on the reference:
- *   J. Roa, et al. Moving Planets Around: An Introduction to
+ * \author Ching-Yin Ng
+ * \date March 2025
+ * 
+ * \ref J. Roa, et al. Moving Planets Around: An Introduction to
  *   N-Body Simulations Applied to Exoplanetary Systems*, MIT
  *   Press, 2020
  */
@@ -17,75 +17,73 @@
 #include <string.h>
 
 #include "acceleration.h"
+#include "common.h"
 #include "error.h"
-#include "gravity_sim.h"
-#include "storing.h"
+#include "integrator.h"
+#include "output.h"
+#include "progress_bar.h"
+#include "settings.h"
 
 /**
  * \brief Get the order of the Embedded RK integrator
  * 
- * \param integrator Name of the integrator
- * \param order Pointer to the order of the integrator
+ * \param[out] order Pointer to the order of the integrator
+ * \param[in] method Integrator method
  * 
- * \retval SUCCESS If successful
- * \retval ERROR_UNKNOWN_RK_EMBEDDED_METHOD If integrator is not recognized
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_VALUE_ERROR if the given method is invalid
  */
-IN_FILE int get_rk_embedded_order(
-    const char *integrator,
-    int *__restrict order
+IN_FILE ErrorStatus get_rk_embedded_order(
+    int *__restrict order,
+    const int method
 )
 {
-    if (strcmp(integrator, "rkf45") == 0)
+    switch (method)
     {
-        *order = 45;
-        return SUCCESS;
+        case INTEGRATOR_RKF45:
+            *order = 45;
+            break;
+        case INTEGRATOR_DOPRI:
+            *order = 54;
+            break;
+        case INTEGRATOR_DVERK:
+            *order = 65;
+            break;
+        case INTEGRATOR_RKF78:
+            *order = 78;
+            break;
+        default:
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Invalid integrator method");
     }
-    else if (strcmp(integrator, "dopri") == 0)
-    {
-        *order = 54;
-        return SUCCESS;
-    }
-    else if (strcmp(integrator, "dverk") == 0)
-    {
-        *order = 65;
-        return SUCCESS;
-    }
-    else if (strcmp(integrator, "rkf78") == 0)
-    {
-        *order = 78;
-        return SUCCESS;
-    }
-    else
-    {
-        return ERROR_UNKNOWN_RK_EMBEDDED_METHOD;
-    }
+
+    return make_success_error_status();
 }
 
 /**
  * \brief Butcher tableaus for Embedded RK integrator
  * 
- * \param order Order of the integrator, must be one of 45 / 54 / 78 / 65
- * \param power Power of the integrator
- * \param power_test Power for error calculation
- * \param coeff Pointer to array of coefficients for the integrator
- * \param len_weights Length of the weights array
- * \param weights Pointer to the array of weights for RK integrator
- * \param weights_test Pointer to the array of weights for error calculation
+ * \param[in] order Order of the integrator, must be one of 45 / 54 / 78 / 65
+ * \param[out] power Power of the integrator
+ * \param[out] power_test Power for error calculation
+ * \param[out] coeff Pointer to array of coefficients for the integrator
+ * \param[out] len_weights Length of the weights array
+ * \param[out] weights Pointer to the array of weights for RK integrator
+ * \param[out] weights_test Pointer to the array of weights for error calculation
  * 
- * \retval SUCCESS If successful
- * \retval ERROR_RK_EMBEDDED_BUTCHER_TABLEAUS_UNKNOWN_ORDER
- *         If order is not one of 45 / 54 / 78 / 65
- * \retval ERROR_RK_EMBEDDED_BUTCHER_TABLEAUS_MEMORY_ALLOC 
- *         If failed to allocate memory for coeff, weights and weights_test
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_VALUE_ERROR if the given order is invalid
+ * \exception GRAV_MEMORY_ERROR if failed to allocate memory for coeff, weights and weights_test
  */
-IN_FILE int rk_embedded_butcher_tableaus(
+IN_FILE ErrorStatus rk_embedded_butcher_tableaus(
     const int order,
     int *__restrict power,
     int *__restrict power_test,
-    real **coeff,
+    double **coeff,
     int *__restrict len_weights,
-    real **weights,
-    real **weights_test
+    double **weights,
+    double **weights_test
 )
 {
     /*  
@@ -96,7 +94,6 @@ IN_FILE int rk_embedded_butcher_tableaus(
     *   65) Verner's method 6(5), DVERK
     */
 
-    int return_code;
     *coeff = NULL;
     *weights = NULL;
     *weights_test = NULL;
@@ -109,38 +106,42 @@ IN_FILE int rk_embedded_butcher_tableaus(
             *power = 4;
             *power_test = 5;
             // nodes = np.array([1.0 / 4.0, 3.0 / 8.0, 12.0 / 13.0, 1.0, 0.5])
-            *coeff = malloc(25 * sizeof(real));
+            *coeff = malloc(25 * sizeof(double));
             *len_weights = 6;
-            *weights = malloc(*len_weights * sizeof(real));
-            *weights_test = malloc(6 * sizeof(real));
+            *weights = malloc(*len_weights * sizeof(double));
+            *weights_test = malloc(6 * sizeof(double));
             if (!*coeff || !*weights || !*weights_test)
             {
-                goto error_memory;
+                free(*coeff);
+                free(*weights);
+                free(*weights_test);
+
+                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for Butcher tableau");
             }
             memcpy(
                 *coeff,
-                (real [25]) {
+                (double [25]) {
                     1.0L / 4.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     3.0L / 32.0L, 9.0L / 32.0L, 0.0L, 0.0L, 0.0L,
                     1932.0L / 2197.0L, -7200.0L / 2197.0L, 7296.0L / 2197.0L, 0.0L, 0.0L,
                     439.0L / 216.0L, -8.0L, 3680.0L / 513.0L, -845.0L / 4104.0L, 0.0L,
                     -8.0L / 27.0L, 2.0L, -3544.0L / 2565.0L, 1859.0L / 4104.0L, -11.0L / 40.0L
                 },
-                25 * sizeof(real)
+                25 * sizeof(double)
             );
             memcpy(
                 *weights,
-                (real [6]) {
+                (double [6]) {
                     25.0L / 216.0L, 0.0L, 1408.0L / 2565.0L, 2197.0L / 4104.0L, -0.2L, 0.0L
                 },
-                6 * sizeof(real)
+                6 * sizeof(double)
             );
             memcpy(
                 *weights_test,
-                (real [6]) {
+                (double [6]) {
                     16.0L / 135.0L, 0.0L, 6656.0L / 12825.0L, 28561.0L / 56430.0L, -9.0L / 50.0L, 2.0L / 55.0L
                 },
-                6 * sizeof(real)
+                6 * sizeof(double)
             );
 
             break;
@@ -151,19 +152,23 @@ IN_FILE int rk_embedded_butcher_tableaus(
             *power = 5;
             *power_test = 4;
             // nodes = np.array([1.0 / 5.0, 3.0 / 10.0, 4.0 / 5.0, 8.0 / 9.0, 1.0, 1.0])
-            *coeff = malloc(36 * sizeof(real));
+            *coeff = malloc(36 * sizeof(double));
             *len_weights = 7;
-            *weights = malloc(*len_weights * sizeof(real));
-            *weights_test = malloc(7 * sizeof(real));
+            *weights = malloc(*len_weights * sizeof(double));
+            *weights_test = malloc(7 * sizeof(double));
 
             if (!*coeff || !*weights || !*weights_test)
             {
-                goto error_memory;
+                free(*coeff);
+                free(*weights);
+                free(*weights_test);
+
+                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for Butcher tableau");
             }
 
             memcpy(
                 *coeff,
-                (real [36]) {
+                (double [36]) {
                     1.0L / 5.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     3.0L / 40.0L, 9.0L / 40.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     44.0L / 45.0L, -56.0L / 15.0L, 32.0L / 9.0L, 0.0L, 0.0L, 0.0L,
@@ -171,21 +176,21 @@ IN_FILE int rk_embedded_butcher_tableaus(
                     9017.0L / 3168.0L, -355.0L / 33.0L, 46732.0L / 5247.0L, 49.0L / 176.0L, -5103.0L / 18656.0L, 0.0L,
                     35.0L / 384.0L, 0.0L, 500.0L / 1113.0L, 125.0L / 192.0L, -2187.0L / 6784.0L, 11.0L / 84.0L
                 },
-                36 * sizeof(real)
+                36 * sizeof(double)
             );
             memcpy(
                 *weights,
-                (real [7]) {
+                (double [7]) {
                     35.0L / 384.0L, 0.0L, 500.0L / 1113.0L, 125.0L / 192.0L, -2187.0L / 6784.0L, 11.0L / 84.0L, 0.0L
                 },
-                7 * sizeof(real)
+                7 * sizeof(double)
             );
             memcpy(
                 *weights_test,
-                (real [7]) {
+                (double [7]) {
                     5179.0L / 57600.0L, 0.0L, 7571.0L / 16695.0L, 393.0L / 640.0L, -92097.0L / 339200.0L, 187.0L / 2100.0L, 1.0L / 40.0L
                 },
-                7 * sizeof(real)
+                7 * sizeof(double)
             );
 
             break;
@@ -212,18 +217,22 @@ IN_FILE int rk_embedded_butcher_tableaus(
             //     ]
             // )
             
-            *coeff = malloc(144 * sizeof(real));
+            *coeff = malloc(144 * sizeof(double));
             *len_weights = 13;
-            *weights = malloc(*len_weights * sizeof(real));
-            *weights_test = malloc(13 * sizeof(real));
+            *weights = malloc(*len_weights * sizeof(double));
+            *weights_test = malloc(13 * sizeof(double));
             if (!*coeff || !*weights || !*weights_test)
             {
-                goto error_memory;
+                free(*coeff);
+                free(*weights);
+                free(*weights_test);
+
+                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for Butcher tableau");
             }
 
             memcpy(
                 *coeff,
-                (real [144]) {
+                (double [144]) {
                     2.0L / 27.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     1.0L / 36.0L, 1.0L / 12.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     1.0L / 24.0L, 0.0L, 1.0L / 8.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
@@ -237,21 +246,21 @@ IN_FILE int rk_embedded_butcher_tableaus(
                     3.0L / 205.0L, 0.0L, 0.0L, 0.0L, 0.0L, -6.0L / 41.0L, -3.0L / 205.0L, -3.0L / 41.0L, 3.0L / 41.0L, 6.0L / 41.0L, 0.0L, 0.0L,
                     -1777.0L / 4100.0L, 0.0L, 0.0L, -341.0L / 164.0L, 4496.0L / 1025.0L, -289.0L / 82.0L, 2193.0L / 4100.0L, 51.0L / 82.0L, 33.0L / 164.0L, 19.0L / 41.0L, 0.0L, 1.0L
                 },
-                144 * sizeof(real)
+                144 * sizeof(double)
             );
             memcpy(
                 *weights,
-                (real [13]) {
+                (double [13]) {
                     41.0L / 840.0L, 0.0L, 0.0L, 0.0L, 0.0L, 34.0L / 105.0L, 9.0L / 35.0L, 9.0L / 35.0L, 9.0L / 280.0L, 9.0L / 280.0L, 41.0L / 840.0L, 0.0L, 0.0L
                 },
-                13 * sizeof(real)
+                13 * sizeof(double)
             );
             memcpy(
                 *weights_test,
-                (real [13]) {
+                (double [13]) {
                     0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 34.0L / 105.0L, 9.0L / 35.0L, 9.0L / 35.0L, 9.0L / 280.0L, 9.0L / 280.0L, 0.0L, 41.0L / 840.0L, 41.0L / 840.0L
                 },
-                13 * sizeof(real)
+                13 * sizeof(double)
             );
 
             break;
@@ -265,17 +274,21 @@ IN_FILE int rk_embedded_butcher_tableaus(
             *     [1.0 / 6.0, 4.0 / 15.0, 2.0 / 3.0, 5.0 / 6.0, 1.0, 1.0 / 15.0, 1.0]
             * )
             */
-            *coeff = malloc(49 * sizeof(real));
+            *coeff = malloc(49 * sizeof(double));
             *len_weights = 8;
-            *weights = malloc(*len_weights * sizeof(real));
-            *weights_test = malloc(8 * sizeof(real));
+            *weights = malloc(*len_weights * sizeof(double));
+            *weights_test = malloc(8 * sizeof(double));
             if (!*coeff || !*weights || !*weights_test)
             {
-                goto error_memory;
+                free(*coeff);
+                free(*weights);
+                free(*weights_test);
+
+                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for Butcher tableau");
             }
             memcpy(
                 *coeff,
-                (real [49]) {
+                (double [49]) {
                     1.0L / 6.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     4.0L / 75.0L, 16.0L / 75.0L, 0.0L, 0.0L, 0.0L, 0.0L, 0.0L,
                     5.0L / 6.0L, -8.0L / 3.0L, 5.0L / 2.0L, 0.0L, 0.0L, 0.0L, 0.0L,
@@ -284,80 +297,71 @@ IN_FILE int rk_embedded_butcher_tableaus(
                     -8263.0L / 15000.0L, 124.0L / 75.0L, -643.0L / 680.0L, -81.0L / 250.0L, 2484.0L / 10625.0L, 0.0L, 0.0L,
                     3501.0L / 1720.0L, -300.0L / 43.0L, 297275.0L / 52632.0L, -319.0L / 2322.0L, 24068.0L / 84065.0L, 0.0L, 3850.0L / 26703.0L
                 },
-                49 * sizeof(real)
+                49 * sizeof(double)
             );
             memcpy(
                 *weights,
-                (real [8]) {
+                (double [8]) {
                     3.0L / 40.0L, 0.0L, 875.0L / 2244.0L, 23.0L / 72.0L, 264.0L / 1955.0L, 0.0L, 125.0L / 11592.0L, 43.0L / 616.0L
                 },
-                8 * sizeof(real)
+                8 * sizeof(double)
             );
             memcpy(
                 *weights_test,
-                (real [8]) {
+                (double [8]) {
                     13.0L / 160.0L, 0.0L, 2375.0L / 5984.0L, 5.0L / 16.0L, 12.0L / 85.0L, 3.0L / 44.0L, 0.0L, 0.0L
                 },
-                8 * sizeof(real)
+                8 * sizeof(double)
             );
 
             break;
 
         default:
-            return_code = ERROR_RK_EMBEDDED_BUTCHER_TABLEAUS_UNKNOWN_ORDER;
-            goto error_code;
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Invalid order for Embedded RK integrator");
     }
 
-    return SUCCESS;
-
-error_memory:
-    free(*coeff);
-    free(*weights);
-    free(*weights_test);
-error_code:
-    return return_code;
+    return make_success_error_status();
 }
 
 /**
  * \brief Calculate initial time step for Embedded Runge-Kutta integrator
  * 
- * \param rel_tolerance Relative tolerance
- * \param abs_tolerance Absolute tolerance
- * \param initial_dt Pointer to the initial time step
- * \param power Power of the integrator
- * \param system Pointer to the system
- * \param acceleration_param Pointer to the acceleration parameters
+ * \param[out] initial_dt Pointer to the initial time step
+ * \param[in] rel_tolerance Relative tolerance
+ * \param[in] abs_tolerance Absolute tolerance
+ * \param[in] power Power of the integrator
+ * \param[in] system Pointer to the system
+ * \param[in] acceleration_param Pointer to the acceleration parameters
  * 
  * \note Modified to return dt * 1e-2 since this function gives initial dt thats too large
  * 
- * \retval SUCCESS If successful
- * \retval ERROR_RK_EMBEDDED_INITIAL_DT_MEMORY_ALLOC
- *         If failed to allocate memory for calculation
- * \retval ERROR_RK_EMBEDDED_INITIAL_DT_NEGATIVE
- *        If initial_dt is negative
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_MEMORY_ERROR if failed to allocate memory for arrays
+ * \exception GRAV_VALUE_ERROR if initial_dt is negative
  */
-IN_FILE int rk_embedded_initial_dt(
-    real rel_tolerance,
-    real abs_tolerance,
-    real *__restrict initial_dt,
+IN_FILE ErrorStatus rk_embedded_initial_dt(
+    double *__restrict initial_dt,
+    const double rel_tolerance,
+    const double abs_tolerance,
     const int power,
-    System *system,
-    AccelerationParam *acceleration_param
+    const System *system,
+    const AccelerationParam *acceleration_param
 )
 {
-    int return_code;
+    ErrorStatus error_status;
 
     const int objects_count = system->objects_count;
-    real *__restrict x = system->x;
-    real *__restrict v = system->v;
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
 
     /* Allocate memory and declare variables */
-    real *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict x_1 = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict v_1 = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict a_1 = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict a = malloc(objects_count * 3 * sizeof(real));
+    double *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict x_1 = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict v_1 = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict a_1 = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
     if (
         !tolerance_scale_x ||
         !tolerance_scale_v ||
@@ -367,19 +371,19 @@ IN_FILE int rk_embedded_initial_dt(
         !a
     )
     {
-        return_code = ERROR_RK_EMBEDDED_INITIAL_DT_MEMORY_ALLOC;
+        error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for arrays");
         goto error_memory;
     }
 
-    real sum_0 = 0.0;
-    real sum_1 = 0.0;
-    real sum_2 = 0.0;
-    real d_0;
-    real d_1;
-    real d_2;
-    real dt_0;
-    real dt_1;
-    real dt;
+    double sum_0 = 0.0;
+    double sum_1 = 0.0;
+    double sum_2 = 0.0;
+    double d_0;
+    double d_1;
+    double d_2;
+    double dt_0;
+    double dt_1;
+    double dt;
     System system_1 = {
         .objects_count = objects_count,
         .x = x_1,
@@ -389,12 +393,12 @@ IN_FILE int rk_embedded_initial_dt(
     };
 
     /* Compute acceleration */
-    return_code = acceleration(
+    error_status = WRAP_TRACEBACK(acceleration(
         a,
         system,
         acceleration_param
-    );
-    if (return_code != SUCCESS)
+    ));
+    if (error_status.return_code != GRAV_SUCCESS)
     {
         goto error_acc;
     }
@@ -448,12 +452,12 @@ IN_FILE int rk_embedded_initial_dt(
         }
     }
 
-    return_code = acceleration(
+    error_status = WRAP_TRACEBACK(acceleration(
         a_1,
         &system_1,
         acceleration_param
-    );
-    if (return_code != SUCCESS)
+    ));
+    if (error_status.return_code != GRAV_SUCCESS)
     {
         goto error_acc;
     }
@@ -482,11 +486,11 @@ IN_FILE int rk_embedded_initial_dt(
     }
     dt = fmin(100.0L * dt_0, dt_1);
 
-    /* the factor 1e-2 is a modification made by me */
+    /* Modified to multiply by 1e-2 */
     *initial_dt = dt * 1e-2;
     if (*initial_dt <= 0.0)
     {
-        return_code = ERROR_RK_EMBEDDED_INITIAL_DT_NON_POSITIVE;
+        error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initial dt is negative");
         goto error_dt;
     }
 
@@ -497,7 +501,7 @@ IN_FILE int rk_embedded_initial_dt(
     free(a_1);
     free(a);
 
-    return SUCCESS;
+    return make_success_error_status();
 
 error_dt:
 error_acc:
@@ -508,41 +512,40 @@ error_memory:
     free(v_1);
     free(a_1);
     free(a);
-    return return_code;
+    return error_status;
 }
 
-WIN32DLL_API int rk_embedded(
+WIN32DLL_API ErrorStatus rk_embedded(
     System *system,
     IntegratorParam *integrator_param,
     AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
+    OutputParam *output_param,
     SimulationStatus *simulation_status,
     Settings *settings,
-    SimulationParam *simulation_param
+    const double tf
 )
 {
-    int return_code;
+    ErrorStatus error_status;
 
     /* Initialization */
     int order;
-    int power;
-    int power_test;
-    real *coeff = NULL;
-    int len_weights;
-    real *weights = NULL;
-    real *weights_test = NULL;
-
-    return_code = get_rk_embedded_order(
-        integrator_param->integrator,
-        &order
-    );
-    if (return_code != SUCCESS)
+    error_status = WRAP_TRACEBACK(get_rk_embedded_order(
+        &order,
+        integrator_param->integrator
+    ));
+    if (error_status.return_code != GRAV_SUCCESS)
     {
-        goto error_order;
+        return error_status;
     }
 
-    return_code = rk_embedded_butcher_tableaus(
+    int power;
+    int power_test;
+    double *coeff = NULL;
+    int len_weights;
+    double *weights = NULL;
+    double *weights_test = NULL;
+
+    error_status = WRAP_TRACEBACK(rk_embedded_butcher_tableaus(
         order,
         &power,
         &power_test,
@@ -550,19 +553,22 @@ WIN32DLL_API int rk_embedded(
         &len_weights,
         &weights,
         &weights_test
-    );
-    if (return_code != SUCCESS)
+    ));
+    if (error_status.return_code != GRAV_SUCCESS)
     {
-        goto error_butcher_tableaus;
+        return error_status;
     }
 
-    int stages = len_weights;
-    int min_power = power < power_test ? power : power_test;
+    const int stages = len_weights;
+    const int min_power = power < power_test ? power : power_test;
 
-    real *__restrict error_estimation_delta_weights = malloc(len_weights * sizeof(real));
+    double *__restrict error_estimation_delta_weights = malloc(len_weights * sizeof(double));
     if (!error_estimation_delta_weights)
     {
-        return_code = ERROR_RK_EMBEDDED_MEMORY_ALLOC;
+        error_status = WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for error estimation delta weights"
+        );
         goto error_error_estimation_delta_weights_memory_alloc;
     }
 
@@ -572,113 +578,152 @@ WIN32DLL_API int rk_embedded(
     }
 
     /* tolerance */
-    real abs_tolerance = integrator_param->tolerance;
-    real rel_tolerance = integrator_param->tolerance;
+    const double abs_tolerance = integrator_param->tolerance;
+    const double rel_tolerance = integrator_param->tolerance;
 
     /* Safety factors for step-size control */
-    real safety_fac_max = 6.0;
-    real safety_fac_min = 0.33;
-    real safety_fac = pow(0.38, (1.0 / (1.0 + (real) min_power)));
+    const double safety_fac_max = 6.0;
+    const double safety_fac_min = 0.33;
+    const double safety_fac = pow(0.38, (1.0 / (1.0 + (double) min_power)));
 
-    /* Allocate memory and declare variables */
-    real *__restrict x = system->x;
-    real *__restrict v = system->v;
-    real *__restrict m = system->m;
-    const real G = system->G;
+    /* Declare variables */
     const int objects_count = system->objects_count;
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
 
-    real dt;
-    real *t = simulation_status->t;
-    real tf = simulation_param->tf;
+    bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
+    int *__restrict output_count_ptr = &(output_param->output_count_);
+    const int output_interval = output_param->output_interval;
+    double next_output_time = output_interval;
 
-    real sum;
-    real error;
-    real dt_new;
+    double *__restrict t_ptr = &(simulation_status->t);
+    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+
+    const bool enable_progress_bar = settings->enable_progress_bar;
+
+    double sum;
+    double error;
+    double dt_new;
 
     System temp_system = {
         .objects_count = objects_count,
         .x = NULL,
         .v = NULL,
-        .m = m,
-        .G = G,
+        .m = system->m,
+        .G = system->G,
     };
 
-    real *__restrict v_1 = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict x_1 = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict vk = malloc(stages * objects_count * 3 * sizeof(real));
-    real *__restrict xk = malloc(stages * objects_count * 3 * sizeof(real));    
-    real *__restrict temp_v = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict temp_x = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict error_estimation_delta_v = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict error_estimation_delta_x = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(real));
+    /* Allocate memory */
+    double *__restrict v_1 = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict x_1 = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict vk = malloc(stages * objects_count * 3 * sizeof(double));
+    double *__restrict xk = malloc(stages * objects_count * 3 * sizeof(double));    
+    double *__restrict temp_v = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict temp_x = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict error_estimation_delta_v = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict error_estimation_delta_x = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(double));
 
     // Compensated summation
-    real *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *__restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(real));
-    real *__restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(real));
+    double *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
 
     if (
-        !v_1 || 
-        !x_1 || 
-        !vk || 
-        !xk ||  
-        !temp_v || 
-        !temp_x || 
-        !error_estimation_delta_v || 
-        !error_estimation_delta_x || 
-        !tolerance_scale_v || 
-        !tolerance_scale_x || 
-        !x_err_comp_sum || 
-        !v_err_comp_sum || 
-        !temp_x_err_comp_sum || 
+        !v_1 ||
+        !x_1 ||
+        !vk ||
+        !xk ||
+        !temp_v ||
+        !temp_x ||
+        !error_estimation_delta_v ||
+        !error_estimation_delta_x ||
+        !tolerance_scale_v ||
+        !tolerance_scale_x ||
+        !x_err_comp_sum ||
+        !v_err_comp_sum ||
+        !temp_x_err_comp_sum ||
         !temp_v_err_comp_sum
     ) 
     {
-        return_code = ERROR_RK_EMBEDDED_MEMORY_ALLOC;
+        error_status = WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for arrays"
+        );
         goto error_memory;
     }
 
     /* Get initial dt */
+    double dt;
     if (integrator_param->initial_dt > 0.0)
     {
         dt = integrator_param->initial_dt;
     }
     else
     {
-        return_code = rk_embedded_initial_dt(
+        error_status = WRAP_TRACEBACK(rk_embedded_initial_dt(
+            &dt,
             rel_tolerance,
             abs_tolerance,
-            &dt,
             power,
             system,
             acceleration_param
-        );
-        if (return_code != SUCCESS)
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
         {
             goto error_initial_dt;
         }
+
+        if (dt > tf)
+        {
+            dt = tf;
+        }
     }
+
+    /* Initial output */
+    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
+    if (is_output && output_param->output_initial)
+    {
+        error_status = WRAP_TRACEBACK(output_snapshot(
+            output_param,
+            system,
+            integrator_param,
+            acceleration_param,
+            simulation_status,
+            settings
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_initial_output;
+        }
+    }
+
+    /* Main Loop */
+    ProgressBarParam progress_bar_param;
+    if (enable_progress_bar)
+    {
+        start_progress_bar(&progress_bar_param, tf);
+    }
+    
+    *t_ptr = 0.0;
     simulation_status->dt = dt;
-
-    int64 count = 1; // Count for storing solutions, 1 for t_0
-    int storing_freq = storing_param->storing_freq;
-
-    while (*t < tf)
+    *num_steps_ptr = 0;
+    while (*t_ptr < tf)
     {
         /* Compute xk and vk */
-        return_code = acceleration(
+        error_status = WRAP_TRACEBACK(acceleration(
             vk,
             system,
             acceleration_param
-        );
-        if (return_code != SUCCESS)
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
         {
             goto acc_error;
         }
-        memcpy(xk, v, objects_count * 3 * sizeof(real));
+
+        memcpy(xk, v, objects_count * 3 * sizeof(double));
         for (int stage = 1; stage < stages; stage++)
         {
             // Empty temp_v and temp_x
@@ -715,16 +760,16 @@ WIN32DLL_API int rk_embedded(
 
             temp_system.x = temp_x;
             temp_system.v = temp_v;
-            return_code = acceleration(
+            error_status = WRAP_TRACEBACK(acceleration(
                 &vk[stage * objects_count * 3],
                 &temp_system,
                 acceleration_param
-            );
-            if (return_code != SUCCESS)
+            ));
+            if (error_status.return_code != GRAV_SUCCESS)
             {
                 goto acc_error;
             }
-            memcpy(&xk[stage * objects_count * 3], temp_v, objects_count * 3 * sizeof(real));
+            memcpy(&xk[stage * objects_count * 3], temp_v, objects_count * 3 * sizeof(double));
         }
 
         // Empty temp_v, temp_x, error_estimation_delta_v, error_estimation_delta_x
@@ -760,8 +805,8 @@ WIN32DLL_API int rk_embedded(
             }
         }
 
-        memcpy(temp_x_err_comp_sum, x_err_comp_sum, objects_count * 3 * sizeof(real));
-        memcpy(temp_v_err_comp_sum, v_err_comp_sum, objects_count * 3 * sizeof(real));
+        memcpy(temp_x_err_comp_sum, x_err_comp_sum, objects_count * 3 * sizeof(double));
+        memcpy(temp_v_err_comp_sum, v_err_comp_sum, objects_count * 3 * sizeof(double));
         for (int i = 0; i < objects_count; i++)
         {
             for (int j = 0; j < 3; j++)
@@ -792,7 +837,7 @@ WIN32DLL_API int rk_embedded(
         sum = 0.0;
         for (int i = 0; i < objects_count; i++)
         {
-            real temp;
+            double temp;
             for (int j = 0; j < 3; j++)
             {
                 temp = error_estimation_delta_v[i * 3 + j] / tolerance_scale_v[i * 3 + j];
@@ -806,40 +851,38 @@ WIN32DLL_API int rk_embedded(
         /* Advance step */
         if (error <= 1 || dt <= tf * 1e-12)
         {
-            *t += dt; 
-            memcpy(x, x_1, objects_count * 3 * sizeof(real));
-            memcpy(v, v_1, objects_count * 3 * sizeof(real));
+            (*num_steps_ptr)++;
+            *t_ptr += dt;
 
-            memcpy(x_err_comp_sum, temp_x_err_comp_sum, objects_count * 3 * sizeof(real));
-            memcpy(v_err_comp_sum, temp_v_err_comp_sum, objects_count * 3 * sizeof(real));
+            memcpy(x, x_1, objects_count * 3 * sizeof(double));
+            memcpy(v, v_1, objects_count * 3 * sizeof(double));
 
-            /* Store solution */
-            if (count % storing_freq == 0)
+            memcpy(x_err_comp_sum, temp_x_err_comp_sum, objects_count * 3 * sizeof(double));
+            memcpy(v_err_comp_sum, temp_v_err_comp_sum, objects_count * 3 * sizeof(double));
+
+            /* Output */
+            if (is_output && *t_ptr >= next_output_time)
             {
-                if ((*solutions->sol_size_ + 1) > storing_param->max_sol_size_)
+                error_status = WRAP_TRACEBACK(output_snapshot(
+                    output_param,
+                    system,
+                    integrator_param,
+                    acceleration_param,
+                    simulation_status,
+                    settings
+                ));
+                if (error_status.return_code != GRAV_SUCCESS)
                 {
-                    return_code = extend_sol_memory_buffer(
-                        solutions,
-                        storing_param,
-                        objects_count
-                    );
-                    if (return_code != SUCCESS)
-                    {
-                        goto err_store_solution;
-                    }
+                    goto err_output;
                 }
 
-                return_code = store_solution_step(
-                    storing_param,
-                    system,
-                    simulation_status,
-                    solutions
-                );
-                if (return_code != SUCCESS)
-                {
-                    goto err_store_solution;
-                }
+                next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
             }
+        }
+
+        if (enable_progress_bar)
+        {
+            update_progress_bar(&progress_bar_param, *t_ptr, false);
         }
 
         /* Calculate dt for next step */
@@ -847,7 +890,7 @@ WIN32DLL_API int rk_embedded(
         {
             error = 1e-10;  // Prevent error from being too small
         }
-        dt_new = dt * safety_fac / pow(error, (1.0 / (1.0 + (real) min_power)));
+        dt_new = dt * safety_fac / pow(error, (1.0 / (1.0 + (double) min_power)));
         if (dt_new > safety_fac_max * dt) 
         {
             dt *= safety_fac_max;
@@ -867,18 +910,22 @@ WIN32DLL_API int rk_embedded(
         }
 
         // Correct overshooting
-        if (((*t) < tf) && (((*t) + dt) > tf))
+        if (((*t_ptr) < tf) && (((*t_ptr) + dt) > tf))
         {
-            dt = tf - (*t);
+            dt = tf - (*t_ptr);
         }
         simulation_status->dt = dt;
 
-        /* Check user interrupt */
-        if (*(settings->is_exit))
+        /* Check exit */
+        if (settings->is_exit)
         {
-            return_code = ERROR_USER_INTERRUPT;
-            goto err_user_interrupt;
+            break;
         }
+    }
+
+    if (enable_progress_bar)
+    {
+        update_progress_bar(&progress_bar_param, *t_ptr, true);
     }
 
     /* free memory */
@@ -901,11 +948,11 @@ WIN32DLL_API int rk_embedded(
     free(weights);
     free(weights_test); 
 
-    return SUCCESS;
+    return make_success_error_status();
 
-err_user_interrupt:
-err_store_solution:
+err_output:
 acc_error:
+err_initial_output:
 error_initial_dt:
 error_memory:
     free(v_1);
@@ -924,7 +971,9 @@ error_memory:
     free(temp_v_err_comp_sum);
 error_error_estimation_delta_weights_memory_alloc:
     free(error_estimation_delta_weights);
-error_butcher_tableaus:
-error_order:
-    return return_code;
+    free(coeff);
+    free(weights);
+    free(weights_test); 
+
+    return error_status;
 }

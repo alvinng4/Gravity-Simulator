@@ -1,16 +1,24 @@
+/**
+ * \file math_functions.c
+ * 
+ * \brief This file contains the implementation of some useful mathematical functions
+ * 
+ * \author Ching-Yin Ng
+ * \date March 2025
+ */
+
 #include <math.h>
 
-#include "gravity_sim.h"
+#include "common.h"
 
-
-WIN32DLL_API real vec_norm_3d(const real *__restrict vec)
+WIN32DLL_API double vec_norm_3d(const double *__restrict vec)
 {
     return sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
 }
 
-WIN32DLL_API real vec_norm(const real *__restrict vec, int vec_length)
+WIN32DLL_API double vec_norm(const double *__restrict vec, const int vec_length)
 {   
-    real sum = 0.0;
+    double sum = 0.0;
     for (int i = 0; i < vec_length; i++) 
     {
         sum += vec[i] * vec[i];
@@ -19,9 +27,9 @@ WIN32DLL_API real vec_norm(const real *__restrict vec, int vec_length)
     return sqrt(sum);
 }
 
-WIN32DLL_API real abs_max_vec(const real *__restrict vec, int vec_length)
+WIN32DLL_API double abs_max_vec(const double *__restrict vec, const int vec_length)
 {
-    real max = fabs(vec[0]);
+    double max = fabs(vec[0]);
     for (int i = 1; i < vec_length; i++)
     {
         max = fmax(max, fabs(vec[i]));
@@ -30,30 +38,25 @@ WIN32DLL_API real abs_max_vec(const real *__restrict vec, int vec_length)
     return max;
 }
 
-WIN32DLL_API real vec_dot_3d(
-    const real *__restrict vec_1,
-    const real *__restrict vec_2
+WIN32DLL_API double vec_dot_3d(
+    const double *__restrict vec_1,
+    const double *__restrict vec_2
 )
 {
     return vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1] + vec_1[2] * vec_2[2];
 }
 
-WIN32DLL_API real vec_dot(
-    const real *__restrict vec_1,
-    const real *__restrict vec_2,
+WIN32DLL_API double vec_dot(
+    const double *__restrict vec_1,
+    const double *__restrict vec_2,
     const int vec_length
 )
 {
-    real sum = 0.0;
+    double sum = 0.0;
     for (int i = 0; i < vec_length; i++)
     {
         sum += vec_1[i] * vec_2[i];
     }
 
     return sum;
-}
-
-WIN32DLL_API int fast_pow_of_2(int n)
-{
-    return 1 << n;
 }
