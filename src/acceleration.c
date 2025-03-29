@@ -586,8 +586,14 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
         const AccelerationParam *acceleration_param = &(acceleration_params[i]);
         const int num_times = num_times_acceleration_param[i];
 
+        if (num_times <= 0)
+        {
+            printf("Test %d:    Skipped since num_times: %d <= 0\n\n", i, num_times);
+            continue;
+        }
+
         double *__restrict run_time = calloc(num_times, sizeof(double));
-        double mse = 0.0;
+        double mae = 0.0;
 
         if (!run_time)
         {
@@ -630,7 +636,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
                 run_time[j] += (end_time - start_time);
             }
 
-            // Calculate the L2 error
+            // Calculate the MAE
             if (i != 0 && j == 0)
             {
                 for (int k = 0; k < system->objects_count; k++)
@@ -640,9 +646,9 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
                         reference_a[k * 3 + 1] - a[k * 3 + 1],
                         reference_a[k * 3 + 2] - a[k * 3 + 2]
                     };
-                    mse += vec_norm_3d(diff);
+                    mae += fabs(diff[0]) + fabs(diff[1]) + fabs(diff[2]);
                 }
-                mse = sqrt(mse / system->objects_count);
+                mae /= system->objects_count;
             }
         }
 
@@ -676,7 +682,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
         
         printf("    Number of times: %d\n", num_times);
         printf("    Avg time: %.3g (+- %.3g) s\n", compute_mean(run_time, num_times), compute_std(run_time, num_times, 1));
-        printf("    MSE: %.3g\n", mse);
+        printf("    MAE: %.3g\n", mae);
         printf("\n");
 
         free(run_time);

@@ -73,7 +73,7 @@ WIN32DLL_API pcg32_random_t init_pcg_rng(void)
     return rng;
 }
 
-WIN32DLL_API double randrange(
+WIN32DLL_API double grav_randrange(
     const double min,
     const double max,
     pcg32_random_t *rng
