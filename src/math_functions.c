@@ -60,3 +60,48 @@ WIN32DLL_API double vec_dot(
 
     return sum;
 }
+
+WIN32DLL_API double compute_mean(
+    const double *__restrict vec,
+    const int vec_length
+)
+{
+    double sum = 0.0;
+    for (int i = 0; i < vec_length; i++)
+    {
+        sum += vec[i];
+    }
+    return sum / vec_length;
+}
+
+WIN32DLL_API double compute_variance(
+    const double *__restrict vec,
+    const int vec_length,
+    const double ddof
+)
+{
+    if (vec_length <= 1)
+    {
+        return 0.0;
+    }
+
+    double mean = compute_mean(vec, vec_length);
+
+    double variance = 0.0;
+    for (int i = 0; i < vec_length; i++)
+    {
+        variance += (vec[i] - mean) * (vec[i] - mean);
+    }
+    variance /= (vec_length - ddof);
+
+    return variance;
+}
+
+WIN32DLL_API double compute_std(
+    const double *__restrict vec,
+    const int vec_length,
+    const double ddof
+)
+{
+    return sqrt(compute_variance(vec, vec_length, ddof));
+}

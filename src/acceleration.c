@@ -16,6 +16,9 @@
 // #include "acceleration_barnes_hut.h"
 #include "common.h"
 #include "error.h"
+#include "math_functions.h"
+#include "system.h"
+#include "utils.h"
 
 #ifdef USE_CUDA
 #include "acceleration_cuda.cuh"
@@ -550,6 +553,133 @@ IN_FILE ErrorStatus acceleration_massless(
 
     free(massive_indices);
     free(massless_indices);
+
+    return make_success_error_status();
+}
+
+WIN32DLL_API ErrorStatus benchmark_acceleration(
+    const System *__restrict system,
+    const AccelerationParam *acceleration_params,
+    const int num_acceleration_params,
+    const int *__restrict num_times_acceleration_param    
+)
+{
+    ErrorStatus error_status;
+
+    double *__restrict reference_a = malloc(
+        system->objects_count * 3 * sizeof(double)
+    );
+    double *__restrict a = malloc(
+        system->objects_count * 3 * sizeof(double)
+    );
+    if (!reference_a || !a)
+    {
+        free(reference_a);
+        free(a);
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for acceleration arrays");
+    }
+
+    fputs("Benchmarking acceleration...\n", stdout);
+
+    for (int i = 0; i < num_acceleration_params; i++)
+    {
+        const AccelerationParam *acceleration_param = &(acceleration_params[i]);
+        const int num_times = num_times_acceleration_param[i];
+
+        double *__restrict run_time = calloc(num_times, sizeof(double));
+        double l2_error = 0.0;
+
+        if (!run_time)
+        {
+            free(reference_a);
+            free(a);
+            free(run_time);
+            return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for runtime array");
+        }
+
+        for (int j = 0; j < num_times; j++)
+        {
+            if (i == 0 && j == 0)
+            {
+                double start_time = grav_get_current_time();
+                error_status = WRAP_TRACEBACK(acceleration(
+                    reference_a,
+                    system,
+                    acceleration_param
+                ));
+                if (error_status.return_code != GRAV_SUCCESS)
+                {
+                    return error_status;
+                }
+                double end_time = grav_get_current_time();
+                run_time[j] += (end_time - start_time);
+            }
+            else
+            {
+                double start_time = grav_get_current_time();
+                error_status = WRAP_TRACEBACK(acceleration(
+                    a,
+                    system,
+                    acceleration_param
+                ));
+                if (error_status.return_code != GRAV_SUCCESS)
+                {
+                    return error_status;
+                }
+                double end_time = grav_get_current_time();
+                run_time[j] += (end_time - start_time);
+            }
+
+            // Calculate the L2 error
+            if (i != 0 && j == 0)
+            {
+                for (int k = 0; k < system->objects_count; k++)
+                {
+                    const double diff[3] = {
+                        reference_a[k * 3 + 0] - a[k * 3 + 0],
+                        reference_a[k * 3 + 1] - a[k * 3 + 1],
+                        reference_a[k * 3 + 2] - a[k * 3 + 2]
+                    };
+                    l2_error += vec_norm_3d(diff);
+                }
+            }
+        }
+
+        printf("Test %d:", i);
+        switch(acceleration_param->method)
+        {
+            case ACCELERATION_METHOD_PAIRWISE:
+                fputs("    Method: Pairwise\n", stdout);
+                break;
+            case ACCELERATION_METHOD_MASSLESS:
+                fputs("    Method: Massless\n", stdout);
+                break;
+            case ACCELERATION_METHOD_BARNES_HUT:
+                fputs("    Method: Barnes-Hut\n", stdout);
+                break;
+#ifdef USE_CUDA
+            case ACCELERATION_METHOD_CUDA_PAIRWISE:
+                fputs("    Method: CUDA Pairwise\n", stdout);
+                break;
+            case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
+                fputs("    Method: CUDA Pairwise Float\n", stdout);
+                break;
+            case ACCELERATION_METHOD_CUDA_BARNES_HUT:
+                fputs("    Method: CUDA Barnes-Hut\n", stdout);
+                break;
+            case ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT:
+                fputs("    Method: CUDA Barnes-Hut Float\n", stdout);
+                break;
+#endif
+        }
+        
+        printf("    Number of times: %d\n", num_times);
+        printf("    Avg time: %.3g (+- %.3g) s\n", compute_mean(run_time, num_times), compute_std(run_time, num_times, 1));
+        printf("    L2 error: %.3g\n", l2_error);
+        printf("\n");
+
+        free(run_time);
+    }
 
     return make_success_error_status();
 }
