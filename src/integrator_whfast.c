@@ -1,13 +1,13 @@
 /**
  * \file integrator_whfast.c
- * \author Ching Yin Ng
  * \brief Function definitions for WHFast integrators
  * 
- * Function definitions for WHfast integrators. This is
- * a C implementation with modifications based on the reference:
- *   J. Roa, et al. Moving Planets Around: An Introduction to
+ * \cite J. Roa, et al. Moving Planets Around: An Introduction to
  *   N-Body Simulations Applied to Exoplanetary Systems*, MIT
  *   Press, 2020
+ * 
+ * \author Ching-Yin Ng
+ * \date March 2025
  */
 
 #include <math.h>
@@ -17,72 +17,68 @@
 #include <string.h>
 
 #include "acceleration.h"
+#include "common.h"
 #include "error.h"
-#include "gravity_sim.h"
 #include "math_functions.h"
-#include "storing.h"
+#include "output.h"
+#include "progress_bar.h"
+#include "settings.h"
+#include "system.h"
+
+#define WHFAST_KEPLER_TOL 1e-12
+#define WHFAST_KEPLER_MAX_ITER 500
 
 /**
  * \brief Compute the velocity kick
  * 
- * \param objects_count Number of objects in the system
- * \param jacobi_v Array of Jacobi velocity vectors
- * \param a Array of acceleration vectors
- * \param dt Time step of the system
+ * \param[out] jacobi_v Array of Jacobi velocity vectors
+ * \param[in] objects_count Number of objects in the system
+ * \param[in] a Array of acceleration vectors
+ * \param[in] dt Time step of the system
  */
 IN_FILE void whfast_kick(
+    double *__restrict jacobi_v,
     const int objects_count,
-    real *__restrict jacobi_v,
-    const real *__restrict a,
-    const real dt
+    const double *__restrict a,
+    const double dt
 );
 
 /** 
  * \brief Compute the position drift
  * 
- * \param system Pointer to the gravitational system
- * \param jacobi_x Array of Jacobi position vectors
- * \param jacobi_v Array of Jacobi velocity vectors
- * \param eta Array of cumulative masses
- * \param dt Time step of the system
- * \param kepler_tol Tolerance for solving Kepler's equation
- * \param kepler_max_iter Maximum number of iterations in solving Kepler's equation
- * \param kepler_auto_remove Flag to indicate whether to remove objects
- *                           that failed to converge in Kepler's equation
- * \param kepler_failed_bool_array Array of flags to indicate whether 
- *                                 an object failed to converge in Kepler's equation
- * \param kepler_failed_flag Flag to indicate whether any object failed to converge
- *                           in Kepler's equation
- * \param verbose Verbosity level
+ * \param[out] jacobi_x Array of Jacobi position vectors
+ * \param[out] jacobi_v Array of Jacobi velocity vectors
+ * \param[in] system Pointer to the gravitational system
+ * \param[in] eta Array of cumulative masses
+ * \param[in] dt Time step of the system
+ * \param[in] verbose Verbosity level
+ *
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_VALUE_ERROR If the input value to the stumpff function is infinite or NaN
  */
-IN_FILE int whfast_drift(
-    System *__restrict system,
-    real *__restrict jacobi_x,
-    real *__restrict jacobi_v,
-    const real *__restrict eta,
-    const real dt,
-    const real kepler_tol,
-    const int kepler_max_iter,
-    const bool kepler_auto_remove,
-    const real kepler_auto_remove_tol,
-    bool *__restrict kepler_failed_bool_array,
-    bool *__restrict kepler_failed_flag,
+IN_FILE ErrorStatus whfast_drift(
+    double *__restrict jacobi_x,
+    double *__restrict jacobi_v,
+    const System *__restrict system,
+    const double *__restrict eta,
+    const double dt,
     const int verbose
 );
 
 /**
  * \brief Transform Cartesian coordinates to Jacobi coordinates
  * 
- * \param system Pointer to the gravitational system
  * \param jacobi_x Array of Jacobi position vectors to be stored
  * \param jacobi_v Array of Jacobi velocity vectors to be stored
+ * \param system Pointer to the gravitational system
  * \param eta Array of cumulative masses
  */
 IN_FILE void cartesian_to_jacobi(
-    System *__restrict system,
-    real *__restrict jacobi_x,
-    real *__restrict jacobi_v,
-    const real *__restrict eta
+    double *__restrict jacobi_x,
+    double *__restrict jacobi_v,
+    const System *__restrict system,
+    const double *__restrict eta
 );
 
 /**
@@ -95,29 +91,48 @@ IN_FILE void cartesian_to_jacobi(
  */
 IN_FILE void jacobi_to_cartesian(
     System *__restrict system,
-    const real *__restrict jacobi_x,
-    const real *__restrict jacobi_v,
-    const real *__restrict eta
+    const double *__restrict jacobi_x,
+    const double *__restrict jacobi_v,
+    const double *__restrict eta
 );
 
 /**
  * \brief Compute the Stumpff functions c0, c1, c2, and c3 for a given argument z
  * 
- * \param z Input value
- * \param c0 Pointer to store c0
- * \param c1 Pointer to store c1
- * \param c2 Pointer to store c2
- * \param c3 Pointer to store c3
- * 
- * \retval SUCCESS If exit successfully
- * \retval ERROR_WHFAST_STUMPFF_Z_INFINITE If z is infinite
+ * \param[out] c0 Pointer to store c0
+ * \param[out] c1 Pointer to store c1
+ * \param[out] c2 Pointer to store c2
+ * \param[out] c3 Pointer to store c3
+ * \param[in] z Input value
  */
-IN_FILE int stumpff_functions(
-    real z,
-    real *__restrict c0,
-    real *__restrict c1,
-    real *__restrict c2,
-    real *__restrict c3
+IN_FILE void stumpff_functions(
+    double *__restrict c0,
+    double *__restrict c1,
+    double *__restrict c2,
+    double *__restrict c3,
+    double z
+);
+
+/**
+ * \brief Compute the acceleration for the WHFast integrator
+ * 
+ * \param[out] a Array of acceleration vectors to be stored
+ * \param[in] system Pointer to the gravitational system
+ * \param[in] jacobi_x Array of Jacobi position vectors
+ * \param[in] eta Array of cumulative masses
+ * \param[in] acceleration_param Pointer to acceleration parameters
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_VALUE_ERROR If the acceleration method is not supported
+ * \exception Errors from the acceleration functions if any error occurs
+ */
+IN_FILE ErrorStatus whfast_acceleration(
+    double *__restrict a,
+    const System *__restrict system,
+    const double *__restrict jacobi_x,
+    const double *__restrict eta,
+    const AccelerationParam *__restrict acceleration_param
 );
 
 /**
@@ -127,20 +142,20 @@ IN_FILE int stumpff_functions(
  *          of gravitational acceleration between all objects,
  *          which is O(n^2) complexity.
  * 
- * \param a Array of acceleration vectors to be stored
- * \param system Pointer to the gravitational system
- * \param jacobi_x Array of Jacobi position vectors
- * \param eta Array of cumulative masses
- * \param acceleration_param Pointer to acceleration parameters
+ * \param[out] a Array of acceleration vectors to be stored
+ * \param[in] system Pointer to the gravitational system
+ * \param[in] jacobi_x Array of Jacobi position vectors
+ * \param[in] eta Array of cumulative masses
+ * \param[in] acceleration_param Pointer to acceleration parameters
  * 
- * \retval SUCCESS If exit successfully
+ * \return ErrorStatus
  */
-IN_FILE int whfast_acceleration_pairwise(
-    real *__restrict a,
-    const System *system,
-    real *__restrict jacobi_x,
-    const real *__restrict eta,
-    const AccelerationParam *acceleration_param
+IN_FILE ErrorStatus whfast_acceleration_pairwise(
+    double *__restrict a,
+    const System *__restrict system,
+    const double *__restrict jacobi_x,
+    const double *__restrict eta,
+    const AccelerationParam *__restrict acceleration_param
 );
 
 /**
@@ -153,101 +168,82 @@ IN_FILE int whfast_acceleration_pairwise(
  *          where m and n are the number of massive and massless 
  *          objects, respectively.
  * 
- * \param a Array of acceleration vectors to be stored
- * \param system Pointer to the gravitational system
- * \param jacobi_x Array of Jacobi position vectors
- * \param eta Array of cumulative masses
- * \param acceleration_param Pointer to acceleration parameters
+ * \param[out] a Array of acceleration vectors to be stored
+ * \param[in] system Pointer to the gravitational system
+ * \param[in] jacobi_x Array of Jacobi position vectors
+ * \param[in] eta Array of cumulative masses
+ * \param[in] acceleration_param Pointer to acceleration parameters
  * 
- * \retval SUCCESS If exit successfully
- * \retval ERROR_WHFAST_ACCELERATION_MASSLESS_MEMORY_ALLOC If memory allocation failed
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_MEMORY_ERROR If memory allocation failed
  */
 
-IN_FILE int whfast_acceleration_massless(
-    real *__restrict a,
-    const System *system,
-    real *__restrict jacobi_x,
-    const real *__restrict eta,
-    const AccelerationParam *acceleration_param
+IN_FILE ErrorStatus whfast_acceleration_massless(
+    double *__restrict a,
+    const System *__restrict system,
+    const double *__restrict jacobi_x,
+    const double *__restrict eta,
+    const AccelerationParam *__restrict acceleration_param
 );
 
-WIN32DLL_API int whfast(
+WIN32DLL_API ErrorStatus whfast(
     System *system,
     IntegratorParam *integrator_param,
     AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
+    OutputParam *output_param,
     SimulationStatus *simulation_status,
     Settings *settings,
-    SimulationParam *simulation_param
+    const double tf
 )
 {
-    int return_code;
+    ErrorStatus error_status;
 
-    IN_FILE int (*whfast_acceleration)(
-        real *__restrict a,
-        const System *system,
-        real *__restrict jacobi_x,
-        const real *__restrict eta,
-        const AccelerationParam *acceleration_param
-    );
+    const int objects_count = system->objects_count;
+    double *__restrict m = system->m;
 
-    if (strcmp(acceleration_param->method, "pairwise") == 0)
+    double dt = integrator_param->dt;
+
+    bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
+    int *__restrict output_count_ptr = &(output_param->output_count_);
+    const int output_interval = output_param->output_interval;
+    double next_output_time = output_interval;
+
+    double *__restrict t_ptr = &(simulation_status->t);
+    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+
+    const bool enable_progress_bar = settings->enable_progress_bar;
+    const int verbose = settings->verbose;
+
+    /* Allocate memory */
+    double *__restrict jacobi_x = calloc(objects_count * 3, sizeof(double));
+    double *__restrict jacobi_v = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict temp_jacobi_v = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict eta = malloc(objects_count * sizeof(double));
+
+    // Check if memory allocation is successful
+    if (!jacobi_x || !jacobi_v || !temp_jacobi_v || !a || !eta)
     {
-        whfast_acceleration = whfast_acceleration_pairwise;
-    }
-    else if (strcmp(acceleration_param->method, "massless") == 0)
-    {
-        whfast_acceleration = whfast_acceleration_massless;
-    }
-    else
-    {
-        return_code = ERROR_WHFAST_UNKNOWN_ACCELERATION_METHOD;
-        goto err_unknown_acc_method;
-    }
-
-    int objects_count = system->objects_count;
-    real *__restrict m = system->m;
-
-    const real dt = integrator_param->dt;
-    const int64 n_steps = simulation_param->n_steps_;
-    const int storing_freq = storing_param->storing_freq;
-
-    const real kepler_tol = integrator_param->whfast_kepler_tol;
-    const int kepler_max_iter = integrator_param->whfast_kepler_max_iter;
-    const bool kepler_auto_remove = integrator_param->whfast_kepler_auto_remove;
-    const real kepler_auto_remove_tol = integrator_param->whfast_kepler_auto_remove_tol;
-
-    /* Allocate memory for calculation */
-    real *__restrict jacobi_x = calloc(objects_count * 3, sizeof(real));
-    real *__restrict jacobi_v = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict temp_jacobi_v = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict a = malloc(objects_count * 3 * sizeof(real));
-    real *__restrict eta = malloc(objects_count * sizeof(real));
-
-    if (
-        !jacobi_x
-        || !jacobi_v
-        || !temp_jacobi_v
-        || !a
-        || !eta
-    )
-    {
-        return_code = ERROR_WHFAST_MEMORY_ALLOC;
-        goto err_memory_alloc;
+        error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for arrays");
+        goto err_memory;
     }
 
-    /* Auto remove objects that failed to converge in Kepler's equation */
-    bool *kepler_failed_bool_array = NULL;
-    bool kepler_failed_flag = false;
-    if (kepler_auto_remove)
+    /* Initial output */
+    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
+    if (is_output && output_param->output_initial)
     {
-        kepler_failed_bool_array = calloc(objects_count, sizeof(bool));
-
-        if (!kepler_failed_bool_array)
+        error_status = WRAP_TRACEBACK(output_snapshot(
+            output_param,
+            system,
+            integrator_param,
+            acceleration_param,
+            simulation_status,
+            settings
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
         {
-            return_code = ERROR_WHFAST_KEPLER_AUTO_REMOVE_MEMORY_ALLOC;
-            goto err_kepler_auto_remove_memory;
+            goto err_initial_output;
         }
     }
 
@@ -257,153 +253,125 @@ WIN32DLL_API int whfast(
     {
         eta[i] = eta[i - 1] + m[i];
     }
-    cartesian_to_jacobi(system, jacobi_x, jacobi_v, eta);
-    return_code = whfast_acceleration(a, system, jacobi_x, eta, acceleration_param);
-    if (return_code != SUCCESS)
+    cartesian_to_jacobi(jacobi_x, jacobi_v, system, eta);
+    error_status = whfast_acceleration(a, system, jacobi_x, eta, acceleration_param);
+    if (error_status.return_code != GRAV_SUCCESS)
     {
-        goto err_acc;
+        goto err_acceleration;
     }
-    whfast_kick(objects_count, jacobi_v, a, 0.5 * dt);
-    
+    whfast_kick(jacobi_v, objects_count, a, 0.5 * dt);
+
     /* Main Loop */
-    for (int64 count = 1; count <= n_steps; count++)
-    {   
-        return_code = whfast_drift(
-            system,
+    int64 total_num_steps = (int64) ceil(tf / dt);
+    ProgressBarParam progress_bar_param;
+    if (enable_progress_bar)
+    {
+        start_progress_bar(&progress_bar_param, total_num_steps);
+    }
+
+    *t_ptr = 0.0;
+    simulation_status->dt = dt;
+    *num_steps_ptr = 0;
+    while (*num_steps_ptr < total_num_steps)
+    {
+        /* Check dt overshoot */
+        if (*t_ptr + dt > tf)
+        {
+            dt = tf - *t_ptr;
+        }
+        simulation_status->dt = dt;
+
+        error_status = whfast_drift(
             jacobi_x,
             jacobi_v,
+            system,
             eta,
             dt,
-            kepler_tol,
-            kepler_max_iter,
-            kepler_auto_remove,
-            kepler_auto_remove_tol,
-            kepler_failed_bool_array,
-            &kepler_failed_flag,
-            settings->verbose
+            verbose
         );
-        if (return_code != SUCCESS)
+        if (error_status.return_code != GRAV_SUCCESS)
         {
             goto err_drift;
         }
-        
-        /**
-         * Remove objects that failed to converge in Kepler's equation
-         * 
-         * IMPORTANT:
-         * It is important to remove objects right after drift step.
-         * Otherwise, one nan value could pollute the data of the 
-         * whole system with nan values, especially for large N.
-         */
-        if (kepler_auto_remove && kepler_failed_flag)
-        {
-            kepler_failed_flag = false;
 
-            /* Remove object */
-            int kepler_remove_count = 0;
-
-            // The first object is the central object, which is not 
-            // calculated in drift step
-            for (int i = 1; i < objects_count; i++)
-            {
-                if (kepler_failed_bool_array[i])
-                {
-                    kepler_failed_bool_array[i] = false;
-                    kepler_remove_count++;
-                    if (settings->verbose > 0)
-                    {
-                        fprintf(stderr, "kepler_auto_remove: Object %d with mass %f removed\n", i, m[i]);
-                    }
-                }
-                else if (kepler_remove_count > 0)
-                {
-                    memcpy(&jacobi_x[(i - kepler_remove_count) * 3], &jacobi_x[i * 3], 3 * sizeof(real));
-                    memcpy(&jacobi_v[(i - kepler_remove_count) * 3], &jacobi_v[i * 3], 3 * sizeof(real));
-                    m[i - kepler_remove_count] = m[i];
-                }
-            }
-
-            objects_count -= kepler_remove_count;
-            for (int i = 1; i < objects_count; i++)
-            {
-                eta[i] = eta[i - 1] + m[i];
-            }
-            system->objects_count = objects_count;
-            if (settings->verbose > 0)
-            {
-                fprintf(stderr, "kepler_auto_remove: %d objects removed in total. \
-                                 Remaining objects: %d\n", kepler_remove_count,
-                                 objects_count);
-            }
-        }
         jacobi_to_cartesian(system, jacobi_x, jacobi_v, eta);
-        return_code = whfast_acceleration(a, system, jacobi_x, eta, acceleration_param);
-        if (return_code != SUCCESS)
+        error_status = whfast_acceleration(a, system, jacobi_x, eta, acceleration_param);
+        if (error_status.return_code != GRAV_SUCCESS)
         {
-            goto err_acc;
+            goto err_acceleration;
         }
-        whfast_kick(objects_count, jacobi_v, a, dt);
+        whfast_kick(jacobi_v, objects_count, a, dt);
 
-        *(simulation_status->t) = count * dt;
+        (*num_steps_ptr)++;
+        *t_ptr = (*num_steps_ptr) * dt;
 
         /* Store solution */
-        if (count % storing_freq == 0)
+        if (is_output && *t_ptr >= next_output_time)
         {
             // Get v_1 from v_1+1/2
-            memcpy(temp_jacobi_v, jacobi_v, objects_count * 3 * sizeof(real));
-            whfast_kick(objects_count, temp_jacobi_v, a, -0.5 * dt);
+            memcpy(temp_jacobi_v, jacobi_v, objects_count * 3 * sizeof(double));
+            whfast_kick(temp_jacobi_v, objects_count, a, -0.5 * dt);
             jacobi_to_cartesian(system, jacobi_x, temp_jacobi_v, eta);
-            return_code = store_solution_step(
-                storing_param,
+            error_status = WRAP_TRACEBACK(output_snapshot(
+                output_param,
                 system,
+                integrator_param,
+                acceleration_param,
                 simulation_status,
-                solutions
-            );
-            if (return_code != SUCCESS)
+                settings
+            ));
+            if (error_status.return_code != GRAV_SUCCESS)
             {
-                goto err_store_solution;
+                goto err_output;
             }
+
+            next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
         }
 
-        /* Check user interrupt */
-        if (*(settings->is_exit))
+        if (enable_progress_bar)
         {
-            return_code = ERROR_USER_INTERRUPT;
-            goto err_user_interrupt;
+            update_progress_bar(&progress_bar_param, *num_steps_ptr, false);
+        }
+
+        /* Check exit */
+        if (settings->is_exit)
+        {
+            break;
         }
     }
 
-    /* Free memory */
+    if (enable_progress_bar)
+    {
+        update_progress_bar(&progress_bar_param, *num_steps_ptr, true);
+    }
+
     free(jacobi_x);
     free(jacobi_v);
     free(temp_jacobi_v);
     free(a);
     free(eta);
-    free(kepler_failed_bool_array);
 
-    return SUCCESS;
+    return make_success_error_status();
 
-err_user_interrupt:
-err_store_solution:
-err_acc:
+err_output:
+err_acceleration:
+err_initial_output:
 err_drift:
-err_kepler_auto_remove_memory:
-    free(kepler_failed_bool_array);
-err_memory_alloc:
+err_memory:
     free(eta);
     free(a);
     free(temp_jacobi_v);
     free(jacobi_v);
     free(jacobi_x);
-err_unknown_acc_method:
-    return return_code;
+
+    return error_status;
 }
 
 IN_FILE void whfast_kick(
+    double *__restrict jacobi_v,
     const int objects_count,
-    real *__restrict jacobi_v,
-    const real *__restrict a,
-    const real dt
+    const double *__restrict a,
+    const double dt
 )
 {
     for (int i = 0; i < objects_count; i++)
@@ -414,82 +382,77 @@ IN_FILE void whfast_kick(
     }
 }
 
-IN_FILE int whfast_drift(
-    System *__restrict system,
-    real *__restrict jacobi_x,
-    real *__restrict jacobi_v,
-    const real *__restrict eta,
-    const real dt,
-    const real kepler_tol,
-    const int kepler_max_iter,
-    const bool kepler_auto_remove,
-    const real kepler_auto_remove_tol,
-    bool *__restrict kepler_failed_bool_array,
-    bool *__restrict kepler_failed_flag,
+IN_FILE ErrorStatus whfast_drift(
+    double *__restrict jacobi_x,
+    double *__restrict jacobi_v,
+    const System *__restrict system,
+    const double *__restrict eta,
+    const double dt,
     const int verbose
 )
 {
-    int return_code;
-
     const int objects_count = system->objects_count;
-    const real *__restrict m = system->m;
-    const real G = system->G;
+    const int *__restrict particle_ids = system->particle_ids;
+    const double *__restrict m = system->m;
+    const double G = system->G;
     for (int i = 1; i < objects_count; i++)
     {
-        real gm = G * m[0] * eta[i] / eta[i - 1];
-        real x[3];
-        real v[3];
-        memcpy(x, &jacobi_x[i * 3], 3 * sizeof(real));
-        memcpy(v, &jacobi_v[i * 3], 3 * sizeof(real));
+        const double gm = G * m[0] * eta[i] / eta[i - 1];
+        const double x[3] = {jacobi_x[i * 3], jacobi_x[i * 3 + 1], jacobi_x[i * 3 + 2]};
+        const double v[3] = {jacobi_v[i * 3], jacobi_v[i * 3 + 1], jacobi_v[i * 3 + 2]};
 
-        real x_norm = vec_norm_3d(x);
-        real v_norm = vec_norm_3d(v);
+        const double x_norm = vec_norm_3d(x);
+        const double v_norm = vec_norm_3d(v);
 
         // Radial velocity
-        real radial_v = vec_dot_3d(x, v) / x_norm; 
+        const double radial_v = vec_dot_3d(x, v) / x_norm; 
 
-        real alpha = 2.0 * gm / x_norm - (v_norm * v_norm);
+        const double alpha = 2.0 * gm / x_norm - (v_norm * v_norm);
 
         /* Solve Kepler's equation with Newton-Raphson method */
-        
+
         // Initial guess
-        real s = dt / x_norm;
+        double s = dt / x_norm;
 
         // Solve Kepler's equation
-        real c0 = 0.0;
-        real c1 = 0.0;
-        real c2 = 0.0;
-        real c3 = 0.0;
+        double c0 = 0.0;
+        double c1 = 0.0;
+        double c2 = 0.0;
+        double c3 = 0.0;
         bool is_converged = false;
 
-        for (int j = 0; j < kepler_max_iter; j++)
+        for (int j = 0; j < WHFAST_KEPLER_MAX_ITER; j++)
         {
             // Compute Stumpff functions
-            return_code = stumpff_functions(alpha * (s * s), &c0, &c1, &c2, &c3);
-            if (return_code != SUCCESS)
+            const double z = alpha * (s * s);
+            if (isnan(z) || isinf(z))
             {
-                goto err_stumpff;
+                return WRAP_RAISE_ERROR(
+                    GRAV_VALUE_ERROR,
+                    "Input value to Stumpff functions is NaN or Inf"
+                );
             }
+            stumpff_functions(&c0, &c1, &c2, &c3, z);
 
             // Evaluate Kepler's equation and its derivative
-            real F = (
+            const double F = (
                 x_norm * s * c1
                 + x_norm * radial_v * (s * s) * c2
                 + gm * (s * s * s) * c3
                 - dt
             );
-            real dF = (
+            const double dF = (
                 x_norm * c0
                 + x_norm * radial_v * s * c1
                 + gm * (s * s) * c2
             );
 
             // Advance step
-            real ds = -F / dF;
+            const double ds = -F / dF;
             s += ds;
 
             // Check convergence
-            if (fabs(ds) < kepler_tol)
+            if (fabs(ds) < WHFAST_KEPLER_TOL)
             {
                 is_converged = true;
                 break;
@@ -497,37 +460,78 @@ IN_FILE int whfast_drift(
         }
 
         // The raidal distance is equal to the derivative of F
-        // real r = dF
-        real r = x_norm * c0 + x_norm * radial_v * s * c1 + gm * (s * s) * c2;
+        // double r = dF
+        const double r = x_norm * c0 + x_norm * radial_v * s * c1 + gm * (s * s) * c2;
 
         if (!is_converged)
         {
-            real error = (
+            const double error = (
                 x_norm * s * c1
                 + x_norm * radial_v * (s * s) * c2
                 + gm * (s * s * s) * c3
                 - dt
             ) / r;
-            
-            if (verbose >= 2)
+
+            /* Print warning message */
+            if (verbose >= GRAV_VERBOSITY_IGNORE_INFO)
             {
-                fprintf(stderr, "Warning: Kepler's equation did not converge. "\
-                                "Object index: %d, error = %23.15g\n", i, error);
+                const int warning_msg_len = (
+                    strlen("Kepler's equation did not converge. Particle id: , error = \n")
+                    + snprintf(NULL, 0, "%d", particle_ids[i])
+                    + snprintf(NULL, 0, "%23.15g", error)
+                    + 1
+                );
+                char *warning_msg = malloc(warning_msg_len);
+                if (!warning_msg)
+                {
+                    return WRAP_RAISE_ERROR(
+                        GRAV_MEMORY_ERROR,
+                        "Kepler's equation did not converge and failed to allocate memory for warning message"
+                    );
+                }
+
+                const int actual_warning_msg_len = snprintf(
+                    warning_msg,
+                    warning_msg_len,
+                    "Warning: Kepler's equation did not converge. "\
+                    "Particle id: %d, error = %23.15g\n",
+                    particle_ids[i], error
+                );
+
+                if (actual_warning_msg_len < 0)
+                {
+                    free(warning_msg);
+                    return WRAP_RAISE_ERROR(
+                        GRAV_UNKNOWN_ERROR,
+                        "Kepler's equation did not converge and failed to generate warning message"
+                    );
+                }
+                else if (actual_warning_msg_len >= warning_msg_len)
+                {
+                    free(warning_msg);
+                    return WRAP_RAISE_ERROR(
+                        GRAV_UNKNOWN_ERROR,
+                        "Kepler's equation did not converge and warning message are truncated"
+                    );
+                }
+
+                WRAP_RAISE_WARNING(warning_msg);
+                free(warning_msg);
             }
 
-            if (kepler_auto_remove && ((fabs(error) > kepler_auto_remove_tol) || isnan(error)))
-            {
-                kepler_failed_bool_array[i] = true;
-                *kepler_failed_flag = true;
-            }
+            // if (kepler_auto_remove && ((fabs(error) > kepler_auto_remove_tol) || isnan(error)))
+            // {
+            //     kepler_failed_bool_array[i] = true;
+            //     *kepler_failed_flag = true;
+            // }
         }
 
         /* Evaluate f and g functions, together with their derivatives */
-        real f = 1.0 - gm * (s * s) * c2 / x_norm;
-        real g = dt - gm * (s * s * s) * c3;
+        const double f = 1.0 - gm * (s * s) * c2 / x_norm;
+        const double g = dt - gm * (s * s * s) * c3;
 
-        real df = -gm * s * c1 / (r * x_norm);
-        real dg = 1.0 - gm * (s * s) * c2 / r; 
+        const double df = -gm * s * c1 / (r * x_norm);
+        const double dg = 1.0 - gm * (s * s) * c2 / r; 
 
         /* Compute position and velocity vectors */
         for (int j = 0; j < 3; j++)
@@ -537,25 +541,23 @@ IN_FILE int whfast_drift(
         }
     }
 
-    return SUCCESS;
-
-err_stumpff:
-    return return_code;
+    return make_success_error_status();
 }
 
 IN_FILE void cartesian_to_jacobi(
-    System *__restrict system,
-    real *__restrict jacobi_x,
-    real *__restrict jacobi_v,
-    const real *__restrict eta
+    double *__restrict jacobi_x,
+    double *__restrict jacobi_v,
+    const System *__restrict system,
+    const double *__restrict eta
 )
 {
-    real x_cm[3];
-    real v_cm[3];
+    double x_cm[3];
+    double v_cm[3];
+
     const int objects_count = system->objects_count;
-    real *__restrict x = system->x;
-    real *__restrict v = system->v;
-    const real *__restrict m = system->m;
+    const double *__restrict x = system->x;
+    const double *__restrict v = system->v;
+    const double *__restrict m = system->m;
 
     x_cm[0] = m[0] * x[0];
     x_cm[1] = m[0] * x[1];
@@ -588,17 +590,19 @@ IN_FILE void cartesian_to_jacobi(
 
 IN_FILE void jacobi_to_cartesian(
     System *__restrict system,
-    const real *__restrict jacobi_x,
-    const real *__restrict jacobi_v,
-    const real *__restrict eta
+    const double *__restrict jacobi_x,
+    const double *__restrict jacobi_v,
+    const double *__restrict eta
 )
 {
-    real x_cm[3];
-    real v_cm[3];
+    double x_cm[3];
+    double v_cm[3];
+
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
+
     const int objects_count = system->objects_count;
-    real *__restrict x = system->x;
-    real *__restrict v = system->v;
-    const real *__restrict m = system->m;
+    const double *__restrict m = system->m;
 
     x_cm[0] = eta[objects_count - 1] * jacobi_x[0];
     x_cm[1] = eta[objects_count - 1] * jacobi_x[1];
@@ -632,27 +636,14 @@ IN_FILE void jacobi_to_cartesian(
     v[2] = v_cm[2] / m[0];
 }
 
-IN_FILE int stumpff_functions(
-    real z,
-    real *__restrict c0,
-    real *__restrict c1,
-    real *__restrict c2,
-    real *__restrict c3
+IN_FILE void stumpff_functions(
+    double *__restrict c0,
+    double *__restrict c1,
+    double *__restrict c2,
+    double *__restrict c3,
+    double z
 )
 {
-    int return_code;
-
-    if (isinf(z))
-    {
-        return_code = ERROR_WHFAST_STUMPFF_Z_INFINITE;
-        goto err_z_inf;
-    }
-    else if (isnan(z))
-    {
-        return_code = ERROR_WHFAST_STUMPFF_Z_NAN;
-        goto err_z_nan;
-    }
-
     /* Reduce the argument */
     int n = 0;
     while (fabs(z) > 0.1)
@@ -662,16 +653,16 @@ IN_FILE int stumpff_functions(
     }
 
     /* Compute stumpff functions */
-    real temp_c3 = (
+    double temp_c3 = (
         1.0 - z / 20.0 * (1.0 - z / 42.0 * (1.0 - z / 72.0 * (1.0 - z / 110.0 \
         * (1.0 - z / 156.0 * (1.0 - z / 210.0)))))
     ) / 6.0;
-    real temp_c2 = (
+    double temp_c2 = (
         1.0 - z / 12.0 * (1.0 - z / 30.0 * (1.0 - z / 56.0 * (1.0 - z / 90.0 \
         * (1.0 - z / 132.0 * (1.0 - z / 182.0)))))
     ) / 2.0;
-    real temp_c1 = 1.0 - z * temp_c3;
-    real temp_c0 = 1.0 - z * temp_c2;
+    double temp_c1 = 1.0 - z * temp_c3;
+    double temp_c0 = 1.0 - z * temp_c2;
 
     /* Half-angle formulae to recover the actual argument */
     while (n > 0)
@@ -686,36 +677,52 @@ IN_FILE int stumpff_functions(
     *c2 = temp_c2;
     *c1 = temp_c1;
     *c0 = temp_c0;
-
-    return SUCCESS;
-
-err_z_nan:
-err_z_inf:
-    return return_code;
 }
 
-IN_FILE int whfast_acceleration_pairwise(
-    real *__restrict a,
+IN_FILE ErrorStatus whfast_acceleration(
+    double *__restrict a,
     const System *system,
-    real *__restrict jacobi_x,
-    const real *__restrict eta,
+    const double *__restrict jacobi_x,
+    const double *__restrict eta,
     const AccelerationParam *acceleration_param
 )
 {
+    switch (acceleration_param->method)
+    {
+        case ACCELERATION_METHOD_PAIRWISE:
+            return whfast_acceleration_pairwise(a, system, jacobi_x, eta, acceleration_param);
+        case ACCELERATION_METHOD_MASSLESS:
+            return whfast_acceleration_massless(a, system, jacobi_x, eta, acceleration_param);
+        default:
+            return WRAP_RAISE_ERROR(
+                GRAV_VALUE_ERROR,
+                "Invalid acceleration method for WHFast integrator. Only pairwise and massless methods are supported."
+            );
+    }
+}
+
+IN_FILE ErrorStatus whfast_acceleration_pairwise(
+    double *__restrict a,
+    const System *__restrict system,
+    const double *__restrict jacobi_x,
+    const double *__restrict eta,
+    const AccelerationParam *__restrict acceleration_param
+)
+{
     const int objects_count = system->objects_count;
-    const real *__restrict x = system->x;
-    const real *__restrict m = system->m;
-    const real G = system->G;
+    const double *__restrict x = system->x;
+    const double *__restrict m = system->m;
+    const double G = system->G;
 
-    const real softening_length = acceleration_param->softening_length;
+    const double softening_length = acceleration_param->softening_length;
 
-    real aux[3];
-    real temp_vec[3];
-    real temp_vec_norm;
-    real temp_vec_norm_cube;
-    real temp_jacobi_norm;
-    real temp_jacobi_norm_cube;
-    real softening_length_cube = softening_length * softening_length * softening_length;
+    double aux[3];
+    double temp_vec[3];
+    double temp_vec_norm;
+    double temp_vec_norm_cube;
+    double temp_jacobi_norm;
+    double temp_jacobi_norm_cube;
+    double softening_length_cube = softening_length * softening_length * softening_length;
     for (int i = 1; i < objects_count; i++)
     {
         // Calculate x_0i
@@ -806,33 +813,31 @@ IN_FILE int whfast_acceleration_pairwise(
         aux[2] = 0.0;
     }
 
-    return SUCCESS;
+    return make_success_error_status();
 }
 
-IN_FILE int whfast_acceleration_massless(
-    real *__restrict a,
-    const System *system,
-    real *__restrict jacobi_x,
-    const real *__restrict eta,
-    const AccelerationParam *acceleration_param
+IN_FILE ErrorStatus whfast_acceleration_massless(
+    double *__restrict a,
+    const System *__restrict system,
+    const double *__restrict jacobi_x,
+    const double *__restrict eta,
+    const AccelerationParam *__restrict acceleration_param
 )
 {
-    int return_code;
-
     const int objects_count = system->objects_count;
-    const real *__restrict x = system->x;
-    const real *__restrict m = system->m;
-    const real G = system->G;
+    const double *__restrict x = system->x;
+    const double *__restrict m = system->m;
+    const double G = system->G;
 
-    const real softening_length = acceleration_param->softening_length;
+    const double softening_length = acceleration_param->softening_length;
 
-    real aux[3];
-    real temp_vec[3];
-    real temp_vec_norm;
-    real temp_vec_norm_cube;
-    real temp_jacobi_norm;
-    real temp_jacobi_norm_cube;
-    real softening_length_cube = softening_length * softening_length * softening_length;
+    double aux[3];
+    double temp_vec[3];
+    double temp_vec_norm;
+    double temp_vec_norm_cube;
+    double temp_jacobi_norm;
+    double temp_jacobi_norm_cube;
+    double softening_length_cube = softening_length * softening_length * softening_length;
 
     /* Find the numbers of massive and massless objects */
     int massive_objects_count = 0;
@@ -857,8 +862,12 @@ IN_FILE int whfast_acceleration_massless(
 
     if (!massive_indices || !massless_indices)
     {
-        return_code = ERROR_WHFAST_ACC_MASSLESS_MEMORY_ALLOC;
-        goto err_memory;
+        free(massive_indices);
+        free(massless_indices);
+        return WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for indices of massive and massless objects"
+        );
     }
 
     for (int i = 0; i < objects_count; i++)
@@ -1100,10 +1109,5 @@ IN_FILE int whfast_acceleration_massless(
     free(massive_indices);
     free(massless_indices);
 
-    return SUCCESS;
-
-err_memory:
-    free(massive_indices);
-    free(massless_indices);
-    return return_code;
+    return make_success_error_status();
 }

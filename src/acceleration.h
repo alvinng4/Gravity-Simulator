@@ -1,53 +1,80 @@
 /**
  * \file acceleration.h
- * \author Ching Yin Ng
- * \brief Prototype of acceleration and acceleration-related
+ * \brief Header files for acceleration and acceleration-related
  *        functions for gravity-simulator
+ * 
+ * \author Ching Yin Ng
+ * \date March 2025
  */
 
 #ifndef ACCELERATION_H
 #define ACCELERATION_H
 
-#include "gravity_sim.h"
+#include "common.h"
+#include "error.h"
+#include "system.h"
 
-#define ACCELERATION_METHOD_PAIRWISE 0
-#define ACCELERATION_METHOD_MASSLESS 1
-#define ACCELERATION_METHOD_BARNES_HUT 2
+#define ACCELERATION_METHOD_PAIRWISE 1
+#define ACCELERATION_METHOD_MASSLESS 2
+#define ACCELERATION_METHOD_BARNES_HUT 3
 
-#ifdef USE_CUDA
-    #define ACCELERATION_METHOD_CUDA_PAIRWISE 100
-    #define ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT 101
-    #define ACCELERATION_METHOD_CUDA_BARNES_HUT 102
-    #define ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT 103
-#endif
+#define ACCELERATION_METHOD_CUDA_PAIRWISE 100
+#define ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT 101
+#define ACCELERATION_METHOD_CUDA_BARNES_HUT 102
+#define ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT 103
+
+
+typedef struct AccelerationParam
+{
+    int method;
+    double opening_angle;
+    double softening_length;
+    int order;
+    int max_num_particles_per_leaf;
+} AccelerationParam;
 
 /**
- * \brief Return acceleration method flag based on the input string
+ * \brief Get a new acceleration parameter struct
  * 
- * \param acceleration_method Name of the acceleration method
- * 
- * \retval SUCCESS If the acceleration method is recognized
- * \retval ERROR_UNKNOWN_ACCELERATION_METHOD If the acceleration method is not recognized
+ * \return AccelerationParam
  */
-int get_acceleration_method_flag(
-    const char *__restrict acceleration_method,
-    uint *__restrict acceleration_method_flag
+AccelerationParam get_new_acceleration_param(void);
+
+/**
+ * \brief Finalize the acceleration parameter
+ * 
+ * \param acceleration_param Pointer to the acceleration parameters
+ */
+ErrorStatus finalize_acceleration_param(
+    AccelerationParam *__restrict acceleration_param
 );
 
 /**
  * \brief Wrapper function for computing acceleration
  * 
- * \param a Array of acceleration vectors to be modified
- * \param system Pointer to the gravitational system
- * \param acceleration_param Pointer to the acceleration parameters
+ * \param[out] a Array of acceleration vectors to be modified
+ * \param[in] system Pointer to the gravitational system
+ * \param[in] acceleration_param Pointer to the acceleration parameters
  * 
- * \retval SUCCESS If the computation is successful
- * \retval ERROR_UNKNOWN_ACCELERATION_CODE If the acceleration code is not recognized
+ * \return ErrorStatus
  */
-int acceleration(
-    real *__restrict a,
+ErrorStatus acceleration(
+    double *__restrict a,
     const System *__restrict system,
-    AccelerationParam *__restrict acceleration_param
+    const AccelerationParam *__restrict acceleration_param
+);
+
+/**
+ * \brief Compute acceleration with Barnes-Hut algorithm
+ * 
+ * \param[out] a Array of acceleration vectors to be modified
+ * \param[in] system Pointer to the gravitational system
+ * \param[in] acceleration_param Pointer to the acceleration parameters
+ */
+ErrorStatus acceleration_barnes_hut(
+    double *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
 );
 
 #endif

@@ -1,3 +1,12 @@
+/**
+ * \file math_functions.h
+ * 
+ * \brief Library for useful mathematical functions
+ * 
+ * \author Ching-Yin Ng
+ * \date March 2025
+ */
+
 #ifndef MATH_FUNCTIONS_H
 #define MATH_FUNCTIONS_H
 
@@ -10,7 +19,7 @@
  * 
  * \return Norm of the vector
  */
-real vec_norm_3d(const real *__restrict vec);
+double vec_norm_3d(const double *__restrict vec);
 
 /**
  * \brief Calculate the norm of a vector
@@ -20,7 +29,7 @@ real vec_norm_3d(const real *__restrict vec);
  * 
  * \return Norm of the vector
  */
-real vec_norm(const real *__restrict vec, int vec_length);
+double vec_norm(const double *__restrict vec, const int vec_length);
 
 /**
  * \brief Calculate the absolute maximum value from a vector
@@ -30,7 +39,7 @@ real vec_norm(const real *__restrict vec, int vec_length);
  * 
  * \return Absolute maximum value from the vector
  */
-real abs_max_vec(const real *__restrict vec, int vec_length);
+double abs_max_vec(const double *__restrict vec, const int vec_length);
 
 /**
  * \brief Calculate the dot product of two 3D vectors
@@ -40,9 +49,9 @@ real abs_max_vec(const real *__restrict vec, int vec_length);
  * 
  * \return Dot product of the two vectors
  */
-real vec_dot_3d(
-    const real *__restrict vec_1,
-    const real *__restrict vec_2
+double vec_dot_3d(
+    const double *__restrict vec_1,
+    const double *__restrict vec_2
 );
 
 /**
@@ -54,19 +63,10 @@ real vec_dot_3d(
  * 
  * \return Dot product of the two vectors
  */
-real vec_dot(
-    const real *__restrict vec_1,
-    const real *__restrict vec_2,
+double vec_dot(
+    const double *__restrict vec_1,
+    const double *__restrict vec_2,
     const int vec_length
 );
-
-/**
- * \brief Calculate 2^n using bit shifting
- * 
- * \param n Exponent
- * 
- * \return 2^n
- */
-int fast_pow_of_2(int n);
 
 #endif

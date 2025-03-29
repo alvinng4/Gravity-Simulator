@@ -1,3 +1,11 @@
+/**
+ * \file acceleration.c
+ * \brief Functions for computing gravitational acceleration
+ * 
+ * \author Ching-Yin Ng
+ * \date March 2025
+ */
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -5,13 +13,23 @@
 #include <string.h>
 
 #include "acceleration.h"
-#include "acceleration_barnes_hut.h"
+// #include "acceleration_barnes_hut.h"
+#include "common.h"
 #include "error.h"
-#include "gravity_sim.h"
 
 #ifdef USE_CUDA
-    #include "acceleration_cuda.cuh"
+#include "acceleration_cuda.cuh"
 #endif
+
+
+/**
+ * \brief Check the acceleration method
+ * 
+ * \param acceleration_method Acceleration method
+ * 
+ * \return ErrorStatus
+ */
+IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method);
 
 /**
  * \brief Pairwise acceleration computation based on Newton's law of gravitational
@@ -20,10 +38,10 @@
  * \param system Pointer to the gravitational system
  * \param acceleration_param Pointer to the acceleration parameters
  * 
- * \retval SUCCESS If the computation is successful
+ * \return ErrorStatus
  */
-IN_FILE int acceleration_pairwise(
-    real *__restrict a,
+IN_FILE ErrorStatus acceleration_pairwise(
+    double *__restrict a,
     const System *__restrict system,
     const AccelerationParam *__restrict acceleration_param
 );
@@ -36,70 +54,197 @@ IN_FILE int acceleration_pairwise(
  * \param system Pointer to the gravitational system
  * \param acceleration_param Pointer to the acceleration parameters
  * 
- * \retval SUCCESS If the computation is successful
- * \retval ERROR_ACCELERATION_MASSLESS_MEMORY_ALLOC If failed to allocate memory
+ * \return ErrorStatus
  */
-IN_FILE int acceleration_massless(
-    real *__restrict a,
+IN_FILE ErrorStatus acceleration_massless(
+    double *__restrict a,
     const System *__restrict system,
     const AccelerationParam *__restrict acceleration_param
 );
 
-WIN32DLL_API int get_acceleration_method_flag(
-    const char *__restrict acceleration_method,
-    uint *__restrict acceleration_method_flag
-)
+
+WIN32DLL_API AccelerationParam get_new_acceleration_param(void)
 {
-    if (strcmp(acceleration_method, "pairwise") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_PAIRWISE;
-        return SUCCESS;
-    }
-    else if (strcmp(acceleration_method, "massless") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_MASSLESS;
-        return SUCCESS;
-    }
-    else if (strcmp(acceleration_method, "barnes_hut") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_BARNES_HUT;
-        return SUCCESS;
-    }
-#ifdef USE_CUDA
-    else if (strcmp(acceleration_method, "pairwise_cuda") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_PAIRWISE;
-        return SUCCESS;
-    }
-    else if (strcmp(acceleration_method, "pairwise_cuda_float") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT;
-        return SUCCESS;
-    }
-    else if (strcmp(acceleration_method, "barnes_hut_cuda") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_BARNES_HUT;
-        return SUCCESS;
-    }
-    else if (strcmp(acceleration_method, "barnes_hut_cuda_float") == 0)
-    {
-        *acceleration_method_flag = ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT;
-        return SUCCESS;
-    }
-#endif
-    else
-    {
-        return ERROR_UNKNOWN_ACCELERATION_METHOD;
-    }
+    AccelerationParam acceleration_param;
+    acceleration_param.method = ACCELERATION_METHOD_PAIRWISE;
+    acceleration_param.opening_angle = 0.5;
+    acceleration_param.softening_length = 0.0;
+    acceleration_param.max_num_particles_per_leaf = -1;
+    acceleration_param.order = -1;
+    return acceleration_param;
 }
 
-WIN32DLL_API int acceleration(
-    real *__restrict a,
-    const System *__restrict system,
+WIN32DLL_API ErrorStatus finalize_acceleration_param(
     AccelerationParam *__restrict acceleration_param
 )
 {
-    switch (acceleration_param->acceleration_method_flag_)
+    ErrorStatus error_status;
+
+    /* Check the acceleration method */
+    error_status = WRAP_TRACEBACK(check_acceleration_method(acceleration_param->method));
+    if (error_status.return_code != GRAV_SUCCESS)
+    {
+        return error_status;
+    }
+
+    /* Check the softening length */
+    if (acceleration_param->softening_length < 0.0)
+    {
+        const int error_msg_len = (
+            strlen("Softening length is negative. Got: ")
+            + snprintf(NULL, 0, "%.3g", acceleration_param->softening_length)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Softening length is negative and failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Softening length is negative. Got: %.3g",
+            acceleration_param->softening_length
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Softening length is negative and failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Softening length is negative and error message are truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    /* Check the opening angle */
+    if (
+        acceleration_param->method == ACCELERATION_METHOD_BARNES_HUT
+        && acceleration_param->opening_angle < 0.0
+    )
+    {
+        const int error_msg_len = (
+            strlen("Opening angle is negative. Got: ")
+            + snprintf(NULL, 0, "%.3g", acceleration_param->opening_angle)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Opening angle is negative and failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Opening angle is negative. Got: %.3g",
+            acceleration_param->opening_angle
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Opening angle is negative and failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Opening angle is negative and error message are truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    /* Check the maximum number of particles per leaf */
+    if (acceleration_param->method == ACCELERATION_METHOD_BARNES_HUT)
+    {
+        if (acceleration_param->max_num_particles_per_leaf == -1)
+        {
+            acceleration_param->max_num_particles_per_leaf = 1;
+        }
+        else if (acceleration_param->max_num_particles_per_leaf < 1)
+        {
+            const int error_msg_len = (
+                strlen("Maximum number of particles per leaf must be positive. Got: ")
+                + snprintf(NULL, 0, "%d", acceleration_param->max_num_particles_per_leaf)
+                + 1  // Null terminator
+            );
+            char *error_msg = malloc(error_msg_len * sizeof(char));
+            if (!error_msg)
+            {
+                return WRAP_RAISE_ERROR(
+                    GRAV_MEMORY_ERROR,
+                    "Maximum number of particles per leaf must be positive and failed to allocate memory for error message"
+                );
+            }
+
+            const int actual_error_msg_len = snprintf(
+                error_msg,
+                error_msg_len,
+                "Maximum number of particles per leaf is less than 1. Got: %d",
+                acceleration_param->max_num_particles_per_leaf
+            );
+
+            if (actual_error_msg_len < 0)
+            {
+                free(error_msg);
+                return WRAP_RAISE_ERROR(
+                    GRAV_UNKNOWN_ERROR,
+                    "Maximum number of particles per leaf must be positive and failed to generate error message"
+                );
+            }
+            else if (actual_error_msg_len >= error_msg_len)
+            {
+                free(error_msg);
+                return WRAP_RAISE_ERROR(
+                    GRAV_UNKNOWN_ERROR,
+                    "Maximum number of particles per leaf must be positive and error message are truncated"
+                );
+            }
+
+            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+            free(error_msg);
+            return error_status;
+        }
+    }
+
+    return make_success_error_status();
+}
+
+WIN32DLL_API ErrorStatus acceleration(
+    double *__restrict a,
+    const System *__restrict system,
+    const AccelerationParam *__restrict acceleration_param
+)
+{
+    switch (acceleration_param->method)
     {
         case ACCELERATION_METHOD_PAIRWISE:
             return acceleration_pairwise(a, system, acceleration_param);
@@ -118,21 +263,117 @@ WIN32DLL_API int acceleration(
             return acceleration_barnes_hut_cuda_float(a, system, acceleration_param);
 #endif
         default:
-            return ERROR_UNKNOWN_ACCELERATION_CODE;
+        {
+            {
+                const int error_msg_len = (
+                    strlen("Unknown acceleration method. Got: ")
+                    + snprintf(NULL, 0, "%d", acceleration_param->method)
+                    + 1  // Null terminator
+                );
+                char *error_msg = malloc(error_msg_len * sizeof(char));
+                if (!error_msg)
+                {
+                    return WRAP_RAISE_ERROR(
+                        GRAV_MEMORY_ERROR, "Unknown acceleration method and failed to allocate memory for error message"
+                    );
+                }
+
+                const int actual_error_msg_len = snprintf(
+                    error_msg,
+                    error_msg_len,
+                    "Unknown acceleration method. Got: %d",
+                    acceleration_param->method
+                );
+
+                if (actual_error_msg_len < 0)
+                {
+                    free(error_msg);
+                    return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and failed to generate error message");
+                }
+                else if (actual_error_msg_len >= error_msg_len)
+                {
+                    free(error_msg);
+                    return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and error message are truncated");
+                }
+
+                ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+                free(error_msg);
+                return error_status;
+            }
+        }
     }
 }
 
-IN_FILE int acceleration_pairwise(
-    real *__restrict a,
+IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method)
+{
+    switch (acceleration_method)
+    {
+        case ACCELERATION_METHOD_PAIRWISE:
+        case ACCELERATION_METHOD_MASSLESS:
+        case ACCELERATION_METHOD_BARNES_HUT:
+            break;
+        case ACCELERATION_METHOD_CUDA_PAIRWISE:
+        case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
+        case ACCELERATION_METHOD_CUDA_BARNES_HUT:
+        case ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT:
+#ifdef USE_CUDA
+            break;
+#else 
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "CUDA acceleration method is not available");
+#endif
+        default:
+        {
+            const int error_msg_len = (
+                strlen("Unknown acceleration method. Got: ")
+                + snprintf(NULL, 0, "%d", acceleration_method)
+                + 1  // Null terminator
+            );
+            char *error_msg = malloc(error_msg_len * sizeof(char));
+            if (!error_msg)
+            {
+                return WRAP_RAISE_ERROR(
+                    GRAV_MEMORY_ERROR, "Unknown acceleration method and failed to allocate memory for error message"
+                );
+            }
+
+            const int actual_error_msg_len = snprintf(
+                error_msg,
+                error_msg_len,
+                "Unknown acceleration method. Got: %d",
+                acceleration_method
+            );
+
+            if (actual_error_msg_len < 0)
+            {
+                free(error_msg);
+                return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and failed to generate error message");
+            }
+            else if (actual_error_msg_len >= error_msg_len)
+            {
+                free(error_msg);
+                return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and error message are truncated");
+            }
+
+            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+            free(error_msg);
+            return error_status;
+        }
+    }
+
+    return make_success_error_status();
+}
+
+IN_FILE ErrorStatus acceleration_pairwise(
+    double *__restrict a,
     const System *__restrict system,
     const AccelerationParam *__restrict acceleration_param
 )
 {
     const int objects_count = system->objects_count;
-    const real *x = system->x;
-    const real *m = system->m;
-    const real G = system->G;
-    const real softening_length = acceleration_param->softening_length;
+    const double *x = system->x;
+    const double *m = system->m;
+    const double G = system->G;
+    const double softening_length = acceleration_param->softening_length;
 
     /* Empty the input array */
     for (int i = 0; i < objects_count; i++)
@@ -145,17 +386,17 @@ IN_FILE int acceleration_pairwise(
     /* Compute the pairwise acceleration */
     for (int i = 0; i < objects_count; i++)
     {
-        const real m_i = m[i];
+        const double m_i = m[i];
         for (int j = i + 1; j < objects_count; j++)
         {
-            real temp_vec[3];
-            real R[3];
+            double temp_vec[3];
+            double R[3];
 
             // Calculate \vec{R} and its norm
             R[0] = x[i * 3 + 0] - x[j * 3 + 0];
             R[1] = x[i * 3 + 1] - x[j * 3 + 1];
             R[2] = x[i * 3 + 2] - x[j * 3 + 2];
-            const real R_norm = sqrt(
+            const double R_norm = sqrt(
                 R[0] * R[0] + 
                 R[1] * R[1] + 
                 R[2] * R[2] +
@@ -163,8 +404,8 @@ IN_FILE int acceleration_pairwise(
             );
 
             // Calculate the acceleration
-            const real temp_value = G / (R_norm * R_norm * R_norm);
-            const real m_j = m[j];
+            const double temp_value = G / (R_norm * R_norm * R_norm);
+            const double m_j = m[j];
             temp_vec[0] = temp_value * R[0];
             temp_vec[1] = temp_value * R[1];
             temp_vec[2] = temp_value * R[2];
@@ -176,21 +417,21 @@ IN_FILE int acceleration_pairwise(
             a[j * 3 + 2] += temp_vec[2] * m_i;
         }
     }
-    
-    return SUCCESS;
+
+    return make_success_error_status();
 }
 
-IN_FILE int acceleration_massless(
-    real *__restrict a,
+IN_FILE ErrorStatus acceleration_massless(
+    double *__restrict a,
     const System *__restrict system,
     const AccelerationParam *__restrict acceleration_param
 )
 {
     const int objects_count = system->objects_count;
-    const real *x = system->x;
-    const real *m = system->m;
-    const real G = system->G;
-    const real softening_length = acceleration_param->softening_length;
+    const double *x = system->x;
+    const double *m = system->m;
+    const double G = system->G;
+    const double softening_length = acceleration_param->softening_length;
 
     /* Empty the input array */
     for (int i = 0; i < objects_count; i++)
@@ -223,7 +464,9 @@ IN_FILE int acceleration_massless(
 
     if (massive_indices == NULL || massless_indices == NULL)
     {
-        goto malloc_error;
+        free(massive_indices);
+        free(massless_indices);
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for massive and massless indices");
     }
 
     for (int i = 0; i < objects_count; i++)
@@ -244,19 +487,19 @@ IN_FILE int acceleration_massless(
     for (int i = 0; i < massive_objects_count; i++)
     {
         const int idx_i = massive_indices[i];
-        const real m_i = m[idx_i];
+        const double m_i = m[idx_i];
         for (int j = i + 1; j < massive_objects_count; j++)
         {
             const int idx_j = massive_indices[j];
-            const real m_j = m[idx_j];
-            real temp_vec[3];
-            real R[3];
+            const double m_j = m[idx_j];
+            double temp_vec[3];
+            double R[3];
 
             // Calculate \vec{R} and its norm
             R[0] = x[idx_i * 3 + 0] - x[idx_j * 3 + 0];
             R[1] = x[idx_i * 3 + 1] - x[idx_j * 3 + 1];
             R[2] = x[idx_i * 3 + 2] - x[idx_j * 3 + 2];
-            const real R_norm = sqrt(
+            const double R_norm = sqrt(
                 R[0] * R[0] + 
                 R[1] * R[1] + 
                 R[2] * R[2] +
@@ -264,7 +507,7 @@ IN_FILE int acceleration_massless(
             );
 
             // Calculate the acceleration
-            real temp_value = G / (R_norm * R_norm * R_norm);
+            double temp_value = G / (R_norm * R_norm * R_norm);
             temp_vec[0] = temp_value * R[0];
             temp_vec[1] = temp_value * R[1];
             temp_vec[2] = temp_value * R[2];
@@ -284,13 +527,13 @@ IN_FILE int acceleration_massless(
         {
             int idx_i = massive_indices[i];
             int idx_j = massless_indices[j];
-            real R[3];
+            double R[3];
 
             // Calculate \vec{R} and its norm
             R[0] = x[idx_i * 3 + 0] - x[idx_j * 3 + 0];
             R[1] = x[idx_i * 3 + 1] - x[idx_j * 3 + 1];
             R[2] = x[idx_i * 3 + 2] - x[idx_j * 3 + 2];
-            real R_norm = sqrt(
+            double R_norm = sqrt(
                 R[0] * R[0] + 
                 R[1] * R[1] + 
                 R[2] * R[2] +
@@ -298,7 +541,7 @@ IN_FILE int acceleration_massless(
             );
 
             // Calculate the acceleration
-            real temp_value = G / (R_norm * R_norm * R_norm);
+            double temp_value = G / (R_norm * R_norm * R_norm);
             a[idx_j * 3 + 0] += temp_value * R[0] * m[i];
             a[idx_j * 3 + 1] += temp_value * R[1] * m[i];
             a[idx_j * 3 + 2] += temp_value * R[2] * m[i];
@@ -308,10 +551,5 @@ IN_FILE int acceleration_massless(
     free(massive_indices);
     free(massless_indices);
 
-    return SUCCESS;
-
-malloc_error:
-    free(massive_indices);
-    free(massless_indices);
-    return ERROR_ACCELERATION_MASSLESS_MEMORY_ALLOC;
+    return make_success_error_status();
 }

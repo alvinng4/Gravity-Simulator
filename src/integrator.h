@@ -1,116 +1,61 @@
 /**
  * \file integrator.h
- * \author Ching Yin Ng
- * \brief Function prototypes for all integrators
+ * \brief Functions for the integrators
+ * 
+ * \author Ching-Yin NG
+ * \date March 2025
  */
 
 #ifndef INTEGRATOR_H
 #define INTEGRATOR_H
 
-#include "gravity_sim.h"
+#include "acceleration.h"
+#include "common.h"
+#include "error.h"
+#include "settings.h"
+#include "system.h"
+
+#define INTEGRATOR_EULER 1
+#define INTEGRATOR_EULER_CROMER 2
+#define INTEGRATOR_RK4 3
+#define INTEGRATOR_LEAPFROG 4
+#define INTEGRATOR_RKF45 5
+#define INTEGRATOR_DOPRI 6
+#define INTEGRATOR_DVERK 7
+#define INTEGRATOR_RKF78 8
+#define INTEGRATOR_IAS15 9
+#define INTEGRATOR_WHFAST 10
 
 /**
- * \brief Euler first-order integrator
+ * \brief Get a new integrator parameter struct
+ * 
+ * \return IntegratorParam
+ */
+IntegratorParam get_new_integrator_param(void);
+
+/**
+ * \brief Launch the simulation with the specified integrator
+ * 
+ * \details This function launches the simulation with the specified integrator.
+ * This function will be called by the main function. User should not
+ * call this function directly as it will bypass the parameter checking.
  * 
  * \param system Pointer to the gravitational system
  * \param integrator_param Pointer to the integrator parameters
  * \param acceleration_param Pointer to the acceleration parameters
- * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
+ * \param output_param Pointer to the output parameters
  * \param simulation_status Pointer to the simulation status
  * \param settings Pointer to the settings
- * \param simulation_param Pointer to the simulation parameters
- * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
+ * \param tf Simulation time
  */
-int euler(
+ErrorStatus integrator_launch_simulation(
     System *system,
     IntegratorParam *integrator_param,
     AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
+    OutputParam *output_param,
     SimulationStatus *simulation_status,
     Settings *settings,
-    SimulationParam *simulation_param
-);
-
-/**
- * \brief Euler-cromer integrator
- * 
- * \param system Pointer to the gravitational system
- * \param integrator_param Pointer to the integrator parameters
- * \param acceleration_param Pointer to the acceleration parameters
- * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
- * \param simulation_status Pointer to the simulation status
- * \param settings Pointer to the settings
- * \param simulation_param Pointer to the simulation parameters
- * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
- */
-int euler_cromer(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
-    SimulationStatus *simulation_status,
-    Settings *settings,
-    SimulationParam *simulation_param
-);
-
-/**
- * \brief Runge-Kutta 4th order integrator (RK4)
- * 
- * \param system Pointer to the gravitational system
- * \param integrator_param Pointer to the integrator parameters
- * \param acceleration_param Pointer to the acceleration parameters
- * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
- * \param simulation_status Pointer to the simulation status
- * \param settings Pointer to the settings
- * \param simulation_param Pointer to the simulation parameters
- * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
- */
-int rk4(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
-    SimulationStatus *simulation_status,
-    Settings *settings,
-    SimulationParam *simulation_param
-);
-
-/**
- * \brief LeapFrog integrator
- * 
- * \param system Pointer to the gravitational system
- * \param integrator_param Pointer to the integrator parameters
- * \param acceleration_param Pointer to the acceleration parameters
- * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
- * \param simulation_status Pointer to the simulation status
- * \param settings Pointer to the settings
- * \param simulation_param Pointer to the simulation parameters
- * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
- */
-int leapfrog(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
-    SimulationStatus *simulation_status,
-    Settings *settings,
-    SimulationParam *simulation_param
+    const double tf
 );
 
 /**
@@ -120,23 +65,20 @@ int leapfrog(
  * \param integrator_param Pointer to the integrator parameters
  * \param acceleration_param Pointer to the acceleration parameters
  * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
  * \param simulation_status Pointer to the simulation status
  * \param settings Pointer to the settings
  * \param simulation_param Pointer to the simulation parameters
  * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
+ * \return ErrorStatus
  */
-int rk_embedded(
+ErrorStatus rk_embedded(
     System *system,
     IntegratorParam *integrator_param,
     AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
+    OutputParam *output_param,
     SimulationStatus *simulation_status,
     Settings *settings,
-    SimulationParam *simulation_param
+    const double tf
 );
 
 /**
@@ -146,23 +88,20 @@ int rk_embedded(
  * \param integrator_param Pointer to the integrator parameters
  * \param acceleration_param Pointer to the acceleration parameters
  * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
  * \param simulation_status Pointer to the simulation status
  * \param settings Pointer to the settings
  * \param simulation_param Pointer to the simulation parameters
  * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
+ * \return ErrorStatus
  */
-int ias15(
+ErrorStatus ias15(
     System *system,
     IntegratorParam *integrator_param,
     AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
+    OutputParam *output_param,
     SimulationStatus *simulation_status,
     Settings *settings,
-    SimulationParam *simulation_param
+    const double tf
 );
 
 /**
@@ -172,23 +111,20 @@ int ias15(
  * \param integrator_param Pointer to the integrator parameters
  * \param acceleration_param Pointer to the acceleration parameters
  * \param storing_param Pointer to the storing parameters
- * \param solutions Pointer to the solutions
  * \param simulation_status Pointer to the simulation status
  * \param settings Pointer to the settings
  * \param simulation_param Pointer to the simulation parameters
  * 
- * \retval SUCCESS If the simulation is successful
- * \retval error code If there is any error
+ * \return ErrorStatus
  */
-int whfast(
+ErrorStatus whfast(
     System *system,
     IntegratorParam *integrator_param,
     AccelerationParam *acceleration_param,
-    StoringParam *storing_param,
-    Solutions *solutions,
+    OutputParam *output_param,
     SimulationStatus *simulation_status,
     Settings *settings,
-    SimulationParam *simulation_param
+    const double tf
 );
 
 #endif
