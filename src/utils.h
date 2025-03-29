@@ -51,7 +51,7 @@ pcg32_random_t init_pcg_rng(void);
  * \param max Maximum value of the range
  * \param rng Pointer to the PCG random number generator
  */
-double randrange(
+double grav_randrange(
     const double min,
     const double max,
     pcg32_random_t *rng
