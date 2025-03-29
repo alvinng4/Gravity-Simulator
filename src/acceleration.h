@@ -77,4 +77,21 @@ ErrorStatus acceleration_barnes_hut(
     const AccelerationParam *__restrict acceleration_param
 );
 
+/**
+ * \brief Benchmark acceleration
+ * 
+ * \param system Pointer to the gravitational system
+ * \param acceleration_params Array of acceleration parameters
+ * \param num_acceleration_params Number of acceleration parameters
+ * \param num_times_acceleration_param Array of number of times to run for each acceleration parameter
+ * 
+ * \return ErrorStatus
+ */
+ErrorStatus benchmark_acceleration(
+    const System *__restrict system,
+    const AccelerationParam *acceleration_params,
+    const int num_acceleration_params,
+    const int *__restrict num_times_acceleration_param    
+);
+
 #endif

@@ -69,4 +69,47 @@ double vec_dot(
     const int vec_length
 );
 
+/**
+ * \brief Calculate the mean of a vector
+ * 
+ * \param vec 1D array of size vec_length
+ * \param vec_length Length of the vector
+ * 
+ * \return Mean of the vector
+ */
+double compute_mean(
+    const double *__restrict vec,
+    const int vec_length
+);
+
+/**
+ * \brief Calculate the standard deviation of a vector
+ * 
+ * \param vec 1D array of size vec_length
+ * \param vec_length Length of the vector
+ * \param ddof Delta degrees of freedom
+ * 
+ * \return Standard deviation of the vector
+ */
+double compute_std(
+    const double *__restrict vec,
+    const int vec_length,
+    const double ddof
+);
+
+/**
+ * \brief Calculate the variance of a vector
+ * 
+ * \param vec 1D array of size vec_length
+ * \param vec_length Length of the vector
+ * \param ddof Delta degrees of freedom
+ * 
+ * \return Variance of the vector
+ */
+double compute_variance(
+    const double *__restrict vec,
+    const int vec_length,
+    const double ddof
+);
+
 #endif
