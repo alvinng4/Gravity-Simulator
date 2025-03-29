@@ -28,7 +28,7 @@ set(SRCS
 add_library(gravity_sim STATIC ${SRCS})
 
 # Use the current source directory as a public include for this target
-target_include_directories(gravity_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(gravity_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/pcg)
 
 # Optionally toggle Debug mode (custom flag)
 option(DEBUG "Debug mode" OFF)
@@ -71,6 +71,10 @@ if (USE_HDF5)
         message(WARNING "HDF5 requested but not found")
     endif()
 endif()
+
+# Add the PCG library as a subdirectory
+add_subdirectory(pcg)
+target_link_libraries(gravity_sim PRIVATE pcg)
 
 # Install rules
 install(TARGETS gravity_sim
