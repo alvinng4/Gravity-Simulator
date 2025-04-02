@@ -1,3 +1,11 @@
+/**
+ * \file system.c
+ * \brief System module for gravity_sim
+ * 
+ * \author Ching-Yin Ng
+ * \date April 2025
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,11 +67,178 @@ void free_system(System *__restrict system)
     free(system->m);
 }
 
+ErrorStatus remove_invalid_particles(System *__restrict system)
+{
+    ErrorStatus error_status;
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    /* Declare variables */
+    const int objects_count = system->objects_count;
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
+    double *__restrict m = system->m;
+    int *__restrict particle_ids = system->particle_ids;
+
+    if (!x || !v || !m || !particle_ids)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System members are NULL");
+    }
+
+    int invalid_count = 0;
+    int buffer_size = 10;
+    int *__restrict invalid_particle_idx = malloc(buffer_size * sizeof(int));
+    if (!invalid_particle_idx)
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for invalid particle index");
+        goto err_memory;
+    }
+
+    for (int i = 0; i < objects_count; i++)
+    {
+        if (
+            isnan(x[i * 3 + 0]) ||
+            isnan(x[i * 3 + 1]) ||        
+            isnan(x[i * 3 + 2]) ||
+            isnan(v[i * 3 + 0]) ||
+            isnan(v[i * 3 + 1]) ||
+            isnan(v[i * 3 + 2]) ||
+            isnan(m[i]) ||
+            isinf(x[i * 3 + 0]) ||
+            isinf(x[i * 3 + 1]) ||
+            isinf(x[i * 3 + 2]) ||
+            isinf(v[i * 3 + 0]) ||
+            isinf(v[i * 3 + 1]) ||
+            isinf(v[i * 3 + 2]) ||
+            isinf(m[i])
+        )
+        {
+            invalid_particle_idx[invalid_count] = i;
+            invalid_count++;
+        }
+
+        if (invalid_count >= buffer_size)
+        {
+            buffer_size *= 2;
+            int *__restrict new_invalid_particle_idx = realloc(invalid_particle_idx, buffer_size * sizeof(int));
+            if (!new_invalid_particle_idx)
+            {
+                error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for invalid particle index");
+                goto err_memory;
+            }
+            invalid_particle_idx = new_invalid_particle_idx;
+        }
+    }
+
+    if (invalid_count != 0)
+    {
+        error_status = WRAP_TRACEBACK(remove_particles(
+            system,
+            invalid_particle_idx,
+            invalid_count
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_remove_particles;
+        }
+    }
+
+    free(invalid_particle_idx);
+
+    return make_success_error_status();
+
+err_remove_particles:
+err_memory:
+    free(invalid_particle_idx);
+    return error_status;
+}
+
+ErrorStatus remove_particles(
+    System *__restrict system,
+    const int *__restrict remove_idx_list,
+    const int num_to_remove
+)
+{
+    const int objects_count = system->objects_count;
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
+    double *__restrict m = system->m;
+    int *__restrict particle_ids = system->particle_ids;
+
+    for (int i = 0, last_shifted_idx = remove_idx_list[i]; i < num_to_remove; i++)
+    {
+        const int idx = remove_idx_list[i];
+        int idx_next;
+        if (i == num_to_remove - 1)
+        {
+            idx_next = objects_count;
+        }
+        else
+        {
+            idx_next = remove_idx_list[i + 1];
+        }
+
+        for (int j = 0; j < idx_next - idx - 1; j++)    
+        { 
+            particle_ids[last_shifted_idx] = particle_ids[last_shifted_idx + i + 1];
+            x[last_shifted_idx * 3 + 0] = x[(last_shifted_idx + i + 1) * 3 + 0];
+            x[last_shifted_idx * 3 + 1] = x[(last_shifted_idx + i + 1) * 3 + 1];
+            x[last_shifted_idx * 3 + 2] = x[(last_shifted_idx + i + 1) * 3 + 2];
+            v[last_shifted_idx * 3 + 0] = v[(last_shifted_idx + i + 1) * 3 + 2];
+            v[last_shifted_idx * 3 + 1] = v[(last_shifted_idx + i + 1) * 3 + 2];
+            v[last_shifted_idx * 3 + 2] = v[(last_shifted_idx + i + 1) * 3 + 2];
+            m[last_shifted_idx] = m[last_shifted_idx + i + 1];
+
+            last_shifted_idx++;
+        }
+    }
+
+    system->objects_count -= num_to_remove;
+
+    /* Realloc */
+    size_t new_size = (size_t) system->objects_count;
+    int *new_particle_ids = realloc(system->particle_ids, new_size * sizeof(int));
+    if (!new_particle_ids)
+    {
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for particle ids");
+    }
+    system->particle_ids = new_particle_ids;
+
+    double *new_x = realloc(system->x, new_size * 3 * sizeof(double));
+    if (!new_x)
+    {
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for x");
+    }
+    system->x = new_x;
+
+    double *new_v = realloc(system->v, new_size * 3 * sizeof(double));
+    if (!new_v)
+    {
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for v");
+    }
+    system->v = new_v;
+
+    double *new_m = realloc(system->m, new_size * sizeof(double));
+    if (!new_m)
+    {
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for m");
+    }
+    system->m = new_m;
+
+    return make_success_error_status();
+}
+
 ErrorStatus initialize_built_in_system(
     System *__restrict system,
     const char *__restrict system_name
 )
 {
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
     if (!system_name)
     {
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System name is NULL");
