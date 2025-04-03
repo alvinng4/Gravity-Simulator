@@ -59,6 +59,121 @@ ErrorStatus get_initialized_system(
     return make_success_error_status();
 }
 
+ErrorStatus finalize_system(System *__restrict system)
+{
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    if (system->num_particles <= 0)
+    {
+        const int error_msg_len = (
+            strlen("Number of particles must be positive. Got: ")
+            + snprintf(NULL, 0, "%d", system->num_particles)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Number of particles must be positive and failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Number of particles must be positive. Got: %d",
+            system->num_particles
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Number of particles must be positive and failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Number of particles must be positive and error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+    if (!system->particle_ids)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array particle_ids is NULL");
+    }
+    if (!system->x)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array x is NULL");
+    }
+    if (!system->v)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array v is NULL");
+    }
+    if (!system->m)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array m is NULL");
+    }
+    if (system->G <= 0.0)
+    {
+        const int error_msg_len = (
+            strlen("Gravitational constant G must be positive. Got: ")
+            + snprintf(NULL, 0, "%g", system->G)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Gravitational constant G must be positive and failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Gravitational constant G must be positive. Got: %g",
+            system->G
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Gravitational constant G must be positive and failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Gravitational constant G must be positive and error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    return make_success_error_status();
+}
+
 void free_system(System *__restrict system)
 {
     free(system->particle_ids);

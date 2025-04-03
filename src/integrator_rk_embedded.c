@@ -39,6 +39,7 @@ IN_FILE ErrorStatus get_rk_embedded_order(
     const int method
 )
 {
+    *order = 0;
     switch (method)
     {
         case INTEGRATOR_RKF45:
@@ -94,6 +95,9 @@ IN_FILE ErrorStatus rk_embedded_butcher_tableaus(
     *   65) Verner's method 6(5), DVERK
     */
 
+    *power = -1;
+    *power_test = -1;
+    *len_weights = -1;
     *coeff = NULL;
     *weights = NULL;
     *weights_test = NULL;
@@ -350,6 +354,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
 )
 {
     ErrorStatus error_status;
+    *initial_dt = -1.0;
 
     const int num_particles = system->num_particles;
     double *__restrict x = system->x;

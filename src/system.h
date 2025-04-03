@@ -42,6 +42,19 @@ ErrorStatus get_initialized_system(
 );
 
 /**
+ * \brief Finalize the system by checking the system members
+ * 
+ * \param[in, out] system Pointer to the system to be finalized
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_POINTER_ERROR if system or its members are NULL
+ * \exception GRAV_VALUE_ERROR if the number of particles is less than 1
+ * \exception GRAV_VALUE_ERROR if the gravitational constant is not positive
+ */
+ErrorStatus finalize_system(System *__restrict system);
+
+/**
  * \brief Free the memory allocated for the system
  * 
  * \param[in] system Pointer to the system to be freed

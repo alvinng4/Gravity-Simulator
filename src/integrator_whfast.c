@@ -254,7 +254,7 @@ WIN32DLL_API ErrorStatus whfast(
         eta[i] = eta[i - 1] + m[i];
     }
     cartesian_to_jacobi(jacobi_x, jacobi_v, system, eta);
-    error_status = whfast_acceleration(a, system, jacobi_x, eta, acceleration_param);
+    error_status = WRAP_TRACEBACK(whfast_acceleration(a, system, jacobi_x, eta, acceleration_param));
     if (error_status.return_code != GRAV_SUCCESS)
     {
         goto err_acceleration;
@@ -281,21 +281,21 @@ WIN32DLL_API ErrorStatus whfast(
         }
         simulation_status->dt = dt;
 
-        error_status = whfast_drift(
+        error_status = WRAP_TRACEBACK(whfast_drift(
             jacobi_x,
             jacobi_v,
             system,
             eta,
             dt,
             verbose
-        );
+        ));
         if (error_status.return_code != GRAV_SUCCESS)
         {
             goto err_drift;
         }
 
         jacobi_to_cartesian(system, jacobi_x, jacobi_v, eta);
-        error_status = whfast_acceleration(a, system, jacobi_x, eta, acceleration_param);
+        error_status = WRAP_TRACEBACK(whfast_acceleration(a, system, jacobi_x, eta, acceleration_param));
         if (error_status.return_code != GRAV_SUCCESS)
         {
             goto err_acceleration;

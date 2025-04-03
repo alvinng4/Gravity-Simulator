@@ -34,6 +34,18 @@
 IntegratorParam get_new_integrator_param(void);
 
 /**
+ * \brief Finalize the integrator parameters
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_POINTER_ERROR If integrator_param is NULL
+ * \exception GRAV_VALUE_ERROR If integrator value is invalid
+ * \exception GRAV_VALUE_ERROR If integrator is fixed step size integrators and dt is not positive
+ * \exception GRAV_VALUE_ERROR If integrator is adaptive step size integrators and tolerance is not positive
+ */
+ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_param);
+
+/**
  * \brief Launch the simulation with the specified integrator
  * 
  * \details This function launches the simulation with the specified integrator.

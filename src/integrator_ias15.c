@@ -705,6 +705,7 @@ IN_FILE ErrorStatus ias15_initial_dt(
 )
 {
     ErrorStatus error_status;
+    *initial_dt = -1.0;
 
     const int num_particles = system->num_particles;
     double *__restrict x = system->x;
