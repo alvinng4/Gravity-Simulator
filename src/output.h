@@ -37,10 +37,14 @@ OutputParam get_new_output_param(void);
  * \brief Finalize and check the output parameters.
  * 
  * \param output_param Pointer to the output parameters.
+ * \param[in] settings Pointer to the settings.
  * 
  * \return ErrorStatus
  */
-ErrorStatus finalize_output_param(OutputParam *__restrict output_param);
+ErrorStatus finalize_output_param(
+    OutputParam *__restrict output_param,
+    const Settings *__restrict settings
+);
 
 /**
  * \brief Output a snapshot of the simulation.

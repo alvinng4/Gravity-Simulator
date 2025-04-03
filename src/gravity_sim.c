@@ -41,7 +41,7 @@ ErrorStatus launch_simulation(
     }
 
     /* Check output parameters */
-    error_status = WRAP_TRACEBACK(finalize_output_param(output_param));
+    error_status = WRAP_TRACEBACK(finalize_output_param(output_param, settings));
     if (error_status.return_code != GRAV_SUCCESS)
     {
         return error_status;

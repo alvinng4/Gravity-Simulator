@@ -146,7 +146,10 @@ IN_FILE ErrorStatus check_output_method(const int output_method)
     return make_success_error_status();
 }
 
-ErrorStatus finalize_output_param(OutputParam *__restrict output_param)
+ErrorStatus finalize_output_param(
+    OutputParam *__restrict output_param,
+    const Settings *__restrict settings
+)
 {
     ErrorStatus error_status;
 
@@ -263,7 +266,10 @@ ErrorStatus finalize_output_param(OutputParam *__restrict output_param)
             );
             return WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_message);
         }
-        else if (GetFileAttributes(output_param->output_dir) & FILE_ATTRIBUTE_DIRECTORY)
+        else if (
+            (GetFileAttributes(output_param->output_dir) & FILE_ATTRIBUTE_DIRECTORY)
+            && (settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO)
+        )
         {
             int buffer_size = (
                 strlen("Directory for storing snapshots already exists. The files will be overwritten. Directory: \"\".")
@@ -317,7 +323,10 @@ ErrorStatus finalize_output_param(OutputParam *__restrict output_param)
             return WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_message);
         }
 
-        else if (st.st_mode & S_IFDIR)
+        else if (
+            (st.st_mode & S_IFDIR)
+            && (settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO)
+        )
         {
             int buffer_size = (
                 strlen("Directory for storing snapshots already exists. The files will be overwritten. Directory: \"\".")
