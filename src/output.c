@@ -53,6 +53,7 @@ IN_FILE ErrorStatus output_snapshot_csv(
     const Settings *settings
 );
 
+#ifdef USE_HDF5
 /**
  * \brief Output a snapshot of the simulation in HDF5 format.
  * 
@@ -73,6 +74,7 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
     const SimulationStatus *simulation_status,
     const Settings *settings
 );
+#endif
 
 OutputParam get_new_output_param(void)
 {
@@ -359,6 +361,7 @@ ErrorStatus output_snapshot(
 )
 {
     ErrorStatus error_status = make_success_error_status();
+
     switch (output_param->method)
     {
         case OUTPUT_METHOD_DISABLED:
@@ -374,7 +377,7 @@ ErrorStatus output_snapshot(
             ));
             break;
         case OUTPUT_METHOD_HDF5:
-        #ifdef USE_HDF5
+#ifdef USE_HDF5
             error_status = WRAP_TRACEBACK(output_snapshot_hdf5(
                 output_param,
                 system,
@@ -384,10 +387,10 @@ ErrorStatus output_snapshot(
                 settings
             ));
             break;
-        #else
+#else
             error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "HDF5 output method is not available");
             break;
-        #endif
+#endif
         default:
             error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Unknown output method");
             break;
@@ -403,12 +406,12 @@ ErrorStatus output_snapshot(
 }
 
 IN_FILE ErrorStatus output_snapshot_csv(
-    OutputParam *output_param,
-    const System *system,
-    const IntegratorParam *integrator_param,
-    const AccelerationParam *acceleration_param,
-    const SimulationStatus *simulation_status,
-    const Settings *settings
+    OutputParam *__restrict output_param,
+    const System *__restrict system,
+    const IntegratorParam *__restrict integrator_param,
+    const AccelerationParam *__restrict acceleration_param,
+    const SimulationStatus *__restrict simulation_status,
+    const Settings *__restrict settings
 )
 {
     ErrorStatus error_status;
@@ -427,7 +430,7 @@ IN_FILE ErrorStatus output_snapshot_csv(
     /* Make file path string */
     const int file_path_length = (
         strlen(output_param->output_dir)
-        + snprintf(NULL, 0, "snapshot_%d.csv", output_param->output_count_)
+        + snprintf(NULL, 0, "snapshot_%05d.csv", output_param->output_count_)
         + 1  // Null terminator
     );
     char *__restrict file_path = malloc(file_path_length * sizeof(char));
@@ -436,7 +439,7 @@ IN_FILE ErrorStatus output_snapshot_csv(
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for file path string.");
         goto err_file_path_memory_alloc;
     }
-    int actual_file_path_length = snprintf(file_path, file_path_length, "%ssnapshot_%d.csv", output_param->output_dir, output_param->output_count_);
+    int actual_file_path_length = snprintf(file_path, file_path_length, "%ssnapshot_%05d.csv", output_param->output_dir, output_param->output_count_);
 
     if (actual_file_path_length < 0)
     {
@@ -475,11 +478,13 @@ IN_FILE ErrorStatus output_snapshot_csv(
         if (actual_error_msg_len < 0)
         {
             error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to open file for storing snapshots and failed to generate error message.");
+            free(error_msg);
             goto err_open_file;
         }
         else if (actual_error_msg_len >= error_msg_len)
         {
             error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to open file for storing snapshots and error message is truncated.");
+            free(error_msg);
             goto err_open_file;
         }
 
@@ -506,7 +511,7 @@ IN_FILE ErrorStatus output_snapshot_csv(
         // masses
         if (output_param->mass_output_dtype == OUTPUT_DTYPE_FLOAT)
         {
-            fprintf(file, "%.8g,", (float) m[i]);
+            fprintf(file, "%.8g,", m[i]);
         }
         else
         {
@@ -516,9 +521,9 @@ IN_FILE ErrorStatus output_snapshot_csv(
         // coordinates
         if (output_param->coordinate_output_dtype == OUTPUT_DTYPE_FLOAT)
         {
-            fprintf(file, "%.8g,", (float) x[3 * i]);
-            fprintf(file, "%.8g,", (float) x[3 * i + 1]);
-            fprintf(file, "%.8g,", (float) x[3 * i + 2]);
+            fprintf(file, "%.8g,", x[3 * i]);
+            fprintf(file, "%.8g,", x[3 * i + 1]);
+            fprintf(file, "%.8g,", x[3 * i + 2]);
         }
         else
         {
@@ -530,9 +535,9 @@ IN_FILE ErrorStatus output_snapshot_csv(
         // velocities
         if (output_param->velocity_output_dtype == OUTPUT_DTYPE_FLOAT)
         {
-            fprintf(file, "%.8g,", (float) v[3 * i]);
-            fprintf(file, "%.8g,", (float) v[3 * i + 1]);
-            fprintf(file, "%.8g\n", (float) v[3 * i + 2]);
+            fprintf(file, "%.8g,", v[3 * i]);
+            fprintf(file, "%.8g,", v[3 * i + 1]);
+            fprintf(file, "%.8g\n", v[3 * i + 2]);
         }
         else
         {
@@ -555,3 +560,247 @@ err_output_dir_null:
     return error_status;
 }
 
+#ifdef USE_HDF5
+IN_FILE ErrorStatus output_snapshot_hdf5(
+    OutputParam *__restrict output_param,
+    const System *__restrict system,
+    const IntegratorParam *__restrict integrator_param,
+    const AccelerationParam *__restrict acceleration_param,
+    const SimulationStatus *__restrict simulation_status,
+    const Settings *__restrict settings
+)
+{
+    ErrorStatus error_status;
+
+    (void) integrator_param;
+    (void) acceleration_param;
+    (void) settings;
+
+    if (!output_param->output_dir)
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Output directory path is NULL.");
+        goto err_output_dir_null;
+    }
+
+    /* Declare variables */
+    const int objects_count = system->objects_count;
+    const int *__restrict particle_ids = system->particle_ids;
+    const double *__restrict x = system->x;
+    const double *__restrict v = system->v;
+    const double *__restrict m = system->m;
+
+    /* Make file path string */
+    const int file_path_length = (
+        strlen(output_param->output_dir)
+        + snprintf(NULL, 0, "snapshot_%05d.hdf5", output_param->output_count_)
+        + 1  // Null terminator
+    );
+    char *__restrict file_path = malloc(file_path_length * sizeof(char));
+    if (!file_path)
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for file path string.");
+        goto err_file_path_memory_alloc;
+    }
+    int actual_file_path_length = snprintf(file_path, file_path_length, "%ssnapshot_%05d.hdf5", output_param->output_dir, output_param->output_count_);
+
+    if (actual_file_path_length < 0)
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Failed to get storing file path string");
+        goto err_write_file_path_string;
+    }
+    else if (actual_file_path_length >= file_path_length)
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Storing file path string is truncated.");
+        goto err_write_file_path_string;
+    }
+
+    /* Create HDF5 file */
+    hid_t file = H5Fcreate(file_path, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    if (!file)
+    {
+        const int error_msg_len = (
+            strlen("Failed to create HDF5 snapshot file: \"\".")
+            + strlen(file_path)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to create HDF5 snapshot file and failed to allocate memory for error message.");
+            goto err_create_hdf5_file;
+        }
+
+        int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Failed to create HDF5 snapshot file: \"%s\".",
+            file_path
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to create HDF5 snapshot file and failed to generate error message.");
+            free(error_msg);
+            goto err_create_hdf5_file;
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to create HDF5 snapshot file and error message is truncated.");
+            free(error_msg);
+            goto err_create_hdf5_file;
+        }
+
+        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_msg);
+        free(error_msg);
+        goto err_create_hdf5_file;
+    }
+
+    /* Create group */
+    hid_t header_group = H5Gcreate(file, "/Header", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t part_type_0_group = H5Gcreate(file, "/PartType0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    if (header_group == H5I_INVALID_HID || part_type_0_group == H5I_INVALID_HID)
+    {
+        H5Gclose(header_group);
+        H5Gclose(part_type_0_group);
+        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to create HDF5 groups.");
+        goto err_create_hdf5_group;
+    }
+
+    /* Create dataspaces */
+    hsize_t dims_1d_1[1] = {1};
+    hsize_t dims_1d_objects_count[1] = {objects_count};
+    hsize_t dims_3d_objects_count[2] = {objects_count, 3};
+    hid_t dataspace_1d_1 = H5Screate_simple(1, dims_1d_1, NULL);
+    hid_t dataspace_1d_objects_count = H5Screate_simple(1, dims_1d_objects_count, NULL);
+    hid_t dataspace_3d_objects_count = H5Screate_simple(2, dims_3d_objects_count, NULL);
+    if (
+        dataspace_1d_1 == H5I_INVALID_HID
+        || dataspace_1d_objects_count == H5I_INVALID_HID
+        || dataspace_3d_objects_count == H5I_INVALID_HID
+    )
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to create HDF5 dataspace.");
+        goto err_create_hdf5_dataspace;
+    }
+    
+    /* Create attributes for header */
+    hid_t header_attr_num_files_per_snapshot = H5Acreate(header_group, "NumFilesPerSnapshot", H5T_NATIVE_INT, dataspace_1d_1, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t header_attr_num_part_this_file = H5Acreate(header_group, "NumPart_ThisFile", H5T_NATIVE_INT, dataspace_1d_1, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t header_attr_num_part_total = H5Acreate(header_group, "NumPart_Total", H5T_NATIVE_INT, dataspace_1d_1, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t header_attr_time = H5Acreate(header_group, "Time", H5T_NATIVE_DOUBLE, dataspace_1d_1, H5P_DEFAULT, H5P_DEFAULT);
+    if (
+        header_attr_num_files_per_snapshot == H5I_INVALID_HID
+        || header_attr_num_part_this_file == H5I_INVALID_HID
+        || header_attr_num_part_total == H5I_INVALID_HID
+        || header_attr_time == H5I_INVALID_HID
+    )
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to create HDF5 attribute for header.");
+        goto err_create_hdf5_header_attr;
+    }
+
+    /* Create datasets for PartType0 */
+    hid_t part_type_0_dataset_part_ids = H5Dcreate(part_type_0_group, "ParticleIDs", H5T_NATIVE_INT, dataspace_1d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t part_type_0_dataset_masses;
+    hid_t part_type_0_dataset_coordinates;
+    hid_t part_type_0_dataset_velocities;
+    
+    if (output_param->mass_output_dtype == OUTPUT_DTYPE_FLOAT)
+    {
+        part_type_0_dataset_masses = H5Dcreate(part_type_0_group, "Masses", H5T_NATIVE_FLOAT, dataspace_1d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+    else
+    {
+        part_type_0_dataset_masses = H5Dcreate(part_type_0_group, "Masses", H5T_NATIVE_DOUBLE, dataspace_1d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+
+    if (output_param->coordinate_output_dtype == OUTPUT_DTYPE_FLOAT)
+    {
+        part_type_0_dataset_coordinates = H5Dcreate(part_type_0_group, "Coordinates", H5T_NATIVE_FLOAT, dataspace_3d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+    else
+    {
+        part_type_0_dataset_coordinates = H5Dcreate(part_type_0_group, "Coordinates", H5T_NATIVE_DOUBLE, dataspace_3d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+
+    if (output_param->velocity_output_dtype == OUTPUT_DTYPE_FLOAT)
+    {
+        part_type_0_dataset_velocities = H5Dcreate(part_type_0_group, "Velocities", H5T_NATIVE_FLOAT, dataspace_3d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+    else
+    {
+        part_type_0_dataset_velocities = H5Dcreate(part_type_0_group, "Velocities", H5T_NATIVE_DOUBLE, dataspace_3d_objects_count, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    }
+
+    if (
+        part_type_0_dataset_part_ids == H5I_INVALID_HID
+        || part_type_0_dataset_masses == H5I_INVALID_HID
+        || part_type_0_dataset_coordinates == H5I_INVALID_HID
+        || part_type_0_dataset_velocities == H5I_INVALID_HID
+    )
+    {
+        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to create HDF5 datasets.");
+        goto err_create_hdf5_datasets;
+    }
+    
+    /* Write attributes for header */
+    const int num_files_per_snapshot = 1;
+    H5Awrite(header_attr_num_files_per_snapshot, H5T_NATIVE_INT, &num_files_per_snapshot);
+    H5Awrite(header_attr_num_part_this_file, H5T_NATIVE_INT, &objects_count);
+    H5Awrite(header_attr_num_part_total, H5T_NATIVE_INT, &objects_count);
+    H5Awrite(header_attr_time, H5T_NATIVE_DOUBLE, &simulation_status->t);
+
+    /* Write data to HDF5 dataset */
+    H5Dwrite(part_type_0_dataset_part_ids, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, particle_ids);
+    H5Dwrite(part_type_0_dataset_masses, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, m);
+    H5Dwrite(part_type_0_dataset_coordinates, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, x);
+    H5Dwrite(part_type_0_dataset_velocities, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, v);
+
+    /* Close HDF5 objects */
+    H5Dclose(part_type_0_dataset_part_ids);
+    H5Dclose(part_type_0_dataset_masses);
+    H5Dclose(part_type_0_dataset_coordinates);
+    H5Dclose(part_type_0_dataset_velocities);
+
+    H5Aclose(header_attr_num_files_per_snapshot);
+    H5Aclose(header_attr_num_part_this_file);
+    H5Aclose(header_attr_num_part_total);
+    H5Aclose(header_attr_time);
+
+    H5Sclose(dataspace_1d_1);
+    H5Sclose(dataspace_1d_objects_count);
+    H5Sclose(dataspace_3d_objects_count);
+
+    H5Gclose(header_group);
+    H5Gclose(part_type_0_group);
+
+    H5Fclose(file);
+
+    return make_success_error_status();
+
+    H5Dclose(part_type_0_dataset_part_ids);
+    H5Dclose(part_type_0_dataset_masses);
+    H5Dclose(part_type_0_dataset_coordinates);
+    H5Dclose(part_type_0_dataset_velocities);
+err_create_hdf5_datasets:
+    H5Aclose(header_attr_num_files_per_snapshot);
+    H5Aclose(header_attr_num_part_this_file);
+    H5Aclose(header_attr_num_part_total);
+    H5Aclose(header_attr_time);
+err_create_hdf5_header_attr:
+    H5Sclose(dataspace_1d_1);
+    H5Sclose(dataspace_1d_objects_count);
+    H5Sclose(dataspace_3d_objects_count);
+err_create_hdf5_dataspace:
+    H5Gclose(header_group);
+    H5Gclose(part_type_0_group);
+err_create_hdf5_group:
+    H5Fclose(file);
+err_create_hdf5_file:
+err_write_file_path_string:
+err_file_path_memory_alloc:
+    free(file_path);
+err_output_dir_null:
+    return error_status;
+}
+#endif
