@@ -6,11 +6,14 @@
 #define GRAV_VERBOSITY_IGNORE_ALL 0
 #define GRAV_VERBOSITY_IGNORE_INFO 1
 #define GRAV_VERBOSITY_NORMAL 2
+#define GRAV_VERBOSITY_VERBOSE 3
 
 typedef struct Settings
 {
     int verbose;
     bool enable_progress_bar;
+    bool remove_invalid_particles;
+    bool silence_remove_invalid_particles;
     bool is_exit;
 } Settings;
 

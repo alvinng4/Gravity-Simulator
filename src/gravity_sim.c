@@ -88,8 +88,15 @@ ErrorStatus launch_simulation(
             );
         }
 
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
         free(error_msg);
+        return error_status;
+    }
+
+    /* Remove invalid particles */
+    error_status = WRAP_TRACEBACK(check_and_remove_invalid_particles(system, settings));
+    if (error_status.return_code != GRAV_SUCCESS)
+    {
         return error_status;
     }
 

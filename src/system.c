@@ -14,6 +14,7 @@
 #include "common.h"
 #include "error.h"
 #include "system.h"
+#include "settings.h"
 
 
 System get_new_system(void)
@@ -182,7 +183,70 @@ void free_system(System *__restrict system)
     free(system->m);
 }
 
-ErrorStatus remove_invalid_particles(System *__restrict system)
+ErrorStatus check_invalid_idx_double(
+    bool *__restrict has_invalid_idx,
+    int **invalid_idx_array,
+    const double *__restrict array,
+    const int arr_size
+)
+{
+    if (!array)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Array is NULL");
+    }
+    if (!has_invalid_idx)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "has_invalid_idx is NULL");
+    }
+
+    int invalid_count = 0;
+    int buffer_size = 10;
+    int *__restrict invalid_particle_idx = malloc(buffer_size * sizeof(int));
+    if (!invalid_particle_idx)
+    {
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for invalid particle index");
+    }
+
+    for (int i = 0; i < arr_size; i++)
+    {
+        if (isnan(array[i]) || isinf(array[i]))
+        {
+            invalid_particle_idx[invalid_count] = i;
+            invalid_count++;
+        }
+
+        if (invalid_count >= buffer_size)
+        {
+            buffer_size *= 2;
+            int *__restrict new_invalid_particle_idx = realloc(invalid_particle_idx, buffer_size * sizeof(int));
+            if (!new_invalid_particle_idx)
+            {
+                free(invalid_particle_idx);
+                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for invalid particle index");
+            }
+            invalid_particle_idx = new_invalid_particle_idx;
+        }
+    }
+
+    if (invalid_count == 0)
+    {
+        free(invalid_particle_idx);
+        *has_invalid_idx = false;
+        return make_success_error_status();
+    }
+    else
+    {
+        *has_invalid_idx = true;
+        *invalid_idx_array = invalid_particle_idx;
+    }
+
+    return make_success_error_status();
+}
+
+ErrorStatus check_and_remove_invalid_particles(
+    System *__restrict system,
+    const Settings *__restrict settings
+)
 {
     ErrorStatus error_status;
     if (!system)
@@ -249,10 +313,11 @@ ErrorStatus remove_invalid_particles(System *__restrict system)
 
     if (invalid_count != 0)
     {
-        error_status = WRAP_TRACEBACK(remove_particles(
+        error_status = WRAP_TRACEBACK(remove_invalid_particles(
             system,
             invalid_particle_idx,
-            invalid_count
+            invalid_count,
+            settings
         ));
         if (error_status.return_code != GRAV_SUCCESS)
         {
@@ -270,17 +335,129 @@ err_memory:
     return error_status;
 }
 
+ErrorStatus remove_invalid_particles(
+    System *__restrict system,
+    const int *__restrict remove_idx_list,
+    const int num_to_remove,
+    const Settings *__restrict settings
+)
+{
+    if (num_to_remove == 0)
+    {
+        return make_success_error_status();
+    }
+
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+    if (!remove_idx_list)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Remove index list is NULL");
+    }
+    if (!settings)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Settings is NULL");
+    }
+
+    if (num_to_remove < 0)
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Number of particles to remove must be positive");
+    }
+
+    if (
+        settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO
+        && !settings->silence_remove_invalid_particles
+    )
+    {
+        int warning_msg_len = (
+            strlen("Removing %d invalid particles. Particle ids: ")
+            + snprintf(NULL, 0, "%d", num_to_remove)
+            + snprintf(NULL, 0, "%d", remove_idx_list[0])
+            + 1  // Null terminator
+        );
+        for (int i = 1; i < num_to_remove; i++)
+        {
+            warning_msg_len += snprintf(NULL, 0, ", %d", remove_idx_list[i]);
+        }
+
+        char *warning_msg = malloc(warning_msg_len * sizeof(char));
+        if (!warning_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Failed to allocate memory for warning message"
+            );
+        }
+
+        int actual_warning_msg_len = snprintf(
+            warning_msg,
+            warning_msg_len,
+            "Removing %d invalid particles. Particle ids: %d",
+            num_to_remove,
+            remove_idx_list[0]
+        );
+
+        /* Stack warning message */
+        for (int i = 1; i < num_to_remove; i++)
+        {
+            actual_warning_msg_len = snprintf(
+                warning_msg + strlen(warning_msg),
+                warning_msg_len - strlen(warning_msg),
+                ", %d",
+                remove_idx_list[i]
+            );
+        }
+
+        if (actual_warning_msg_len < 0)
+        {
+            free(warning_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Removing invalid particles. Failed to generate warning message"
+            );
+        }
+        else if (actual_warning_msg_len >= warning_msg_len)
+        {
+            free(warning_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Removing invalid particles. Warning message is truncated"
+            );
+        }
+
+        WRAP_RAISE_WARNING(warning_msg);
+        free(warning_msg);
+    }
+
+    return WRAP_TRACEBACK(remove_particles(
+        system,
+        remove_idx_list,
+        num_to_remove
+    ));
+}
+
 ErrorStatus remove_particles(
     System *__restrict system,
     const int *__restrict remove_idx_list,
     const int num_to_remove
 )
 {
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
     const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
     double *__restrict m = system->m;
     int *__restrict particle_ids = system->particle_ids;
+
+    if (!x || !v || !m || !particle_ids)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System members are NULL");
+    }
 
     for (int i = 0, last_shifted_idx = remove_idx_list[i]; i < num_to_remove; i++)
     {
@@ -297,14 +474,15 @@ ErrorStatus remove_particles(
 
         for (int j = 0; j < idx_next - idx - 1; j++)    
         { 
-            particle_ids[last_shifted_idx] = particle_ids[last_shifted_idx + i + 1];
-            x[last_shifted_idx * 3 + 0] = x[(last_shifted_idx + i + 1) * 3 + 0];
-            x[last_shifted_idx * 3 + 1] = x[(last_shifted_idx + i + 1) * 3 + 1];
-            x[last_shifted_idx * 3 + 2] = x[(last_shifted_idx + i + 1) * 3 + 2];
-            v[last_shifted_idx * 3 + 0] = v[(last_shifted_idx + i + 1) * 3 + 2];
-            v[last_shifted_idx * 3 + 1] = v[(last_shifted_idx + i + 1) * 3 + 2];
-            v[last_shifted_idx * 3 + 2] = v[(last_shifted_idx + i + 1) * 3 + 2];
-            m[last_shifted_idx] = m[last_shifted_idx + i + 1];
+            const int from_idx = last_shifted_idx + i + 1;
+            particle_ids[last_shifted_idx] = particle_ids[from_idx];
+            x[last_shifted_idx * 3 + 0] = x[from_idx * 3 + 0];
+            x[last_shifted_idx * 3 + 1] = x[from_idx * 3 + 1];
+            x[last_shifted_idx * 3 + 2] = x[from_idx * 3 + 2];
+            v[last_shifted_idx * 3 + 0] = v[from_idx * 3 + 0];
+            v[last_shifted_idx * 3 + 1] = v[from_idx * 3 + 1];
+            v[last_shifted_idx * 3 + 2] = v[from_idx * 3 + 2];
+            m[last_shifted_idx] = m[from_idx];
 
             last_shifted_idx++;
         }

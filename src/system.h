@@ -10,6 +10,7 @@
 #define SYSTEM_H
 
 #include "error.h"
+#include "settings.h"
 
 typedef struct System
 {
@@ -62,9 +63,25 @@ ErrorStatus finalize_system(System *__restrict system);
 void free_system(System *__restrict system);
 
 /**
- * \brief Remove invalid particles from the system
+ * \brief Check for invalid indices in a double array
+ * 
+ * \param[out] has_invalid_idx Pointer to a boolean variable indicating if there are invalid indices
+ * \param[out] invalid_idx_array Pointer to an array of invalid indices
+ * \param[in] array Pointer to the double array to be checked
+ * \param[in] arr_size Size of the array
+ */
+ErrorStatus check_invalid_idx_double(
+    bool *__restrict has_invalid_idx,
+    int **invalid_idx_array,
+    const double *__restrict array,
+    const int arr_size
+);
+
+/**
+ * \brief Check and remove invalid particles from the system
  * 
  * \param[in, out] system Pointer to the system
+ * \param[in] settings Pointer to the settings
  * 
  * \return ErrorStatus
  * 
@@ -72,7 +89,27 @@ void free_system(System *__restrict system);
  * \exception GRAV_POINTER_ERROR if system or its members are NULL
  * \exception Other exceptions if failed to remove particles
  */
-ErrorStatus remove_invalid_particles(System *__restrict system);
+ErrorStatus check_and_remove_invalid_particles(
+    System *__restrict system,
+    const Settings *__restrict settings
+);
+
+/**
+ * \brief Remove invalid particles from the system
+ * 
+ * \param[in, out] system Pointer to the system
+ * \param[in] remove_idx_list List of indices to be removed
+ * \param[in] num_to_remove Number of particles to be removed
+ * \param[in] settings Pointer to the settings
+ * 
+ * \return ErrorStatus
+ */
+ErrorStatus remove_invalid_particles(
+    System *__restrict system,
+    const int *__restrict remove_idx_list,
+    const int num_to_remove,
+    const Settings *__restrict settings
+);
 
 /**
  * \brief Remove a list of particles from the system
