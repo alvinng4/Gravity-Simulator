@@ -372,14 +372,14 @@ IN_FILE ErrorStatus acceleration_pairwise(
     const AccelerationParam *__restrict acceleration_param
 )
 {
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *x = system->x;
     const double *m = system->m;
     const double G = system->G;
     const double softening_length = acceleration_param->softening_length;
 
     /* Empty the input array */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         a[i * 3 + 0] = 0.0;
         a[i * 3 + 1] = 0.0;
@@ -387,10 +387,10 @@ IN_FILE ErrorStatus acceleration_pairwise(
     }
 
     /* Compute the pairwise acceleration */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         const double m_i = m[i];
-        for (int j = i + 1; j < objects_count; j++)
+        for (int j = i + 1; j < num_particles; j++)
         {
             double temp_vec[3];
             double R[3];
@@ -430,24 +430,24 @@ IN_FILE ErrorStatus acceleration_massless(
     const AccelerationParam *__restrict acceleration_param
 )
 {
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *x = system->x;
     const double *m = system->m;
     const double G = system->G;
     const double softening_length = acceleration_param->softening_length;
 
     /* Empty the input array */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         a[i * 3 + 0] = 0.0;
         a[i * 3 + 1] = 0.0;
         a[i * 3 + 2] = 0.0;
     }
 
-    /* Find the numbers of massive and massless objects */
+    /* Find the numbers of massive and massless particles */
     int massive_objects_count = 0;
     int massless_objects_count = 0;
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         if (m[i] != 0.0)
         {
@@ -459,7 +459,7 @@ IN_FILE ErrorStatus acceleration_massless(
         }
     }
 
-    /* Find the indices of massive and massless objects */
+    /* Find the indices of massive and massless particles */
     int *__restrict massive_indices = malloc(massive_objects_count * sizeof(int));
     int *__restrict massless_indices = malloc(massless_objects_count * sizeof(int));
     massive_objects_count = 0;
@@ -472,7 +472,7 @@ IN_FILE ErrorStatus acceleration_massless(
         return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for massive and massless indices");
     }
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         if (m[i] != 0.0)
         {
@@ -486,7 +486,7 @@ IN_FILE ErrorStatus acceleration_massless(
         }
     }
 
-    /* Pairwise acceleration calculation for massive objects */
+    /* Pairwise acceleration calculation for massive particles */
     for (int i = 0; i < massive_objects_count; i++)
     {
         const int idx_i = massive_indices[i];
@@ -523,7 +523,7 @@ IN_FILE ErrorStatus acceleration_massless(
         }
     }
 
-    /* Acceleration calculation for massless objects due to massive objects */
+    /* Acceleration calculation for massless particles due to massive particles */
     for (int i = 0; i < massive_objects_count; i++)
     {
         for (int j = 0; j < massless_objects_count; j++)
@@ -567,10 +567,10 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
     ErrorStatus error_status;
 
     double *__restrict reference_a = malloc(
-        system->objects_count * 3 * sizeof(double)
+        system->num_particles * 3 * sizeof(double)
     );
     double *__restrict a = malloc(
-        system->objects_count * 3 * sizeof(double)
+        system->num_particles * 3 * sizeof(double)
     );
     if (!reference_a || !a)
     {
@@ -639,7 +639,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
             // Calculate the MAE
             if (i != 0 && j == 0)
             {
-                for (int k = 0; k < system->objects_count; k++)
+                for (int k = 0; k < system->num_particles; k++)
                 {
                     const double diff[3] = {
                         reference_a[k * 3 + 0] - a[k * 3 + 0],
@@ -648,7 +648,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
                     };
                     mae += fabs(diff[0]) + fabs(diff[1]) + fabs(diff[2]);
                 }
-                mae /= system->objects_count;
+                mae /= system->num_particles;
             }
         }
 

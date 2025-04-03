@@ -13,7 +13,7 @@
 
 typedef struct System
 {
-    int objects_count;
+    int num_particles;
     int *particle_ids;
     double *x;
     double *v;
@@ -29,16 +29,16 @@ typedef struct System
 System get_new_system(void);
 
 /**
- * \brief Get a new system with initialized memory for the given number of objects
+ * \brief Get a new system with initialized memory for the given number of particles
  * 
  * \param[out] system Pointer to the system to be initialized
- * \param[in] objects_count Number of objects
+ * \param[in] num_particles Number of particles
  * 
  * \return ErrorStatus
  */
 ErrorStatus get_initialized_system(
     System *__restrict system,
-    const int objects_count
+    const int num_particles
 );
 
 /**

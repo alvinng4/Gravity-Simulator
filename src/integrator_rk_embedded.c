@@ -351,17 +351,17 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
 {
     ErrorStatus error_status;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
     /* Allocate memory and declare variables */
-    double *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict x_1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict v_1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict a_1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict tolerance_scale_x = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict tolerance_scale_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict x_1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict v_1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict a_1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
     if (
         !tolerance_scale_x ||
         !tolerance_scale_v ||
@@ -385,7 +385,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
     double dt_1;
     double dt;
     System system_1 = {
-        .objects_count = objects_count,
+        .num_particles = num_particles,
         .x = x_1,
         .v = v_1,
         .m = system->m,
@@ -407,7 +407,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
      *  tolerance_scale_x = abs_tol + rel_tol * abs(x)
      *  tolerance_scale_v = abs_tol + rel_tol * abs(v)
      */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -420,7 +420,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
      *  sum_0 = sum(square(x / tolerance_scale_x)) + sum(square(v / tolerance_scale_v))
      *  sum_1 = sum(square(v / tolerance_scale_x)) + sum(square(a / tolerance_scale_x))
      */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -431,8 +431,8 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
         }
     }
 
-    d_0 = sqrt(sum_0 / (objects_count * 6));
-    d_1 = sqrt(sum_1 / (objects_count * 6));
+    d_0 = sqrt(sum_0 / (num_particles * 6));
+    d_1 = sqrt(sum_1 / (num_particles * 6));
 
     if (d_0 < 1e-5 || d_1 < 1e-5)
     {
@@ -443,7 +443,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
         dt_0 = d_0 / d_1;
     }
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -467,7 +467,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
     /**
      * sum_2 = sum(square((v_1 - v) / tolerance_scale_x)) + sum(square((a_1 - a) / tolerance_scale_v))
      */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -475,7 +475,7 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
             sum_2 += ((a_1[i * 3 + j] - a[i * 3 + j]) / tolerance_scale_v[i * 3 + j]) * ((a_1[i * 3 + j] - a[i * 3 + j]) / tolerance_scale_v[i * 3 + j]);
         }
     }
-    d_2 = sqrt(sum_2 / (objects_count * 6)) / dt_0;
+    d_2 = sqrt(sum_2 / (num_particles * 6)) / dt_0;
 
     if (fmax(d_1, d_2) <= 1e-15)
     {
@@ -587,7 +587,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
     const double safety_fac = pow(0.38, (1.0 / (1.0 + (double) min_power)));
 
     /* Declare variables */
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
@@ -606,7 +606,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
     double dt_new;
 
     System temp_system = {
-        .objects_count = objects_count,
+        .num_particles = num_particles,
         .x = NULL,
         .v = NULL,
         .m = system->m,
@@ -614,22 +614,22 @@ WIN32DLL_API ErrorStatus rk_embedded(
     };
 
     /* Allocate memory */
-    double *__restrict v_1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict x_1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict vk = malloc(stages * objects_count * 3 * sizeof(double));
-    double *__restrict xk = malloc(stages * objects_count * 3 * sizeof(double));    
-    double *__restrict temp_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict temp_x = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict error_estimation_delta_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict error_estimation_delta_x = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict tolerance_scale_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict tolerance_scale_x = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict v_1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict x_1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict vk = malloc(stages * num_particles * 3 * sizeof(double));
+    double *__restrict xk = malloc(stages * num_particles * 3 * sizeof(double));    
+    double *__restrict temp_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict temp_x = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict error_estimation_delta_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict error_estimation_delta_x = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict tolerance_scale_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict tolerance_scale_x = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict temp_x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict temp_v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict temp_x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict temp_v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     if (
         !v_1 ||
@@ -723,11 +723,11 @@ WIN32DLL_API ErrorStatus rk_embedded(
             goto acc_error;
         }
 
-        memcpy(xk, v, objects_count * 3 * sizeof(double));
+        memcpy(xk, v, num_particles * 3 * sizeof(double));
         for (int stage = 1; stage < stages; stage++)
         {
             // Empty temp_v and temp_x
-            for (int i = 0; i < objects_count; i++)
+            for (int i = 0; i < num_particles; i++)
             {
                 temp_v[i * 3 + 0] = 0.0;
                 temp_v[i * 3 + 1] = 0.0;
@@ -739,17 +739,17 @@ WIN32DLL_API ErrorStatus rk_embedded(
 
             for (int i = 0; i < stage; i++)
             {
-                for (int j = 0; j < objects_count; j++)
+                for (int j = 0; j < num_particles; j++)
                 {
                     for (int k = 0; k < 3; k++)
                     {
-                        temp_v[j * 3 + k] += coeff[(stage - 1) * (stages - 1) + i] * vk[i * objects_count * 3 + j * 3 + k];
-                        temp_x[j * 3 + k] += coeff[(stage - 1) * (stages - 1) + i] * xk[i * objects_count * 3 + j * 3 + k];
+                        temp_v[j * 3 + k] += coeff[(stage - 1) * (stages - 1) + i] * vk[i * num_particles * 3 + j * 3 + k];
+                        temp_x[j * 3 + k] += coeff[(stage - 1) * (stages - 1) + i] * xk[i * num_particles * 3 + j * 3 + k];
                     }
                 }
             }
 
-            for (int i = 0; i < objects_count; i++)
+            for (int i = 0; i < num_particles; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -761,7 +761,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
             temp_system.x = temp_x;
             temp_system.v = temp_v;
             error_status = WRAP_TRACEBACK(acceleration(
-                &vk[stage * objects_count * 3],
+                &vk[stage * num_particles * 3],
                 &temp_system,
                 acceleration_param
             ));
@@ -769,11 +769,11 @@ WIN32DLL_API ErrorStatus rk_embedded(
             {
                 goto acc_error;
             }
-            memcpy(&xk[stage * objects_count * 3], temp_v, objects_count * 3 * sizeof(double));
+            memcpy(&xk[stage * num_particles * 3], temp_v, num_particles * 3 * sizeof(double));
         }
 
         // Empty temp_v, temp_x, error_estimation_delta_v, error_estimation_delta_x
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             temp_v[i * 3 + 0] = 0.0;
             temp_v[i * 3 + 1] = 0.0;
@@ -792,22 +792,22 @@ WIN32DLL_API ErrorStatus rk_embedded(
         // Calculate x_1, v_1 and also delta x, delta v for error estimation
         for(int stage = 0; stage < stages; stage++)
         {
-            for (int i = 0; i < objects_count; i++)
+            for (int i = 0; i < num_particles; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    temp_v[i * 3 + j] += weights[stage] * vk[stage * objects_count * 3 + i * 3 + j];
-                    temp_x[i * 3 + j] += weights[stage] * xk[stage * objects_count * 3 + i * 3 + j];
+                    temp_v[i * 3 + j] += weights[stage] * vk[stage * num_particles * 3 + i * 3 + j];
+                    temp_x[i * 3 + j] += weights[stage] * xk[stage * num_particles * 3 + i * 3 + j];
 
-                    error_estimation_delta_v[i * 3 + j] += dt * error_estimation_delta_weights[stage] * vk[stage * objects_count * 3 + i * 3 + j];
-                    error_estimation_delta_x[i * 3 + j] += dt * error_estimation_delta_weights[stage] * xk[stage * objects_count * 3 + i * 3 + j];
+                    error_estimation_delta_v[i * 3 + j] += dt * error_estimation_delta_weights[stage] * vk[stage * num_particles * 3 + i * 3 + j];
+                    error_estimation_delta_x[i * 3 + j] += dt * error_estimation_delta_weights[stage] * xk[stage * num_particles * 3 + i * 3 + j];
                 }
             }
         }
 
-        memcpy(temp_x_err_comp_sum, x_err_comp_sum, objects_count * 3 * sizeof(double));
-        memcpy(temp_v_err_comp_sum, v_err_comp_sum, objects_count * 3 * sizeof(double));
-        for (int i = 0; i < objects_count; i++)
+        memcpy(temp_x_err_comp_sum, x_err_comp_sum, num_particles * 3 * sizeof(double));
+        memcpy(temp_v_err_comp_sum, v_err_comp_sum, num_particles * 3 * sizeof(double));
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -823,7 +823,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
         }
 
         /* Error calculation */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -835,7 +835,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
         // Sum up all the elements of x/tol and v/tol, 
         // square and divide by the total number of elements
         sum = 0.0;
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             double temp;
             for (int j = 0; j < 3; j++)
@@ -846,7 +846,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
                 sum += temp * temp;
             }
         }
-        error = sqrt(sum / (objects_count * 3 * 2));
+        error = sqrt(sum / (num_particles * 3 * 2));
 
         /* Advance step */
         if (error <= 1 || dt <= tf * 1e-12)
@@ -854,11 +854,11 @@ WIN32DLL_API ErrorStatus rk_embedded(
             (*num_steps_ptr)++;
             *t_ptr += dt;
 
-            memcpy(x, x_1, objects_count * 3 * sizeof(double));
-            memcpy(v, v_1, objects_count * 3 * sizeof(double));
+            memcpy(x, x_1, num_particles * 3 * sizeof(double));
+            memcpy(v, v_1, num_particles * 3 * sizeof(double));
 
-            memcpy(x_err_comp_sum, temp_x_err_comp_sum, objects_count * 3 * sizeof(double));
-            memcpy(v_err_comp_sum, temp_v_err_comp_sum, objects_count * 3 * sizeof(double));
+            memcpy(x_err_comp_sum, temp_x_err_comp_sum, num_particles * 3 * sizeof(double));
+            memcpy(v_err_comp_sum, temp_v_err_comp_sum, num_particles * 3 * sizeof(double));
 
             /* Output */
             if (is_output && *t_ptr >= next_output_time)

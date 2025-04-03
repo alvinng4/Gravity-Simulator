@@ -32,13 +32,13 @@
  * \brief Compute the velocity kick
  * 
  * \param[out] jacobi_v Array of Jacobi velocity vectors
- * \param[in] objects_count Number of objects in the system
+ * \param[in] num_particles Number of particles in the system
  * \param[in] a Array of acceleration vectors
  * \param[in] dt Time step of the system
  */
 IN_FILE void whfast_kick(
     double *__restrict jacobi_v,
-    const int objects_count,
+    const int num_particles,
     const double *__restrict a,
     const double dt
 );
@@ -139,7 +139,7 @@ IN_FILE ErrorStatus whfast_acceleration(
  * \brief Direct pairwise acceleration function for WHFast integrator
  * 
  * \details This is a brute-force pairwise calculation
- *          of gravitational acceleration between all objects,
+ *          of gravitational acceleration between all particles,
  *          which is O(n^2) complexity.
  * 
  * \param[out] a Array of acceleration vectors to be stored
@@ -160,13 +160,13 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
 
 /**
  * \brief Acceleration function for WHFast integrator,
- *        separating massive and massless objects
+ *        separating massive and massless particles
  * 
  * \details This function calculates the gravitational acceleration
- *          between massive and massless objects separately.
+ *          between massive and massless particles separately.
  *          This is an O(m^2 + mn) complexity calculation,
  *          where m and n are the number of massive and massless 
- *          objects, respectively.
+ *          particles, respectively.
  * 
  * \param[out] a Array of acceleration vectors to be stored
  * \param[in] system Pointer to the gravitational system
@@ -199,7 +199,7 @@ WIN32DLL_API ErrorStatus whfast(
 {
     ErrorStatus error_status;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict m = system->m;
 
     double dt = integrator_param->dt;
@@ -216,11 +216,11 @@ WIN32DLL_API ErrorStatus whfast(
     const int verbose = settings->verbose;
 
     /* Allocate memory */
-    double *__restrict jacobi_x = calloc(objects_count * 3, sizeof(double));
-    double *__restrict jacobi_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict temp_jacobi_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict eta = malloc(objects_count * sizeof(double));
+    double *__restrict jacobi_x = calloc(num_particles * 3, sizeof(double));
+    double *__restrict jacobi_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict temp_jacobi_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict eta = malloc(num_particles * sizeof(double));
 
     // Check if memory allocation is successful
     if (!jacobi_x || !jacobi_v || !temp_jacobi_v || !a || !eta)
@@ -249,7 +249,7 @@ WIN32DLL_API ErrorStatus whfast(
 
     /* Initialization */
     eta[0] = m[0];
-    for (int i = 1; i < objects_count; i++)
+    for (int i = 1; i < num_particles; i++)
     {
         eta[i] = eta[i - 1] + m[i];
     }
@@ -259,7 +259,7 @@ WIN32DLL_API ErrorStatus whfast(
     {
         goto err_acceleration;
     }
-    whfast_kick(jacobi_v, objects_count, a, 0.5 * dt);
+    whfast_kick(jacobi_v, num_particles, a, 0.5 * dt);
 
     /* Main Loop */
     int64 total_num_steps = (int64) ceil(tf / dt);
@@ -300,7 +300,7 @@ WIN32DLL_API ErrorStatus whfast(
         {
             goto err_acceleration;
         }
-        whfast_kick(jacobi_v, objects_count, a, dt);
+        whfast_kick(jacobi_v, num_particles, a, dt);
 
         (*num_steps_ptr)++;
         *t_ptr = (*num_steps_ptr) * dt;
@@ -309,8 +309,8 @@ WIN32DLL_API ErrorStatus whfast(
         if (is_output && *t_ptr >= next_output_time)
         {
             // Get v_1 from v_1+1/2
-            memcpy(temp_jacobi_v, jacobi_v, objects_count * 3 * sizeof(double));
-            whfast_kick(temp_jacobi_v, objects_count, a, -0.5 * dt);
+            memcpy(temp_jacobi_v, jacobi_v, num_particles * 3 * sizeof(double));
+            whfast_kick(temp_jacobi_v, num_particles, a, -0.5 * dt);
             jacobi_to_cartesian(system, jacobi_x, temp_jacobi_v, eta);
             error_status = WRAP_TRACEBACK(output_snapshot(
                 output_param,
@@ -369,12 +369,12 @@ err_memory:
 
 IN_FILE void whfast_kick(
     double *__restrict jacobi_v,
-    const int objects_count,
+    const int num_particles,
     const double *__restrict a,
     const double dt
 )
 {
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         jacobi_v[i * 3 + 0] += a[i * 3 + 0] * dt;
         jacobi_v[i * 3 + 1] += a[i * 3 + 1] * dt;
@@ -391,11 +391,11 @@ IN_FILE ErrorStatus whfast_drift(
     const int verbose
 )
 {
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const int *__restrict particle_ids = system->particle_ids;
     const double *__restrict m = system->m;
     const double G = system->G;
-    for (int i = 1; i < objects_count; i++)
+    for (int i = 1; i < num_particles; i++)
     {
         const double gm = G * m[0] * eta[i] / eta[i - 1];
         const double x[3] = {jacobi_x[i * 3], jacobi_x[i * 3 + 1], jacobi_x[i * 3 + 2]};
@@ -554,7 +554,7 @@ IN_FILE void cartesian_to_jacobi(
     double x_cm[3];
     double v_cm[3];
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *__restrict x = system->x;
     const double *__restrict v = system->v;
     const double *__restrict m = system->m;
@@ -567,7 +567,7 @@ IN_FILE void cartesian_to_jacobi(
     v_cm[1] = m[0] * v[1];
     v_cm[2] = m[0] * v[2];
 
-    for (int i = 1; i < objects_count; i++)
+    for (int i = 1; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -579,13 +579,13 @@ IN_FILE void cartesian_to_jacobi(
         }
     }
 
-    jacobi_x[0] = x_cm[0] / eta[objects_count - 1];
-    jacobi_x[1] = x_cm[1] / eta[objects_count - 1];
-    jacobi_x[2] = x_cm[2] / eta[objects_count - 1];
+    jacobi_x[0] = x_cm[0] / eta[num_particles - 1];
+    jacobi_x[1] = x_cm[1] / eta[num_particles - 1];
+    jacobi_x[2] = x_cm[2] / eta[num_particles - 1];
 
-    jacobi_v[0] = v_cm[0] / eta[objects_count - 1];
-    jacobi_v[1] = v_cm[1] / eta[objects_count - 1];
-    jacobi_v[2] = v_cm[2] / eta[objects_count - 1];
+    jacobi_v[0] = v_cm[0] / eta[num_particles - 1];
+    jacobi_v[1] = v_cm[1] / eta[num_particles - 1];
+    jacobi_v[2] = v_cm[2] / eta[num_particles - 1];
 }
 
 IN_FILE void jacobi_to_cartesian(
@@ -601,18 +601,18 @@ IN_FILE void jacobi_to_cartesian(
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *__restrict m = system->m;
 
-    x_cm[0] = eta[objects_count - 1] * jacobi_x[0];
-    x_cm[1] = eta[objects_count - 1] * jacobi_x[1];
-    x_cm[2] = eta[objects_count - 1] * jacobi_x[2];
+    x_cm[0] = eta[num_particles - 1] * jacobi_x[0];
+    x_cm[1] = eta[num_particles - 1] * jacobi_x[1];
+    x_cm[2] = eta[num_particles - 1] * jacobi_x[2];
 
-    v_cm[0] = eta[objects_count - 1] * jacobi_v[0];
-    v_cm[1] = eta[objects_count - 1] * jacobi_v[1];
-    v_cm[2] = eta[objects_count - 1] * jacobi_v[2];
+    v_cm[0] = eta[num_particles - 1] * jacobi_v[0];
+    v_cm[1] = eta[num_particles - 1] * jacobi_v[1];
+    v_cm[2] = eta[num_particles - 1] * jacobi_v[2];
 
-    for (int i = (objects_count - 1); i > 0; i--)
+    for (int i = (num_particles - 1); i > 0; i--)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -709,7 +709,7 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
     const AccelerationParam *__restrict acceleration_param
 )
 {
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *__restrict x = system->x;
     const double *__restrict m = system->m;
     const double G = system->G;
@@ -723,7 +723,7 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
     double temp_jacobi_norm;
     double temp_jacobi_norm_cube;
     double softening_length_cube = softening_length * softening_length * softening_length;
-    for (int i = 1; i < objects_count; i++)
+    for (int i = 1; i < num_particles; i++)
     {
         // Calculate x_0i
         temp_vec[0] = x[i * 3 + 0] - x[0];
@@ -765,7 +765,7 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
         aux[1] = 0.0;
         aux[2] = 0.0;
 
-        for (int j = i + 1; j < objects_count; j++)
+        for (int j = i + 1; j < num_particles; j++)
         {
             // Calculate x_ij
             temp_vec[0] = x[j * 3 + 0] - x[i * 3 + 0];
@@ -789,7 +789,7 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
 
         for (int j = 0; j < i; j++)
         {
-            for (int k = i + 1; k < objects_count; k++)
+            for (int k = i + 1; k < num_particles; k++)
             {
                 // Calculate x_jk
                 temp_vec[0] = x[k * 3 + 0] - x[j * 3 + 0];
@@ -824,7 +824,7 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
     const AccelerationParam *__restrict acceleration_param
 )
 {
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *__restrict x = system->x;
     const double *__restrict m = system->m;
     const double G = system->G;
@@ -839,10 +839,10 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
     double temp_jacobi_norm_cube;
     double softening_length_cube = softening_length * softening_length * softening_length;
 
-    /* Find the numbers of massive and massless objects */
+    /* Find the numbers of massive and massless particles */
     int massive_objects_count = 0;
     int massless_objects_count = 0;
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         if (m[i] != 0.0)
         {
@@ -854,7 +854,7 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
         }
     }
 
-    /* Find the indices of massive and massless objects */
+    /* Find the indices of massive and massless particles */
     int *__restrict massive_indices = malloc(massive_objects_count * sizeof(int));
     int *__restrict massless_indices = malloc(massless_objects_count * sizeof(int));
     massive_objects_count = 0;
@@ -866,11 +866,11 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
         free(massless_indices);
         return WRAP_RAISE_ERROR(
             GRAV_MEMORY_ERROR,
-            "Failed to allocate memory for indices of massive and massless objects"
+            "Failed to allocate memory for indices of massive and massless particles"
         );
     }
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         if (m[i] != 0.0)
         {
@@ -884,7 +884,7 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
         }
     }
 
-    /* Acceleration calculation for massive objects */
+    /* Acceleration calculation for massive particles */
     for (int i = 1; i < massive_objects_count; i++)
     {
         int idx_i = massive_indices[i];
@@ -985,7 +985,7 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
         aux[2] = 0.0;
     }
 
-    /* Acceleration calculation for massless objects */
+    /* Acceleration calculation for massless particles */
     for (int i = 0; i < massless_objects_count; i++)
     {
         int idx_i = massless_indices[i];

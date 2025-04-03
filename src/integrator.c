@@ -231,7 +231,7 @@ IN_FILE ErrorStatus euler(
     /* Declare variables */
     ErrorStatus error_status;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
@@ -248,13 +248,13 @@ IN_FILE ErrorStatus euler(
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict x_0 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict v_0 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict x_0 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict v_0 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (!x_0 || !v_0 || !a || !x_err_comp_sum || !v_err_comp_sum)
@@ -301,8 +301,8 @@ IN_FILE ErrorStatus euler(
         }
         simulation_status->dt = dt;
 
-        memcpy(x_0, x, objects_count * 3 * sizeof(double));
-        memcpy(v_0, v, objects_count * 3 * sizeof(double));
+        memcpy(x_0, x, num_particles * 3 * sizeof(double));
+        memcpy(v_0, v, num_particles * 3 * sizeof(double));
 
         /* Compute acceleration */
         error_status = WRAP_TRACEBACK(acceleration(
@@ -316,7 +316,7 @@ IN_FILE ErrorStatus euler(
         }
 
         /* Update step */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++) 
             {
@@ -402,7 +402,7 @@ IN_FILE ErrorStatus euler_cromer(
     /* Declare variables */
     ErrorStatus error_status;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
@@ -419,13 +419,13 @@ IN_FILE ErrorStatus euler_cromer(
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict x_0 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict v_0 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict x_0 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict v_0 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (!x_0 || !v_0 || !a || !x_err_comp_sum || !v_err_comp_sum)
@@ -472,8 +472,8 @@ IN_FILE ErrorStatus euler_cromer(
         }
         simulation_status->dt = dt;
 
-        memcpy(x_0, x, objects_count * 3 * sizeof(double));
-        memcpy(v_0, v, objects_count * 3 * sizeof(double));
+        memcpy(x_0, x, num_particles * 3 * sizeof(double));
+        memcpy(v_0, v, num_particles * 3 * sizeof(double));
 
         /* Compute acceleration */
         error_status = WRAP_TRACEBACK(acceleration(
@@ -487,7 +487,7 @@ IN_FILE ErrorStatus euler_cromer(
         }
 
         /* Update step */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++) 
             {
@@ -572,7 +572,7 @@ IN_FILE ErrorStatus rk4(
     /* Declare variables */
     ErrorStatus error_status;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
@@ -589,20 +589,20 @@ IN_FILE ErrorStatus rk4(
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict x_0 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict v_0 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict vk1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict vk2 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict vk3 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict vk4 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict xk1 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict xk2 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict xk3 = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict xk4 = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict x_0 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict v_0 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict vk1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict vk2 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict vk3 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict vk4 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict xk1 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict xk2 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict xk3 = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict xk4 = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (
@@ -656,8 +656,8 @@ IN_FILE ErrorStatus rk4(
     while (*num_steps_ptr < total_num_steps)
     {
         /* Store current state */
-        memcpy(x_0, x, objects_count * 3 * sizeof(double));
-        memcpy(v_0, v, objects_count * 3 * sizeof(double));
+        memcpy(x_0, x, num_particles * 3 * sizeof(double));
+        memcpy(v_0, v, num_particles * 3 * sizeof(double));
 
         /* Compute xk1 and vk1 */
         error_status = WRAP_TRACEBACK(acceleration(
@@ -669,10 +669,10 @@ IN_FILE ErrorStatus rk4(
         {
             goto err_acceleration;
         }
-        memcpy(xk1, v, objects_count * 3 * sizeof(double));
+        memcpy(xk1, v, num_particles * 3 * sizeof(double));
 
         /* Compute xk2 and vk2 */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -689,10 +689,10 @@ IN_FILE ErrorStatus rk4(
         {
             goto err_acceleration;
         }
-        memcpy(xk2, v, objects_count * 3 * sizeof(double));
+        memcpy(xk2, v, num_particles * 3 * sizeof(double));
 
         /* Compute xk3 and vk3 */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -709,10 +709,10 @@ IN_FILE ErrorStatus rk4(
         {
             goto err_acceleration;
         }
-        memcpy(xk3, v, objects_count * 3 * sizeof(double));
+        memcpy(xk3, v, num_particles * 3 * sizeof(double));
 
         /* Compute xk4 and vk4 */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -729,10 +729,10 @@ IN_FILE ErrorStatus rk4(
         {
             goto err_acceleration;
         }
-        memcpy(xk4, v, objects_count * 3 * sizeof(double));
+        memcpy(xk4, v, num_particles * 3 * sizeof(double));
 
         /* Update step */
-        for (int i = 0; i < objects_count; i++)
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -832,7 +832,7 @@ IN_FILE ErrorStatus leapfrog(
     /* Declare variables */
     ErrorStatus error_status;
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
 
@@ -849,13 +849,13 @@ IN_FILE ErrorStatus leapfrog(
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict temp_x = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict temp_v = malloc(objects_count * 3 * sizeof(double));
-    double *__restrict a = malloc(objects_count * 3 * sizeof(double));
+    double *__restrict temp_x = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict temp_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(objects_count * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(objects_count * 3, sizeof(double));
+    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (
@@ -899,8 +899,8 @@ IN_FILE ErrorStatus leapfrog(
         goto err_acceleration;
     }
 
-    memcpy(temp_v, v, objects_count * 3 * sizeof(double));
-    for (int i = 0; i < objects_count; i++)
+    memcpy(temp_v, v, num_particles * 3 * sizeof(double));
+    for (int i = 0; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {
@@ -931,8 +931,8 @@ IN_FILE ErrorStatus leapfrog(
         simulation_status->dt = dt;
 
         /* Calculate x_1 */
-        memcpy(temp_x, x, objects_count * 3 * sizeof(double));
-        for (int i = 0; i < objects_count; i++)
+        memcpy(temp_x, x, num_particles * 3 * sizeof(double));
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -952,8 +952,8 @@ IN_FILE ErrorStatus leapfrog(
         {
             goto err_acceleration;
         }
-        memcpy(temp_v, v, objects_count * 3 * sizeof(double));
-        for (int i = 0; i < objects_count; i++)
+        memcpy(temp_v, v, num_particles * 3 * sizeof(double));
+        for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -970,8 +970,8 @@ IN_FILE ErrorStatus leapfrog(
         if (is_output && *t_ptr >= next_output_time)
         {
             // Get v_1 from v_1+1/2
-            memcpy(temp_v, v, objects_count * 3 * sizeof(double));
-            for (int i = 0; i < objects_count; i++)
+            memcpy(temp_v, v, num_particles * 3 * sizeof(double));
+            for (int i = 0; i < num_particles; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -994,7 +994,7 @@ IN_FILE ErrorStatus leapfrog(
             next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
 
             /* Restore v_1+1/2 */
-            memcpy(v, temp_v, objects_count * 3 * sizeof(double));
+            memcpy(v, temp_v, num_particles * 3 * sizeof(double));
         }
 
         if (enable_progress_bar)
@@ -1010,7 +1010,7 @@ IN_FILE ErrorStatus leapfrog(
     }
 
     /* Synchronize v_1+1/2 to v_1 */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         for (int j = 0; j < 3; j++)
         {

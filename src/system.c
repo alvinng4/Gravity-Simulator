@@ -19,7 +19,7 @@
 System get_new_system(void)
 {
     System system;
-    system.objects_count = 0;
+    system.num_particles = 0;
     system.particle_ids = NULL;
     system.x = NULL;
     system.v = NULL;
@@ -30,7 +30,7 @@ System get_new_system(void)
 
 ErrorStatus get_initialized_system(
     System *__restrict system,
-    const int objects_count
+    const int num_particles
 )
 {
     if (!system)
@@ -38,11 +38,11 @@ ErrorStatus get_initialized_system(
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
     }
 
-    system->objects_count = objects_count;
-    system->particle_ids = malloc(objects_count * sizeof(int));
-    system->x = calloc(objects_count * 3, sizeof(double));
-    system->v = calloc(objects_count * 3, sizeof(double));
-    system->m = calloc(objects_count, sizeof(double));
+    system->num_particles = num_particles;
+    system->particle_ids = malloc(num_particles * sizeof(int));
+    system->x = calloc(num_particles * 3, sizeof(double));
+    system->v = calloc(num_particles * 3, sizeof(double));
+    system->m = calloc(num_particles, sizeof(double));
     system->G = 0.000295912208284119496676630; // Default value for AU^3 d^-2
 
     if (!system->particle_ids || !system->x || !system->v || !system->m)
@@ -51,7 +51,7 @@ ErrorStatus get_initialized_system(
         return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for system");
     }
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         (system->particle_ids)[i] = i;
     }
@@ -76,7 +76,7 @@ ErrorStatus remove_invalid_particles(System *__restrict system)
     }
 
     /* Declare variables */
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
     double *__restrict m = system->m;
@@ -96,7 +96,7 @@ ErrorStatus remove_invalid_particles(System *__restrict system)
         goto err_memory;
     }
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         if (
             isnan(x[i * 3 + 0]) ||
@@ -161,7 +161,7 @@ ErrorStatus remove_particles(
     const int num_to_remove
 )
 {
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     double *__restrict x = system->x;
     double *__restrict v = system->v;
     double *__restrict m = system->m;
@@ -173,7 +173,7 @@ ErrorStatus remove_particles(
         int idx_next;
         if (i == num_to_remove - 1)
         {
-            idx_next = objects_count;
+            idx_next = num_particles;
         }
         else
         {
@@ -195,10 +195,10 @@ ErrorStatus remove_particles(
         }
     }
 
-    system->objects_count -= num_to_remove;
+    system->num_particles -= num_to_remove;
 
     /* Realloc */
-    size_t new_size = (size_t) system->objects_count;
+    size_t new_size = (size_t) system->num_particles;
     int *new_particle_ids = realloc(system->particle_ids, new_size * sizeof(int));
     if (!new_particle_ids)
     {

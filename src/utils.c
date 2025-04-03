@@ -37,11 +37,11 @@ WIN32DLL_API double compute_energy(const System *__restrict system)
     const double *__restrict v = system->v;
     const double *__restrict m = system->m;
     const double G = system->G;
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
 
     double energy = 0.0;
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         // KE
         double v_norm = vec_norm_3d(&v[i * 3]);
@@ -51,7 +51,7 @@ WIN32DLL_API double compute_energy(const System *__restrict system)
         );
 
         // PE
-        for (int j = i + 1; j < objects_count; j++)
+        for (int j = i + 1; j < num_particles; j++)
         {
             double r_ij[3];
             for (int k = 0; k < 3; k++)
@@ -87,29 +87,29 @@ WIN32DLL_API double grav_randrange(
 }
 
 // WIN32DLL_API void compute_energy_python(
-//     const int objects_count,
+//     const int num_particles,
 //     const double *__restrict m,
 //     const double G,
 //     const int npts,
 //     int *__restrict count,
 //     double *__restrict energy,
-//     const double (*__restrict sol_state)[objects_count * 6],
+//     const double (*__restrict sol_state)[num_particles * 6],
 //     int *__restrict is_exit
 // )
 // {
 //     while (*count < npts)
 //     {   
-//         for (int i = 0; i < objects_count; i++)
+//         for (int i = 0; i < num_particles; i++)
 //         {
 //             // KE
-//             double v_norm = vec_norm_3d(&sol_state[*count][(objects_count + i) * 3]);
+//             double v_norm = vec_norm_3d(&sol_state[*count][(num_particles + i) * 3]);
 //             energy[*count] += (
 //                 0.5 * m[i] 
 //                 * v_norm * v_norm
 //             );
 
 //             // PE
-//             for (int j = i + 1; j < objects_count; j++)
+//             for (int j = i + 1; j < num_particles; j++)
 //             {
 //                 double r_ij[3];
 //                 for (int k = 0; k < 3; k++)
@@ -136,23 +136,23 @@ WIN32DLL_API double grav_randrange(
 // }
 
 // WIN32DLL_API void compute_linear_momentum_python(
-//     const int objects_count,
+//     const int num_particles,
 //     const double *__restrict m,
 //     const int npts,
 //     int *__restrict count,
 //     double *__restrict linear_momentum,
-//     const double (*__restrict sol_state)[objects_count * 6],
+//     const double (*__restrict sol_state)[num_particles * 6],
 //     int *__restrict is_exit
 // )
 // {
 //     while (*count < npts)
 //     {
 //         double linear_momentum_vec_step[3] = {0.0};
-//         for (int i = 0; i < objects_count; i++)
+//         for (int i = 0; i < num_particles; i++)
 //         {
 //             for (int j = 0; j < 3; j++)
 //             {
-//                 linear_momentum_vec_step[j] += m[i] * (sol_state[*count][(objects_count + i) * 3 + j]);
+//                 linear_momentum_vec_step[j] += m[i] * (sol_state[*count][(num_particles + i) * 3 + j]);
 //             }
 //         }
 //         linear_momentum[*count] = vec_norm_3d(linear_momentum_vec_step);
@@ -167,12 +167,12 @@ WIN32DLL_API double grav_randrange(
 // }
 
 // WIN32DLL_API void compute_angular_momentum_python(
-//     const int objects_count,
+//     const int num_particles,
 //     const double *__restrict m,
 //     const int npts,
 //     int *__restrict count,
 //     double *__restrict angular_momentum,
-//     const double (*__restrict sol_state)[objects_count * 6],
+//     const double (*__restrict sol_state)[num_particles * 6],
 //     int *__restrict is_exit
 // )
 // {
@@ -180,25 +180,25 @@ WIN32DLL_API double grav_randrange(
 //     {
 //         double angular_momentum_vec_step[3] = {0.0};
 //         // L = m * r x v
-//         for (int i = 0; i < objects_count; i++)
+//         for (int i = 0; i < num_particles; i++)
 //         {
 //             angular_momentum_vec_step[0] += m[i] * (
 //                 sol_state[*count][i * 3 + 1] 
-//                 * sol_state[*count][(objects_count + i) * 3 + 2]
+//                 * sol_state[*count][(num_particles + i) * 3 + 2]
 //                 - sol_state[*count][i * 3 + 2] 
-//                 * sol_state[*count][(objects_count + i) * 3 + 1]
+//                 * sol_state[*count][(num_particles + i) * 3 + 1]
 //             );
 //             angular_momentum_vec_step[1] += m[i] * (
 //                 sol_state[*count][i * 3 + 2]
-//                 * sol_state[*count][(objects_count + i) * 3 + 0]
+//                 * sol_state[*count][(num_particles + i) * 3 + 0]
 //                 - sol_state[*count][i * 3 + 0]
-//                 * sol_state[*count][(objects_count + i) * 3 + 2]
+//                 * sol_state[*count][(num_particles + i) * 3 + 2]
 //             );
 //             angular_momentum_vec_step[2] += m[i] * (
 //                 sol_state[*count][i * 3]
-//                 * sol_state[*count][(objects_count + i) * 3 + 1]
+//                 * sol_state[*count][(num_particles + i) * 3 + 1]
 //                 - sol_state[*count][i * 3 + 1]
-//                 * sol_state[*count][(objects_count + i) * 3]
+//                 * sol_state[*count][(num_particles + i) * 3]
 //             );
 //         }
 //         angular_momentum[*count] = vec_norm_3d(angular_momentum_vec_step);

@@ -36,8 +36,8 @@ ErrorStatus acceleration_barnes_hut(
     ErrorStatus error_status;
 
     /* Empty the input array */
-    const int objects_count = system->objects_count;
-    for (int i = 0; i < objects_count; i++)
+    const int num_particles = system->num_particles;
+    for (int i = 0; i < num_particles; i++)
     {
         a[i * 3 + 0] = 0.0;
         a[i * 3 + 1] = 0.0;
@@ -85,7 +85,7 @@ IN_FILE void helper_compute_acceleration(
     } Stack;
 
     /* Declare variables */
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *__restrict x = system->x;
     const double *__restrict m = system->m;
     const double G = system->G;
@@ -104,7 +104,7 @@ IN_FILE void helper_compute_acceleration(
     const double *__restrict tree_center_of_mass_y = octree->tree_center_of_mass_y;
     const double *__restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         const int idx_i = sorted_indices[i];    // For coalesced memory access
         const int64 morton_index_i = particle_morton_indices_deepest_level[idx_i];

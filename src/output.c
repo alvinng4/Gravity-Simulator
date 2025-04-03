@@ -497,13 +497,13 @@ IN_FILE ErrorStatus output_snapshot_csv(
     fputs("particle_id,m,x,y,z,vx,vy,vz\n", file);
 
     /* Write data */
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const int *__restrict particle_ids = system->particle_ids;
     const double *__restrict x = system->x;
     const double *__restrict v = system->v;
     const double *__restrict m = system->m;
 
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         // particle_id
         fprintf(file, "%d,", particle_ids[i]);
@@ -583,7 +583,7 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
     }
 
     /* Declare variables */
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const int *__restrict particle_ids = system->particle_ids;
     const double *__restrict x = system->x;
     const double *__restrict v = system->v;
@@ -668,8 +668,8 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
 
     /* Create dataspaces */
     hsize_t dims_1d_1[1] = {1};
-    hsize_t dims_1d_objects_count[1] = {objects_count};
-    hsize_t dims_3d_objects_count[2] = {objects_count, 3};
+    hsize_t dims_1d_objects_count[1] = {num_particles};
+    hsize_t dims_3d_objects_count[2] = {num_particles, 3};
     hid_t dataspace_1d_1 = H5Screate_simple(1, dims_1d_1, NULL);
     hid_t dataspace_1d_objects_count = H5Screate_simple(1, dims_1d_objects_count, NULL);
     hid_t dataspace_3d_objects_count = H5Screate_simple(2, dims_3d_objects_count, NULL);
@@ -746,8 +746,8 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
     /* Write attributes for header */
     const int num_files_per_snapshot = 1;
     H5Awrite(header_attr_num_files_per_snapshot, H5T_NATIVE_INT, &num_files_per_snapshot);
-    H5Awrite(header_attr_num_part_this_file, H5T_NATIVE_INT, &objects_count);
-    H5Awrite(header_attr_num_part_total, H5T_NATIVE_INT, &objects_count);
+    H5Awrite(header_attr_num_part_this_file, H5T_NATIVE_INT, &num_particles);
+    H5Awrite(header_attr_num_part_total, H5T_NATIVE_INT, &num_particles);
     H5Awrite(header_attr_time, H5T_NATIVE_DOUBLE, &simulation_status->t);
 
     /* Write data to HDF5 dataset */

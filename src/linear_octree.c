@@ -100,13 +100,13 @@ LinearOctree get_new_linear_octree(void)
  * 
  * \param[out] center 3D vector of the center of the bounding box
  * \param[out] width Width of the bounding box
- * \param[in] objects_count Number of objects
+ * \param[in] num_particles Number of particles
  * \param[in] x Array of position vectors
  */
 IN_FILE void calculate_bounding_box(
     double *__restrict center,
     double *__restrict width,
-    const int objects_count,
+    const int num_particles,
     const double *__restrict x
 )
 {
@@ -118,7 +118,7 @@ IN_FILE void calculate_bounding_box(
     double min_z = x[2];
     double max_z = x[2];
 
-    for (int i = 1; i < objects_count; i++)
+    for (int i = 1; i < num_particles; i++)
     {
         min_x = fmin(min_x, x[i * 3 + 0]);
         max_x = fmax(max_x, x[i * 3 + 0]);
@@ -142,7 +142,7 @@ IN_FILE void calculate_bounding_box(
  * \brief Compute the 3D Morton indices at level 21 using magic number
  * 
  * \param[out] morton_indices Array of Morton indices
- * \param[in] object_count Number of objects
+ * \param[in] object_count Number of particles
  * \param[in] x Array of position vectors
  * \param[in] center 3D vector of the center of the bounding box
  * \param[in] width Width of the bounding box
@@ -199,7 +199,7 @@ IN_FILE void compute_3d_particle_morton_indices_deepest_level(
  * 
  * \param morton_indices Array of Morton indices
  * \param indices Array of indices
- * \param object_count Number of objects
+ * \param object_count Number of particles
  * \param level Level of the Morton indices
  * 
  * \return ErrorStatus
@@ -610,7 +610,7 @@ IN_FILE ErrorStatus setup_node(
  * \param[out] octree Pointer to the linear octree
  * \param[in] allocated_internal_nodes Number of allocated internal nodes
  * \param[in] max_num_particles_per_leaf Maximum number of particles per leaf
- * \param[in] objects_count Number of objects
+ * \param[in] num_particles Number of particles
  * \param[in] x Array of position vectors
  * \param[in] m Array of masses
  * 
@@ -620,7 +620,7 @@ IN_FILE ErrorStatus helper_construct_octree(
     LinearOctree *__restrict octree,
     int allocated_internal_nodes,
     const int max_num_particles_per_leaf,
-    const int objects_count,
+    const int num_particles,
     const double *__restrict x,
     const double *__restrict m
 )
@@ -657,7 +657,7 @@ IN_FILE ErrorStatus helper_construct_octree(
     int level = 0;
     *num_internal_nodes_ptr = 1;
 
-    octree->tree_num_particles[0] = objects_count;
+    octree->tree_num_particles[0] = num_particles;
     octree->tree_num_internal_children[0] = 0;
     octree->tree_first_particle_sorted_idx[0] = 0;
     octree->tree_mass[0] = 0.0;
@@ -873,19 +873,19 @@ WIN32DLL_API ErrorStatus construct_octree(
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Acceleration parameter pointer is NULL");
     }
 
-    const int objects_count = system->objects_count;
+    const int num_particles = system->num_particles;
     const double *__restrict x = system->x;
     const double *__restrict m = system->m;
     const int max_num_particles_per_leaf = acceleration_param->max_num_particles_per_leaf;
 
     /* Find the width and center of the bounding box */
     double center[3];
-    calculate_bounding_box(center, &(octree->box_width), objects_count, x);
+    calculate_bounding_box(center, &(octree->box_width), num_particles, x);
 
     /* Allocate memory */
     // Indices
-    octree->particle_morton_indices_deepest_level = malloc(objects_count * sizeof(int64));
-    octree->sorted_indices = malloc(objects_count * sizeof(int));
+    octree->particle_morton_indices_deepest_level = malloc(num_particles * sizeof(int64));
+    octree->sorted_indices = malloc(num_particles * sizeof(int));
     if (!octree->particle_morton_indices_deepest_level || !octree->sorted_indices)
     {
         error_status = WRAP_RAISE_ERROR(
@@ -896,8 +896,8 @@ WIN32DLL_API ErrorStatus construct_octree(
     }
 
     // Internal nodes
-    // int allocated_internal_nodes = objects_count * 2 / max_num_particles_per_leaf;
-    int allocated_internal_nodes = objects_count;
+    // int allocated_internal_nodes = num_particles * 2 / max_num_particles_per_leaf;
+    int allocated_internal_nodes = num_particles;
 
     octree->tree_num_particles = malloc(allocated_internal_nodes * sizeof(int));
     octree->tree_num_internal_children = malloc(allocated_internal_nodes * sizeof(int));
@@ -926,7 +926,7 @@ WIN32DLL_API ErrorStatus construct_octree(
     }
 
     /* Initialize the sorted indices */
-    for (int i = 0; i < objects_count; i++)
+    for (int i = 0; i < num_particles; i++)
     {
         octree->sorted_indices[i] = i;
     }
@@ -934,7 +934,7 @@ WIN32DLL_API ErrorStatus construct_octree(
     /* Compute the 3D Morton indices at level 21 */
     compute_3d_particle_morton_indices_deepest_level(
         octree->particle_morton_indices_deepest_level,
-        objects_count,
+        num_particles,
         x,
         center,
         octree->box_width
@@ -944,7 +944,7 @@ WIN32DLL_API ErrorStatus construct_octree(
     error_status = WRAP_TRACEBACK(radix_sort_particles_morton_index(
         octree->particle_morton_indices_deepest_level,
         octree->sorted_indices,
-        objects_count,
+        num_particles,
         MORTON_MAX_LEVEL
     ));
     if (error_status.return_code != GRAV_SUCCESS)
@@ -957,7 +957,7 @@ WIN32DLL_API ErrorStatus construct_octree(
         octree,
         allocated_internal_nodes,
         max_num_particles_per_leaf,
-        objects_count,
+        num_particles,
         x,
         m
     ));
