@@ -454,7 +454,11 @@ IN_FILE ErrorStatus euler(
     ProgressBarParam progress_bar_param;
     if (enable_progress_bar)
     {
-        start_progress_bar(&progress_bar_param, total_num_steps);
+        error_status = WRAP_TRACEBACK(start_progress_bar(&progress_bar_param, total_num_steps));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_start_progress_bar;
+        }
     }
 
     *t_ptr = 0.0;
@@ -547,6 +551,7 @@ IN_FILE ErrorStatus euler(
 
 err_output:
 err_acceleration:
+err_start_progress_bar:
 err_initial_output:
 err_memory:
     free(x_0);
@@ -625,7 +630,11 @@ IN_FILE ErrorStatus euler_cromer(
     ProgressBarParam progress_bar_param;
     if (enable_progress_bar)
     {
-        start_progress_bar(&progress_bar_param, total_num_steps);
+        error_status = WRAP_TRACEBACK(start_progress_bar(&progress_bar_param, total_num_steps));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_start_progress_bar;
+        }
     }
 
     *t_ptr = 0.0;
@@ -717,6 +726,7 @@ IN_FILE ErrorStatus euler_cromer(
 
 err_output:
 err_acceleration:
+err_start_progress_bar:
 err_initial_output:
 err_memory:
     free(x_0);
@@ -815,7 +825,11 @@ IN_FILE ErrorStatus rk4(
     ProgressBarParam progress_bar_param;
     if (enable_progress_bar)
     {
-        start_progress_bar(&progress_bar_param, total_num_steps);
+        error_status = WRAP_TRACEBACK(start_progress_bar(&progress_bar_param, total_num_steps));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_start_progress_bar;
+        }
     }
 
     *t_ptr = 0.0;
@@ -970,6 +984,7 @@ IN_FILE ErrorStatus rk4(
 
 err_output:
 err_acceleration:
+err_start_progress_bar:
 err_initial_output:
 err_memory:
     free(x_0);
@@ -1083,7 +1098,11 @@ IN_FILE ErrorStatus leapfrog(
     ProgressBarParam progress_bar_param;
     if (enable_progress_bar)
     {
-        start_progress_bar(&progress_bar_param, total_num_steps);
+        error_status = WRAP_TRACEBACK(start_progress_bar(&progress_bar_param, total_num_steps));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_start_progress_bar;
+        }
     }
 
     *t_ptr = 0.0;
@@ -1201,6 +1220,7 @@ IN_FILE ErrorStatus leapfrog(
 
 err_output:
 err_acceleration:
+err_start_progress_bar:
 err_initial_output:
 err_memory:
     free(temp_x);

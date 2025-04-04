@@ -12,6 +12,10 @@
 #include "error.h"
 #include "settings.h"
 
+#define BOUNDARY_COUNDITION_NONE 0
+#define BOUNDARY_COUNDITION_OPEN 1
+#define BOUNDARY_COUNDITION_PERIODIC 2
+
 typedef struct System
 {
     int num_particles;
@@ -20,6 +24,9 @@ typedef struct System
     double *v;
     double *m;
     double G;
+    int boundary_condition;
+    double box_center[3];
+    double box_size[3];
 } System;
 
 /**
@@ -61,6 +68,17 @@ ErrorStatus finalize_system(System *__restrict system);
  * \param[in] system Pointer to the system to be freed
  */
 void free_system(System *__restrict system);
+
+/**
+ * \brief Set the boundary condition for the system
+ * 
+ * \param[in, out] system Pointer to the system
+ * \param[in] settings Pointer to the settings
+ */
+ErrorStatus set_boundary_condition(
+    System *__restrict system,
+    const Settings *__restrict settings
+);
 
 /**
  * \brief Check for invalid indices in a double array
@@ -129,20 +147,81 @@ ErrorStatus remove_particles(
 );
 
 /**
+ * \brief Remove a list of particles from a double array
+ * 
+ * \param[out] arr The double array to be modified
+ * \param[in] remove_idx_list List of indices to be removed
+ * \param[in] num_to_remove Number of particles to be removed
+ * \param[in] dim Dimension of the array
+ * \param[in] original_size Original size of the array
+ * 
+ * \return ErrorStatus
+ */
+ErrorStatus remove_particle_from_double_arr(
+    double *__restrict arr,
+    const int *__restrict remove_idx_list,
+    const int num_to_remove,
+    const int dim,
+    const int original_size
+);
+
+/**
  * \brief Initialize a built-in system with the given name
  * 
  * \param[out] system Pointer to the system to be initialized
  * \param[in] system_name Name of the built-in system
+ * \param[in] is_memory_initialized Flag indicating if the memory is already initialized
  * 
  * \return ErrorStatus
  * 
  * \exception GRAV_MEMORY_ERROR if failed to allocate memory
  * \exception GRAV_POINTER_ERROR if system or system_name is NULL
  * \exception GRAV_VALUE_ERROR if system_name is not recognized
+ * \exception GRAV_VALUE_ERROR if the initialized memory is less than the required size
  */
 ErrorStatus initialize_built_in_system(
     System *__restrict system,
-    const char *__restrict system_name
+    const char *__restrict system_name,
+    const bool is_memory_initialized
+);
+
+/**
+ * \brief Set the center of mass of the system to zero
+ * 
+ * \param[in, out] system Pointer to the system
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_POINTER_ERROR if system or its members are NULL
+ * \exception GRAV_VALUE_ERROR if total mass is non-positive
+ * \exception GRAV_VALUE_ERROR if the center of mass is invalid
+ */
+ErrorStatus system_set_center_of_mass_zero(System *__restrict system);
+
+/**
+ * \brief Set the total momentum of the system to zero
+ * 
+ * \param[in, out] system Pointer to the system
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_POINTER_ERROR if system or its members are NULL
+ * \exception GRAV_VALUE_ERROR if total mass is non-positive
+ * \exception GRAV_VALUE_ERROR if the V_CM is invalid
+ */
+ErrorStatus system_set_total_momentum_zero(System *__restrict system);
+
+/**
+ * \brief Sort the system by distance from a primary particle
+ * 
+ * \param[in, out] system Pointer to the system
+ * \param[in] primary_particle_id ID of the primary particle
+ * 
+ * \return ErrorStatus
+ */
+ErrorStatus system_sort_by_distance(
+    System *__restrict system,
+    const int primary_particle_id
 );
 
 #endif

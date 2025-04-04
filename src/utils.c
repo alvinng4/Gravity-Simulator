@@ -86,6 +86,67 @@ WIN32DLL_API double grav_randrange(
     return min + (max - min) * random_number;
 }
 
+WIN32DLL_API void keplerian_to_cartesian(
+    double *__restrict x,
+    double *__restrict v,
+    const double semi_major_axis,
+    const double eccentricity,
+    const double inclination,
+    const double argument_of_periapsis,
+    const double longitude_of_ascending_node,
+    const double true_anomaly,
+    const double total_mass,
+    const double G
+)
+{
+    const double cos_inc = cos(inclination);
+    const double sin_inc = sin(inclination);
+
+    const double cos_arg_periapsis = cos(argument_of_periapsis);
+    const double sin_arg_periapsis = sin(argument_of_periapsis);
+
+    const double cos_long_asc_node = cos(longitude_of_ascending_node);
+    const double sin_long_asc_node = sin(longitude_of_ascending_node);
+
+    const double cos_true_anomaly = cos(true_anomaly);
+    const double sin_true_anomaly = sin(true_anomaly);
+
+    const double ecc_unit_vec[3] = {
+        cos_long_asc_node * cos_arg_periapsis
+        - sin_long_asc_node * sin_arg_periapsis * cos_inc,
+        sin_long_asc_node * cos_arg_periapsis
+        + cos_long_asc_node * sin_arg_periapsis * cos_inc,
+        sin_arg_periapsis * sin_inc
+    };
+
+    const double q_unit_vec[3] = {
+        -cos_long_asc_node * sin_arg_periapsis
+        - sin_long_asc_node * cos_arg_periapsis * cos_inc,
+        -sin_long_asc_node * sin_arg_periapsis
+        + cos_long_asc_node * cos_arg_periapsis * cos_inc,
+        cos_arg_periapsis * sin_inc
+    };
+
+    for (int i = 0; i < 3; i++)
+    {
+        x[i] = semi_major_axis * (
+            (1.0 - eccentricity * eccentricity)
+            * (cos_true_anomaly * ecc_unit_vec[i]+ sin_true_anomaly * q_unit_vec[i])
+            / (1.0 + eccentricity * cos_true_anomaly)
+        );
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        v[i] = (
+            sqrt(G * total_mass / (semi_major_axis * (1.0 - eccentricity * eccentricity)))
+            * (
+                -sin_true_anomaly * ecc_unit_vec[i]
+                + (eccentricity + cos_true_anomaly) * q_unit_vec[i]
+            )
+        );
+    }
+}
+
 // WIN32DLL_API void compute_energy_python(
 //     const int num_particles,
 //     const double *__restrict m,

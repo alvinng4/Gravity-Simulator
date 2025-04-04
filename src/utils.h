@@ -57,6 +57,33 @@ double grav_randrange(
     pcg32_random_t *rng
 );
 
+/**
+ * \brief Convert Keplerian elements to Cartesian coordinates
+ * 
+ * \param[out] x Output position vector
+ * \param[out] v Output velocity vector
+ * \param[in] semi_major_axis Semi-major axis
+ * \param[in] eccentricity Eccentricity
+ * \param[in] inclination Inclination
+ * \param[in] argument_of_periapsis Argument of periapsis
+ * \param[in] longitude_of_ascending_node Longitude of ascending node
+ * \param[in] true_anomaly True anomaly
+ * \param[in] total_mass Total mass of the system
+ * \param[in] G Gravitational constant
+ */
+void keplerian_to_cartesian(
+    double *__restrict x,
+    double *__restrict v,
+    const double semi_major_axis,
+    const double eccentricity,
+    const double inclination,
+    const double argument_of_periapsis,
+    const double longitude_of_ascending_node,
+    const double true_anomaly,
+    const double total_mass,
+    const double G
+);
+
 // /**
 //  * \brief Compute the energy from solution state
 //  * 

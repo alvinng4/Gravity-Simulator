@@ -100,6 +100,13 @@ ErrorStatus launch_simulation(
         return error_status;
     }
 
+    /* Set boundary condition */
+    error_status = WRAP_TRACEBACK(set_boundary_condition(system, settings));
+    if (error_status.return_code != GRAV_SUCCESS)
+    {
+        return error_status;
+    }
+
     return WRAP_TRACEBACK(integrator_launch_simulation(
         system,
         integrator_param,

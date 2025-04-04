@@ -13,8 +13,16 @@
 
 #include "common.h"
 #include "error.h"
+#include "math_functions.h"
 #include "system.h"
 #include "settings.h"
+
+
+typedef struct
+{
+    int index;
+    double distance;
+} HelperSystemSortByDistanceStruct;
 
 
 System get_new_system(void)
@@ -26,6 +34,13 @@ System get_new_system(void)
     system.v = NULL;
     system.m = NULL;
     system.G = 0.000295912208284119496676630; // Default value for AU^3 d^-2
+    system.boundary_condition = BOUNDARY_COUNDITION_NONE;
+    system.box_center[0] = 0.0;
+    system.box_center[1] = 0.0;
+    system.box_center[2] = 0.0;
+    system.box_size[0] = -1.0;
+    system.box_size[1] = -1.0;
+    system.box_size[2] = -1.0;
     return system;
 }
 
@@ -39,6 +54,7 @@ ErrorStatus get_initialized_system(
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
     }
 
+    *system = get_new_system();
     system->num_particles = num_particles;
     system->particle_ids = malloc(num_particles * sizeof(int));
     system->x = calloc(num_particles * 3, sizeof(double));
@@ -172,6 +188,23 @@ ErrorStatus finalize_system(System *__restrict system)
         return error_status;
     }
 
+    if (system->boundary_condition != BOUNDARY_COUNDITION_NONE &&
+        system->boundary_condition != BOUNDARY_COUNDITION_OPEN &&
+        system->boundary_condition != BOUNDARY_COUNDITION_PERIODIC)
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Invalid boundary condition");
+    }
+
+    if (system->boundary_condition != BOUNDARY_COUNDITION_NONE)
+    {
+        if (system->box_size[0] <= 0.0 ||
+            system->box_size[1] <= 0.0 ||
+            system->box_size[2] <= 0.0)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Box size must be positive");
+        }
+    }
+
     return make_success_error_status();
 }
 
@@ -181,6 +214,84 @@ void free_system(System *__restrict system)
     free(system->x);
     free(system->v);
     free(system->m);
+}
+
+ErrorStatus set_boundary_condition(
+    System *__restrict system,
+    const Settings *__restrict settings
+)
+{
+    switch (system->boundary_condition)
+    {
+        case BOUNDARY_COUNDITION_NONE:
+            break;
+        case BOUNDARY_COUNDITION_OPEN:
+        {
+            int *__restrict remove_idx_list = malloc(system->num_particles * sizeof(int));
+            if (!remove_idx_list)
+            {
+                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for remove_idx_list");
+            }
+            int remove_count = 0;
+            double *__restrict x = system->x;
+            const double box_min[3] = {
+                system->box_center[0] - system->box_size[0] / 2.0,
+                system->box_center[1] - system->box_size[1] / 2.0,
+                system->box_center[2] - system->box_size[2] / 2.0
+            };
+            const double box_max[3] = {
+                system->box_center[0] + system->box_size[0] / 2.0,
+                system->box_center[1] + system->box_size[1] / 2.0,
+                system->box_center[2] + system->box_size[2] / 2.0
+            };
+            for (int i = 0; i < system->num_particles; i++)
+            {
+                if (
+                    x[i * 3 + 0] < box_min[0] ||
+                    x[i * 3 + 1] < box_min[1] ||
+                    x[i * 3 + 2] < box_min[2] ||
+                    x[i * 3 + 0] > box_max[0] ||
+                    x[i * 3 + 1] > box_max[1] ||
+                    x[i * 3 + 2] > box_max[2]
+                )
+                {
+                    remove_idx_list[remove_count] = i;
+                    remove_count++;
+                }
+            }
+            if (remove_count > 0)
+            {
+                if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
+                {
+                    fprintf(stderr, "set_boundary_condition: Removing %d invalid particles. Particle IDs: [%d", remove_count, remove_idx_list[0]);
+                    for (int i = 1; i < remove_count; i++)
+                    {
+                        fprintf(stderr, ", %d", remove_idx_list[i]);
+                    }
+                    fputs("]\n", stderr);
+                }
+
+                ErrorStatus error_status = WRAP_TRACEBACK(remove_particles(
+                    system,
+                    remove_idx_list,
+                    remove_count
+                ));
+                if (error_status.return_code != GRAV_SUCCESS)
+                {
+                    free(remove_idx_list);
+                    return error_status;
+                }
+            }
+            free(remove_idx_list);
+            break;
+        }
+        case BOUNDARY_COUNDITION_PERIODIC:
+        {
+            break;
+        }
+    }
+
+    return make_success_error_status();
 }
 
 ErrorStatus check_invalid_idx_double(
@@ -209,7 +320,7 @@ ErrorStatus check_invalid_idx_double(
 
     for (int i = 0; i < arr_size; i++)
     {
-        if (isnan(array[i]) || isinf(array[i]))
+        if (!isfinite(array[i]))
         {
             invalid_particle_idx[invalid_count] = i;
             invalid_count++;
@@ -278,20 +389,13 @@ ErrorStatus check_and_remove_invalid_particles(
     for (int i = 0; i < num_particles; i++)
     {
         if (
-            isnan(x[i * 3 + 0]) ||
-            isnan(x[i * 3 + 1]) ||        
-            isnan(x[i * 3 + 2]) ||
-            isnan(v[i * 3 + 0]) ||
-            isnan(v[i * 3 + 1]) ||
-            isnan(v[i * 3 + 2]) ||
-            isnan(m[i]) ||
-            isinf(x[i * 3 + 0]) ||
-            isinf(x[i * 3 + 1]) ||
-            isinf(x[i * 3 + 2]) ||
-            isinf(v[i * 3 + 0]) ||
-            isinf(v[i * 3 + 1]) ||
-            isinf(v[i * 3 + 2]) ||
-            isinf(m[i])
+            !isfinite(x[i * 3 + 0]) ||
+            !isfinite(x[i * 3 + 1]) ||
+            !isfinite(x[i * 3 + 2]) ||
+            !isfinite(v[i * 3 + 0]) ||
+            !isfinite(v[i * 3 + 1]) ||
+            !isfinite(v[i * 3 + 2]) ||
+            !isfinite(m[i])            
         )
         {
             invalid_particle_idx[invalid_count] = i;
@@ -365,69 +469,14 @@ ErrorStatus remove_invalid_particles(
         return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Number of particles to remove must be positive");
     }
 
-    if (
-        settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO
-        && !settings->silence_remove_invalid_particles
-    )
+    if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
     {
-        int warning_msg_len = (
-            strlen("Removing %d invalid particles. Particle ids: ")
-            + snprintf(NULL, 0, "%d", num_to_remove)
-            + snprintf(NULL, 0, "%d", remove_idx_list[0])
-            + 1  // Null terminator
-        );
-        for (int i = 1; i < num_to_remove; i++)
+        fprintf(stderr, "remove_invalid_particles: Removing %d invalid particles. Particle IDs: [%d", num_to_remove, remove_idx_list[0]);
+        for (int i = 0; i < num_to_remove; i++)
         {
-            warning_msg_len += snprintf(NULL, 0, ", %d", remove_idx_list[i]);
+            fprintf(stderr, ", %d", remove_idx_list[i]);
         }
-
-        char *warning_msg = malloc(warning_msg_len * sizeof(char));
-        if (!warning_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Failed to allocate memory for warning message"
-            );
-        }
-
-        int actual_warning_msg_len = snprintf(
-            warning_msg,
-            warning_msg_len,
-            "Removing %d invalid particles. Particle ids: %d",
-            num_to_remove,
-            remove_idx_list[0]
-        );
-
-        /* Stack warning message */
-        for (int i = 1; i < num_to_remove; i++)
-        {
-            actual_warning_msg_len = snprintf(
-                warning_msg + strlen(warning_msg),
-                warning_msg_len - strlen(warning_msg),
-                ", %d",
-                remove_idx_list[i]
-            );
-        }
-
-        if (actual_warning_msg_len < 0)
-        {
-            free(warning_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Removing invalid particles. Failed to generate warning message"
-            );
-        }
-        else if (actual_warning_msg_len >= warning_msg_len)
-        {
-            free(warning_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Removing invalid particles. Warning message is truncated"
-            );
-        }
-
-        WRAP_RAISE_WARNING(warning_msg);
-        free(warning_msg);
+        fputs("]\n", stderr);
     }
 
     return WRAP_TRACEBACK(remove_particles(
@@ -491,41 +540,91 @@ ErrorStatus remove_particles(
     system->num_particles -= num_to_remove;
 
     /* Realloc */
-    size_t new_size = (size_t) system->num_particles;
-    int *new_particle_ids = realloc(system->particle_ids, new_size * sizeof(int));
-    if (!new_particle_ids)
-    {
-        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for particle ids");
-    }
-    system->particle_ids = new_particle_ids;
+    // size_t new_size = (size_t) system->num_particles;
+    // int *new_particle_ids = realloc(system->particle_ids, new_size * sizeof(int));
+    // if (!new_particle_ids)
+    // {
+    //     return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for particle ids");
+    // }
+    // system->particle_ids = new_particle_ids;
 
-    double *new_x = realloc(system->x, new_size * 3 * sizeof(double));
-    if (!new_x)
-    {
-        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for x");
-    }
-    system->x = new_x;
+    // double *new_x = realloc(system->x, new_size * 3 * sizeof(double));
+    // if (!new_x)
+    // {
+    //     return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for x");
+    // }
+    // system->x = new_x;
 
-    double *new_v = realloc(system->v, new_size * 3 * sizeof(double));
-    if (!new_v)
-    {
-        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for v");
-    }
-    system->v = new_v;
+    // double *new_v = realloc(system->v, new_size * 3 * sizeof(double));
+    // if (!new_v)
+    // {
+    //     return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for v");
+    // }
+    // system->v = new_v;
 
-    double *new_m = realloc(system->m, new_size * sizeof(double));
-    if (!new_m)
+    // double *new_m = realloc(system->m, new_size * sizeof(double));
+    // if (!new_m)
+    // {
+    //     return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for m");
+    // }
+    // system->m = new_m;
+
+    return make_success_error_status();
+}
+
+ErrorStatus remove_particle_from_double_arr(
+    double *__restrict arr,
+    const int *__restrict remove_idx_list,
+    const int num_to_remove,
+    const int dim,
+    const int original_size
+)
+{
+    if (!arr)
     {
-        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for m");
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Array is NULL");
     }
-    system->m = new_m;
+    if (!remove_idx_list)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "Remove index list is NULL");
+    }
+    if (num_to_remove <= 0)
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Number of particles to remove must be positive");
+    }
+
+    for (int i = 0, last_shifted_idx = remove_idx_list[i]; i < num_to_remove; i++)
+    {
+        const int idx = remove_idx_list[i];
+        int idx_next;
+        if (i == num_to_remove - 1)
+        {
+            idx_next = original_size;
+        }
+        else
+        {
+            idx_next = remove_idx_list[i + 1];
+        }
+
+        for (int j = 0; j < idx_next - idx - 1; j++)    
+        { 
+            const int from_idx = last_shifted_idx + i + 1;
+            for (int d = 0; d < dim; d++)
+            {
+                arr[last_shifted_idx * dim + d] = arr[from_idx * dim + d];
+            }
+
+            last_shifted_idx++;
+        }
+    }
 
     return make_success_error_status();
 }
 
 ErrorStatus initialize_built_in_system(
     System *__restrict system,
-    const char *__restrict system_name
+    const char *__restrict system_name,
+    const bool is_memory_initialized
 )
 {
     if (!system)
@@ -631,10 +730,18 @@ ErrorStatus initialize_built_in_system(
     // Pre-defined systems
     if (strcmp(system_name, "circular_binary_orbit") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 2));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 2;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
+        }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
         }
 
         (system->x)[0] = 1.0;
@@ -658,11 +765,20 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "eccentric_binary_orbit") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 2));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 2;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
         }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
+        }
+
 
         (system->x)[0] = 1.0;
         (system->x)[1] = 0.0;
@@ -685,12 +801,20 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "3d_helix") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 3));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 3;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
         }
-        
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
+        }
+
         (system->x)[0] = 0.0;
         (system->x)[1] = 0.0;
         (system->x)[2] = -1.0;
@@ -723,10 +847,18 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "sun_earth_moon") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 3));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 3;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
+        }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
         }
 
         (system->m)[0] = MASS_SUN;
@@ -755,11 +887,20 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "figure-8") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 3));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 3;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
         }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
+        }
+
 
         (system->x)[0] = 0.970043;
         (system->x)[1] = -0.24308753;
@@ -791,10 +932,18 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "pyth-3-body") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 3));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 3;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
+        }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
         }
 
         (system->x)[0] = 1.0;
@@ -827,10 +976,18 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "solar_system") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 9));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 9;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
+        }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
         }
 
         (system->m)[0] = MASS_SUN;
@@ -890,10 +1047,18 @@ ErrorStatus initialize_built_in_system(
     }
     else if (strcmp(system_name, "solar_system_plus") == 0) 
     {
-        ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, 12));
-        if (error_status.return_code != GRAV_SUCCESS)
+        const int system_num_particles = 12;
+        if (!is_memory_initialized)
         {
-            return error_status;
+            ErrorStatus error_status = WRAP_TRACEBACK(get_initialized_system(system, system_num_particles));
+            if (error_status.return_code != GRAV_SUCCESS)
+            {
+                return error_status;
+            }
+        }
+        else if (system->num_particles < system_num_particles)
+        {
+            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Initialized system is not big enough for the built-in system");
         }
         
         (system->m)[0] = MASS_SUN;
@@ -1008,4 +1173,244 @@ ErrorStatus initialize_built_in_system(
     }
 
     return make_success_error_status();
+}
+
+ErrorStatus system_set_center_of_mass_zero(System *__restrict system)
+{
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    /* Declare variables */
+    const double num_particles = system->num_particles;
+    double *__restrict x = system->x;
+    double *__restrict m = system->m;
+    if (!x || !m)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System member is NULL");
+    }
+    
+    double R_CM[3] = {0.0, 0.0, 0.0};
+    double total_mass = 0.0;
+
+    /* Compute the center of mass and total mass */
+    for (int i = 0; i < num_particles; i++)
+    {
+        R_CM[0] += m[i] * x[i * 3 + 0];
+        R_CM[1] += m[i] * x[i * 3 + 1];
+        R_CM[2] += m[i] * x[i * 3 + 2];
+        total_mass += m[i];
+    }
+
+    if (total_mass <= 0.0)
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Total mass is non-positive");
+    }
+
+    R_CM[0] /= total_mass;
+    R_CM[1] /= total_mass;
+    R_CM[2] /= total_mass;
+
+    if (!isfinite(R_CM[0]) || !isfinite(R_CM[1]) || !isfinite(R_CM[2]))
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Invalid value for center of mass");
+    }
+
+    /* Set the center of mass to zero */
+    for (int i = 0; i < num_particles; i++)
+    {
+        x[i * 3 + 0] -= R_CM[0];
+        x[i * 3 + 1] -= R_CM[1];
+        x[i * 3 + 2] -= R_CM[2];
+    }
+
+    return make_success_error_status();
+}
+
+ErrorStatus system_set_total_momentum_zero(System *__restrict system)
+{
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    /* Declare variables */
+    const double num_particles = system->num_particles;
+    double *__restrict v = system->v;
+    double *__restrict m = system->m;
+    if (!v || !m)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System member is NULL");
+    }
+
+    double V_CM[3] = {0.0, 0.0, 0.0};
+    double total_mass = 0.0;
+
+    /* Compute the center of mass and total mass */
+    for (int i = 0; i < num_particles; i++)
+    {
+        V_CM[0] += m[i] * v[i * 3 + 0];
+        V_CM[1] += m[i] * v[i * 3 + 1];
+        V_CM[2] += m[i] * v[i * 3 + 2];
+        total_mass += m[i];
+    }
+
+    if (total_mass <= 0.0)
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Total mass is non-positive");
+    }
+
+    V_CM[0] /= total_mass;
+    V_CM[1] /= total_mass;
+    V_CM[2] /= total_mass;
+
+    if (!isfinite(V_CM[0]) || !isfinite(V_CM[1]) || !isfinite(V_CM[2]))
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Invalid value for V_CM");
+    }
+
+    /* Set the center of mass to zero */
+    for (int i = 0; i < num_particles; i++)
+    {
+        v[i * 3 + 0] -= V_CM[0];
+        v[i * 3 + 1] -= V_CM[1];
+        v[i * 3 + 2] -= V_CM[2];
+    }
+
+    return make_success_error_status();
+}
+
+IN_FILE int compare_distance(const void *a, const void *b)
+{
+    const HelperSystemSortByDistanceStruct *d1 = a;
+    const HelperSystemSortByDistanceStruct *d2 = b;
+    return (d1->distance > d2->distance) - (d1->distance < d2->distance);
+}
+
+ErrorStatus system_sort_by_distance(
+    System *__restrict system,
+    const int primary_particle_id
+)
+{
+    ErrorStatus error_status;
+
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    const int num_particles = system->num_particles;
+    int *__restrict particle_ids = system->particle_ids;
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
+    double *__restrict m = system->m;
+    if (!particle_ids || !x || !v || !m)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System member is NULL");
+    }
+
+    /* Find the primary particle index */
+    int primary_particle_index = -1;
+    if (
+        primary_particle_id < system->num_particles
+        && system->particle_ids[primary_particle_id] == primary_particle_id
+    )
+    {
+        primary_particle_index = primary_particle_id;
+    }
+    else
+    {
+        for (int i = 0; i < num_particles; i++)
+        {
+            if (particle_ids[i] == primary_particle_id)
+            {
+                primary_particle_index = i;
+                break;
+            }
+        }
+    }
+    if (primary_particle_index == -1)
+    {
+        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Primary particle ID not found in system");
+    }
+
+    HelperSystemSortByDistanceStruct *helper_arr = malloc(num_particles * sizeof(HelperSystemSortByDistanceStruct));
+    if (!helper_arr)
+    {
+        error_status = WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for helper arrays"
+        );
+        goto err_helper_arr_malloc;
+    }
+
+    for (int i = 0; i < num_particles; i++)
+    {
+        const double diff_vec[3] = {
+            x[i * 3 + 0] - x[primary_particle_index * 3 + 0],
+            x[i * 3 + 1] - x[primary_particle_index * 3 + 1],
+            x[i * 3 + 2] - x[primary_particle_index * 3 + 2]
+        };
+        helper_arr[i].distance = vec_norm_3d(diff_vec);
+        helper_arr[i].index = i;
+    }
+    helper_arr[primary_particle_index].distance = 0.0;
+
+    /* Sort the helper array by distance using quick sort */
+    qsort(helper_arr, num_particles, sizeof(HelperSystemSortByDistanceStruct), compare_distance);
+
+    /* Allocate temporary arrays */
+    int *__restrict new_particle_ids = malloc(num_particles * sizeof(int));
+    double *__restrict new_x = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict new_v = malloc(num_particles * 3 * sizeof(double));
+    double *__restrict new_m = malloc(num_particles * sizeof(double));
+
+    if (!new_particle_ids || !new_x || !new_v || !new_m)
+    {
+        error_status = WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for new arrays"
+        );
+        goto err_temp_arr_malloc;
+    }
+
+    /* Fill the new arrays with sorted data */
+    for (int i = 0; i < num_particles; i++)
+    {
+        const int index = helper_arr[i].index;
+        new_particle_ids[i] = particle_ids[index];
+        new_x[i * 3 + 0] = x[index * 3 + 0];
+        new_x[i * 3 + 1] = x[index * 3 + 1];
+        new_x[i * 3 + 2] = x[index * 3 + 2];
+        new_v[i * 3 + 0] = v[index * 3 + 0];
+        new_v[i * 3 + 1] = v[index * 3 + 1];
+        new_v[i * 3 + 2] = v[index * 3 + 2];
+        new_m[i] = m[index];
+    }
+
+    /* Copy the new arrays back to the system */
+    memcpy(system->particle_ids, new_particle_ids, num_particles * sizeof(int));
+    memcpy(system->x, new_x, num_particles * 3 * sizeof(double));
+    memcpy(system->v, new_v, num_particles * 3 * sizeof(double));
+    memcpy(system->m, new_m, num_particles * sizeof(double));
+    
+    /* Free the temporary arrays */
+    free(helper_arr);
+
+    free(new_particle_ids);
+    free(new_x);
+    free(new_v);
+    free(new_m);
+
+    return make_success_error_status();
+
+err_temp_arr_malloc:
+    free(new_particle_ids);
+    free(new_x);
+    free(new_v);
+    free(new_m);
+err_helper_arr_malloc:
+    free(helper_arr);
+    return error_status;
 }
