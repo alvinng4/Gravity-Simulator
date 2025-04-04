@@ -34,13 +34,6 @@ System get_new_system(void)
     system.v = NULL;
     system.m = NULL;
     system.G = 0.000295912208284119496676630; // Default value for AU^3 d^-2
-    system.boundary_condition = BOUNDARY_COUNDITION_NONE;
-    system.box_center[0] = 0.0;
-    system.box_center[1] = 0.0;
-    system.box_center[2] = 0.0;
-    system.box_size[0] = -1.0;
-    system.box_size[1] = -1.0;
-    system.box_size[2] = -1.0;
     return system;
 }
 
@@ -188,23 +181,6 @@ ErrorStatus finalize_system(System *__restrict system)
         return error_status;
     }
 
-    if (system->boundary_condition != BOUNDARY_COUNDITION_NONE &&
-        system->boundary_condition != BOUNDARY_COUNDITION_OPEN &&
-        system->boundary_condition != BOUNDARY_COUNDITION_PERIODIC)
-    {
-        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Invalid boundary condition");
-    }
-
-    if (system->boundary_condition != BOUNDARY_COUNDITION_NONE)
-    {
-        if (system->box_size[0] <= 0.0 ||
-            system->box_size[1] <= 0.0 ||
-            system->box_size[2] <= 0.0)
-        {
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Box size must be positive");
-        }
-    }
-
     return make_success_error_status();
 }
 
@@ -214,84 +190,6 @@ void free_system(System *__restrict system)
     free(system->x);
     free(system->v);
     free(system->m);
-}
-
-ErrorStatus set_boundary_condition(
-    System *__restrict system,
-    const Settings *__restrict settings
-)
-{
-    switch (system->boundary_condition)
-    {
-        case BOUNDARY_COUNDITION_NONE:
-            break;
-        case BOUNDARY_COUNDITION_OPEN:
-        {
-            int *__restrict remove_idx_list = malloc(system->num_particles * sizeof(int));
-            if (!remove_idx_list)
-            {
-                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for remove_idx_list");
-            }
-            int remove_count = 0;
-            double *__restrict x = system->x;
-            const double box_min[3] = {
-                system->box_center[0] - system->box_size[0] / 2.0,
-                system->box_center[1] - system->box_size[1] / 2.0,
-                system->box_center[2] - system->box_size[2] / 2.0
-            };
-            const double box_max[3] = {
-                system->box_center[0] + system->box_size[0] / 2.0,
-                system->box_center[1] + system->box_size[1] / 2.0,
-                system->box_center[2] + system->box_size[2] / 2.0
-            };
-            for (int i = 0; i < system->num_particles; i++)
-            {
-                if (
-                    x[i * 3 + 0] < box_min[0] ||
-                    x[i * 3 + 1] < box_min[1] ||
-                    x[i * 3 + 2] < box_min[2] ||
-                    x[i * 3 + 0] > box_max[0] ||
-                    x[i * 3 + 1] > box_max[1] ||
-                    x[i * 3 + 2] > box_max[2]
-                )
-                {
-                    remove_idx_list[remove_count] = i;
-                    remove_count++;
-                }
-            }
-            if (remove_count > 0)
-            {
-                if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
-                {
-                    fprintf(stderr, "set_boundary_condition: Removing %d invalid particles. Particle IDs: [%d", remove_count, remove_idx_list[0]);
-                    for (int i = 1; i < remove_count; i++)
-                    {
-                        fprintf(stderr, ", %d", remove_idx_list[i]);
-                    }
-                    fputs("]\n", stderr);
-                }
-
-                ErrorStatus error_status = WRAP_TRACEBACK(remove_particles(
-                    system,
-                    remove_idx_list,
-                    remove_count
-                ));
-                if (error_status.return_code != GRAV_SUCCESS)
-                {
-                    free(remove_idx_list);
-                    return error_status;
-                }
-            }
-            free(remove_idx_list);
-            break;
-        }
-        case BOUNDARY_COUNDITION_PERIODIC:
-        {
-            break;
-        }
-    }
-
-    return make_success_error_status();
 }
 
 ErrorStatus check_invalid_idx_double(

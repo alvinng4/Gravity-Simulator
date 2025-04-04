@@ -12,10 +12,6 @@
 #include "error.h"
 #include "settings.h"
 
-#define BOUNDARY_COUNDITION_NONE 0
-#define BOUNDARY_COUNDITION_OPEN 1
-#define BOUNDARY_COUNDITION_PERIODIC 2
-
 typedef struct System
 {
     int num_particles;
@@ -24,9 +20,6 @@ typedef struct System
     double *v;
     double *m;
     double G;
-    int boundary_condition;
-    double box_center[3];
-    double box_size[3];
 } System;
 
 /**
