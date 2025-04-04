@@ -709,7 +709,11 @@ WIN32DLL_API ErrorStatus rk_embedded(
     ProgressBarParam progress_bar_param;
     if (enable_progress_bar)
     {
-        start_progress_bar(&progress_bar_param, tf);
+        error_status = WRAP_TRACEBACK(start_progress_bar(&progress_bar_param, tf));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_start_progress_bar;
+        }
     }
     
     *t_ptr = 0.0;
@@ -957,6 +961,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
 
 err_output:
 acc_error:
+err_start_progress_bar:
 err_initial_output:
 error_initial_dt:
 error_memory:

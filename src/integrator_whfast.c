@@ -7,7 +7,7 @@
  *   Press, 2020
  * 
  * \author Ching-Yin Ng
- * \date March 2025
+ * \date April 2025
  */
 
 #include <math.h>
@@ -15,6 +15,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
 
 #include "acceleration.h"
 #include "common.h"
@@ -27,6 +31,7 @@
 
 #define WHFAST_KEPLER_TOL 1e-12
 #define WHFAST_KEPLER_MAX_ITER 500
+#define WHFAST_INVALID_TOL 1e-5
 
 /**
  * \brief Compute the velocity kick
@@ -51,7 +56,7 @@ IN_FILE void whfast_kick(
  * \param[in] system Pointer to the gravitational system
  * \param[in] eta Array of cumulative masses
  * \param[in] dt Time step of the system
- * \param[in] verbose Verbosity level
+ * \param[in] settings Pointer to the settings
  *
  * \return ErrorStatus
  * 
@@ -60,10 +65,10 @@ IN_FILE void whfast_kick(
 IN_FILE ErrorStatus whfast_drift(
     double *__restrict jacobi_x,
     double *__restrict jacobi_v,
-    const System *__restrict system,
-    const double *__restrict eta,
+    System *__restrict system,
+    double *__restrict eta,
     const double dt,
-    const int verbose
+    const Settings *__restrict settings
 );
 
 /**
@@ -178,13 +183,17 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
  * 
  * \exception GRAV_MEMORY_ERROR If memory allocation failed
  */
-
 IN_FILE ErrorStatus whfast_acceleration_massless(
     double *__restrict a,
     const System *__restrict system,
     const double *__restrict jacobi_x,
     const double *__restrict eta,
     const AccelerationParam *__restrict acceleration_param
+);
+
+IN_FILE void whfast_compute_eta(
+    double *__restrict eta,
+    const System *__restrict system
 );
 
 WIN32DLL_API ErrorStatus whfast(
@@ -199,8 +208,8 @@ WIN32DLL_API ErrorStatus whfast(
 {
     ErrorStatus error_status;
 
-    const int num_particles = system->num_particles;
-    double *__restrict m = system->m;
+    double *__restrict x = system->x;
+    double *__restrict v = system->v;
 
     double dt = integrator_param->dt;
 
@@ -213,20 +222,26 @@ WIN32DLL_API ErrorStatus whfast(
     int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
-    const int verbose = settings->verbose;
 
     /* Allocate memory */
-    double *__restrict jacobi_x = calloc(num_particles * 3, sizeof(double));
-    double *__restrict jacobi_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict temp_jacobi_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict eta = malloc(num_particles * sizeof(double));
+    double *__restrict jacobi_x = calloc(system->num_particles * 3, sizeof(double));
+    double *__restrict jacobi_v = malloc(system->num_particles * 3 * sizeof(double));
+    double *__restrict temp_jacobi_v = malloc(system->num_particles * 3 * sizeof(double));
+    double *__restrict a = malloc(system->num_particles * 3 * sizeof(double));
+    double *__restrict eta = malloc(system->num_particles * sizeof(double));
 
     // Check if memory allocation is successful
     if (!jacobi_x || !jacobi_v || !temp_jacobi_v || !a || !eta)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for arrays");
         goto err_memory;
+    }
+
+    /* Sort by distance */
+    error_status = WRAP_TRACEBACK(system_sort_by_distance(system, 0));
+    if (error_status.return_code != GRAV_SUCCESS)
+    {
+        goto err_sort_by_distance;
     }
 
     /* Initial output */
@@ -248,25 +263,25 @@ WIN32DLL_API ErrorStatus whfast(
     }
 
     /* Initialization */
-    eta[0] = m[0];
-    for (int i = 1; i < num_particles; i++)
-    {
-        eta[i] = eta[i - 1] + m[i];
-    }
+    whfast_compute_eta(eta, system);
     cartesian_to_jacobi(jacobi_x, jacobi_v, system, eta);
     error_status = WRAP_TRACEBACK(whfast_acceleration(a, system, jacobi_x, eta, acceleration_param));
     if (error_status.return_code != GRAV_SUCCESS)
     {
         goto err_acceleration;
     }
-    whfast_kick(jacobi_v, num_particles, a, 0.5 * dt);
+    whfast_kick(jacobi_v, system->num_particles, a, 0.5 * dt);
 
     /* Main Loop */
     int64 total_num_steps = (int64) ceil(tf / dt);
     ProgressBarParam progress_bar_param;
     if (enable_progress_bar)
     {
-        start_progress_bar(&progress_bar_param, total_num_steps);
+        error_status = WRAP_TRACEBACK(start_progress_bar(&progress_bar_param, total_num_steps));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_start_progress_bar;
+        }
     }
 
     *t_ptr = 0.0;
@@ -281,26 +296,47 @@ WIN32DLL_API ErrorStatus whfast(
         }
         simulation_status->dt = dt;
 
+        /* Sort by distance */
+        // TODO: Modify this with insertion sort since it is faster for mostly sorted array
+        x = system->x;
+        v = system->v;
+        system->x = jacobi_x;
+        system->v = jacobi_v;
+        error_status = WRAP_TRACEBACK(system_sort_by_distance(system, 0));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err_sort_by_distance;
+        }
+        system->x = x;
+        system->v = v;
+        whfast_compute_eta(eta, system);
+
+        /* Drift */
         error_status = WRAP_TRACEBACK(whfast_drift(
             jacobi_x,
             jacobi_v,
             system,
             eta,
             dt,
-            verbose
+            settings
         ));
         if (error_status.return_code != GRAV_SUCCESS)
         {
             goto err_drift;
         }
 
+        /* Convert Jacobi coordinates to Cartesian coordinates */
         jacobi_to_cartesian(system, jacobi_x, jacobi_v, eta);
+
+        /* Compute acceleration */
         error_status = WRAP_TRACEBACK(whfast_acceleration(a, system, jacobi_x, eta, acceleration_param));
         if (error_status.return_code != GRAV_SUCCESS)
         {
             goto err_acceleration;
         }
-        whfast_kick(jacobi_v, num_particles, a, dt);
+
+        /* Kick */
+        whfast_kick(jacobi_v, system->num_particles, a, dt);
 
         (*num_steps_ptr)++;
         *t_ptr = (*num_steps_ptr) * dt;
@@ -309,8 +345,8 @@ WIN32DLL_API ErrorStatus whfast(
         if (is_output && *t_ptr >= next_output_time)
         {
             // Get v_1 from v_1+1/2
-            memcpy(temp_jacobi_v, jacobi_v, num_particles * 3 * sizeof(double));
-            whfast_kick(temp_jacobi_v, num_particles, a, -0.5 * dt);
+            memcpy(temp_jacobi_v, jacobi_v, system->num_particles * 3 * sizeof(double));
+            whfast_kick(temp_jacobi_v, system->num_particles, a, -0.5 * dt);
             jacobi_to_cartesian(system, jacobi_x, temp_jacobi_v, eta);
             error_status = WRAP_TRACEBACK(output_snapshot(
                 output_param,
@@ -354,9 +390,11 @@ WIN32DLL_API ErrorStatus whfast(
     return make_success_error_status();
 
 err_output:
+err_start_progress_bar:
 err_acceleration:
 err_initial_output:
 err_drift:
+err_sort_by_distance:
 err_memory:
     free(eta);
     free(a);
@@ -385,18 +423,37 @@ IN_FILE void whfast_kick(
 IN_FILE ErrorStatus whfast_drift(
     double *__restrict jacobi_x,
     double *__restrict jacobi_v,
-    const System *__restrict system,
-    const double *__restrict eta,
+    System *__restrict system,
+    double *__restrict eta,
     const double dt,
-    const int verbose
+    const Settings *__restrict settings
 )
 {
+    ErrorStatus error_status = make_success_error_status();
+
     const int num_particles = system->num_particles;
     const int *__restrict particle_ids = system->particle_ids;
     const double *__restrict m = system->m;
     const double G = system->G;
+
+    int remove_count = 0;
+    int *__restrict remove_idx_list = NULL;
+    if (settings->remove_invalid_particles)
+    {
+        remove_idx_list = malloc(num_particles * sizeof(int));
+        if (!remove_idx_list)
+        {
+            return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for remove_idx_list");
+        }
+    }
+
+#ifdef USE_OPENMP
+    #pragma omp parallel for
+#endif
     for (int i = 1; i < num_particles; i++)
     {
+        ErrorStatus local_error_status = make_success_error_status();
+
         const double gm = G * m[0] * eta[i] / eta[i - 1];
         const double x[3] = {jacobi_x[i * 3], jacobi_x[i * 3 + 1], jacobi_x[i * 3 + 2]};
         const double v[3] = {jacobi_v[i * 3], jacobi_v[i * 3 + 1], jacobi_v[i * 3 + 2]};
@@ -420,17 +477,20 @@ IN_FILE ErrorStatus whfast_drift(
         double c2 = 0.0;
         double c3 = 0.0;
         bool is_converged = false;
+        bool is_z_not_finite = false;
 
         for (int j = 0; j < WHFAST_KEPLER_MAX_ITER; j++)
         {
             // Compute Stumpff functions
             const double z = alpha * (s * s);
-            if (isnan(z) || isinf(z))
+            if (!isfinite(z))
             {
-                return WRAP_RAISE_ERROR(
-                    GRAV_VALUE_ERROR,
-                    "Input value to Stumpff functions is NaN or Inf"
-                );
+                if (settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO)
+                {
+                    WRAP_RAISE_WARNING("Input value to Stumpff functions is NaN or Inf");
+                }
+                is_z_not_finite = true;
+                break;
             }
             stumpff_functions(&c0, &c1, &c2, &c3, z);
 
@@ -459,89 +519,160 @@ IN_FILE ErrorStatus whfast_drift(
             }
         }
 
-        // The raidal distance is equal to the derivative of F
-        // double r = dF
-        const double r = x_norm * c0 + x_norm * radial_v * s * c1 + gm * (s * s) * c2;
-
-        if (!is_converged)
+        if (local_error_status.return_code == GRAV_SUCCESS)
         {
-            const double error = (
-                x_norm * s * c1
-                + x_norm * radial_v * (s * s) * c2
-                + gm * (s * s * s) * c3
-                - dt
-            ) / r;
+            // The raidal distance is equal to the derivative of F
+            // double r = dF
+            const double r = x_norm * c0 + x_norm * radial_v * s * c1 + gm * (s * s) * c2;
 
-            /* Print warning message */
-            if (verbose >= GRAV_VERBOSITY_IGNORE_INFO)
+            if (!is_converged)
             {
-                const int warning_msg_len = (
-                    strlen("Kepler's equation did not converge. Particle id: , error = \n")
-                    + snprintf(NULL, 0, "%d", particle_ids[i])
-                    + snprintf(NULL, 0, "%23.15g", error)
-                    + 1
-                );
-                char *warning_msg = malloc(warning_msg_len);
-                if (!warning_msg)
+                const double error = (
+                    x_norm * s * c1
+                    + x_norm * radial_v * (s * s) * c2
+                    + gm * (s * s * s) * c3
+                    - dt
+                ) / r;
+
+                /* Print message */
+                if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
                 {
-                    return WRAP_RAISE_ERROR(
-                        GRAV_MEMORY_ERROR,
-                        "Kepler's equation did not converge and failed to allocate memory for warning message"
+                    fprintf(
+                        stderr,
+                        "whfast_drift: Kepler's equation did not converge for particle id %d. Error: %23.15g\n",
+                        particle_ids[i],
+                        error
                     );
                 }
 
-                const int actual_warning_msg_len = snprintf(
-                    warning_msg,
-                    warning_msg_len,
-                    "Warning: Kepler's equation did not converge. "\
-                    "Particle id: %d, error = %23.15g\n",
-                    particle_ids[i], error
-                );
-
-                if (actual_warning_msg_len < 0)
+                if ((error > WHFAST_INVALID_TOL || is_z_not_finite) && settings->remove_invalid_particles)
                 {
-                    free(warning_msg);
-                    return WRAP_RAISE_ERROR(
-                        GRAV_UNKNOWN_ERROR,
-                        "Kepler's equation did not converge and failed to generate warning message"
-                    );
-                }
-                else if (actual_warning_msg_len >= warning_msg_len)
-                {
-                    free(warning_msg);
-                    return WRAP_RAISE_ERROR(
-                        GRAV_UNKNOWN_ERROR,
-                        "Kepler's equation did not converge and warning message are truncated"
-                    );
-                }
+                    remove_idx_list[remove_count] = i;
 
-                WRAP_RAISE_WARNING(warning_msg);
-                free(warning_msg);
+#ifdef USE_OPENMP
+                    #pragma omp critical
+                    {
+#endif
+                        remove_count++;
+#ifdef USE_OPENMP
+                    }
+#endif
+                }
             }
 
-            // if (kepler_auto_remove && ((fabs(error) > kepler_auto_remove_tol) || isnan(error)))
-            // {
-            //     kepler_failed_bool_array[i] = true;
-            //     *kepler_failed_flag = true;
-            // }
+            /* Evaluate f and g functions, together with their derivatives */
+            const double f = 1.0 - gm * (s * s) * c2 / x_norm;
+            const double g = dt - gm * (s * s * s) * c3;
+
+            const double df = -gm * s * c1 / (r * x_norm);
+            const double dg = 1.0 - gm * (s * s) * c2 / r; 
+
+            /* Compute position and velocity vectors */
+            for (int j = 0; j < 3; j++)
+            {
+                jacobi_x[i * 3 + j] = f * x[j] + g * v[j];
+                jacobi_v[i * 3 + j] = df * x[j] + dg * v[j];
+            }
         }
-
-        /* Evaluate f and g functions, together with their derivatives */
-        const double f = 1.0 - gm * (s * s) * c2 / x_norm;
-        const double g = dt - gm * (s * s * s) * c3;
-
-        const double df = -gm * s * c1 / (r * x_norm);
-        const double dg = 1.0 - gm * (s * s) * c2 / r; 
-
-        /* Compute position and velocity vectors */
-        for (int j = 0; j < 3; j++)
+        
+        if (local_error_status.return_code != GRAV_SUCCESS)
         {
-            jacobi_x[i * 3 + j] = f * x[j] + g * v[j];
-            jacobi_v[i * 3 + j] = df * x[j] + dg * v[j];
+#ifdef USE_OPENMP
+            #pragma omp critical
+            {
+#endif
+                if (error_status.return_code == GRAV_SUCCESS)
+                {
+                    error_status = local_error_status;
+                }
+                else
+                {
+                    free_traceback(&local_error_status);
+                    local_error_status.return_code = GRAV_SUCCESS;
+                }
+#ifdef USE_OPENMP
+            }
+#endif
         }
     }
 
+    if (error_status.return_code != GRAV_SUCCESS)
+    {
+        goto err;
+    }
+
+    if (remove_count > 0)
+    {
+        if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
+        {
+            fprintf(
+                stderr,
+                "whfast_drift: Removing %d invalid particles. Particle IDs: [%d",
+                remove_count,
+                particle_ids[remove_idx_list[0]]
+            );
+            for (int i = 1; i < remove_count; i++)
+            {
+                fprintf(stderr, ", %d", particle_ids[remove_idx_list[i]]);
+            }
+            fputs("]\n", stderr);
+        }
+        error_status = WRAP_TRACEBACK(remove_particles(
+            system,
+            remove_idx_list,
+            remove_count
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err;
+        }
+
+        error_status = WRAP_TRACEBACK(remove_particle_from_double_arr(
+            jacobi_x,
+            remove_idx_list,
+            remove_count,
+            3,
+            num_particles
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err;
+        }
+
+        error_status = WRAP_TRACEBACK(remove_particle_from_double_arr(
+            jacobi_v,
+            remove_idx_list,
+            remove_count,
+            3,
+            num_particles
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err;
+        }
+
+        error_status = WRAP_TRACEBACK(remove_particle_from_double_arr(
+            eta,
+            remove_idx_list,
+            remove_count,
+            1,
+            num_particles
+        ));
+        if (error_status.return_code != GRAV_SUCCESS)
+        {
+            goto err;
+        }
+
+        whfast_compute_eta(eta, system);
+    }
+
+    free(remove_idx_list);
+
     return make_success_error_status();
+
+err:
+    free(remove_idx_list);
+    return error_status;
 }
 
 IN_FILE void cartesian_to_jacobi(
@@ -716,15 +847,20 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
 
     const double softening_length = acceleration_param->softening_length;
 
-    double aux[3];
-    double temp_vec[3];
-    double temp_vec_norm;
-    double temp_vec_norm_cube;
-    double temp_jacobi_norm;
-    double temp_jacobi_norm_cube;
-    double softening_length_cube = softening_length * softening_length * softening_length;
+    const double softening_length_cube = softening_length * softening_length * softening_length;
+
+#ifdef USE_OPENMP
+    #pragma omp parallel for
+#endif
     for (int i = 1; i < num_particles; i++)
     {
+        double aux[3];
+        double temp_vec[3];
+        double temp_vec_norm;
+        double temp_vec_norm_cube;
+        double temp_jacobi_norm;
+        double temp_jacobi_norm_cube;
+
         // Calculate x_0i
         temp_vec[0] = x[i * 3 + 0] - x[0];
         temp_vec[1] = x[i * 3 + 1] - x[1];
@@ -831,13 +967,7 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
 
     const double softening_length = acceleration_param->softening_length;
 
-    double aux[3];
-    double temp_vec[3];
-    double temp_vec_norm;
-    double temp_vec_norm_cube;
-    double temp_jacobi_norm;
-    double temp_jacobi_norm_cube;
-    double softening_length_cube = softening_length * softening_length * softening_length;
+    const double softening_length_cube = softening_length * softening_length * softening_length;
 
     /* Find the numbers of massive and massless particles */
     int massive_objects_count = 0;
@@ -888,6 +1018,13 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
     for (int i = 1; i < massive_objects_count; i++)
     {
         int idx_i = massive_indices[i];
+
+        double aux[3];
+        double temp_vec[3];
+        double temp_vec_norm;
+        double temp_vec_norm_cube;
+        double temp_jacobi_norm;
+        double temp_jacobi_norm_cube;
 
         // Calculate x_0i
         temp_vec[0] = x[idx_i * 3 + 0] - x[0];
@@ -986,6 +1123,9 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
     }
 
     /* Acceleration calculation for massless particles */
+#ifdef USE_OPENMP
+    #pragma omp parallel for
+#endif
     for (int i = 0; i < massless_objects_count; i++)
     {
         int idx_i = massless_indices[i];
@@ -993,6 +1133,13 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
         {
             continue;
         }
+
+        double aux[3];
+        double temp_vec[3];
+        double temp_vec_norm;
+        double temp_vec_norm_cube;
+        double temp_jacobi_norm;
+        double temp_jacobi_norm_cube;
         
         // Calculate x_0i
         temp_vec[0] = x[idx_i * 3 + 0] - x[0];
@@ -1110,4 +1257,19 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
     free(massless_indices);
 
     return make_success_error_status();
+}
+
+IN_FILE void whfast_compute_eta(
+    double *__restrict eta,
+    const System *__restrict system
+)
+{
+    const int num_particles = system->num_particles;
+    const double *__restrict m = system->m;
+
+    eta[0] = m[0];
+    for (int i = 1; i < num_particles; i++)
+    {
+        eta[i] = eta[i - 1] + m[i];
+    }
 }
