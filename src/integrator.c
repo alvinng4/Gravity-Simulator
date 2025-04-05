@@ -407,7 +407,7 @@ IN_FILE ErrorStatus euler(
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
     int *__restrict output_count_ptr = &(output_param->output_count_);
-    const int output_interval = output_param->output_interval;
+    const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
     double *__restrict t_ptr = &(simulation_status->t);
@@ -583,7 +583,7 @@ IN_FILE ErrorStatus euler_cromer(
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
     int *__restrict output_count_ptr = &(output_param->output_count_);
-    const int output_interval = output_param->output_interval;
+    const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
     double *__restrict t_ptr = &(simulation_status->t);
@@ -758,7 +758,7 @@ IN_FILE ErrorStatus rk4(
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
     int *__restrict output_count_ptr = &(output_param->output_count_);
-    const int output_interval = output_param->output_interval;
+    const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
     double *__restrict t_ptr = &(simulation_status->t);
@@ -1023,7 +1023,7 @@ IN_FILE ErrorStatus leapfrog(
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
     int *__restrict output_count_ptr = &(output_param->output_count_);
-    const int output_interval = output_param->output_interval;
+    const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
     double *__restrict t_ptr = &(simulation_status->t);
