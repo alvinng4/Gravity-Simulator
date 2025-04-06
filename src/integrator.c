@@ -432,7 +432,6 @@ IN_FILE ErrorStatus euler(
     }
 
     /* Initial output */
-    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
     if (is_output && output_param->output_initial)
     {
         error_status = WRAP_TRACEBACK(output_snapshot(
@@ -521,7 +520,7 @@ IN_FILE ErrorStatus euler(
                 goto err_output;
             }
 
-            next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
+            next_output_time = (*output_count_ptr) * output_interval;
         }
 
         if (enable_progress_bar)
@@ -608,7 +607,6 @@ IN_FILE ErrorStatus euler_cromer(
     }
 
     /* Initial output */
-    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
     if (is_output && output_param->output_initial)
     {
         error_status = WRAP_TRACEBACK(output_snapshot(
@@ -696,7 +694,7 @@ IN_FILE ErrorStatus euler_cromer(
                 goto err_output;
             }
 
-            next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
+            next_output_time = (*output_count_ptr) * output_interval;
         }
 
         if (enable_progress_bar)
@@ -803,7 +801,6 @@ IN_FILE ErrorStatus rk4(
     }
 
     /* Initial output */
-    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
     if (is_output && output_param->output_initial)
     {
         error_status = WRAP_TRACEBACK(output_snapshot(
@@ -947,7 +944,7 @@ IN_FILE ErrorStatus rk4(
                 goto err_output;
             }
 
-            next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
+            next_output_time = (*output_count_ptr) * output_interval;
         }
 
         if (enable_progress_bar)
@@ -1054,7 +1051,6 @@ IN_FILE ErrorStatus leapfrog(
     }
 
     /* Initial output */
-    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
     if (is_output && output_param->output_initial)
     {
         error_status = WRAP_TRACEBACK(output_snapshot(
@@ -1178,7 +1174,7 @@ IN_FILE ErrorStatus leapfrog(
                 goto err_output;
             }
 
-            next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
+            next_output_time = (*output_count_ptr) * output_interval;
 
             /* Restore v_1+1/2 */
             memcpy(v, temp_v, num_particles * 3 * sizeof(double));

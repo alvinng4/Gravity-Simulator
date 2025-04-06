@@ -245,7 +245,6 @@ WIN32DLL_API ErrorStatus whfast(
     }
 
     /* Initial output */
-    const int initial_output_offset = (output_param->output_initial) ? 1 : 0;
     if (is_output && output_param->output_initial)
     {
         error_status = WRAP_TRACEBACK(output_snapshot(
@@ -361,7 +360,7 @@ WIN32DLL_API ErrorStatus whfast(
                 goto err_output;
             }
 
-            next_output_time = (*output_count_ptr - initial_output_offset) * output_interval;
+            next_output_time = (*output_count_ptr) * output_interval;
         }
 
         if (enable_progress_bar)
