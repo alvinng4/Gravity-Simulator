@@ -5,15 +5,13 @@
 #include "gravity_sim.h"
 
 
-
-
-ErrorStatus launch_simulation(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+WIN32DLL_API ErrorStatus launch_simulation(
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 )
 {
@@ -78,22 +76,31 @@ ErrorStatus launch_simulation(
     ));
 }
 
-ErrorStatus launch_cosmological_simulation(
-    CosmologicalSystem *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+WIN32DLL_API ErrorStatus launch_cosmological_simulation(
+    CosmologicalSystem *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
 )
 {
 #ifndef USE_FFTW3
+    (void) system;
+    (void) integrator_param;
+    (void) acceleration_param;
+    (void) output_param;
+    (void) simulation_status;
+    (void) settings;
+    (void) a_begin;
+    (void) a_final;
+    (void) pm_grid_size;
     return WRAP_RAISE_ERROR(
         GRAV_VALUE_ERROR,
-        "FFTW3 are required for cosmological simulations"
+        "FFTW3 are required for cosmological simulations. Please recompile with FFTW3 support."
     );
 #else
     ErrorStatus error_status;
@@ -106,6 +113,14 @@ ErrorStatus launch_cosmological_simulation(
     }
 
     /* Check acceleration parameters */
+    if (acceleration_param->method != ACCELERATION_METHOD_PM)
+    {
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
+            "Only particle-mesh acceleration is supported for cosmological simulations. Got: %d",
+            acceleration_param->method
+        );
+    }
     error_status = WRAP_TRACEBACK(finalize_acceleration_param(acceleration_param));
     if (error_status.return_code != GRAV_SUCCESS)
     {

@@ -3,7 +3,6 @@
  * \brief Implementation of Barnes-Hut algorithm
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #include <math.h>
@@ -27,7 +26,7 @@ IN_FILE void helper_compute_acceleration(
     const LinearOctree *__restrict octree
 );
 
-ErrorStatus acceleration_barnes_hut(
+WIN32DLL_API ErrorStatus acceleration_barnes_hut(
     double *__restrict a,
     const System *__restrict system,
     const AccelerationParam *__restrict acceleration_param

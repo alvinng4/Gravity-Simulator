@@ -5,7 +5,6 @@
  * \details This header file contains error codes and prototypes of error-related functions. 
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #ifndef ERROR_H

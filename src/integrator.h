@@ -3,7 +3,6 @@
  * \brief Functions for the integrators
  * 
  * \author Ching-Yin NG
- * \date March 2025
  */
 
 #ifndef INTEGRATOR_H
@@ -61,12 +60,12 @@ ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_p
  * \param tf Simulation time
  */
 ErrorStatus integrator_launch_simulation(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
@@ -84,12 +83,12 @@ ErrorStatus integrator_launch_simulation(
  * \return ErrorStatus
  */
 ErrorStatus rk_embedded(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
@@ -107,12 +106,12 @@ ErrorStatus rk_embedded(
  * \return ErrorStatus
  */
 ErrorStatus ias15(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
@@ -130,22 +129,37 @@ ErrorStatus ias15(
  * \return ErrorStatus
  */
 ErrorStatus whfast(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
+/**
+ * \brief Leapfrog integrator for cosmological simulations.
+ * 
+ * \param system Pointer to the cosmological system
+ * \param integrator_param Pointer to the integrator parameters
+ * \param acceleration_param Pointer to the acceleration parameters
+ * \param output_param Pointer to the output parameters
+ * \param simulation_status Pointer to the simulation status
+ * \param settings Pointer to the settings
+ * \param a_begin Initial scale factor
+ * \param a_final Final scale factor
+ * \param pm_grid_size Size of the PM grid
+ * 
+ * \return ErrorStatus
+ */
 ErrorStatus leapfrog_cosmology(
-    CosmologicalSystem *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    CosmologicalSystem *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size

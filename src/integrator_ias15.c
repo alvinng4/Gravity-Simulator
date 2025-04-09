@@ -3,7 +3,6 @@
  * \brief Implementation for IAS15 integrator
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  * 
  * \ref J. Roa, et al. Moving Planets Around: An Introduction to
  *   N-Body Simulations Applied to Exoplanetary Systems*, MIT

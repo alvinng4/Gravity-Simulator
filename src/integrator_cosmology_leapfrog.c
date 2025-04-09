@@ -1,3 +1,10 @@
+/**
+ * \file integrator_cosmology_leapfrog.c
+ * \brief Leapfrog integrator for cosmological simulations.
+ * 
+ * \author Ching-Yin Ng
+ */
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -17,13 +24,13 @@
 #include "math_functions.h"
 
 
-ErrorStatus leapfrog_cosmology(
-    CosmologicalSystem *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+WIN32DLL_API ErrorStatus leapfrog_cosmology(
+    CosmologicalSystem *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size

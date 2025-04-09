@@ -3,7 +3,6 @@
  * \brief Definitions of utility functions
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #include <math.h>

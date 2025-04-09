@@ -7,7 +7,6 @@
  * and Leapfrog.
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #include <math.h>
@@ -39,12 +38,12 @@
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus euler(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
@@ -62,12 +61,12 @@ IN_FILE ErrorStatus euler(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus euler_cromer(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
@@ -85,12 +84,12 @@ IN_FILE ErrorStatus euler_cromer(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus rk4(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
@@ -108,16 +107,16 @@ IN_FILE ErrorStatus rk4(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus leapfrog(
-    System *system,
-    IntegratorParam *integrator_param,
-    AccelerationParam *acceleration_param,
-    OutputParam *output_param,
-    SimulationStatus *simulation_status,
-    Settings *settings,
+    System *__restrict system,
+    IntegratorParam *__restrict integrator_param,
+    AccelerationParam *__restrict acceleration_param,
+    OutputParam *__restrict output_param,
+    SimulationStatus *__restrict simulation_status,
+    Settings *__restrict settings,
     const double tf
 );
 
-IntegratorParam get_new_integrator_param(void)
+WIN32DLL_API IntegratorParam get_new_integrator_param(void)
 {
     IntegratorParam integrator_param = {
         .integrator = -1,
@@ -128,7 +127,7 @@ IntegratorParam get_new_integrator_param(void)
     return integrator_param;
 }
 
-ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_param)
+WIN32DLL_API ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_param)
 {
     if (!integration_param)
     {

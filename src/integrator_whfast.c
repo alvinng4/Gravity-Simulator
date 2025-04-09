@@ -7,7 +7,6 @@
  *   Press, 2020
  * 
  * \author Ching-Yin Ng
- * \date April 2025
  */
 
 #include <math.h>

@@ -67,6 +67,18 @@ ErrorStatus output_snapshot(
     const Settings *__restrict settings
 );
 
+/**
+ * \brief Output a snapshot of the cosmological simulation in CSV format.
+ * 
+ * \param output_param Pointer to the output parameters.
+ * \param system Pointer to the gravitational system.
+ * \param integrator_param Pointer to the integrator parameters.
+ * \param acceleration_param Pointer to the acceleration parameters.
+ * \param simulation_status Pointer to the simulation status.
+ * \param settings Pointer to the settings.
+ * 
+ * \return ErrorStatus
+ */
 ErrorStatus output_snapshot_cosmology(
     OutputParam *__restrict output_param,
     const CosmologicalSystem *__restrict system,

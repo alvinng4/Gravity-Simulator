@@ -1,15 +1,17 @@
 /**
  * \file linear_octree.h
- * \brief Linear octree structure and functions
+ * \brief Linear octree for Barnes-Hut algorithm
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #ifndef LINEAR_OCTREE_H
 #define LINEAR_OCTREE_H
 
-#define MORTON_MAX_LEVEL 21 // Maximum level for 64-bit Morton index, don't change
+#include "common.h"
+
+/* Maximum level for 64-bit Morton index, do not change */
+#define MORTON_MAX_LEVEL 21
 
 
 /**

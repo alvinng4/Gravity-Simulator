@@ -4,7 +4,6 @@
  * \brief Library for useful mathematical functions
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #ifndef MATH_FUNCTIONS_H

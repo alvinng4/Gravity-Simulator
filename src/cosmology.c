@@ -1,6 +1,8 @@
 #include <math.h>
 
-double compute_omega_k(
+#include "common.h"
+
+WIN32DLL_API double compute_omega_k(
     const double omega_m,
     const double omega_lambda
 )
@@ -8,7 +10,7 @@ double compute_omega_k(
     return 1.0 - omega_m - omega_lambda;
 }
 
-double compute_G(
+WIN32DLL_API double compute_G(
     const double omega_m,
     const double h0
 )
@@ -16,7 +18,7 @@ double compute_G(
     return 3.0 / 2.0 * omega_m * h0 * h0;
 }
 
-double compute_da(
+WIN32DLL_API double compute_da(
     const double a,
     const double h0,
     const double omega_m,

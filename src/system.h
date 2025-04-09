@@ -3,7 +3,6 @@
  * \brief Header file for the system module
  * 
  * \author Ching-Yin Ng
- * \date April 2025
  */
 
 #ifndef SYSTEM_H
@@ -74,15 +73,51 @@ ErrorStatus get_initialized_system(
  */
 ErrorStatus finalize_system(System *__restrict system);
 
+/**
+ * \brief Get a new cosmological system structure with uninitialized memory
+ * 
+ * \return CosmologicalSystem
+ */
 CosmologicalSystem get_new_cosmological_system(void);
 
+/**
+ * \brief Get a new cosmological system with initialized memory for the given number of particles
+ * 
+ * \param[out] system Pointer to the cosmological system to be initialized
+ * \param[in] num_particles Number of particles
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_MEMORY_ERROR if failed to allocate memory
+ * \exception GRAV_POINTER_ERROR if system or its members are NULL
+ */
 ErrorStatus get_initialized_cosmological_system(
     CosmologicalSystem *__restrict system,
     const int num_particles
 );
 
+/**
+ * \brief Finalize the cosmological system by checking the system members
+ * 
+ * \param[in, out] system Pointer to the cosmological system to be finalized
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_POINTER_ERROR if system or its members are NULL
+ * \exception GRAV_VALUE_ERROR if the number of particles is less than 1
+ * \exception GRAV_VALUE_ERROR if the gravitational constant is not positive
+ * \exception GRAV_VALUE_ERROR if the Hubble constant is not positive
+ * \exception GRAV_VALUE_ERROR if omega_m is not positive
+ * \exception GRAV_VALUE_ERROR if omega_lambda is not positive
+ * \exception GRAV_VALUE_ERROR if box_width is not positive
+ */
 ErrorStatus finalize_cosmological_system(CosmologicalSystem *__restrict system);
 
+/**
+ * \brief Free the memory allocated for the cosmological system
+ * 
+ * \param[in] system Pointer to the cosmological system to be freed
+ */
 void free_cosmological_system(CosmologicalSystem *__restrict system);
 
 /**
@@ -247,6 +282,11 @@ ErrorStatus system_sort_by_distance(
     const int primary_particle_id
 );
 
+/**
+ * \brief Set periodic boundary conditions for the cosmological system
+ * 
+ * \param[in, out] system Pointer to the cosmological system
+ */
 void set_periodic_boundary_conditions(CosmologicalSystem *__restrict system);
 
 #endif

@@ -1,3 +1,10 @@
+/**
+ * \file linear_octree.c
+ * \brief Implementation of linear octree for Barnes-Hut algorithm
+ * 
+ * \author Ching-Yin Ng
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

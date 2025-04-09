@@ -4,7 +4,6 @@
  *        functions for gravity-simulator
  * 
  * \author Ching Yin Ng
- * \date March 2025
  */
 
 #ifndef ACCELERATION_H
@@ -19,18 +18,11 @@
 #define ACCELERATION_METHOD_BARNES_HUT 3
 #define ACCELERATION_METHOD_PM 4
 
-#define ACCELERATION_METHOD_CUDA_PAIRWISE 100
-#define ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT 101
-#define ACCELERATION_METHOD_CUDA_BARNES_HUT 102
-#define ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT 103
-
-
 typedef struct AccelerationParam
 {
     int method;
     double opening_angle;
     double softening_length;
-    int order;
     int max_num_particles_per_leaf;
 } AccelerationParam;
 

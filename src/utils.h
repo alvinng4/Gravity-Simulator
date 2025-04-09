@@ -3,7 +3,6 @@
  * \brief Utility functions
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #ifndef UTILS_H

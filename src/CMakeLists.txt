@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
+
+# Help finding the libraries
+cmake_policy(SET CMP0074 NEW)
+
 project(gravity_sim LANGUAGES C)
 
 # Set the C standard
@@ -30,8 +34,8 @@ set(FFTW3_SRCS
     integrator_cosmology_leapfrog.c
 )
 
-# Create the static library target
-add_library(gravity_sim STATIC ${SRCS})
+# Create the library target
+add_library(gravity_sim SHARED ${SRCS})
 
 # Use the current source directory as a public include for this target
 target_include_directories(gravity_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/pcg)
@@ -73,6 +77,7 @@ if (USE_HDF5)
         target_compile_definitions(gravity_sim PRIVATE USE_HDF5)
         target_link_libraries(gravity_sim PRIVATE ${HDF5_LIBRARIES})
         message(STATUS "Building with HDF5 support")
+        message(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
     else()
         message(WARNING "HDF5 requested but not found")
     endif()
@@ -86,8 +91,7 @@ if (USE_FFTW3)
         target_sources(gravity_sim PRIVATE ${FFTW3_SRCS})
         target_include_directories(gravity_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
         target_compile_definitions(gravity_sim PRIVATE USE_FFTW3)
-        set(FFTW3_INCLUDE_DIRS "/opt/homebrew/include")
-        set(FFTW3_LIBRARIES "/opt/homebrew/lib/libfftw3.dylib")
+        # set(FFTW3_LIBRARIES "/opt/homebrew/lib/libfftw3.dylib")
         target_link_libraries(gravity_sim PRIVATE ${FFTW3_LIBRARIES})
         message(STATUS "Building with FFTW3 support")
     else()

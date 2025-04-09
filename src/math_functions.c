@@ -4,7 +4,6 @@
  * \brief This file contains the implementation of some useful mathematical functions
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #include <math.h>

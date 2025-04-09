@@ -4,7 +4,6 @@
  * \brief Library for displaying a progress bar in the terminal.
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #ifndef PROGRESS_BAR_H

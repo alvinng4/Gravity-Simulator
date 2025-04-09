@@ -3,7 +3,6 @@
  * \brief Functions for computing gravitational acceleration
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
 #include <math.h>
@@ -13,17 +12,11 @@
 #include <string.h>
 
 #include "acceleration.h"
-// #include "acceleration_barnes_hut.h"
 #include "common.h"
 #include "error.h"
 #include "math_functions.h"
 #include "system.h"
 #include "utils.h"
-
-#ifdef USE_CUDA
-#include "acceleration_cuda.cuh"
-#endif
-
 
 /**
  * \brief Check the acceleration method
@@ -35,7 +28,7 @@
 IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method);
 
 /**
- * \brief Pairwise acceleration computation based on Newton's law of gravitational
+ * \brief Compute acceleration with direct pairwise method
  * 
  * \param a Array of acceleration vectors to be modified
  * \param system Pointer to the gravitational system
@@ -50,7 +43,7 @@ IN_FILE ErrorStatus acceleration_pairwise(
 );
 
 /**
- * \brief Pairwise acceleration computation based on Newton's law of gravitational,
+ * \brief Compute acceleration with direct pairwise method,
  *        ignoring the contribution of massless particles
  * 
  * \param a Array of acceleration vectors to be modified
@@ -68,12 +61,12 @@ IN_FILE ErrorStatus acceleration_massless(
 
 WIN32DLL_API AccelerationParam get_new_acceleration_param(void)
 {
-    AccelerationParam acceleration_param;
-    acceleration_param.method = ACCELERATION_METHOD_PAIRWISE;
-    acceleration_param.opening_angle = 0.5;
-    acceleration_param.softening_length = 0.0;
-    acceleration_param.max_num_particles_per_leaf = -1;
-    acceleration_param.order = -1;
+    AccelerationParam acceleration_param = {
+        .method = ACCELERATION_METHOD_PAIRWISE,
+        .opening_angle = 0.5,
+        .softening_length = 0.0,
+        .max_num_particles_per_leaf = -1
+    };
     return acceleration_param;
 }
 
@@ -84,7 +77,9 @@ WIN32DLL_API ErrorStatus finalize_acceleration_param(
     ErrorStatus error_status;
 
     /* Check the acceleration method */
-    error_status = WRAP_TRACEBACK(check_acceleration_method(acceleration_param->method));
+    error_status = WRAP_TRACEBACK(
+        check_acceleration_method(acceleration_param->method)
+    );
     if (error_status.return_code != GRAV_SUCCESS)
     {
         return error_status;
@@ -147,18 +142,6 @@ WIN32DLL_API ErrorStatus acceleration(
             return acceleration_massless(a, system, acceleration_param);
         case ACCELERATION_METHOD_BARNES_HUT:
             return acceleration_barnes_hut(a, system, acceleration_param);
-        case ACCELERATION_METHOD_PM:
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Particle-Mesh acceleration is only available for acceleration_cosmology");
-#ifdef USE_CUDA
-        case ACCELERATION_METHOD_CUDA_PAIRWISE:
-            return acceleration_pairwise_cuda(a, system, acceleration_param);
-        case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
-            return acceleration_pairwise_cuda_float(a, system, acceleration_param);
-        case ACCELERATION_METHOD_CUDA_BARNES_HUT:
-            return acceleration_barnes_hut_cuda(a, system, acceleration_param);
-        case ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT:
-            return acceleration_barnes_hut_cuda_float(a, system, acceleration_param);
-#endif
         default:
         {
             return WRAP_RAISE_ERROR_FMT(
@@ -179,15 +162,6 @@ IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method)
         case ACCELERATION_METHOD_BARNES_HUT:
         case ACCELERATION_METHOD_PM:
             break;
-        case ACCELERATION_METHOD_CUDA_PAIRWISE:
-        case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
-        case ACCELERATION_METHOD_CUDA_BARNES_HUT:
-        case ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT:
-#ifdef USE_CUDA
-            break;
-#else 
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "CUDA acceleration method is not available");
-#endif
         default:
         {
             return WRAP_RAISE_ERROR_FMT(
@@ -227,13 +201,12 @@ IN_FILE ErrorStatus acceleration_pairwise(
         const double m_i = m[i];
         for (int j = i + 1; j < num_particles; j++)
         {
-            double temp_vec[3];
-            double R[3];
-
             // Calculate \vec{R} and its norm
-            R[0] = x[i * 3 + 0] - x[j * 3 + 0];
-            R[1] = x[i * 3 + 1] - x[j * 3 + 1];
-            R[2] = x[i * 3 + 2] - x[j * 3 + 2];
+            const double R[3] = {
+                x[i * 3 + 0] - x[j * 3 + 0],
+                x[i * 3 + 1] - x[j * 3 + 1],
+                x[i * 3 + 2] - x[j * 3 + 2]
+            };
             const double R_norm = sqrt(
                 R[0] * R[0] + 
                 R[1] * R[1] + 
@@ -244,9 +217,11 @@ IN_FILE ErrorStatus acceleration_pairwise(
             // Calculate the acceleration
             const double temp_value = G / (R_norm * R_norm * R_norm);
             const double m_j = m[j];
-            temp_vec[0] = temp_value * R[0];
-            temp_vec[1] = temp_value * R[1];
-            temp_vec[2] = temp_value * R[2];
+            double temp_vec[3] = {
+                temp_value * R[0],
+                temp_value * R[1],
+                temp_value * R[2]
+            };
             a[i * 3 + 0] -= temp_vec[0] * m_j;
             a[i * 3 + 1] -= temp_vec[1] * m_j;
             a[i * 3 + 2] -= temp_vec[2] * m_j;
@@ -409,9 +384,11 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
     );
     if (!reference_a || !a)
     {
-        free(reference_a);
-        free(a);
-        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for acceleration arrays");
+        error_status = WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for acceleration arrays"
+        );
+        goto err_malloc;
     }
 
     fputs("Benchmarking acceleration...\n", stdout);
@@ -432,10 +409,12 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
 
         if (!run_time)
         {
-            free(reference_a);
-            free(a);
             free(run_time);
-            return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for runtime array");
+            error_status = WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Failed to allocate memory for runtime array"
+            );
+            goto err_malloc;
         }
 
         for (int j = 0; j < num_times; j++)
@@ -499,20 +478,13 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
             case ACCELERATION_METHOD_BARNES_HUT:
                 fputs("    Method: Barnes-Hut\n", stdout);
                 break;
-#ifdef USE_CUDA
-            case ACCELERATION_METHOD_CUDA_PAIRWISE:
-                fputs("    Method: CUDA Pairwise\n", stdout);
-                break;
-            case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
-                fputs("    Method: CUDA Pairwise Float\n", stdout);
-                break;
-            case ACCELERATION_METHOD_CUDA_BARNES_HUT:
-                fputs("    Method: CUDA Barnes-Hut\n", stdout);
-                break;
-            case ACCELERATION_METHOD_CUDA_BARNES_HUT_FLOAT:
-                fputs("    Method: CUDA Barnes-Hut Float\n", stdout);
-                break;
-#endif
+            default:
+                error_status = WRAP_RAISE_ERROR_FMT(
+                    GRAV_VALUE_ERROR,
+                    "Unknown acceleration method. Got: %d",
+                    acceleration_param->method
+                );
+                goto err_unknown_acceleration_method;
         }
         
         printf("    Number of times: %d\n", num_times);
@@ -523,5 +495,14 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
         free(run_time);
     }
 
+    free(reference_a);
+    free(a);
+
     return make_success_error_status();
+
+err_unknown_acceleration_method:
+err_malloc:
+    free(reference_a);
+    free(a);
+    return error_status;
 }

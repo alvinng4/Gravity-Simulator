@@ -3,7 +3,6 @@
  * \brief Function definitions for simulation output
  * 
  * \author Ching-Yin Ng
- * \date April 2025
  */
 
 #include <stdio.h>
@@ -126,7 +125,7 @@ IN_FILE ErrorStatus check_output_method(const int output_method)
     return make_success_error_status();
 }
 
-ErrorStatus finalize_output_param(
+WIN32DLL_API ErrorStatus finalize_output_param(
     OutputParam *__restrict output_param,
     const Settings *__restrict settings
 )
@@ -241,7 +240,7 @@ ErrorStatus finalize_output_param(
     return make_success_error_status();
 }
 
-ErrorStatus output_snapshot(
+WIN32DLL_API ErrorStatus output_snapshot(
     OutputParam *output_param,
     const System *system,
     const IntegratorParam *integrator_param,
@@ -295,7 +294,7 @@ ErrorStatus output_snapshot(
     return make_success_error_status();
 }
 
-ErrorStatus output_snapshot_cosmology(
+WIN32DLL_API ErrorStatus output_snapshot_cosmology(
     OutputParam *output_param,
     const CosmologicalSystem *system,
     const IntegratorParam *integrator_param,
@@ -324,11 +323,18 @@ ErrorStatus output_snapshot_cosmology(
             ));
             break;
 #else
-            error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "HDF5 output method is not available");
+            error_status = WRAP_RAISE_ERROR(
+                GRAV_VALUE_ERROR,
+                "HDF5 output method is not available. Please recompile with HDF5 support."
+            );
             break;
 #endif
         default:
-            error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Unknown output method");
+            error_status = WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
+                "Unknown output method. Got: %d",
+                output_param->method
+            );
             break;
     }
     if (error_status.return_code != GRAV_SUCCESS)
