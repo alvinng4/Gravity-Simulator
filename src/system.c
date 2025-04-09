@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "cosmology.h"
 #include "error.h"
 #include "math_functions.h"
 #include "system.h"
@@ -185,6 +186,320 @@ ErrorStatus finalize_system(System *__restrict system)
 }
 
 void free_system(System *__restrict system)
+{
+    free(system->particle_ids);
+    free(system->x);
+    free(system->v);
+    free(system->m);
+}
+
+CosmologicalSystem get_new_cosmological_system(void)
+{
+    CosmologicalSystem system;
+    system.num_particles = 0;
+    system.particle_ids = NULL;
+    system.x = NULL;
+    system.v = NULL;
+    system.m = NULL;
+    system.G = -1.0;
+    system.h0 = -1.0;
+    system.omega_m = -1.0;
+    system.omega_lambda = -1.0;
+    system.box_center[0] = 0.0;
+    system.box_center[1] = 0.0;
+    system.box_center[2] = 0.0;
+    system.box_width = -1.0;
+    system.unit_mass = 1.0;
+    system.unit_length = 1.0;
+    system.unit_time = 1.0;
+
+    return system;
+}
+
+ErrorStatus get_initialized_cosmological_system(
+    CosmologicalSystem *__restrict system,
+    const int num_particles
+)
+{
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    *system = get_new_cosmological_system();
+    system->num_particles = num_particles;
+    system->particle_ids = malloc(num_particles * sizeof(int));
+    system->x = calloc(num_particles * 3, sizeof(double));
+    system->v = calloc(num_particles * 3, sizeof(double));
+    system->m = calloc(num_particles, sizeof(double));
+
+    if (!system->particle_ids || !system->x || !system->v || !system->m)
+    {
+        free_cosmological_system(system);
+        return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for system");
+    }
+
+    for (int i = 0; i < num_particles; i++)
+    {
+        (system->particle_ids)[i] = i;
+    }
+
+    return make_success_error_status();
+}
+
+ErrorStatus finalize_cosmological_system(CosmologicalSystem *__restrict system)
+{
+    if (!system)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System is NULL");
+    }
+
+    if (system->num_particles <= 0)
+    {
+        const int error_msg_len = (
+            strlen("Number of particles must be positive. Got: ")
+            + snprintf(NULL, 0, "%d", system->num_particles)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Number of particles must be positive and failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Number of particles must be positive. Got: %d",
+            system->num_particles
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Number of particles must be positive and failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Number of particles must be positive and error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+    if (!system->particle_ids)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array particle_ids is NULL");
+    }
+    if (!system->x)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array x is NULL");
+    }
+    if (!system->v)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array v is NULL");
+    }
+    if (!system->m)
+    {
+        return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array m is NULL");
+    }
+    if (system->h0 <= 0.0)
+    {
+        const int error_msg_len = (
+            strlen("Hubble constant h0 must be positive. Got: ")
+            + snprintf(NULL, 0, "%g", system->h0)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Hubble constant h0 must be positive. Failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Hubble constant h0 must be positive. Got: %g",
+            system->h0
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Hubble constant h0 must be positive. Failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Hubble constant h0 must be positive. Error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    if (system->omega_m <= 0.0)
+    {
+        const int error_msg_len = (
+            strlen("Omega_m must be positive. Got: ")
+            + snprintf(NULL, 0, "%g", system->omega_m)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Omega_m must be positive. Failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Omega_m must be positive. Got: %g",
+            system->omega_m
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Omega_m must be positive. Failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Omega_m must be positive. Error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    if (system->omega_lambda <= 0.0)
+    {
+        const int error_msg_len = (
+            strlen("Omega_lambda must be positive. Got: ")
+            + snprintf(NULL, 0, "%g", system->omega_lambda)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Omega_lambda must be positive. Failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Omega_lambda must be positive. Got: %g",
+            system->omega_lambda
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Omega_lambda must be positive. Failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Omega_lambda must be positive. Error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    system->G = compute_G(system->omega_m, system->h0);
+
+    if (system->box_width <= 0.0)
+    {
+        const int error_msg_len = (
+            strlen("Box width must be positive. Got: ")
+            + snprintf(NULL, 0, "%g", system->box_width)
+            + 1  // Null terminator
+        );
+        char *error_msg = malloc(error_msg_len * sizeof(char));
+        if (!error_msg)
+        {
+            return WRAP_RAISE_ERROR(
+                GRAV_MEMORY_ERROR,
+                "Box width must be positive. Failed to allocate memory for error message"
+            );
+        }
+
+        const int actual_error_msg_len = snprintf(
+            error_msg,
+            error_msg_len,
+            "Box width must be positive. Got: %g",
+            system->box_width
+        );
+
+        if (actual_error_msg_len < 0)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Box width must be positive. Failed to generate error message"
+            );
+        }
+        else if (actual_error_msg_len >= error_msg_len)
+        {
+            free(error_msg);
+            return WRAP_RAISE_ERROR(
+                GRAV_UNKNOWN_ERROR,
+                "Box width must be positive. Error message is truncated"
+            );
+        }
+
+        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
+        free(error_msg);
+        return error_status;
+    }
+
+    return make_success_error_status();
+}
+
+void free_cosmological_system(CosmologicalSystem *__restrict system)
 {
     free(system->particle_ids);
     free(system->x);
@@ -1311,4 +1626,44 @@ err_temp_arr_malloc:
 err_helper_arr_malloc:
     free(helper_arr);
     return error_status;
+}
+
+void set_periodic_boundary_conditions(CosmologicalSystem *__restrict system)
+{
+    const int num_particles = system->num_particles;
+    double *__restrict x = system->x;
+    const double *__restrict box_center = system->box_center;
+    const double box_width = system->box_width;
+
+    for (int i = 0; i < num_particles; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            const double normalized_position = x[i * 3 + j] - box_center[j];
+            if (normalized_position < -box_width)
+            {
+                if ((int) (normalized_position / box_width) % 2 != 0)
+                {
+                    x[i * 3 + j] = fmod(normalized_position, box_width) + box_width;
+                }
+                else
+                {
+                    x[i * 3 + j] = fmod(normalized_position, box_width);
+                }
+                x[i * 3 + j] += box_center[j];
+            }
+            else if (normalized_position > box_width)
+            {
+                if ((int) (normalized_position / box_width) % 2 != 0)
+                {
+                    x[i * 3 + j] = fmod(normalized_position, box_width) - box_width;
+                }
+                else
+                {
+                    x[i * 3 + j] = fmod(normalized_position, box_width);
+                }
+                x[i * 3 + j] += box_center[j];
+            }
+        }
+    }
 }

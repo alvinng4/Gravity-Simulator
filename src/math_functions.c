@@ -11,6 +11,16 @@
 
 #include "common.h"
 
+WIN32DLL_API double vec_sum(const double *__restrict vec, const int vec_length)
+{
+    double sum = 0.0;
+    for (int i = 0; i < vec_length; i++)
+    {
+        sum += vec[i];
+    }
+    return sum;
+}
+
 WIN32DLL_API double vec_norm_3d(const double *__restrict vec)
 {
     return sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);

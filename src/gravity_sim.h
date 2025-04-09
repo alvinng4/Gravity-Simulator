@@ -50,7 +50,17 @@ ErrorStatus launch_simulation(
 );
 
 
-
+ErrorStatus launch_cosmological_simulation(
+    CosmologicalSystem *system,
+    IntegratorParam *integrator_param,
+    AccelerationParam *acceleration_param,
+    OutputParam *output_param,
+    SimulationStatus *simulation_status,
+    Settings *settings,
+    const double a_begin,
+    const double a_final,
+    const int pm_grid_size
+);
 
 
 

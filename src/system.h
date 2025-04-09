@@ -22,6 +22,25 @@ typedef struct System
     double G;
 } System;
 
+typedef struct CosmologicalSystem
+{
+    int num_particles;
+    int *particle_ids;
+    double *x;
+    double *v;
+    double *m;
+    double G;
+    double h0;
+    double omega_m;
+    double omega_lambda;
+    double omega_k;
+    double box_center[3];
+    double box_width;
+    double unit_mass;
+    double unit_length;
+    double unit_time;
+} CosmologicalSystem;
+
 /**
  * \brief Get a new system structure with uninitialized memory
  * 
@@ -54,6 +73,17 @@ ErrorStatus get_initialized_system(
  * \exception GRAV_VALUE_ERROR if the gravitational constant is not positive
  */
 ErrorStatus finalize_system(System *__restrict system);
+
+CosmologicalSystem get_new_cosmological_system(void);
+
+ErrorStatus get_initialized_cosmological_system(
+    CosmologicalSystem *__restrict system,
+    const int num_particles
+);
+
+ErrorStatus finalize_cosmological_system(CosmologicalSystem *__restrict system);
+
+void free_cosmological_system(CosmologicalSystem *__restrict system);
 
 /**
  * \brief Free the memory allocated for the system
@@ -216,5 +246,7 @@ ErrorStatus system_sort_by_distance(
     System *__restrict system,
     const int primary_particle_id
 );
+
+void set_periodic_boundary_conditions(CosmologicalSystem *__restrict system);
 
 #endif

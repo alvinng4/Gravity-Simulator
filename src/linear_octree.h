@@ -73,7 +73,9 @@ LinearOctree get_new_linear_octree(void);
 ErrorStatus construct_octree(
     LinearOctree *__restrict octree,
     const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    const AccelerationParam *__restrict acceleration_param,
+    const double *__restrict box_center,
+    const double box_width
 );
 
 /**

@@ -49,7 +49,9 @@ ErrorStatus acceleration_barnes_hut(
     error_status = WRAP_TRACEBACK(construct_octree(
         &octree,
         system,
-        acceleration_param
+        acceleration_param,
+        NULL,
+        -1.0
     ));
     if (error_status.return_code != GRAV_SUCCESS)
     {

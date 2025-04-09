@@ -12,6 +12,17 @@
 
 #include "gravity_sim.h"
 
+
+/**
+ * \brief Calculate the sum of a vector
+ * 
+ * \param vec 1D array of size vec_length
+ * \param vec_length Length of the vector
+ * 
+ * \return Sum of the vector
+ */
+double vec_sum(const double *__restrict vec, const int vec_length);
+
 /**
  * \brief Calculate the norm of a 3D vector
  * 

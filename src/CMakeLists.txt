@@ -9,12 +9,16 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(SRCS
     acceleration.c
     acceleration_barnes_hut.c
+    acceleration_PM.c
+    acceleration_treePM.c
+    cosmology.c
     error.c
     gravity_sim.c
     integrator.c
     integrator_rk_embedded.c
     integrator_ias15.c
     integrator_whfast.c
+    integrator_leapfrog_cosmology.c
     linear_octree.c
     math_functions.c
     output.c
@@ -69,6 +73,22 @@ if (USE_HDF5)
         message(STATUS "Building with HDF5 support")
     else()
         message(WARNING "HDF5 requested but not found")
+    endif()
+endif()
+
+# Optionally enable FFTW support
+option(USE_FFTW3 "Enable FFTW3" OFF)
+if (USE_FFTW3)
+    find_package(FFTW3 REQUIRED)
+    if (FFTW3_FOUND)
+        target_include_directories(gravity_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
+        target_compile_definitions(gravity_sim PRIVATE USE_FFTW3)
+        set(FFTW3_INCLUDE_DIRS "/opt/homebrew/include")
+        set(FFTW3_LIBRARIES "/opt/homebrew/lib/libfftw3.dylib")
+        target_link_libraries(gravity_sim PRIVATE ${FFTW3_LIBRARIES})
+        message(STATUS "Building with FFTW3 support")
+    else()
+        message(WARNING "FFTW3 requested but not found")
     endif()
 endif()
 

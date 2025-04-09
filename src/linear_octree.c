@@ -854,7 +854,9 @@ IN_FILE ErrorStatus helper_construct_octree(
 WIN32DLL_API ErrorStatus construct_octree(
     LinearOctree *__restrict octree,
     const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    const AccelerationParam *__restrict acceleration_param,
+    const double *__restrict box_center,
+    const double box_width
 )
 {
     ErrorStatus error_status;
@@ -880,7 +882,18 @@ WIN32DLL_API ErrorStatus construct_octree(
 
     /* Find the width and center of the bounding box */
     double center[3];
-    calculate_bounding_box(center, &(octree->box_width), num_particles, x);
+    if (!box_center || box_width <= 0.0)
+    {
+        calculate_bounding_box(center, &(octree->box_width), num_particles, x);
+        box_center = center;
+    }
+    else
+    {
+        octree->box_width = box_width;
+        center[0] = box_center[0];
+        center[1] = box_center[1];
+        center[2] = box_center[2];
+    }
 
     /* Allocate memory */
     // Indices

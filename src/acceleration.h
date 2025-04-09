@@ -17,6 +17,8 @@
 #define ACCELERATION_METHOD_PAIRWISE 1
 #define ACCELERATION_METHOD_MASSLESS 2
 #define ACCELERATION_METHOD_BARNES_HUT 3
+#define ACCELERATION_METHOD_PM 4
+#define ACCELERATION_METHOD_TREEPM 5
 
 #define ACCELERATION_METHOD_CUDA_PAIRWISE 100
 #define ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT 101
@@ -64,6 +66,15 @@ ErrorStatus acceleration(
     const AccelerationParam *__restrict acceleration_param
 );
 
+ErrorStatus acceleration_cosmology(
+    double *__restrict a,
+    const CosmologicalSystem *__restrict system,
+    const AccelerationParam *__restrict acceleration_param,
+    const double mean_bkg_density,
+    const int pm_grid_size,
+    const double scale_factor
+);
+
 /**
  * \brief Compute acceleration with Barnes-Hut algorithm
  * 
@@ -75,6 +86,24 @@ ErrorStatus acceleration_barnes_hut(
     double *__restrict a,
     const System *__restrict system,
     const AccelerationParam *__restrict acceleration_param
+);
+
+ErrorStatus acceleration_treePM(
+    double *__restrict a,
+    const CosmologicalSystem *__restrict system,
+    const AccelerationParam *__restrict acceleration_param,
+    const double mean_bkg_density,
+    const int pm_grid_size,
+    const double scale_factor
+);
+
+ErrorStatus acceleration_PM(
+    double *__restrict a,
+    const CosmologicalSystem *__restrict system,
+    const AccelerationParam *__restrict acceleration_param,
+    const double mean_bkg_density,
+    const int pm_grid_size,
+    const double scale_factor
 );
 
 /**

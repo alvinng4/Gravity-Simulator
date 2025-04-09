@@ -67,4 +67,13 @@ ErrorStatus output_snapshot(
     const Settings *__restrict settings
 );
 
+ErrorStatus output_snapshot_cosmology(
+    OutputParam *__restrict output_param,
+    const CosmologicalSystem *__restrict system,
+    const IntegratorParam *__restrict integrator_param,
+    const AccelerationParam *__restrict acceleration_param,
+    const SimulationStatus *__restrict simulation_status,
+    const Settings *__restrict settings
+);
+
 #endif
