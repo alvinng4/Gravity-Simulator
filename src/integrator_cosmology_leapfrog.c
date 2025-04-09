@@ -100,7 +100,7 @@ ErrorStatus leapfrog_cosmology(
     }
 
     /* Compute initial acceleration */
-    error_status = WRAP_TRACEBACK(acceleration_cosmology(
+    error_status = WRAP_TRACEBACK(acceleration_PM(
         a,
         system,
         acceleration_param,
@@ -161,7 +161,7 @@ ErrorStatus leapfrog_cosmology(
         set_periodic_boundary_conditions(system);
 
         /* Kick (p_1) */
-        error_status = WRAP_TRACEBACK(acceleration_cosmology(
+        error_status = WRAP_TRACEBACK(acceleration_PM(
             a,
             system,
             acceleration_param,

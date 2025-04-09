@@ -42,26 +42,48 @@ typedef struct ErrorStatus
  * \param error_msg Error message.
  */
 #define WRAP_RAISE_WARNING(error_msg) \
-    raise_warning(error_msg, __FILE__, __LINE__, __func__)
+    raise_warning(__FILE__, __LINE__, __func__, error_msg)
+
+/**
+ * \brief Wrapper for raise_warning function with formatted message.
+ * 
+ * \param format Format string.
+ * \param ... Additional arguments for the format string.
+ * 
+ * \return ErrorStatus
+ */
+#define WRAP_RAISE_WARNING_FMT(format, ...) \
+    raise_warning_fmt(__FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 
 /**
  * \brief Wrapper for raise_error function.
  * 
- * \param error_status ErrorStatus struct.
- * \param error_code Error code.
- * \param error_msg Error message.
+ * \param error_code Error code
+ * \param error_msg Error message
  * 
- * \return ErrorStatus struct.
+ * \return ErrorStatus
  */
 #define WRAP_RAISE_ERROR(error_code, error_msg) \
-    raise_error(error_code, error_msg, __FILE__, __LINE__, __func__)
+    raise_error(__FILE__, __LINE__, __func__, error_code, error_msg)
+
+/**
+ * \brief Wrapper for raise_error function with formatted message.
+ * 
+ * \param error_code Error code
+ * \param format Format string
+ * \param ... Additional arguments for the format string
+ * 
+ * \return ErrorStatus
+ */
+#define WRAP_RAISE_ERROR_FMT(error_code, format, ...) \
+    raise_error_fmt(__FILE__, __LINE__, __func__, error_code, format, ##__VA_ARGS__)
 
 /**
  * \brief Wrapper for traceback function.
  * 
- * \param function_call Function call to be traced.
+ * \param function_call Function call to be traced
  * 
- * \return ErrorStatus struct.
+ * \return ErrorStatus
  */
 #define WRAP_TRACEBACK(function_call) \
     traceback(function_call, #function_call, __FILE__, __LINE__, __func__)
@@ -76,35 +98,79 @@ ErrorStatus make_success_error_status(void);
 /**
  * \brief Raise a warning and print to stderr.
  * 
- * \param warning_msg Warning message.
  * \param warning_file File where the warning occurs.
  * \param warning_line Line number where the warning occurs.
  * \param warning_func Function where the warning occurs.
+ * \param warning_msg Warning message.
  */
 void raise_warning(
-    const char *__restrict warning_msg,
     const char *__restrict warning_file,
     const int warning_line,
-    const char *__restrict warning_func
+    const char *__restrict warning_func,
+    const char *__restrict warning_msg
+);
+
+/**
+ * \brief Raise a warning with formatted message and print to stderr.
+ * 
+ * \param warning_file File where the warning occurs.
+ * \param warning_line Line number where the warning occurs.
+ * \param warning_func Function where the warning occurs.
+ * \param format Format string for the warning message.
+ * \param ... Additional arguments for the format string.
+ * 
+ * \return ErrorStatus
+ * 
+ * \exception GRAV_MEMORY_ERROR When memory allocation for the warning message fails.
+ * \exception GRAV_UNKNOWN_ERROR When failed to encode the warning message.
+ * \exception GRAV_UNKNOWN_ERROR When the warning message is truncated.
+ */
+ErrorStatus raise_warning_fmt(
+    const char *__restrict warning_file,
+    const int warning_line,
+    const char *__restrict warning_func,
+    const char *__restrict format,
+    ...
 );
 
 /**
  * \brief Raise an error.
  * 
- * \param error_code Error code.
- * \param error_msg Error message.
  * \param error_file File where the error occurs.
  * \param error_line Line number where the error occurs.
  * \param error_func Function where the error occurs.
+ * \param error_code Error code.
+ * \param error_msg Error message.
  * 
- * \return ErrorStatus struct.
+ * \return ErrorStatus
  */
 ErrorStatus raise_error(
-    const int error_code,
-    const char *__restrict error_msg,
     const char *__restrict error_file,
     const int error_line,
-    const char *__restrict error_func
+    const char *__restrict error_func,
+    const int error_code,
+    const char *__restrict error_msg
+);
+
+/**
+ * \brief Raise an error with formatted message.
+ * 
+ * \param error_file File where the error occurs.
+ * \param error_line Line number where the error occurs.
+ * \param error_func Function where the error occurs.
+ * \param error_code Error code.
+ * \param format Format string for the error message.
+ * \param ... Additional arguments for the format string.
+ * 
+ * \return ErrorStatus
+ */
+ErrorStatus raise_error_fmt(
+    const char *__restrict error_file,
+    const int error_line,
+    const char *__restrict error_func,
+    const int error_code,
+    const char *__restrict format,
+    ...
 );
 
 /**

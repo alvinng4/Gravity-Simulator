@@ -93,47 +93,11 @@ WIN32DLL_API ErrorStatus finalize_acceleration_param(
     /* Check the softening length */
     if (acceleration_param->softening_length < 0.0)
     {
-        const int error_msg_len = (
-            strlen("Softening length is negative. Got: ")
-            + snprintf(NULL, 0, "%.3g", acceleration_param->softening_length)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Softening length is negative and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "Softening length is negative. Got: %.3g",
             acceleration_param->softening_length
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Softening length is negative and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Softening length is negative and error message are truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     /* Check the opening angle */
@@ -142,47 +106,11 @@ WIN32DLL_API ErrorStatus finalize_acceleration_param(
         && acceleration_param->opening_angle < 0.0
     )
     {
-        const int error_msg_len = (
-            strlen("Opening angle is negative. Got: ")
-            + snprintf(NULL, 0, "%.3g", acceleration_param->opening_angle)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Opening angle is negative and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "Opening angle is negative. Got: %.3g",
             acceleration_param->opening_angle
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Opening angle is negative and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Opening angle is negative and error message are truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     /* Check the maximum number of particles per leaf */
@@ -194,47 +122,11 @@ WIN32DLL_API ErrorStatus finalize_acceleration_param(
         }
         else if (acceleration_param->max_num_particles_per_leaf < 1)
         {
-            const int error_msg_len = (
-                strlen("Maximum number of particles per leaf must be positive. Got: ")
-                + snprintf(NULL, 0, "%d", acceleration_param->max_num_particles_per_leaf)
-                + 1  // Null terminator
-            );
-            char *error_msg = malloc(error_msg_len * sizeof(char));
-            if (!error_msg)
-            {
-                return WRAP_RAISE_ERROR(
-                    GRAV_MEMORY_ERROR,
-                    "Maximum number of particles per leaf must be positive and failed to allocate memory for error message"
-                );
-            }
-
-            const int actual_error_msg_len = snprintf(
-                error_msg,
-                error_msg_len,
-                "Maximum number of particles per leaf is less than 1. Got: %d",
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
+                "Maximum number of particles per leaf must be positive. Got: %d",
                 acceleration_param->max_num_particles_per_leaf
             );
-
-            if (actual_error_msg_len < 0)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(
-                    GRAV_UNKNOWN_ERROR,
-                    "Maximum number of particles per leaf must be positive and failed to generate error message"
-                );
-            }
-            else if (actual_error_msg_len >= error_msg_len)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(
-                    GRAV_UNKNOWN_ERROR,
-                    "Maximum number of particles per leaf must be positive and error message are truncated"
-                );
-            }
-
-            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-            free(error_msg);
-            return error_status;
         }
     }
 
@@ -257,8 +149,6 @@ WIN32DLL_API ErrorStatus acceleration(
             return acceleration_barnes_hut(a, system, acceleration_param);
         case ACCELERATION_METHOD_PM:
             return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Particle-Mesh acceleration is only available for acceleration_cosmology");
-        case ACCELERATION_METHOD_TREEPM:
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Tree-PM acceleration is only available for acceleration_cosmology"); 
 #ifdef USE_CUDA
         case ACCELERATION_METHOD_CUDA_PAIRWISE:
             return acceleration_pairwise_cuda(a, system, acceleration_param);
@@ -271,119 +161,11 @@ WIN32DLL_API ErrorStatus acceleration(
 #endif
         default:
         {
-            {
-                const int error_msg_len = (
-                    strlen("Unknown acceleration method. Got: ")
-                    + snprintf(NULL, 0, "%d", acceleration_param->method)
-                    + 1  // Null terminator
-                );
-                char *error_msg = malloc(error_msg_len * sizeof(char));
-                if (!error_msg)
-                {
-                    return WRAP_RAISE_ERROR(
-                        GRAV_MEMORY_ERROR, "Unknown acceleration method and failed to allocate memory for error message"
-                    );
-                }
-
-                const int actual_error_msg_len = snprintf(
-                    error_msg,
-                    error_msg_len,
-                    "Unknown acceleration method. Got: %d",
-                    acceleration_param->method
-                );
-
-                if (actual_error_msg_len < 0)
-                {
-                    free(error_msg);
-                    return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and failed to generate error message");
-                }
-                else if (actual_error_msg_len >= error_msg_len)
-                {
-                    free(error_msg);
-                    return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and error message are truncated");
-                }
-
-                ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-                free(error_msg);
-                return error_status;
-            }
-        }
-    }
-}
-
-WIN32DLL_API ErrorStatus acceleration_cosmology(
-    double *__restrict a,
-    const CosmologicalSystem *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const double mean_bkg_density,
-    const int pm_grid_size,
-    const double scale_factor
-)
-{
-    switch (acceleration_param->method)
-    {
-        case ACCELERATION_METHOD_PAIRWISE:
-        return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Pairwise acceleration is not available for acceleration_cosmology");
-        case ACCELERATION_METHOD_MASSLESS:
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Massless acceleration is not available for acceleration_cosmology");
-        case ACCELERATION_METHOD_BARNES_HUT:
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Barnes-Hut acceleration is not available for acceleration_cosmology");
-        case ACCELERATION_METHOD_PM:
-            return acceleration_PM(
-                a,
-                system,
-                acceleration_param,
-                mean_bkg_density,
-                pm_grid_size,
-                scale_factor
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
+                "Unknown acceleration method. Got: %d",
+                acceleration_param->method
             );
-        case ACCELERATION_METHOD_TREEPM:
-            return acceleration_treePM(
-                a,
-                system,
-                acceleration_param,
-                mean_bkg_density,
-                pm_grid_size,
-                scale_factor
-            );
-        default:
-        {
-            {
-                const int error_msg_len = (
-                    strlen("Unknown acceleration method. Got: ")
-                    + snprintf(NULL, 0, "%d", acceleration_param->method)
-                    + 1  // Null terminator
-                );
-                char *error_msg = malloc(error_msg_len * sizeof(char));
-                if (!error_msg)
-                {
-                    return WRAP_RAISE_ERROR(
-                        GRAV_MEMORY_ERROR, "Unknown acceleration method and failed to allocate memory for error message"
-                    );
-                }
-
-                const int actual_error_msg_len = snprintf(
-                    error_msg,
-                    error_msg_len,
-                    "Unknown acceleration method. Got: %d",
-                    acceleration_param->method
-                );
-
-                if (actual_error_msg_len < 0)
-                {
-                    free(error_msg);
-                    return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and failed to generate error message");
-                }
-                else if (actual_error_msg_len >= error_msg_len)
-                {
-                    free(error_msg);
-                    return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and error message are truncated");
-                }
-
-                ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-                free(error_msg);
-                return error_status;
-            }
         }
     }
 }
@@ -396,7 +178,6 @@ IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method)
         case ACCELERATION_METHOD_MASSLESS:
         case ACCELERATION_METHOD_BARNES_HUT:
         case ACCELERATION_METHOD_PM:
-        case ACCELERATION_METHOD_TREEPM:
             break;
         case ACCELERATION_METHOD_CUDA_PAIRWISE:
         case ACCELERATION_METHOD_CUDA_PAIRWISE_FLOAT:
@@ -409,40 +190,11 @@ IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method)
 #endif
         default:
         {
-            const int error_msg_len = (
-                strlen("Unknown acceleration method. Got: ")
-                + snprintf(NULL, 0, "%d", acceleration_method)
-                + 1  // Null terminator
-            );
-            char *error_msg = malloc(error_msg_len * sizeof(char));
-            if (!error_msg)
-            {
-                return WRAP_RAISE_ERROR(
-                    GRAV_MEMORY_ERROR, "Unknown acceleration method and failed to allocate memory for error message"
-                );
-            }
-
-            const int actual_error_msg_len = snprintf(
-                error_msg,
-                error_msg_len,
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
                 "Unknown acceleration method. Got: %d",
                 acceleration_method
             );
-
-            if (actual_error_msg_len < 0)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and failed to generate error message");
-            }
-            else if (actual_error_msg_len >= error_msg_len)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown acceleration method and error message are truncated");
-            }
-
-            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-            free(error_msg);
-            return error_status;
         }
     }
 

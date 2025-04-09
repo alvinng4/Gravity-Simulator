@@ -358,47 +358,11 @@ IN_FILE ErrorStatus binary_search_num_particles_per_octant(
 
             if (mid_octant > 7 || mid_octant < 0)
             {
-                const int error_msg_len = (
-                    strlen("mid_octant is out of range. Got: ")
-                    + snprintf(NULL, 0, "%d", mid_octant)
-                    + 1  // Null terminator
-                );
-                char *error_msg = malloc(error_msg_len * sizeof(char));
-                if (!error_msg)
-                {
-                    return WRAP_RAISE_ERROR(
-                        GRAV_MEMORY_ERROR,
-                        "mid_octant is out of range and failed to allocate memory for error message"
-                    );
-                }
-        
-                const int actual_error_msg_len = snprintf(
-                    error_msg,
-                    error_msg_len,
-                    "mid_octant is out of range. Got: %d",
+                return WRAP_RAISE_ERROR_FMT(
+                    GRAV_VALUE_ERROR,
+                    "Morton index %d is out of range [0, 7]",
                     mid_octant
                 );
-        
-                if (actual_error_msg_len < 0)
-                {
-                    free(error_msg);
-                    return WRAP_RAISE_ERROR(
-                        GRAV_UNKNOWN_ERROR,
-                        "mid_octant is out of range and failed to generate error message"
-                    );
-                }
-                else if (actual_error_msg_len >= error_msg_len)
-                {
-                    free(error_msg);
-                    return WRAP_RAISE_ERROR(
-                        GRAV_UNKNOWN_ERROR,
-                        "mid_octant is out of range and error message are truncated"
-                    );
-                }
-        
-                ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-                free(error_msg);
-                return error_status;
             }
 
             if (mid_octant == i && (mid == end_idx || (((particle_morton_indices_deepest_level[mid + 1] >> level_shift) - prefix)) > i))

@@ -148,47 +148,11 @@ ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_p
         && integration_param->integrator != INTEGRATOR_WHFAST
     )
     {
-        const int error_msg_len = (
-            strlen("Invalid integrator value. Got: ")
-            + snprintf(NULL, 0, "%d", integration_param->integrator)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Invalid integrator value and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
-            "Invalid integrator value. Got: %d",
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
+            "Unknown integrator. Got: %d",
             integration_param->integrator
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Invalid integrator value and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Invalid integrator value and error message is truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     if (
@@ -201,47 +165,11 @@ ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_p
     {
         if (integration_param->dt <= 0.0)
         {
-            const int error_msg_len = (
-                strlen("dt must be positive. Got: ")
-                + snprintf(NULL, 0, "%g", integration_param->dt)
-                + 1  // Null terminator
-            );
-            char *error_msg = malloc(error_msg_len * sizeof(char));
-            if (!error_msg)
-            {
-                return WRAP_RAISE_ERROR(
-                    GRAV_MEMORY_ERROR,
-                    "dt must be positive and failed to allocate memory for error message"
-                );
-            }
-    
-            const int actual_error_msg_len = snprintf(
-                error_msg,
-                error_msg_len,
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
                 "dt must be positive. Got: %g",
                 integration_param->dt
             );
-    
-            if (actual_error_msg_len < 0)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(
-                    GRAV_UNKNOWN_ERROR,
-                    "dt must be positive and failed to generate error message"
-                );
-            }
-            else if (actual_error_msg_len >= error_msg_len)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(
-                    GRAV_UNKNOWN_ERROR,
-                    "dt must be positive and error message is truncated"
-                );
-            }
-    
-            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-            free(error_msg);
-            return error_status;
         }
     }
 
@@ -249,47 +177,11 @@ ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_p
     {
         if (integration_param->tolerance <= 0.0)
         {
-            const int error_msg_len = (
-                strlen("Tolerance must be positive. Got: ")
-                + snprintf(NULL, 0, "%g", integration_param->tolerance)
-                + 1  // Null terminator
-            );
-            char *error_msg = malloc(error_msg_len * sizeof(char));
-            if (!error_msg)
-            {
-                return WRAP_RAISE_ERROR(
-                    GRAV_MEMORY_ERROR,
-                    "Tolerance must be positive and failed to allocate memory for error message"
-                );
-            }
-
-            const int actual_error_msg_len = snprintf(
-                error_msg,
-                error_msg_len,
-                "Tolerance must be positive. Got: %g",
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
+                "tolerance must be positive. Got: %g",
                 integration_param->tolerance
             );
-
-            if (actual_error_msg_len < 0)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(
-                    GRAV_UNKNOWN_ERROR,
-                    "Tolerance must be positive and failed to generate error message"
-                );
-            }
-            else if (actual_error_msg_len >= error_msg_len)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(
-                    GRAV_UNKNOWN_ERROR,
-                    "Tolerance must be positive and error message is truncated"
-                );
-            }
-
-            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-            free(error_msg);
-            return error_status;
         }
     }
 

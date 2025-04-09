@@ -9,8 +9,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(SRCS
     acceleration.c
     acceleration_barnes_hut.c
-    acceleration_PM.c
-    acceleration_treePM.c
     cosmology.c
     error.c
     gravity_sim.c
@@ -18,7 +16,6 @@ set(SRCS
     integrator_rk_embedded.c
     integrator_ias15.c
     integrator_whfast.c
-    integrator_leapfrog_cosmology.c
     linear_octree.c
     math_functions.c
     output.c
@@ -26,6 +23,11 @@ set(SRCS
     settings.c
     system.c
     utils.c
+)
+
+set(FFTW3_SRCS
+    acceleration_PM.c
+    integrator_cosmology_leapfrog.c
 )
 
 # Create the static library target
@@ -81,6 +83,7 @@ option(USE_FFTW3 "Enable FFTW3" OFF)
 if (USE_FFTW3)
     find_package(FFTW3 REQUIRED)
     if (FFTW3_FOUND)
+        target_sources(gravity_sim PRIVATE ${FFTW3_SRCS})
         target_include_directories(gravity_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
         target_compile_definitions(gravity_sim PRIVATE USE_FFTW3)
         set(FFTW3_INCLUDE_DIRS "/opt/homebrew/include")

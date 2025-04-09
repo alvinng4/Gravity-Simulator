@@ -3,9 +3,9 @@
  * \brief Exception handling functions
  * 
  * \author Ching-Yin Ng
- * \date March 2025
  */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,10 +33,10 @@ WIN32DLL_API ErrorStatus make_success_error_status(void)
 }
 
 WIN32DLL_API void raise_warning(
-    const char *__restrict warning_msg,
     const char *__restrict warning_file,
     const int warning_line,
-    const char *__restrict warning_func
+    const char *__restrict warning_func,
+    const char *__restrict warning_msg
 )
 {
     fprintf(
@@ -59,12 +59,71 @@ WIN32DLL_API void raise_warning(
     );
 }
 
+WIN32DLL_API ErrorStatus raise_warning_fmt(
+    const char *__restrict warning_file,
+    const int warning_line,
+    const char *__restrict warning_func,
+    const char *__restrict format,
+    ...
+)
+{
+    /* Determine the message size */
+    va_list args1;
+    va_start(args1, format);
+    int warning_msg_size = vsnprintf(NULL, 0, format, args1) + 1;
+    va_end(args1);
+
+    /* Allocate memory for the warning message */
+    char *__restrict warning_msg = malloc(warning_msg_size);
+    if (!warning_msg)
+    {
+        return WRAP_RAISE_ERROR(
+            GRAV_MEMORY_ERROR,
+            "Failed to allocate memory for warning message"
+        );
+    }
+
+    va_list args2;
+    va_start(args2, format);
+    int actual_msg_size = vsnprintf(warning_msg, warning_msg_size, format, args2);
+    va_end(args2);
+
+    if (actual_msg_size < 0)
+    {
+        free(warning_msg);
+        return WRAP_RAISE_ERROR(
+            GRAV_UNKNOWN_ERROR,
+            "Failed to encode warning message"
+        );
+    }
+    else if (actual_msg_size >= warning_msg_size)
+    {
+        free(warning_msg);
+        return WRAP_RAISE_ERROR(
+            GRAV_UNKNOWN_ERROR,
+            "Warning message is truncated"
+        );
+    }
+
+    raise_warning(
+        warning_file,
+        warning_line,
+        warning_func,
+        warning_msg
+    );
+
+    /* Free memory */
+    free(warning_msg);
+
+    return make_success_error_status();
+}
+
 WIN32DLL_API ErrorStatus raise_error(
-    const int error_code,
-    const char *__restrict error_msg,
     const char *__restrict error_file,
     const int error_line,
-    const char *__restrict error_func
+    const char *__restrict error_func,
+    const int error_code,
+    const char *__restrict error_msg
 )
 {
     ErrorStatus error_status = {
@@ -167,6 +226,150 @@ WIN32DLL_API ErrorStatus raise_error(
     return error_status;
 
 err_memory_alloc:
+    return error_status;
+}
+
+WIN32DLL_API ErrorStatus raise_error_fmt(
+    const char *__restrict error_file,
+    const int error_line,
+    const char *__restrict error_func,
+    const int error_code,
+    const char *__restrict format,
+    ...
+)
+{
+    ErrorStatus error_status = {
+        .traceback = NULL,
+        .traceback_code_ = GRAV_TRACEBACK_NOT_INITIALIZED
+    };
+
+    char *error_type;
+    switch (error_code)
+    {
+        case GRAV_FAILURE:
+            error_status.return_code = error_code;
+            error_type = "Failure";
+            break;
+        case GRAV_VALUE_ERROR:
+            error_status.return_code = error_code;
+            error_type = "ValueError";
+            break;
+        case GRAV_POINTER_ERROR:
+            error_status.return_code = error_code;
+            error_type = "PointerError";
+            break;
+        case GRAV_MEMORY_ERROR:
+            error_status.return_code = error_code;
+            error_type = "MemoryError";
+            break;
+        case GRAV_OS_ERROR:
+            error_status.return_code = error_code;
+            error_type = "OSError";
+            break;
+        case GRAV_NOT_IMPLEMENTED_ERROR:
+            error_status.return_code = error_code;
+            error_type = "NotImplementedError";
+            break;
+        default:
+            error_status.return_code = GRAV_UNKNOWN_ERROR;
+            error_type = "UnknownError";
+            break;
+    }
+
+    /* Determine the message size */
+    va_list args1;
+    va_start(args1, format);
+    const int formatted_string_size = vsnprintf(NULL, 0, format, args1) + 1;
+    va_end(args1);
+
+    const int error_msg_size = (
+        strlen(error_file)
+        + strlen(error_func)
+        + (formatted_string_size - 1)
+        + strlen(error_type)
+        + 3 * strlen(CYAN_REGULAR)
+        + strlen(PURPLE_BRIGHT_BOLD)
+        + strlen(PURPLE_REGULAR)
+        + 5 * strlen(RESET)
+        + strlen("    File \"\", line  in \n: \n")
+        + snprintf(NULL, 0, "%d", error_line)   // Number of digits in error_line
+        + 1  // Null terminator
+    );
+
+    /* Allocate memory for the error message */
+    char *__restrict formatted_string = malloc(formatted_string_size);
+    error_status.traceback = malloc(error_msg_size * sizeof(char));
+    if (!error_status.traceback || !formatted_string)
+    {
+        error_status.traceback_code_ = GRAV_TRACEBACK_MALLOC_FAILED;
+        error_status.traceback = NULL;
+        goto err_malloc;
+    }
+
+    /* Format the error message */
+    va_list args2;
+    va_start(args2, format);
+    int actual_msg_size = vsnprintf(formatted_string, formatted_string_size, format, args2);
+    va_end(args2);
+
+    if (actual_msg_size < 0)
+    {
+        error_status.traceback_code_ = GRAV_TRACEBACK_SNPRINTF_FAILED;
+        error_status.traceback = NULL;
+        goto err_fmt;
+    }
+    else if (actual_msg_size >= formatted_string_size)
+    {
+        error_status.traceback_code_ = GRAV_TRACEBACK_TRUNCATED;
+        error_status.traceback = NULL;
+        goto err_fmt;
+    }
+
+    /* Format the error message */
+    int actual_error_msg_size = snprintf(
+        error_status.traceback,
+        error_msg_size,
+        "    File %s\"%s\"%s, line %s%d%s in %s%s%s\n%s%s%s: %s%s%s\n",
+        CYAN_REGULAR,
+        error_file,
+        RESET,
+        CYAN_REGULAR,
+        error_line,
+        RESET,
+        CYAN_REGULAR,
+        error_func,
+        RESET,
+        PURPLE_BRIGHT_BOLD,
+        error_type,
+        RESET,
+        PURPLE_REGULAR,
+        formatted_string,
+        RESET
+    );
+
+    if (actual_error_msg_size < 0)
+    {
+        error_status.traceback_code_ = GRAV_TRACEBACK_SNPRINTF_FAILED;
+        error_status.traceback = NULL;
+        goto err_fmt;
+    }
+    else if (actual_error_msg_size >= error_msg_size)
+    {
+        error_status.traceback_code_ = GRAV_TRACEBACK_TRUNCATED;
+    }
+    else
+    {
+        error_status.traceback_code_ = GRAV_TRACEBACK_SUCCESS;
+    }
+
+    free(formatted_string);
+
+    return error_status;
+
+err_fmt:
+err_malloc:
+    free(formatted_string);
+    free(error_status.traceback);
     return error_status;
 }
 

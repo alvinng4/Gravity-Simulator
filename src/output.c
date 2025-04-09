@@ -115,40 +115,11 @@ IN_FILE ErrorStatus check_output_method(const int output_method)
 #endif
         default:
         {
-            const int error_msg_len = (
-                strlen("Unknown output method. Got: ")
-                + snprintf(NULL, 0, "%d", output_method)
-                + 1  // Null terminator
-            );
-            char *error_msg = malloc(error_msg_len * sizeof(char));
-            if (!error_msg)
-            {
-                return WRAP_RAISE_ERROR(
-                    GRAV_MEMORY_ERROR, "Unknown output method and failed to allocate memory for error message"
-                );
-            }
-
-            const int actual_error_msg_len = snprintf(
-                error_msg,
-                error_msg_len,
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
                 "Unknown output method. Got: %d",
                 output_method
             );
-
-            if (actual_error_msg_len < 0)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown output method and failed to generate error message");
-            }
-            else if (actual_error_msg_len >= error_msg_len)
-            {
-                free(error_msg);
-                return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Unknown output method and error message are truncated");
-            }
-
-            ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-            free(error_msg);
-            return error_status;
         }
     }
 
@@ -176,40 +147,11 @@ ErrorStatus finalize_output_param(
     /* Check storing interval */
     if (output_param->output_interval <= 0.0)
     {
-        const int error_msg_len = (
-            strlen("Output interval must be positive. Got: ")
-            + snprintf(NULL, 0, "%.17g", output_param->output_interval)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR, "Output interval is negative and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "Output interval must be positive. Got: %.17g",
             output_param->output_interval
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Output interval is negative and failed to generate error message");
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Output interval is negative and error message are truncated");
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     /* Check directory path */
@@ -231,23 +173,11 @@ ErrorStatus finalize_output_param(
     {
         if (output_param->output_dir[strlen(output_param->output_dir) - 1] != '/')
         {
-            size_t buffer_size = (
-                strlen("Directory path for storing snapshots must end with a trailing slash (\"/\"). Got: \"\".")
-                + strlen(output_param->output_dir)
-                + 1  // Null terminator
-            );
-            char *error_message = malloc(buffer_size * sizeof(char));
-            if (!error_message)
-            {
-                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for error message.");
-            }
-            snprintf(
-                error_message,
-                buffer_size,
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_VALUE_ERROR,
                 "Directory path for storing snapshots must end with a trailing slash (\"/\"). Got: \"%s\".",
                 output_param->output_dir
             );
-            return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_message);
         }
     }
 
@@ -257,54 +187,25 @@ ErrorStatus finalize_output_param(
     {
         if (GetFileAttributes(output_param->output_dir) == INVALID_FILE_ATTRIBUTES)
         {
-            size_t buffer_size = (
-                strlen("Failed to access path for storing snapshots: \"\".")
-                + strlen(output_param->output_dir)
-                + 1  // Null terminator
-            );
-            char *error_message = malloc(buffer_size * sizeof(char));
-            if (!error_message)
-            {
-                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for error message.");
-            }
-            snprintf(
-                error_message,
-                buffer_size,
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_OS_ERROR,
                 "Failed to access path for storing snapshots: \"%s\".",
                 output_param->output_dir
             );
-            return WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_message);
         }
         else if (
             (GetFileAttributes(output_param->output_dir) & FILE_ATTRIBUTE_DIRECTORY)
             && (settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO)
         )
         {
-            int buffer_size = (
-                strlen("Directory for storing snapshots already exists. The files will be overwritten. Directory: \"\".")
-                + strlen(output_param->output_dir)
-                + 1  // Null terminator
-            );
-            char *warning_message = malloc(buffer_size * sizeof(char));
-            if (!warning_message)
-            {
-                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for warning message.");
-            }
-            const int actual_warning_message_length = snprintf(
-                warning_message,
-                buffer_size,
+            error_status = WRAP_RAISE_WARNING_FMT(
                 "Directory for storing snapshots already exists. The files will be overwritten. Directory: \"%s\".",
                 output_param->output_dir
             );
-            if (actual_warning_message_length < 0)
+            if (error_status.return_code != GRAV_SUCCESS)
             {
-                return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Failed to get warning message string.");
+                return error_status;
             }
-            else if (actual_warning_message_length >= buffer_size)
-            {
-                return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Warning message string is truncated.");
-            }
-            WRAP_RAISE_WARNING(warning_message);
         }
     }
 #else
@@ -313,23 +214,11 @@ ErrorStatus finalize_output_param(
     {
         if(stat(output_param->output_dir, &st) != 0)
         {
-            size_t buffer_size = (
-                strlen("Failed to access path for storing snapshots: \"\".")
-                + strlen(output_param->output_dir)
-                + 1  // Null terminator
-            );
-            char *error_message = malloc(buffer_size * sizeof(char));
-            if (!error_message)
-            {
-                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for error message.");
-            }
-            snprintf(
-                error_message,
-                buffer_size,
+            return WRAP_RAISE_ERROR_FMT(
+                GRAV_OS_ERROR,
                 "Failed to access path for storing snapshots: \"%s\".",
                 output_param->output_dir
             );
-            return WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_message);
         }
 
         else if (
@@ -337,31 +226,14 @@ ErrorStatus finalize_output_param(
             && (settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO)
         )
         {
-            int buffer_size = (
-                strlen("Directory for storing snapshots already exists. The files will be overwritten. Directory: \"\".")
-                + strlen(output_param->output_dir)
-                + 1  // Null terminator
-            );
-            char *warning_message = malloc(buffer_size * sizeof(char));
-            if (!warning_message)
-            {
-                return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for warning message.");
-            }
-            const int actual_warning_message_length = snprintf(
-                warning_message,
-                buffer_size,
+            error_status = WRAP_RAISE_WARNING_FMT(
                 "Directory for storing snapshots already exists. The files will be overwritten. Directory: \"%s\".",
                 output_param->output_dir
             );
-            if (actual_warning_message_length < 0)
+            if (error_status.return_code != GRAV_SUCCESS)
             {
-                return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Failed to get warning message string.");
+                return error_status;
             }
-            else if (actual_warning_message_length >= buffer_size)
-            {
-                return WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, "Warning message string is truncated.");
-            }
-            WRAP_RAISE_WARNING(warning_message);
         }
     }
 #endif
@@ -520,40 +392,11 @@ IN_FILE ErrorStatus output_snapshot_csv(
     FILE *file = fopen(file_path, "w");
     if (!file)
     {
-        const int error_msg_len = (
-            strlen("Failed to open file for storing snapshots: \"\".")
-            + strlen(file_path)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for error message.");
-            goto err_open_file;
-        }
-
-        int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        error_status = WRAP_RAISE_ERROR_FMT(
+            GRAV_OS_ERROR,
             "Failed to open file for storing snapshots: \"%s\".",
             file_path
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to open file for storing snapshots and failed to generate error message.");
-            free(error_msg);
-            goto err_open_file;
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to open file for storing snapshots and error message is truncated.");
-            free(error_msg);
-            goto err_open_file;
-        }
-
-        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_msg);
-        free(error_msg);
         goto err_open_file;
     }
 
@@ -682,40 +525,11 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
     hid_t file = H5Fcreate(file_path, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     if (!file)
     {
-        const int error_msg_len = (
-            strlen("Failed to create HDF5 snapshot file: \"\".")
-            + strlen(file_path)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to create HDF5 snapshot file and failed to allocate memory for error message.");
-            goto err_create_hdf5_file;
-        }
-
-        int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
-            "Failed to create HDF5 snapshot file: \"%s\".",
+        error_status = WRAP_RAISE_ERROR_FMT(
+            GRAV_OS_ERROR,
+            "Failed to create HDF5 file for storing snapshots: \"%s\".",
             file_path
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to create HDF5 snapshot file and failed to generate error message.");
-            free(error_msg);
-            goto err_create_hdf5_file;
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to create HDF5 snapshot file and error message is truncated.");
-            free(error_msg);
-            goto err_create_hdf5_file;
-        }
-
-        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_msg);
-        free(error_msg);
         goto err_create_hdf5_file;
     }
 
@@ -925,40 +739,11 @@ IN_FILE ErrorStatus output_snapshot_cosmology_hdf5(
     hid_t file = H5Fcreate(file_path, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     if (!file)
     {
-        const int error_msg_len = (
-            strlen("Failed to create HDF5 snapshot file: \"\".")
-            + strlen(file_path)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to create HDF5 snapshot file and failed to allocate memory for error message.");
-            goto err_create_hdf5_file;
-        }
-
-        int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        error_status = WRAP_RAISE_ERROR_FMT(
+            GRAV_OS_ERROR,
             "Failed to create HDF5 snapshot file: \"%s\".",
             file_path
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to create HDF5 snapshot file and failed to generate error message.");
-            free(error_msg);
-            goto err_create_hdf5_file;
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            error_status = WRAP_RAISE_ERROR(GRAV_UNKNOWN_ERROR, "Failed to create HDF5 snapshot file and error message is truncated.");
-            free(error_msg);
-            goto err_create_hdf5_file;
-        }
-
-        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, error_msg);
-        free(error_msg);
         goto err_create_hdf5_file;
     }
 

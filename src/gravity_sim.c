@@ -50,47 +50,11 @@ ErrorStatus launch_simulation(
     /* Check tf */
     if (tf < 0.0)
     {
-        const int error_msg_len = (
-            strlen("tf must be non-negative. Got: ")
-            + snprintf(NULL, 0, "%g", tf)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "tf must be positive and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "tf must be non-negative. Got: %g",
             tf
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "tf must be non-negative and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "tf must be non-negative and error message is truncated"
-            );
-        }
-
-        error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     /* Remove invalid particles */
@@ -126,6 +90,12 @@ ErrorStatus launch_cosmological_simulation(
     const int pm_grid_size
 )
 {
+#ifndef USE_FFTW3
+    return WRAP_RAISE_ERROR(
+        GRAV_VALUE_ERROR,
+        "FFTW3 are required for cosmological simulations"
+    );
+#else
     ErrorStatus error_status;
 
     /* Check system parameters */
@@ -159,47 +129,11 @@ ErrorStatus launch_cosmological_simulation(
     /* Check a_final */
     if (a_final < 0.0)
     {
-        const int error_msg_len = (
-            strlen("a_final must be non-negative. Got: ")
-            + snprintf(NULL, 0, "%g", a_final)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "a_final must be positive and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "a_final must be non-negative. Got: %g",
             a_final
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "a_final must be non-negative and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "a_final must be non-negative and error message is truncated"
-            );
-        }
-
-        error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     /* Remove invalid particles */
@@ -229,4 +163,5 @@ ErrorStatus launch_cosmological_simulation(
         a_final,
         pm_grid_size
     ));
+#endif
 }
