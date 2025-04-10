@@ -1,17 +1,15 @@
 # Gravity Simulator
-Python N-body gravity solver accelerated with C
+Gravity simulation library written in C with Python API.
 
-This is a student project developed for learning purpose.
-It aims to provide a toolbox for Newtonian gravity simulations and visualizations.
+Target Audience: Physics students, or anyone who is interested in N-body simulations.
 
 Features:
 * Ten integrators including WHFast and IAS15
-* Barnes-Hut algorithm
-* CLI (for simple usage) and API Interfaces
-* (Optional) OpenMP and CUDA acceleration
+* Barnes-Hut algorithm for large $N$
+* Particle-Mesh method for cosmological structure formation
 * Multiple sample projects
 
-<img src="./examples/media/solar_plus_3d.gif" alt="Image" width="300">
+<img src="./examples/media/solar_plus_3d.png" alt="Image" width="300">
 <img src="./examples/media/rel_energy.png" alt="Image" width="300">
 
 ## Documentation
@@ -28,7 +26,7 @@ Some projects are done with the API. The scripts are stored at the `examples` fo
 
 #### Asteroid belt simulation
 
-<img src="./examples/media/asteroid_belt.gif" alt="Image" width="300">
+<img src="./examples/media/asteroid_belt.png" alt="Image" width="300">
 
 #### Formation of Kirkwood gaps
 
