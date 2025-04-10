@@ -1,5 +1,5 @@
-#ifndef GRAVITY_SIM_H
-#define GRAVITY_SIM_H
+#ifndef GRAV_SIM_H
+#define GRAV_SIM_H
 
 /* Acceleration */
 #include "acceleration.h"

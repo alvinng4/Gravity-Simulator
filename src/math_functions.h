@@ -9,8 +9,6 @@
 #ifndef MATH_FUNCTIONS_H
 #define MATH_FUNCTIONS_H
 
-#include "gravity_sim.h"
-
 
 /**
  * \brief Calculate the sum of a vector

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gravity_sim.h"
+#include "grav_sim.h"
 
 /**
  * \brief Print simulation information.

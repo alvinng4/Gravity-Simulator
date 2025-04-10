@@ -1,6 +1,6 @@
 /**
  * \file system.c
- * \brief System module for gravity_sim
+ * \brief System module for grav_sim
  * 
  * \author Ching-Yin Ng
  */

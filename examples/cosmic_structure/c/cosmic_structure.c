@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <hdf5.h>
 
-#include "gravity_sim.h"
+#include "grav_sim.h"
 
 #define INIT_CONDITION_FILE "../../ics_swift.hdf5"
 #define A_FINAL 1.0 // Scale factor at the end of simulation

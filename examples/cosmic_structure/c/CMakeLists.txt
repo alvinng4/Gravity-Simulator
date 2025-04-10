@@ -23,6 +23,6 @@ find_package(HDF5 REQUIRED COMPONENTS C)
 target_include_directories(cosmic_structure PRIVATE ${HDF5_INCLUDE_DIRS})
 target_link_libraries(cosmic_structure PRIVATE ${HDF5_LIBRARIES})
 
-# Link against the gravity_sim library
+# Link against the grav_sim library
 add_subdirectory(${SRC_DIR} build)
-target_link_libraries(cosmic_structure PRIVATE gravity_sim)
+target_link_libraries(cosmic_structure PRIVATE grav_sim)

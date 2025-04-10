@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "gravity_sim.h"
+#include "grav_sim.h"
 
 #define NUM_PARTICLES 25000
 #define DT 180.0

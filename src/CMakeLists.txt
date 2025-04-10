@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 # Help finding the libraries
 cmake_policy(SET CMP0074 NEW)
 
-project(gravity_sim LANGUAGES C)
+project(grav_sim LANGUAGES C)
 
 # Set the C standard
 set(CMAKE_C_STANDARD 99)
@@ -15,7 +15,7 @@ set(SRCS
     acceleration_barnes_hut.c
     cosmology.c
     error.c
-    gravity_sim.c
+    grav_sim.c
     integrator.c
     integrator_rk_embedded.c
     integrator_ias15.c
@@ -35,22 +35,22 @@ set(FFTW3_SRCS
 )
 
 # Create the library target
-add_library(gravity_sim SHARED ${SRCS})
+add_library(grav_sim SHARED ${SRCS})
 
 # Use the current source directory as a public include for this target
-target_include_directories(gravity_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/pcg)
+target_include_directories(grav_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/pcg)
 
 # Debug mode
 option(DEBUG "Debug mode" OFF)
 
 if (DEBUG)
     target_compile_options(
-        gravity_sim PRIVATE
+        grav_sim PRIVATE
         -O0 -g -Wall -Wextra -Wpedantic -fsanitize=address -fsanitize=undefined
     )
 else()
     target_compile_options(
-        gravity_sim PRIVATE
+        grav_sim PRIVATE
         -O3 -Wall -Wextra -Wpedantic
     )
 endif()
@@ -60,8 +60,8 @@ option(USE_OPENMP "Enable OpenMP" OFF)
 if (USE_OPENMP)
     find_package(OpenMP)
     if (OpenMP_C_FOUND)
-        target_link_libraries(gravity_sim PRIVATE OpenMP::OpenMP_C)
-        target_compile_definitions(gravity_sim PRIVATE USE_OPENMP)
+        target_link_libraries(grav_sim PRIVATE OpenMP::OpenMP_C)
+        target_compile_definitions(grav_sim PRIVATE USE_OPENMP)
         message(STATUS "Building with OpenMP support")
     else()
         message(WARNING "OpenMP requested but not found")
@@ -73,9 +73,9 @@ option(USE_HDF5 "Enable HDF5" OFF)
 if (USE_HDF5)
     find_package(HDF5 REQUIRED COMPONENTS C)
     if (HDF5_FOUND)
-        target_include_directories(gravity_sim PRIVATE ${HDF5_INCLUDE_DIRS})
-        target_compile_definitions(gravity_sim PRIVATE USE_HDF5)
-        target_link_libraries(gravity_sim PRIVATE ${HDF5_LIBRARIES})
+        target_include_directories(grav_sim PRIVATE ${HDF5_INCLUDE_DIRS})
+        target_compile_definitions(grav_sim PRIVATE USE_HDF5)
+        target_link_libraries(grav_sim PRIVATE ${HDF5_LIBRARIES})
         message(STATUS "Building with HDF5 support")
         message(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
     else()
@@ -88,11 +88,11 @@ option(USE_FFTW3 "Enable FFTW3" OFF)
 if (USE_FFTW3)
     find_package(FFTW3 REQUIRED)
     if (FFTW3_FOUND)
-        target_sources(gravity_sim PRIVATE ${FFTW3_SRCS})
-        target_include_directories(gravity_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
-        target_compile_definitions(gravity_sim PRIVATE USE_FFTW3)
+        target_sources(grav_sim PRIVATE ${FFTW3_SRCS})
+        target_include_directories(grav_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
+        target_compile_definitions(grav_sim PRIVATE USE_FFTW3)
         # set(FFTW3_LIBRARIES "/opt/homebrew/lib/libfftw3.dylib")
-        target_link_libraries(gravity_sim PRIVATE ${FFTW3_LIBRARIES})
+        target_link_libraries(grav_sim PRIVATE ${FFTW3_LIBRARIES})
         message(STATUS "Building with FFTW3 support")
     else()
         message(WARNING "FFTW3 requested but not found")
@@ -101,9 +101,9 @@ endif()
 
 # Add the PCG library as a subdirectory
 add_subdirectory(pcg)
-target_link_libraries(gravity_sim PRIVATE pcg)
+target_link_libraries(grav_sim PRIVATE pcg)
 
 # Install rules
-install(TARGETS gravity_sim
+install(TARGETS grav_sim
     ARCHIVE DESTINATION lib
 )

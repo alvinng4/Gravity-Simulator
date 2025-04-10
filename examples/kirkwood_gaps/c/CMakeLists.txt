@@ -27,6 +27,6 @@ else()
     )
 endif()
 
-# Link against the gravity_sim library
+# Link against the grav_sim library
 add_subdirectory(${SRC_DIR} build)
-target_link_libraries(kirkwood_gaps gravity_sim)
+target_link_libraries(kirkwood_gaps grav_sim)
