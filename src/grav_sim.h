@@ -26,6 +26,12 @@
 #include "utils.h"
 
 
+/* Project version */
+#define GRAV_SIM_VERSION_MAJOR 0
+#define GRAV_SIM_VERSION_MINOR 0
+#define GRAV_SIM_VERSION_PATCH 1
+
+
 /**
  * \brief Main function to launch a simulation.
  * 
@@ -81,6 +87,11 @@ ErrorStatus launch_cosmological_simulation(
  * 
  * \return Pointer to the logo string.
  */
-const char* get_grav_sim_logo_string();
+const char* get_grav_sim_logo_string(void);
+
+/**
+ * \brief Print project compilation information.
+ */
+void print_compilation_info(void);
 
 #endif
