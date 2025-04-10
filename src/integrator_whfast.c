@@ -55,7 +55,8 @@ IN_FILE void whfast_kick(
  * \param[in] system Pointer to the gravitational system
  * \param[in] eta Array of cumulative masses
  * \param[in] dt Time step of the system
- * \param[in] settings Pointer to the settings
+ * \param[in] remove_invalid_particles Flag to remove invalid particles
+ * @param[in] verbose Verbosity level
  *
  * \return ErrorStatus
  * 
@@ -67,7 +68,8 @@ IN_FILE ErrorStatus whfast_drift(
     System *__restrict system,
     double *__restrict eta,
     const double dt,
-    const Settings *__restrict settings
+    const bool remove_invalid_particles,
+    const int verbose
 );
 
 /**
@@ -316,7 +318,8 @@ WIN32DLL_API ErrorStatus whfast(
             system,
             eta,
             dt,
-            settings
+            integrator_param->whfast_remove_invalid_particles,
+            settings->verbose
         ));
         if (error_status.return_code != GRAV_SUCCESS)
         {
@@ -424,7 +427,8 @@ IN_FILE ErrorStatus whfast_drift(
     System *__restrict system,
     double *__restrict eta,
     const double dt,
-    const Settings *__restrict settings
+    const bool remove_invalid_particles,
+    const int verbose
 )
 {
     ErrorStatus error_status = make_success_error_status();
@@ -436,7 +440,7 @@ IN_FILE ErrorStatus whfast_drift(
 
     int remove_count = 0;
     int *__restrict remove_idx_list = NULL;
-    if (settings->remove_invalid_particles)
+    if (remove_invalid_particles)
     {
         remove_idx_list = malloc(num_particles * sizeof(int));
         if (!remove_idx_list)
@@ -483,7 +487,7 @@ IN_FILE ErrorStatus whfast_drift(
             const double z = alpha * (s * s);
             if (!isfinite(z))
             {
-                if (settings->verbose >= GRAV_VERBOSITY_IGNORE_INFO)
+                if (verbose >= GRAV_VERBOSITY_IGNORE_INFO)
                 {
                     WRAP_RAISE_WARNING("Input value to Stumpff functions is NaN or Inf");
                 }
@@ -533,17 +537,18 @@ IN_FILE ErrorStatus whfast_drift(
                 ) / r;
 
                 /* Print message */
-                if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
+                if (verbose >= GRAV_VERBOSITY_VERBOSE)
                 {
                     fprintf(
                         stderr,
-                        "whfast_drift: Kepler's equation did not converge for particle id %d. Error: %23.15g\n",
+                        "%s: Kepler's equation did not converge for particle id %d. Error: %23.15g\n",
+                        __func__,
                         particle_ids[i],
                         error
                     );
                 }
 
-                if ((error > WHFAST_INVALID_TOL || is_z_not_finite) && settings->remove_invalid_particles)
+                if ((error > WHFAST_INVALID_TOL || is_z_not_finite) && remove_invalid_particles)
                 {
                     remove_idx_list[remove_count] = i;
 
@@ -601,11 +606,12 @@ IN_FILE ErrorStatus whfast_drift(
 
     if (remove_count > 0)
     {
-        if (settings->verbose >= GRAV_VERBOSITY_VERBOSE)
+        if (verbose >= GRAV_VERBOSITY_VERBOSE)
         {
             fprintf(
                 stderr,
-                "whfast_drift: Removing %d invalid particles. Particle IDs: [%d",
+                "%s: Removing %d invalid particles. Particle IDs: [%d",
+                __func__,
                 remove_count,
                 particle_ids[remove_idx_list[0]]
             );

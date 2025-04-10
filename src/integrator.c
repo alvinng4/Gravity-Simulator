@@ -122,7 +122,8 @@ WIN32DLL_API IntegratorParam get_new_integrator_param(void)
         .integrator = -1,
         .dt = -1.0,
         .tolerance = -1.0,
-        .initial_dt = -1.0
+        .initial_dt = -1.0,
+        .whfast_remove_invalid_particles = true,
     };
     return integrator_param;
 }

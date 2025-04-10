@@ -31,6 +31,7 @@ typedef struct IntegratorParam
     double dt;
     double tolerance;
     double initial_dt;
+    bool whfast_remove_invalid_particles;
 } IntegratorParam;
 
 typedef struct OutputParam

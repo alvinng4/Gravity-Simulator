@@ -12,7 +12,6 @@ typedef struct Settings
 {
     int verbose;
     bool enable_progress_bar;
-    bool remove_invalid_particles;
     bool is_exit;
 } Settings;
 
