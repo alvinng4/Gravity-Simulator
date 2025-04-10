@@ -24,6 +24,7 @@ set(SRCS
     math_functions.c
     output.c
     progress_bar.c
+    python_interface.c
     settings.c
     system.c
     utils.c

@@ -253,17 +253,9 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
 #endif
 }
 
-IN_FILE void print_simulation_info(
-    const System *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const OutputParam *__restrict output_param,
-    const Settings *__restrict settings
-)
+WIN32DLL_API const char* get_grav_sim_logo_string()
 {
-    const char *__restrict new_line = "\n";
-    const char *__restrict straight_line = "--------------------------------------------------------------\n";
-    const char *__restrict logo = (
+    static const char *logo = (
         "                                              __                   \n"
         "    __   _ __    __     __  __           ____/\\_\\    ___ ___       \n"
         "  /'_ `\\/\\`'__\\/'__`\\  /\\ \\/\\ \\         /',__\\/\\ \\ /' __` __`\\     \n"
@@ -274,8 +266,22 @@ IN_FILE void print_simulation_info(
         "    \\_/__/                      \\/______/                          \n"
     );
 
+    return logo;
+}
+
+IN_FILE void print_simulation_info(
+    const System *__restrict system,
+    const IntegratorParam *__restrict integrator_param,
+    const AccelerationParam *__restrict acceleration_param,
+    const OutputParam *__restrict output_param,
+    const Settings *__restrict settings
+)
+{
+    const char *__restrict new_line = "\n";
+    const char *__restrict straight_line = "-----------------------------------------------------------------\n";
+
     fputs(straight_line, stdout);
-    fputs(logo, stdout);
+    fputs(get_grav_sim_logo_string(), stdout);
     fputs(new_line, stdout);
     fputs(new_line, stdout);
     
@@ -505,20 +511,10 @@ IN_FILE void print_cosmological_simulation_info(
 )
 {
     const char *__restrict new_line = "\n";
-    const char *__restrict straight_line = "--------------------------------------------------------------\n";
-    const char *__restrict logo = (
-        "                                              __                   \n"
-        "    __   _ __    __     __  __           ____/\\_\\    ___ ___       \n"
-        "  /'_ `\\/\\`'__\\/'__`\\  /\\ \\/\\ \\         /',__\\/\\ \\ /' __` __`\\     \n"
-        " /\\ \\L\\ \\ \\ \\//\\ \\L\\.\\_\\ \\ \\_/ |       /\\__, `\\ \\ \\/\\ \\/\\ \\/\\ \\    \n"
-        " \\ \\____ \\ \\_\\\\ \\__/.\\_\\\\ \\___/        \\/\\____/\\ \\_\\ \\_\\ \\_\\ \\_\\   \n"
-        "  \\/___L\\ \\/_/ \\/__/\\/_/ \\/__/   _______\\/___/  \\/_/\\/_/\\/_/\\/_/   \n"
-        "    /\\____/                     /\\______\\                          \n"
-        "    \\_/__/                      \\/______/                          \n"
-    );
+    const char *__restrict straight_line = "-----------------------------------------------------------------\n";
 
     fputs(straight_line, stdout);
-    fputs(logo, stdout);
+    fputs(get_grav_sim_logo_string(), stdout);
     fputs(new_line, stdout);
     fputs(new_line, stdout);
     

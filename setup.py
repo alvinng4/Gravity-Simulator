@@ -65,11 +65,11 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
         )
 
-
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
-    ext_modules=[CMakeExtension("cmake_example", sourcedir="src")],
+    packages=["grav_sim"],
+    ext_modules=[CMakeExtension("grav_sim", sourcedir="src")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
 )

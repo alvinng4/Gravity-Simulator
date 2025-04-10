@@ -76,4 +76,11 @@ ErrorStatus launch_cosmological_simulation(
     const int pm_grid_size
 );
 
+/**
+ * \brief Get the logo string of grav_sim.
+ * 
+ * \return Pointer to the logo string.
+ */
+const char* get_grav_sim_logo_string();
+
 #endif
