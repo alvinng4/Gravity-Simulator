@@ -33,7 +33,7 @@ WIN32DLL_API System get_new_system(void)
     system.x = NULL;
     system.v = NULL;
     system.m = NULL;
-    system.G = 0.000295912208284119496676630; // Default value for AU^3 d^-2
+    system.G = 0.000295912208284119496676630; // Default value for AU^3 day^-2 M_sun^-1
     return system;
 }
 

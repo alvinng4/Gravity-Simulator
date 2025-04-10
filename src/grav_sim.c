@@ -4,6 +4,18 @@
 
 #include "grav_sim.h"
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
+#ifdef USE_HDF5
+#include <hdf5.h>
+#endif
+
+#ifdef USE_FFTW3
+#include <fftw3.h>
+#endif
+
 /**
  * \brief Print simulation information.
  * 
@@ -99,6 +111,7 @@ WIN32DLL_API ErrorStatus launch_simulation(
     /* Print message */
     if (settings->verbose >= GRAV_VERBOSITY_NORMAL)
     {
+        print_compilation_info();
         print_simulation_info(
             system,
             integrator_param,
@@ -227,6 +240,7 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
 
     if (settings->verbose >= GRAV_VERBOSITY_NORMAL)
     {
+        print_compilation_info();
         print_cosmological_simulation_info(
             system,
             integrator_param,
@@ -279,11 +293,6 @@ IN_FILE void print_simulation_info(
 {
     const char *__restrict new_line = "\n";
     const char *__restrict straight_line = "-----------------------------------------------------------------\n";
-
-    fputs(straight_line, stdout);
-    fputs(get_grav_sim_logo_string(), stdout);
-    fputs(new_line, stdout);
-    fputs(new_line, stdout);
     
     fputs("Simulation parameters:\n", stdout);
 
@@ -376,201 +385,7 @@ IN_FILE void print_simulation_info(
     }
 
     // Softening length
-    // printf("  Softening length: %g\n", acceleration_param->softening_length);
-
-    // Opening angle and Max number of particles per leaf
-    // if (acceleration_param->method == ACCELERATION_METHOD_BARNES_HUT)
-    // {
-    //     printf("  Opening angle: %g\n", acceleration_param->opening_angle);
-    //     printf("  Max number of particles per leaf: %d\n", acceleration_param->max_num_particles_per_leaf);
-    // }
-    fputs(new_line, stdout);
-
-    /* Output */
-    fputs("Output parameters:\n", stdout);
-
-    // Method
-    switch (output_param->method)
-    {
-        case OUTPUT_METHOD_CSV:
-            fputs("  Output method: CSV\n", stdout);
-            break;
-        case OUTPUT_METHOD_HDF5:
-            fputs("  Output method: HDF5\n", stdout);
-            break;
-        default:
-            fputs("  Output method: Unknown\n", stdout);
-            break;
-    }
-
-    // Output directory
-    printf("  Output directory: %s\n", output_param->output_dir);
-
-    // Output initial
-    printf("  Output initial condition: %s\n", output_param->output_initial ? "true" : "false");
-
-    // Output interval
-    printf("  Output interval: %g\n", output_param->output_interval);
-
-    // Output data types
-    switch (output_param->coordinate_output_dtype)
-    {
-        case OUTPUT_DTYPE_FLOAT:
-            fputs("  Coordinate output data type: float\n", stdout);
-            break;
-        case OUTPUT_DTYPE_DOUBLE:
-            fputs("  Coordinate output data type: double\n", stdout);
-            break;
-        default:
-            fputs("  Coordinate output data type: Unknown\n", stdout);
-            break;
-    }
-    switch (output_param->velocity_output_dtype)
-    {
-        case OUTPUT_DTYPE_FLOAT:
-            fputs("  Velocity output data type: float\n", stdout);
-            break;
-        case OUTPUT_DTYPE_DOUBLE:
-            fputs("  Velocity output data type: double\n", stdout);
-            break;
-        default:
-            fputs("  Velocity output data type: Unknown\n", stdout);
-            break;
-    }
-    switch (output_param->mass_output_dtype)
-    {
-        case OUTPUT_DTYPE_FLOAT:
-            fputs("  Mass output data type: float\n", stdout);
-            break;
-        case OUTPUT_DTYPE_DOUBLE:
-            fputs("  Mass output data type: double\n", stdout);
-            break;
-        default:
-            fputs("  Mass output data type: Unknown\n", stdout);
-            break;
-    }
-    fputs(new_line, stdout);
-
-    /* Settings */
-    fputs("Settings:\n", stdout);
-    
-    // Verbose
-    switch (settings->verbose)
-    {
-        case GRAV_VERBOSITY_IGNORE_ALL:
-            fputs("  Verbose: Ignore all\n", stdout);
-            break;
-        case GRAV_VERBOSITY_IGNORE_INFO:
-            fputs("  Verbose: Ignore info\n", stdout);
-            break;
-        case GRAV_VERBOSITY_NORMAL:
-            fputs("  Verbose: Normal\n", stdout);
-            break;
-        case GRAV_VERBOSITY_VERBOSE:
-            fputs("  Verbose: Verbose\n", stdout);
-            break;
-        default:
-            fputs("  Verbose: Unknown\n", stdout);
-            break;
-    }
-
-    printf("  Enable progress bar: %s\n", settings->enable_progress_bar ? "true" : "false");
-
-    fputs(new_line, stdout);
-#ifdef USE_OPENMP
-    fputs("Compiled with OpenMP: true\n", stdout);
-#else
-    fputs("Compiled with OpenMP: false\n", stdout);
-#endif
-
-#ifdef USE_HDF5
-    fputs("Compiled with HDF5: true\n", stdout);
-#else
-    fputs("Compiled with HDF5: false\n", stdout);
-#endif
-
-#ifdef USE_FFTW3
-    fputs("Compiled with FFTW3: true\n", stdout);
-#else
-    fputs("Compiled with FFTW3: false\n", stdout);
-#endif
-
-    fputs(straight_line, stdout);
-}
-
-#ifdef USE_FFTW3
-IN_FILE void print_cosmological_simulation_info(
-    const CosmologicalSystem *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const OutputParam *__restrict output_param,
-    const Settings *__restrict settings,
-    const double a_begin,
-    const double a_final,
-    const int pm_grid_size
-)
-{
-    const char *__restrict new_line = "\n";
-    const char *__restrict straight_line = "-----------------------------------------------------------------\n";
-
-    fputs(straight_line, stdout);
-    fputs(get_grav_sim_logo_string(), stdout);
-    fputs(new_line, stdout);
-    fputs(new_line, stdout);
-    
-    fputs("Simulation parameters:\n", stdout);
-
-    /* System */
-    fputs("System:\n", stdout);
-    printf("  Number of particles: %d\n", system->num_particles);
-    printf("  Hubble parameter: %g\n", system->h0);
-    printf("  Omega_m: %g\n", system->omega_m);
-    printf("  Omega_lambda: %g\n", system->omega_lambda);
-    printf("  Omega k: %g\n", system->omega_k);
-    printf("  Box center: (%g, %g, %g)\n", system->box_center[0], system->box_center[1], system->box_center[2]);
-    printf("  Box width: %g\n", system->box_width);
-    printf("  Unit mass in cgs: %g\n", system->unit_mass);
-    printf("  Unit length in cgs: %g\n", system->unit_length);
-    printf("  Unit time in cgs: %g\n", system->unit_time);
-
-    printf("  a_begin: %g\n", a_begin);
-    printf("  a_final: %g\n", a_final);
-
-    fputs(new_line, stdout);
-
-    /* Integrator */
-    fputs("Integrator parameters:\n", stdout);
-    fputs("  Integrator: Leapfrog\n", stdout);
-    printf("  dt: %g\n", integrator_param->dt);
-    fputs(new_line, stdout);
-    
-    /* Acceleration */
-    fputs("Acceleration parameters:\n", stdout);
-
-    // Method
-    switch (acceleration_param->method)
-    {
-        case ACCELERATION_METHOD_PAIRWISE:
-            fputs("  Acceleration method: Pairwise\n", stdout);
-            break;
-        case ACCELERATION_METHOD_MASSLESS:
-            fputs("  Acceleration method: Massless\n", stdout);
-            break;
-        case ACCELERATION_METHOD_BARNES_HUT:
-            fputs("  Acceleration method: Barnes-Hut\n", stdout);
-            break;
-        case ACCELERATION_METHOD_PM:
-            fputs("  Acceleration method: Particle-mesh\n", stdout);
-            break;
-        default:
-            fputs("  Acceleration method: Unknown\n", stdout);
-            break;
-    }
-
-    printf("  Particle-mesh grid size: %d\n", pm_grid_size);
-
-    // Softening length
-    // printf("  Softening length: %g\n", acceleration_param->softening_length);
+    printf("  Softening length: %g\n", acceleration_param->softening_length);
 
     // Opening angle and Max number of particles per leaf
     if (acceleration_param->method == ACCELERATION_METHOD_BARNES_HUT)
@@ -669,26 +484,175 @@ IN_FILE void print_cosmological_simulation_info(
     }
 
     printf("  Enable progress bar: %s\n", settings->enable_progress_bar ? "true" : "false");
-
-    fputs(new_line, stdout);
-#ifdef USE_OPENMP
-    fputs("Compiled with OpenMP: true\n", stdout);
-#else
-    fputs("Compiled with OpenMP: false\n", stdout);
-#endif
-
-#ifdef USE_HDF5
-    fputs("Compiled with HDF5: true\n", stdout);
-#else
-    fputs("Compiled with HDF5: false\n", stdout);
-#endif
+    fputs(straight_line, stdout);
+}
 
 #ifdef USE_FFTW3
-    fputs("Compiled with FFTW3: true\n", stdout);
-#else
-    fputs("Compiled with FFTW3: false\n", stdout);
-#endif
+IN_FILE void print_cosmological_simulation_info(
+    const CosmologicalSystem *__restrict system,
+    const IntegratorParam *__restrict integrator_param,
+    const AccelerationParam *__restrict acceleration_param,
+    const OutputParam *__restrict output_param,
+    const Settings *__restrict settings,
+    const double a_begin,
+    const double a_final,
+    const int pm_grid_size
+)
+{
+    const char *__restrict new_line = "\n";
+    const char *__restrict straight_line = "-----------------------------------------------------------------\n";
+    
+    fputs("Simulation parameters:\n", stdout);
 
+    /* System */
+    fputs("System:\n", stdout);
+    printf("  Number of particles: %d\n", system->num_particles);
+    printf("  Hubble parameter: %g\n", system->h0);
+    printf("  Omega_m: %g\n", system->omega_m);
+    printf("  Omega_lambda: %g\n", system->omega_lambda);
+    printf("  Omega k: %g\n", system->omega_k);
+    printf("  Box center: (%g, %g, %g)\n", system->box_center[0], system->box_center[1], system->box_center[2]);
+    printf("  Box width: %g\n", system->box_width);
+    printf("  Unit mass in cgs: %g\n", system->unit_mass);
+    printf("  Unit length in cgs: %g\n", system->unit_length);
+    printf("  Unit time in cgs: %g\n", system->unit_time);
+
+    printf("  a_begin: %g\n", a_begin);
+    printf("  a_final: %g\n", a_final);
+
+    fputs(new_line, stdout);
+
+    /* Integrator */
+    fputs("Integrator parameters:\n", stdout);
+    fputs("  Integrator: Leapfrog\n", stdout);
+    printf("  dt: %g\n", integrator_param->dt);
+    fputs(new_line, stdout);
+    
+    /* Acceleration */
+    fputs("Acceleration parameters:\n", stdout);
+
+    // Method
+    switch (acceleration_param->method)
+    {
+        case ACCELERATION_METHOD_PAIRWISE:
+            fputs("  Acceleration method: Pairwise\n", stdout);
+            break;
+        case ACCELERATION_METHOD_MASSLESS:
+            fputs("  Acceleration method: Massless\n", stdout);
+            break;
+        case ACCELERATION_METHOD_BARNES_HUT:
+            fputs("  Acceleration method: Barnes-Hut\n", stdout);
+            break;
+        case ACCELERATION_METHOD_PM:
+            fputs("  Acceleration method: Particle-mesh\n", stdout);
+            break;
+        default:
+            fputs("  Acceleration method: Unknown\n", stdout);
+            break;
+    }
+
+    printf("  Particle-mesh grid size: %d\n", pm_grid_size);
+
+    // // Softening length
+    // printf("  Softening length: %g\n", acceleration_param->softening_length);
+
+    // // Opening angle and Max number of particles per leaf
+    // if (acceleration_param->method == ACCELERATION_METHOD_BARNES_HUT)
+    // {
+    //     printf("  Opening angle: %g\n", acceleration_param->opening_angle);
+    //     printf("  Max number of particles per leaf: %d\n", acceleration_param->max_num_particles_per_leaf);
+    // }
+    fputs(new_line, stdout);
+
+    /* Output */
+    fputs("Output parameters:\n", stdout);
+
+    // Method
+    switch (output_param->method)
+    {
+        case OUTPUT_METHOD_CSV:
+            fputs("  Output method: CSV\n", stdout);
+            break;
+        case OUTPUT_METHOD_HDF5:
+            fputs("  Output method: HDF5\n", stdout);
+            break;
+        default:
+            fputs("  Output method: Unknown\n", stdout);
+            break;
+    }
+
+    // Output directory
+    printf("  Output directory: %s\n", output_param->output_dir);
+
+    // Output initial
+    printf("  Output initial condition: %s\n", output_param->output_initial ? "true" : "false");
+
+    // Output interval
+    printf("  Output interval: %g\n", output_param->output_interval);
+
+    // Output data types
+    switch (output_param->coordinate_output_dtype)
+    {
+        case OUTPUT_DTYPE_FLOAT:
+            fputs("  Coordinate output data type: float\n", stdout);
+            break;
+        case OUTPUT_DTYPE_DOUBLE:
+            fputs("  Coordinate output data type: double\n", stdout);
+            break;
+        default:
+            fputs("  Coordinate output data type: Unknown\n", stdout);
+            break;
+    }
+    switch (output_param->velocity_output_dtype)
+    {
+        case OUTPUT_DTYPE_FLOAT:
+            fputs("  Velocity output data type: float\n", stdout);
+            break;
+        case OUTPUT_DTYPE_DOUBLE:
+            fputs("  Velocity output data type: double\n", stdout);
+            break;
+        default:
+            fputs("  Velocity output data type: Unknown\n", stdout);
+            break;
+    }
+    switch (output_param->mass_output_dtype)
+    {
+        case OUTPUT_DTYPE_FLOAT:
+            fputs("  Mass output data type: float\n", stdout);
+            break;
+        case OUTPUT_DTYPE_DOUBLE:
+            fputs("  Mass output data type: double\n", stdout);
+            break;
+        default:
+            fputs("  Mass output data type: Unknown\n", stdout);
+            break;
+    }
+    fputs(new_line, stdout);
+
+    /* Settings */
+    fputs("Settings:\n", stdout);
+    
+    // Verbose
+    switch (settings->verbose)
+    {
+        case GRAV_VERBOSITY_IGNORE_ALL:
+            fputs("  Verbose: Ignore all\n", stdout);
+            break;
+        case GRAV_VERBOSITY_IGNORE_INFO:
+            fputs("  Verbose: Ignore info\n", stdout);
+            break;
+        case GRAV_VERBOSITY_NORMAL:
+            fputs("  Verbose: Normal\n", stdout);
+            break;
+        case GRAV_VERBOSITY_VERBOSE:
+            fputs("  Verbose: Verbose\n", stdout);
+            break;
+        default:
+            fputs("  Verbose: Unknown\n", stdout);
+            break;
+    }
+
+    printf("  Enable progress bar: %s\n", settings->enable_progress_bar ? "true" : "false");
     fputs(straight_line, stdout);
 }
 #endif

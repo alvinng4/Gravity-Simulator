@@ -21,13 +21,6 @@
 double grav_get_current_time(void);
 
 /**
- * \brief Free memory allocated for a double array
- * 
- * \param ptr Pointer to the double array
- */
-void free_memory_double(double *__restrict ptr);
-
-/**
  * \brief Compute the energy of the system at a time step
  * 
  * \param[in] system Pointer to the gravitational system

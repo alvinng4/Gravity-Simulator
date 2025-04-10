@@ -25,11 +25,6 @@ WIN32DLL_API double grav_get_current_time(void)
     return (double) ts.tv_sec + (double) ts.tv_nsec / 1.0e9;
 }
 
-WIN32DLL_API void free_memory_double(double *__restrict ptr)
-{
-    free(ptr);
-}
-
 WIN32DLL_API double compute_energy(const System *__restrict system)
 {
     const double *__restrict x = system->x;
