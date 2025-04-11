@@ -54,6 +54,14 @@ class GravitySimulatorAPI:
         self.DAYS_PER_YEAR = self.simulator.DAYS_PER_YEAR
         self.launch_simulation = self.simulator.launch_simulation
 
+        # Parameters
+        self.AVAILABLE_ACCELERATION_METHODS = parameters.AccelerationParam.AVAILABLE_ACCELERATION_METHODS
+        self.AVAILABLE_INTEGRATORS = parameters.IntegratorParam.AVAILABLE_INTEGRATORS
+        self.FIXED_STEP_SIZE_INTEGRATORS = parameters.IntegratorParam.FIXED_STEP_SIZE_INTEGRATORS
+        self.ADAPTIVE_STEP_SIZE_INTEGRATORS = parameters.IntegratorParam.ADAPTIVE_STEP_SIZE_INTEGRATORS
+        self.AVAILABLE_OUTPUT_METHODS = parameters.OutputParam.AVAILABLE_OUTPUT_METHODS
+        self.AVAILABLE_OUTPUT_DTYPE = parameters.OutputParam.AVAILABLE_OUTPUT_DTYPE
+
     def get_new_system(self) -> System:
         """Create a gravitational system
 
