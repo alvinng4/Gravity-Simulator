@@ -88,9 +88,6 @@ int main(void)
         goto error;
     }
 
-    /* Boundary condition */
-    system.boundary_condition = BOUNDARY_COUNDITION_NONE;
-
     /* Acceleration parameters */
     AccelerationParam acceleration_param = get_new_acceleration_param();
     acceleration_param.method = ACCELERATION_METHOD_MASSLESS;
