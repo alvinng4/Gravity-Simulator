@@ -1,14 +1,13 @@
 [project]
 name = "grav_sim"
-version = "0.0.2"
+version = "0.0.3"
 description="Gravity Simulator"
 requires-python = ">= 3.10"
 readme = "README.md"
 license-files = ["LICENSE"]
 dependencies = [
-    "matplotlib==3.8.3",
-    "numpy==1.26.4",
-    "Pillow==10.3.0",
+    "matplotlib>=3.8.3",
+    "numpy>=1.26.4",
 ]
 authors = [
     {name = "Ching-Yin Ng", email = "alvinng324@gmail.com"}
