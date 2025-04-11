@@ -1,7 +1,11 @@
-# Gravity Simulator
+# grav_sim
+
 Gravity simulation library written in C with Python API.
 
 Target Audience: Physics students, or anyone who is interested in N-body simulations.
+
+Note: This project is currently in active development.
+There could be many incoming changes.
 
 Features:
 * Ten integrators including WHFast and IAS15
@@ -13,7 +17,7 @@ Features:
 <img src="./examples/media/rel_energy.png" alt="Image" width="300">
 
 ## Documentation
-The documentations for CLI and API are available in the `docs` folder.
+The documentations are currently outdated. Check `tutorial.ipynb`, `kirkword_gaps/` and `cosmic_structure` in the `examples/` folder for sample usage.
 
 ## Sample projects
 
