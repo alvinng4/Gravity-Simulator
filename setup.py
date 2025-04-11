@@ -51,8 +51,7 @@ class CMakeBuild(build_ext):
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
 
-        # In this example, we pass in the version to C++. You might not need to.
-        cmake_args += [f"-DEXAMPLE_VERSION_INFO={self.distribution.get_version()}"]
+        cmake_args += [f"-DVERSION_INFO={self.distribution.get_version()}"]
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():

@@ -27,10 +27,9 @@
 
 
 /* Project version */
-#define GRAV_SIM_VERSION_MAJOR 0
-#define GRAV_SIM_VERSION_MINOR 0
-#define GRAV_SIM_VERSION_PATCH 2
-
+#ifndef VERSION_INFO
+#define VERSION_INFO "unknown"
+#endif
 
 /**
  * \brief Main function to launch a simulation.

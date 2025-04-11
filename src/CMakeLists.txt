@@ -92,7 +92,6 @@ if (USE_FFTW3)
         target_sources(grav_sim PRIVATE ${FFTW3_SRCS})
         target_include_directories(grav_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
         target_compile_definitions(grav_sim PRIVATE USE_FFTW3)
-        # set(FFTW3_LIBRARIES "/opt/homebrew/lib/libfftw3.dylib")
         target_link_libraries(grav_sim PRIVATE ${FFTW3_LIBRARIES})
         message(STATUS "Building with FFTW3 support")
     else()
@@ -106,6 +105,13 @@ target_link_libraries(grav_sim PRIVATE pcg)
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(grav_sim PRIVATE rt)
+endif()
+
+# Version info
+if(DEFINED VERSION_INFO)
+    target_compile_definitions(grav_sim PRIVATE VERSION_INFO="${VERSION_INFO}")
+else()
+    target_compile_definitions(grav_sim PRIVATE VERSION_INFO="unknown")
 endif()
 
 target_link_libraries(grav_sim PRIVATE m)
