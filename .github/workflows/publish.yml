@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
-        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm ]
+        os: [ linux-intel, linux-arm, macOS-intel, macOS-arm ]
         include:
           - archs: auto
             platform: auto
@@ -24,8 +24,6 @@ jobs:
             runs-on: ubuntu-latest
           - os: linux-arm
             runs-on: ubuntu-24.04-arm
-          - os: windows
-            runs-on: windows-latest
           - os: macos-intel
             # macos-13 was the last x86_64 runner
             runs-on: macos-13
@@ -36,24 +34,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up MinGW for Windows
-        if: matrix.os == 'windows'
-        shell: powershell
-        run: |
-          choco install mingw --version=8.1.0 -y
-          $env:Path += ";C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin"
-          echo "PATH=$env:Path" | Out-File -FilePath $env:GITHUB_ENV -Append
-
+  
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23.2
         env:
           CIBW_PLATFORM: ${{ matrix.platform }}
           CIBW_ARCHS: ${{ matrix.archs }}
-          CIBW_ENVIRONMENT_WINDOWS: "CC=gcc CXX=g++ CMAKE_GENERATOR=\"MinGW Makefiles\""
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel && where gcc && where g++"
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
-          CIBW_CMAKE_OPTIONS: "-G \"MinGW Makefiles\""
 
       - uses: actions/upload-artifact@v4
         with:
