@@ -104,6 +104,12 @@ endif()
 add_subdirectory(pcg)
 target_link_libraries(grav_sim PRIVATE pcg)
 
+if(UNIX AND NOT APPLE)
+    target_link_libraries(grav_sim PRIVATE rt)
+endif()
+
+target_link_libraries(grav_sim PRIVATE m)
+
 # Install rules
 install(TARGETS grav_sim
     ARCHIVE DESTINATION lib

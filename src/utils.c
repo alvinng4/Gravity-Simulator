@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
 #include <sys/time.h>
 
 #include "common.h"
