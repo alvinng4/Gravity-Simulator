@@ -8,6 +8,8 @@ license-files = ["LICENSE"]
 dependencies = [
     "matplotlib>=3.8.3",
     "numpy>=1.26.4",
+    "Pillow>=10.3.0",
+    "h5py>=3.0.0",
 ]
 authors = [
     {name = "Ching-Yin Ng", email = "alvinng324@gmail.com"}

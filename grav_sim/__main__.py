@@ -22,6 +22,7 @@ def main() -> None:
     c_lib_path = c_lib_files[0]
     c_lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(c_lib_path)
     c_lib.print_compilation_info()
+    print(f"C library location: {c_lib_path}")
 
 
 if __name__ == "__main__":
