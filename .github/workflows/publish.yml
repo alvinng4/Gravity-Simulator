@@ -50,19 +50,10 @@ jobs:
         env:
           CIBW_PLATFORM: ${{ matrix.platform }}
           CIBW_ARCHS: ${{ matrix.archs }}
-
-          CIBW_ENVIRONMENT_WINDOWS: >
-            CMAKE_GENERATOR="MinGW Makefiles"
-            CMAKE_C_COMPILER=gcc
-            CMAKE_CXX_COMPILER=g++
-            CC=gcc
-            CXX=g++
-
-        # Can also be configured directly, using `with:`
-        # with:
-        #   package-dir: .
-        #   output-dir: wheelhouse
-        #   config-file: "{package}/pyproject.toml"
+          CIBW_ENVIRONMENT_WINDOWS: "CC=gcc CXX=g++ CMAKE_GENERATOR=\"MinGW Makefiles\""
+          CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel && where gcc && where g++"
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+          CIBW_CMAKE_OPTIONS: "-G \"MinGW Makefiles\""
 
       - uses: actions/upload-artifact@v4
         with:
@@ -101,3 +92,25 @@ jobs:
           merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  upload_testpypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+    # Run this job when pushing to main branch but not during releases
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !(github.event_name == 'release' && github.event.action == 'published')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          # unpacks all CIBW artifacts into dist/
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          # Skip existing versions to avoid errors if version hasn't changed
+          skip-existing: true
