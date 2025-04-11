@@ -78,47 +78,11 @@ WIN32DLL_API ErrorStatus finalize_system(System *__restrict system)
 
     if (system->num_particles <= 0)
     {
-        const int error_msg_len = (
-            strlen("Number of particles must be positive. Got: ")
-            + snprintf(NULL, 0, "%d", system->num_particles)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Number of particles must be positive and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "Number of particles must be positive. Got: %d",
             system->num_particles
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Number of particles must be positive and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Number of particles must be positive and error message is truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
     if (!system->particle_ids)
     {
@@ -138,47 +102,11 @@ WIN32DLL_API ErrorStatus finalize_system(System *__restrict system)
     }
     if (system->G <= 0.0)
     {
-        const int error_msg_len = (
-            strlen("Gravitational constant G must be positive. Got: ")
-            + snprintf(NULL, 0, "%g", system->G)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Gravitational constant G must be positive and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "Gravitational constant G must be positive. Got: %g",
             system->G
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Gravitational constant G must be positive and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Gravitational constant G must be positive and error message is truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     return make_success_error_status();
@@ -255,47 +183,11 @@ WIN32DLL_API ErrorStatus finalize_cosmological_system(CosmologicalSystem *__rest
 
     if (system->num_particles <= 0)
     {
-        const int error_msg_len = (
-            strlen("Number of particles must be positive. Got: ")
-            + snprintf(NULL, 0, "%d", system->num_particles)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "Number of particles must be positive and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
             "Number of particles must be positive. Got: %d",
             system->num_particles
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Number of particles must be positive and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "Number of particles must be positive and error message is truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
     if (!system->particle_ids)
     {
@@ -1197,47 +1089,11 @@ WIN32DLL_API ErrorStatus initialize_built_in_system(
     }
     else
     {
-        const int error_msg_len = (
-            strlen("System name not recognized. Got: ")
-            + strlen(system_name)
-            + 1  // Null terminator
-        );
-        char *error_msg = malloc(error_msg_len * sizeof(char));
-        if (!error_msg)
-        {
-            return WRAP_RAISE_ERROR(
-                GRAV_MEMORY_ERROR,
-                "System name not recognized and failed to allocate memory for error message"
-            );
-        }
-
-        const int actual_error_msg_len = snprintf(
-            error_msg,
-            error_msg_len,
-            "System name not recognized. Got: %s",
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
+            "System name not recognized. Got: \"%s\".",
             system_name
         );
-
-        if (actual_error_msg_len < 0)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "System name not recognized and failed to generate error message"
-            );
-        }
-        else if (actual_error_msg_len >= error_msg_len)
-        {
-            free(error_msg);
-            return WRAP_RAISE_ERROR(
-                GRAV_UNKNOWN_ERROR,
-                "System name not recognized and error message are truncated"
-            );
-        }
-
-        ErrorStatus error_status = WRAP_RAISE_ERROR(GRAV_VALUE_ERROR, error_msg);
-        free(error_msg);
-        return error_status;
     }
 
     return make_success_error_status();

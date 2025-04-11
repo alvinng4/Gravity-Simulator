@@ -2,10 +2,8 @@
 Application user interface (API) for gravity simulator
 
 Usage:
-    ffrom gravity_sim import GravitySimulatorAPI
-    grav_sim = GravitySimulatorAPI()
-
-Author:  Ching Yin Ng
+    from grav_sim import GravitySimulatorAPI
+    gs = GravitySimulatorAPI()
 """
 
 import copy
@@ -13,16 +11,15 @@ import ctypes
 import sys
 import warnings
 from pathlib import Path
-from typing import Optional, Tuple
-
-sys.path.append(str(Path(__file__).parent))
+from typing import Optional, Tuple, List
 
 import numpy as np
 
 from . import plotting
 from . import utils
-from .gravitational_system import GravitationalSystem
+from . import parameters
 from .simulator import Simulator
+from .system import System
 
 
 class GravitySimulatorAPI:
@@ -43,25 +40,71 @@ class GravitySimulatorAPI:
             self.c_lib = utils.load_c_lib()
         utils.initialize_c_lib(self.c_lib)
 
-        self.simulator = Simulator(self.c_lib)
+        # System
+        self.BUILT_IN_SYSTEMS = System.BUILT_IN_SYSTEMS
 
+        # Plotting
+        self.SOLAR_SYSTEM_COLORS = plotting.SOLAR_SYSTEM_COLORS
+        self.plot_quantity_against_time = plotting.plot_quantity_against_time
         self.plot_2d_trajectory = plotting.plot_2d_trajectory
         self.plot_3d_trajectory = plotting.plot_3d_trajectory
-        self.animate_2d_traj_gif = plotting.animate_2d_traj_gif
-        self.animate_3d_traj_gif = plotting.animate_3d_traj_gif
-        self.plot_quantity_against_time = plotting.plot_quantity_against_time
-        self.plot_eccentricity_or_inclination = (
-            plotting.plot_eccentricity_or_inclination
-        )
 
-        self.BUILT_IN_SYSTEMS = (
-            self.simulator.RECOMMENDED_SETTINGS_BUILT_IN_SYSTEMS.keys()
-        )
-        self.AVAILABLE_INTEGRATORS = self.simulator.AVAILABLE_INTEGRATORS
-        self.AVAILABLE_ACCELERATION_METHODS = (
-            self.simulator.AVAILABLE_ACCELERATION_METHODS
-        )
-        self.AVAILABLE_STORING_METHODS = self.simulator.AVAILABLE_STORING_METHODS
+        # Simulator
+        self.simulator = Simulator(c_lib=self.c_lib)
+        self.DAYS_PER_YEAR = self.simulator.DAYS_PER_YEAR
+        self.launch_simulation = self.simulator.launch_simulation
+
+    def get_new_system(self) -> System:
+        """Create a gravitational system
+
+        Returns
+        -------
+        System object
+        """
+        return System(c_lib=self.c_lib)
+
+    def load_system(
+        self,
+        file_path: str | Path,
+    ) -> System:
+        """Load system from a CSV file
+
+        Parameters
+        ----------
+        file_path : str
+            File path to load the system from
+        """
+        return System.load_system(self.c_lib, file_path)
+
+    def get_built_in_system(self, system_name: str) -> System:
+        """Get a built-in gravitational system
+
+        Parameters
+        ----------
+        system_name : str
+            Name of the built-in system to be loaded.
+        """
+        return System.get_built_in_system(self.c_lib, system_name)
+
+    @staticmethod
+    def get_new_parameters() -> Tuple[
+        parameters.AccelerationParam,
+        parameters.IntegratorParam,
+        parameters.OutputParam,
+        parameters.Settings,
+    ]:
+        """Create new simulation parameters
+
+        Returns
+        -------
+        Tuple of acceleration, integrator, output, and settings parameters
+        """
+        acceleration_param = parameters.AccelerationParam()
+        integrator_param = parameters.IntegratorParam()
+        output_param = parameters.OutputParam()
+        settings = parameters.Settings()
+
+        return acceleration_param, integrator_param, output_param, settings
 
     def days_to_years(self, days: float | np.ndarray) -> float | np.ndarray:
         return days / self.simulator.DAYS_PER_YEAR
@@ -69,696 +112,244 @@ class GravitySimulatorAPI:
     def years_to_days(self, years: float | np.ndarray) -> float | np.ndarray:
         return years * self.simulator.DAYS_PER_YEAR
 
-    def create_system(self, name: Optional[str] = None) -> GravitationalSystem:
-        """Create a gravitational system
+    @staticmethod
+    def read_csv_data(
+        output_dir: str | Path,
+    ) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Read CSV snapshots from the output directory,
+        assuming number of particles and particle_ids
+        stays the same
 
         Parameters
         ----------
-        name : str, optional
-            Name of the system, by default None
+        output_dir : str | Path
+            Output directory path
 
         Returns
         -------
-        GravitationalSystem object
+        G : float
+            Gravitational constant
+        time : np.ndarray
+            Simulation time of each snapshot
+        dt : np.ndarray
+            Time step of each snapshot
+        particle_ids : np.ndarray
+            1D array of Particle IDs
+        sol_state : np.ndarray
+            3D array of solution state for each snapshot, with shape
+            (num_snapshots, num_particles, 7) being
+            [m, x, y, z, vx, vy, vz]
         """
-        return GravitationalSystem(name)
+        output_dir = Path(output_dir)
+        if not output_dir.is_dir():
+            raise FileNotFoundError(f"Output directory not found: {output_dir}")
 
-    def launch_simulation(
-        self,
-        gravitational_system: GravitationalSystem,
-        tf: float,
-        **kwargs,
-    ) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
-        """Launch simulation
+        snapshot_files = sorted(output_dir.glob("snapshot_*.csv"))
+        if len(snapshot_files) == 0:
+            raise FileNotFoundError(f"No snapshot files found in: {output_dir}")
 
-        Parameters
-        ----------
-        gravitational_system : GravitationalSystem
-        tf : float
-        kwargs : dict
-        """
-        (integrator_params, acceleration_params, storing_params, settings) = (
-            self._create_simulation_input(**kwargs)
-        )
-        if settings["make_copy_params"]:
-            integrator_params = integrator_params.copy()
-            acceleration_params = acceleration_params.copy()
-            storing_params = storing_params.copy()
-            self.settings = settings.copy()
+        G = -1.0
+        time = np.zeros(len(snapshot_files), dtype=np.float64)
+        dt = np.zeros(len(snapshot_files), dtype=np.float64)
 
-        if settings["make_copy_system"]:
-            gravitational_system = copy.deepcopy(gravitational_system)
+        for i, snapshot_file in enumerate(snapshot_files):
+            # Read the metadata
+            with open(snapshot_file, "r") as file:
+                read_metadata_num_particles = False
+                read_metadata_G = False
+                read_metadata_time = False
+                read_metadata_dt = False
+                for line in file:
+                    line = line.strip()
 
-        self.gravitational_system = gravitational_system
-        self.integrator_params = integrator_params
-        self.acceleration_params = acceleration_params
-        self.storing_params = storing_params
-        self.settings = settings
+                    if line.startswith("#"):
+                        if line.startswith("# num_particles"):
+                            if i == 0:
+                                num_particles = int(line.split(":")[1].strip())
+                            elif num_particles != int(line.split(":")[1].strip()):
+                                raise ValueError(
+                                    f"Number of particles changed from {num_particles} to {int(line.split(':')[1].strip())}"
+                                )
+                            read_metadata_num_particles = True
+                        elif line.startswith("# G"):
+                            G = float(line.split(":")[1].strip())
+                            read_metadata_G = True
+                        elif line.startswith("# time"):
+                            time[i] = float(line.split(":")[1].strip())
+                            read_metadata_time = True
+                        elif line.startswith("# dt"):
+                            dt[i] = float(line.split(":")[1].strip())
+                            read_metadata_dt = True
 
-        if settings["verbose"] >= 2:
-            self._print_simulation_input(
-                self.integrator_params,
-                self.acceleration_params,
-                self.storing_params,
-                self.settings,
-                tf,
-            )
-        self._check_and_fill_in_simulation_input(
-            self.gravitational_system,
-            self.integrator_params,
-            self.acceleration_params,
-            self.storing_params,
-            self.settings,
-            tf,
-        )
-
-        # Ensuring no file name conflicts
-        if self.storing_params["method"] == "flush":
-            if Path(storing_params["flush_path"]).is_file():
-                while True:
-                    i = 0
-                    flush_path = str(storing_params["flush_path"]) + f"_{i}"
-                    if not Path(flush_path).is_file():
-                        storing_params["flush_path"] = flush_path
+                    if (
+                        read_metadata_num_particles
+                        and read_metadata_G
+                        and read_metadata_time
+                        and read_metadata_dt
+                    ):
                         break
-                    i += 1
 
-        is_exit_ctypes_bool = ctypes.c_bool(False)
-        try:
-            self.simulator.launch_simulation(
-                self.gravitational_system,
-                self.integrator_params,
-                self.acceleration_params,
-                self.storing_params,
-                self.settings,
-                tf,
-                is_exit_ctypes_bool,
-            )
-        except KeyboardInterrupt:
-            is_exit_ctypes_bool.value = True
-            raise KeyboardInterrupt
+        # Read the data
+        particle_ids = np.zeros(num_particles, dtype=np.int32)
+        sol_state = np.zeros((len(snapshot_files), num_particles, 7), dtype=np.float64)
+        for i, snapshot_file in enumerate(snapshot_files):
+            data = np.genfromtxt(snapshot_file, delimiter=",", skip_header=5)
+            if i == 0:
+                particle_ids = data[:, 0].astype(np.int32)
+                particle_ids = np.sort(particle_ids)
+                _, num_duplicates = np.unique(particle_ids, return_counts=True)
+                if np.any(num_duplicates > 1):
+                    raise ValueError(f"Particle IDs are not unique. Particle IDs: {particle_ids}")
 
-        if self.storing_params["method"] == "default":
-            return (
-                self.simulator.sol_state_,
-                self.simulator.sol_time_,
-                self.simulator.sol_dt_,
-            )
+            snapshot_particle_ids = data[:, 0].astype(np.int32)
 
-        return None
+            # Sort the data by particle IDs
+            sorted_indices = np.argsort(snapshot_particle_ids)
+            data = data[sorted_indices]
 
-    def resume_simulation(
-        self, tf: float
-    ) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
-        """Resume simulation
+            # Check if the particle IDs match
+            if not np.array_equal(particle_ids, snapshot_particle_ids):
+                raise ValueError(
+                    f"Particle IDs do not match in snapshot {i + 1}: {snapshot_file}"
+                )
+
+            # Store the data
+            sol_state[i, :, :] = data[:, 1:]
+
+        return G, time, dt, particle_ids, sol_state
+
+    @staticmethod
+    def delete_snapshots(
+        output_dir: str | Path,
+    ):
+        """Delete all snapshots in the output directory
 
         Parameters
         ----------
-        tf : float
+        output_dir : str | Path
+            Output directory path
         """
-        is_exit_ctypes_bool = ctypes.c_bool(False)
-        try:
-            self.simulator.launch_simulation(
-                self.gravitational_system,
-                self.integrator_params,
-                self.acceleration_params,
-                self.storing_params,
-                self.settings,
-                tf,
-                is_exit_ctypes_bool,
-            )
-        except KeyboardInterrupt:
-            is_exit_ctypes_bool.value = True
-            raise KeyboardInterrupt
+        output_dir = Path(output_dir)
+        if not output_dir.is_dir():
+            raise FileNotFoundError(f"Output directory not found: {output_dir}")
 
-        if self.storing_params["method"] == "default":
-            return (
-                self.simulator.sol_state_,
-                self.simulator.sol_time_,
-                self.simulator.sol_dt_,
-            )
-
-        return None
-
-    def _create_simulation_input(self, **kwargs) -> Tuple[dict, dict, dict, dict]:
-        integrator_params = {}
-        acceleration_params = {}
-        storing_params = {}
-        settings = {}
-
-        if "verbose" in kwargs:
-            verbose = kwargs["verbose"]
-        else:
-            verbose = 2
-
-        integrator_params_list = [
-            "integrator",
-            "dt",
-            "tolerance",
-            "initial_dt",
-            "whfast_kepler_tol",
-            "whfast_kepler_max_iter",
-            "whfast_kepler_auto_remove",
-            "whfast_kepler_auto_remove_tol",
-        ]
-        acceleration_params_list = [
-            "acceleration_method",
-            "softening_length",
-            "order",
-            "opening_angle",
-        ]
-        storing_params_list = ["storing_method", "storing_freq", "flush_path"]
-        settings_list = [
-            "disable_progress_bar",
-            "make_copy_params",
-            "make_copy_system",
-            "verbose",
-        ]
-
-        for key in kwargs:
-            if key in integrator_params_list:
-                integrator_params[key] = kwargs[key]
-            elif key in acceleration_params_list:
-                if key == "acceleration_method":
-                    acceleration_params["method"] = kwargs[key]
-                else:
-                    acceleration_params[key] = kwargs[key]
-            elif key in storing_params_list:
-                if key == "storing_method":
-                    storing_params["method"] = kwargs[key]
-                else:
-                    storing_params[key] = kwargs[key]
-            elif key in settings_list:
-                settings[key] = kwargs[key]
-            else:
-                warnings.warn(f"Unknown key: {key}")
-
-        if "method" not in acceleration_params:
-            acceleration_params["method"] = "pairwise"
-        if "softening_length" not in acceleration_params:
-            acceleration_params["softening_length"] = 0.0
-        if "method" not in storing_params:
-            storing_params["method"] = "default"
-        if storing_params["method"] != "disabled":
-            if "storing_freq" not in storing_params:
-                storing_params["storing_freq"] = 1
-        if "disable_progress_bar" not in settings:
-            settings["disable_progress_bar"] = False
-        if "make_copy_params" not in settings:
-            settings["make_copy_params"] = True
-        if "make_copy_system" not in settings:
-            settings["make_copy_system"] = True
-        settings["verbose"] = verbose
-
-        return integrator_params, acceleration_params, storing_params, settings
-
-    @staticmethod
-    def _check_and_fill_in_simulation_input(
-        gravitational_system: GravitationalSystem,
-        integrator_params: dict,
-        acceleration_params: dict,
-        storing_params: dict,
-        settings: dict,
-        tf: float,
-    ) -> None:
-        """Check and fill in simulation input
-
-        Parameters
-        ----------
-        gravitational_system : GravitationalSystem
-        integrator_params : dict
-        acceleration_params : dict
-        storing_params : dict
-        settings : dict
-        tf : float
-
-        Raises
-        ------
-        TypeError
-            If input types are incorrect
-        ValueError
-            If input values are invalid
-        """
-        ### GravitationalSystem
-        if not isinstance(gravitational_system, GravitationalSystem):
-            raise TypeError(
-                f"Expected GravitationalSystem object, but got {type(gravitational_system)}"
-            )
-        if gravitational_system.objects_count == 0:
-            raise ValueError("No objects in the gravitational system")
-
-        ### integrator_params ###
-        if not isinstance(integrator_params, dict):
-            raise TypeError(f"Expected dict, but got {type(integrator_params)}")
-        if "integrator" not in integrator_params:
-            raise ValueError('integrator_params must have key "integrator"')
-        if integrator_params["integrator"] not in Simulator.AVAILABLE_INTEGRATORS:
-            raise ValueError(
-                f'integrator_params["integrator"] must be one of {Simulator.AVAILABLE_INTEGRATORS}'
-            )
-
-        if integrator_params["integrator"] in Simulator.FIXED_STEP_SIZE_INTEGRATORS:
-            if "dt" not in integrator_params:
-                raise ValueError(
-                    'integrator_params must have key "dt" for fixed-step-size integrators'
-                )
-            if not isinstance(integrator_params["dt"], (int, float)):
-                raise TypeError(
-                    f"Expected int or float, but got {type(integrator_params['dt'])}"
-                )
-            if integrator_params["dt"] <= 0.0:
-                raise ValueError('integrator_params["dt"] must be positive')
-            if "tolerance" in integrator_params:
-                warnings.warn(
-                    'integrator_params["tolerance"] is not used for fixed-step-size integrators'
-                )
-            if "initial_dt" in integrator_params:
-                warnings.warn(
-                    'integrator_params["initial_dt"] is not used for fixed-step-size integrators'
-                )
-        elif (
-            integrator_params["integrator"] in Simulator.ADAPTIVE_STEP_SIZE_INTEGRATORS
-        ):
-            if "tolerance" not in integrator_params:
-                raise ValueError(
-                    'integrator_params must have key "tolerance" for adaptive-step-size integrators'
-                )
-            if not isinstance(integrator_params["tolerance"], (int, float)):
-                raise TypeError(
-                    f"Expected int or float, but got {type(integrator_params['tolerance'])}"
-                )
-            if integrator_params["tolerance"] <= 0.0:
-                raise ValueError('integrator_params["tolerance"] must be positive')
-            if "initial_dt" in integrator_params:
-                if not isinstance(integrator_params["initial_dt"], (int, float)):
-                    raise TypeError(
-                        f"Expected int or float, but got {type(integrator_params['initial_dt'])}"
-                    )
-                if integrator_params["initial_dt"] <= 0.0:
-                    raise ValueError('integrator_params["initial_dt"] must be positive')
-            if "dt" in integrator_params:
-                warnings.warn(
-                    'integrator_params["dt"] is not used for adaptive-step-size integrators'
-                )
-
-        if integrator_params["integrator"] != "whfast":
-            if "whfast_kepler_tol" in integrator_params:
-                warnings.warn(
-                    'integrator_params["whfast_kepler_tol"] is only used for WHFast integrator'
-                )
-            if "whfast_kepler_max_iter" in integrator_params:
-                warnings.warn(
-                    'integrator_params["whfast_kepler_max_iter"] is only used for WHFast integrator'
-                )
-            if "whfast_kepler_auto_remove" in integrator_params:
-                warnings.warn(
-                    'integrator_params["whfast_kepler_auto_remove"] is only used for WHFast integrator'
-                )
-            if "whfast_kepler_auto_remove_tol" in integrator_params:
-                warnings.warn(
-                    'integrator_params["whfast_kepler_auto_remove_tol"] is only used for WHFast integrator'
-                )
-        else:
-            if "whfast_kepler_tol" in integrator_params:
-                if not isinstance(integrator_params["whfast_kepler_tol"], (int, float)):
-                    raise TypeError(
-                        f"Expected int or float, but got {type(integrator_params['whfast_kepler_tol'])}"
-                    )
-                else:
-                    if integrator_params["whfast_kepler_tol"] <= 0.0:
-                        raise ValueError(
-                            'integrator_params["whfast_kepler_tol"] must be positive'
-                        )
-            if "whfast_kepler_max_iter" in integrator_params:
-                if not isinstance(integrator_params["whfast_kepler_max_iter"], int):
-                    raise TypeError(
-                        f"Expected int, but got {type(integrator_params['whfast_kepler_max_iter'])}"
-                    )
-                else:
-                    if integrator_params["whfast_kepler_max_iter"] <= 0:
-                        raise ValueError(
-                            'integrator_params["whfast_kepler_max_iter"] must be positive'
-                        )
-            if "whfast_kepler_auto_remove" in integrator_params:
-                if not isinstance(integrator_params["whfast_kepler_auto_remove"], bool):
-                    raise TypeError(
-                        f"Expected bool, but got {type(integrator_params['whfast_kepler_auto_remove'])}"
-                    )
-            if "whfast_kepler_auto_remove_tol" in integrator_params:
-                if not isinstance(
-                    integrator_params["whfast_kepler_auto_remove_tol"], (int, float)
-                ):
-                    raise TypeError(
-                        f"Expected int or float, but got {type(integrator_params['whfast_kepler_auto_remove_tol'])}"
-                    )
-                else:
-                    if integrator_params["whfast_kepler_auto_remove_tol"] <= 0.0:
-                        raise ValueError(
-                            'integrator_params["whfast_kepler_auto_remove_tol"] must be positive'
-                        )
-
-        for key in ["dt", "tolerance", "initial_dt"]:
-            if key not in integrator_params:
-                integrator_params[key] = 0.0
-
-        if "whfast_kepler_tol" not in integrator_params:
-            integrator_params["whfast_kepler_tol"] = 1e-12
-        if "whfast_kepler_max_iter" not in integrator_params:
-            integrator_params["whfast_kepler_max_iter"] = 500
-        if "whfast_kepler_auto_remove" not in integrator_params:
-            integrator_params["whfast_kepler_auto_remove"] = False
-        if "whfast_kepler_auto_remove_tol" not in integrator_params:
-            integrator_params["whfast_kepler_auto_remove_tol"] = 1e-8
-
-        ### acceleration_params ###
-        if not isinstance(acceleration_params, dict):
-            raise TypeError(f"Expected dict, but got {type(acceleration_params)}")
-        if "method" not in acceleration_params:
-            raise ValueError('acceleration_params must have key "method"')
-        if (
-            acceleration_params["method"]
-            not in Simulator.AVAILABLE_ACCELERATION_METHODS
-        ):
-            raise ValueError(
-                f'acceleration_params["method"] must be one of {Simulator.AVAILABLE_ACCELERATION_METHODS}'
-            )
-        if acceleration_params["method"] == "barnes_hut":
-            if (gravitational_system.m == 0.0).any():
-                raise ValueError(
-                    "Barnes-Hut method cannot be used with any massless objects"
-                )
-        if "softening_length" in acceleration_params:
-            if not isinstance(acceleration_params["softening_length"], (int, float)):
-                raise TypeError(
-                    f"Expected int or float, but got {type(acceleration_params['softening_length'])}"
-                )
-            if acceleration_params["softening_length"] < 0.0:
-                raise ValueError(
-                    'acceleration_params["softening_length"] must be non-negative'
-                )
-        else:
-            acceleration_params["softening_length"] = 0.0
-
-        if "order" in acceleration_params:
-            if not isinstance(acceleration_params["order"], int):
-                raise TypeError(
-                    f"Expected int, but got {type(acceleration_params['order'])}"
-                )
-            if acceleration_params["order"] < 0:
-                raise ValueError('acceleration_params["order"] must be non-negative')
-        else:
-            acceleration_params["order"] = 0
-
-        if "opening_angle" in acceleration_params:
-            if not isinstance(acceleration_params["opening_angle"], (int, float)):
-                raise TypeError(
-                    f"Expected int or float, but got {type(acceleration_params['opening_angle'])}"
-                )
-            if acceleration_params["opening_angle"] <= 0.0:
-                raise ValueError(
-                    'acceleration_params["opening_angle"] must be positive'
-                )
-        else:
-            acceleration_params["opening_angle"] = 0.5
-
-        ### storing_params ###
-        if not isinstance(storing_params, dict):
-            raise TypeError(f"Expected dict, but got {type(storing_params)}")
-        if "method" not in storing_params:
-            raise ValueError('storing_params must have key "method"')
-        if storing_params["method"] not in Simulator.AVAILABLE_STORING_METHODS:
-            raise ValueError(
-                f'storing_params["method"] must be one of {Simulator.AVAILABLE_STORING_METHODS}'
-            )
-        if storing_params["method"] in ["default", "disabled"]:
-            if "flush_path" in storing_params:
-                warnings.warn(
-                    'storing_params["flush_path"] is not used for default storing method'
-                )
-        if storing_params["method"] == "flush":
-            if "flush_path" not in storing_params:
-                raise ValueError(
-                    'storing_params must have key "flush_path" for flush storing method'
-                )
-            if not (
-                isinstance(storing_params["flush_path"], str)
-                or isinstance(storing_params["flush_path"], Path)
-            ):
-                raise TypeError(
-                    f"Expected str or Path, but got {type(storing_params['flush_path'])}"
-                )
-
-        if storing_params["method"] != "disabled":
-            if "storing_freq" not in storing_params:
-                raise ValueError('storing_params must have key "storing_freq"')
-            else:
-                if not isinstance(storing_params["storing_freq"], int):
-                    raise TypeError(
-                        f"Expected int, but got {type(storing_params['storing_freq'])}"
-                    )
-                if storing_params["storing_freq"] <= 0:
-                    raise ValueError('storing_params["storing_freq"] must be positive')
-        else:
-            if "storing_freq" in storing_params:
-                warnings.warn(
-                    'storing_params["storing_freq"] is not used for disabled storing method'
-                )
-            else:
-                storing_params["storing_freq"] = 1
-
-        ### settings ###
-        if "verbose" not in settings:
-            settings["verbose"] = 2
-        else:
-            if not isinstance(settings["verbose"], int):
-                raise TypeError(f"Expected int, but got {type(settings['verbose'])}")
-        if "disable_progress_bar" not in settings:
-            settings["disable_progress_bar"] = False
-        else:
-            if not isinstance(settings["disable_progress_bar"], bool):
-                raise TypeError(
-                    f"Expected bool, but got {type(settings['disable_progress_bar'])}"
-                )
-
-        settings["make_copy_params"] = False
-        settings["make_copy_system"] = False
-
-        ### tf ###
-        if not isinstance(tf, (int, float)):
-            raise TypeError(f"Expected int or float, but got {type(tf)}")
-
-        if tf < 0.0:
-            raise ValueError("tf must be non negative")
-
-    @staticmethod
-    def _print_simulation_input(
-        integrator_params: dict,
-        acceleration_params: dict,
-        storing_params: dict,
-        settings: dict,
-        tf: float,
-    ) -> None:
-        print("---------- Simulation input ----------")
-        print("integrator_params:")
-        for key, value in integrator_params.items():
-            print(f"    {key}: {value}")
-        print("acceleration_params:")
-        for key, value in acceleration_params.items():
-            print(f"    {key}: {value}")
-        print("storing_params:")
-        for key, value in storing_params.items():
-            print(f"    {key}: {value}")
-        print("settings:")
-        for key, value in settings.items():
-            print(f"    {key}: {value}")
-        print(f"tf: {tf} days")
-        print("--------------------------------------")
+        snapshot_files = sorted(output_dir.glob("snapshot_*.csv"))
+        for snapshot_file in snapshot_files:
+            snapshot_file.unlink()
 
     def compute_energy(
-        self,
-        gravitational_system: GravitationalSystem,
-        sol_state: np.ndarray,
+        self: ctypes.CDLL, sol_state: np.ndarray, G: float
     ) -> np.ndarray:
-        """Compute energy of the system
+        """Compute the total energy of the system
 
         Parameters
         ----------
-        gravitational_system : GravitationalSystem
         sol_state : np.ndarray
+            3D array of solution state for each snapshot, with shape
+            (num_snapshots, num_particles, 7) being
+            [m, x, y, z, vx, vy, vz]
+        G : float
+            Gravitational constant
 
         Returns
         -------
-        sol_energy : np.ndarray
-            Energy of the system at each time step
+        energy : np.ndarray
+            1D array of total energy for each snapshot
         """
-        objects_count = gravitational_system.objects_count
-        m = gravitational_system.m
-        G = gravitational_system.G
+        # Check the dimension and shape of sol_state
+        if len(sol_state.shape) != 3:
+            raise ValueError("sol_state must be a 3D array")
 
-        is_exit_ctypes_bool = ctypes.c_bool(False)
-        try:
-            return self.simulator.compute_energy(
-                objects_count, m, G, sol_state, is_exit_ctypes_bool
+        if sol_state.shape[2] != 7:
+            raise ValueError(
+                "sol_state must have shape (num_snapshots, num_particles, 7)"
             )
-        except KeyboardInterrupt:
-            is_exit_ctypes_bool.value = True
-            raise KeyboardInterrupt
+
+        # Compute the total energy
+        energy = np.zeros(sol_state.shape[0], dtype=np.float64)
+        self.c_lib.compute_energy_python(
+            energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+            ctypes.c_double(G),
+            sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+            ctypes.c_int32(sol_state.shape[0]),
+            ctypes.c_int32(sol_state.shape[1]),
+        )
+
+        return energy
 
     def compute_linear_momentum(
-        self,
-        gravitational_system: GravitationalSystem,
-        sol_state: np.ndarray,
+        self: ctypes.CDLL, sol_state: np.ndarray,
     ) -> np.ndarray:
-        """Compute linear momentum of the system
+        """Compute the total linear_momentum of the system
 
         Parameters
         ----------
-        gravitational_system : GravitationalSystem
         sol_state : np.ndarray
+            3D array of solution state for each snapshot, with shape
+            (num_snapshots, num_particles, 7) being
+            [m, x, y, z, vx, vy, vz]
 
         Returns
         -------
-        sol_linear_momentum : np.ndarray
-            Linear momentum of the system at each time step
+        linear_momentum : np.ndarray
+            1D array of total linear_momentum for each snapshot
         """
-        objects_count = gravitational_system.objects_count
-        m = gravitational_system.m
+        # Check the dimension and shape of sol_state
+        if len(sol_state.shape) != 3:
+            raise ValueError("sol_state must be a 3D array")
 
-        is_exit_ctypes_bool = ctypes.c_bool(False)
-        try:
-            return self.simulator.compute_linear_momentum(
-                objects_count, m, sol_state, is_exit_ctypes_bool
+        if sol_state.shape[2] != 7:
+            raise ValueError(
+                "sol_state must have shape (num_snapshots, num_particles, 7)"
             )
-        except KeyboardInterrupt:
-            is_exit_ctypes_bool.value = True
-            raise KeyboardInterrupt
 
+        # Compute the total energy
+        linear_momentum = np.zeros(sol_state.shape[0], dtype=np.float64)
+        self.c_lib.compute_linear_momentum_python(
+            linear_momentum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+            sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+            ctypes.c_int32(sol_state.shape[0]),
+            ctypes.c_int32(sol_state.shape[1]),
+        )
+
+        return linear_momentum
+    
     def compute_angular_momentum(
-        self,
-        gravitational_system: GravitationalSystem,
-        sol_state: np.ndarray,
+        self: ctypes.CDLL, sol_state: np.ndarray,
     ) -> np.ndarray:
-        """Compute angular momentum of the system
+        """Compute the total angular_momentum of the system
 
         Parameters
         ----------
-        gravitational_system : GravitationalSystem
         sol_state : np.ndarray
+            3D array of solution state for each snapshot, with shape
+            (num_snapshots, num_particles, 7) being
+            [m, x, y, z, vx, vy, vz]
 
         Returns
         -------
-        sol_angular_momentum : np.ndarray
-            Angular momentum of the system at each time step
+        angular_momentum : np.ndarray
+            1D array of total angular_momentum for each snapshot
         """
-        objects_count = gravitational_system.objects_count
-        m = gravitational_system.m
+        # Check the dimension and shape of sol_state
+        if len(sol_state.shape) != 3:
+            raise ValueError("sol_state must be a 3D array")
 
-        is_exit_ctypes_bool = ctypes.c_bool(False)
-        try:
-            return self.simulator.compute_angular_momentum(
-                objects_count, m, sol_state, is_exit_ctypes_bool
+        if sol_state.shape[2] != 7:
+            raise ValueError(
+                "sol_state must have shape (num_snapshots, num_particles, 7)"
             )
-        except KeyboardInterrupt:
-            is_exit_ctypes_bool.value = True
-            raise KeyboardInterrupt
 
-    @staticmethod
-    def compute_eccentricity(
-        gravitational_system: GravitationalSystem,
-        sol_state: np.ndarray,
-    ) -> np.ndarray:
-        """Compute the eccentricity using the sol_state array,
-        assuming that the first object is the central object
-
-        Parameters
-        ----------
-        gravitational_system : GravitationalSystem
-        sol_state : np.ndarray
-
-        Returns
-        -------
-        sol_eccentricity : np.ndarray
-            Eccentricity of the system at each time step
-        """
-        objects_count = gravitational_system.objects_count
-        m = gravitational_system.m
-        G = gravitational_system.G
-
-        return Simulator.compute_eccentricity(objects_count, m, G, sol_state)
-
-    @staticmethod
-    def compute_inclination(
-        gravitational_system: GravitationalSystem,
-        sol_state: np.ndarray,
-    ) -> np.ndarray:
-        """Compute the inclination using the sol_state array,
-        assuming that the first object is the central object
-
-        Parameters
-        ----------
-        gravitational_system : GravitationalSystem
-        sol_state : np.ndarray
-
-        Returns
-        -------
-        sol_inclination : np.ndarray
-            Inclination of the system at each time step
-        """
-        objects_count = gravitational_system.objects_count
-
-        return Simulator.compute_inclination(objects_count, sol_state)
-
-    @staticmethod
-    def save_results(
-        file_path: str | Path,
-        sol_state: np.ndarray,
-        sol_time: np.ndarray,
-        sol_dt: np.ndarray,
-        sol_energy: np.ndarray,
-    ) -> None:
-        """Save results to a file
-
-        Parameters
-        ----------
-        sol_state_ : np.ndarray
-        sol_time_ : np.ndarray
-        sol_dt_ : np.ndarray
-        sol_energy_ : np.ndarray
-        """
-        utils.save_results_csv(
-            file_path,
-            sol_state,
-            sol_time,
-            sol_dt,
-            sol_energy,
+        # Compute the total energy
+        angular_momentum = np.zeros(sol_state.shape[0], dtype=np.float64)
+        self.c_lib.compute_angular_momentum_python(
+            angular_momentum.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+            sol_state.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+            ctypes.c_int32(sol_state.shape[0]),
+            ctypes.c_int32(sol_state.shape[1]),
         )
 
-        print(f'Done! Results saved to "{file_path}".')
-
-    @staticmethod
-    def read_results(
-        file_path: str | Path,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """Load results from a file
-
-        Parameters
-        ----------
-        file_path : str or Path
-
-        Returns
-        -------
-        sol_state : np.ndarray
-        sol_time : np.ndarray
-        sol_dt : np.ndarray
-        sol_energy : np.ndarray
-        """
-        sol_dict = utils.read_results_csv(file_path)
-        return (
-            sol_dict["state"],
-            sol_dict["time"],
-            sol_dict["dt"],
-            sol_dict["energy"],
-        )
+        return angular_momentum
 
     @staticmethod
     def plot_rel_energy_error(
@@ -783,30 +374,6 @@ class GravitySimulatorAPI:
             is_log_y=is_log_y,
             save_fig=save_fig,
             save_fig_path=save_fig_path,
-        )
-
-    def compute_and_plot_rel_energy_error(
-        self,
-        system: GravitationalSystem,
-        sol_state: np.ndarray,
-        sol_time: np.ndarray,
-        is_log_y: bool = True,
-        title: Optional[str] = None,
-        xlabel: Optional[str] = "Time",
-        ylabel: Optional[str] = "$(E_0 - E(t)) / E_0$",
-        save_fig: bool = False,
-        save_fig_path: Optional[str | Path] = None,
-    ) -> None:
-        sol_energy = self.compute_energy(system, sol_state)
-        self.plot_rel_energy_error(
-            sol_energy,
-            sol_time,
-            is_log_y,
-            title,
-            xlabel,
-            ylabel,
-            save_fig,
-            save_fig_path,
         )
 
     @staticmethod
@@ -836,32 +403,8 @@ class GravitySimulatorAPI:
             save_fig_path=save_fig_path,
         )
 
-    def compute_and_plot_rel_linear_momentum_error(
-        self,
-        system: GravitationalSystem,
-        sol_state: np.ndarray,
-        sol_time: np.ndarray,
-        is_log_y: bool = True,
-        title: Optional[str] = None,
-        xlabel: Optional[str] = "Time",
-        ylabel: Optional[str] = "Relative linear momentum error",
-        save_fig: bool = False,
-        save_fig_path: Optional[str | Path] = None,
-    ) -> None:
-        sol_linear_momentum = self.compute_linear_momentum(system, sol_state)
-        GravitySimulatorAPI.plot_rel_linear_momentum_error(
-            sol_linear_momentum,
-            sol_time,
-            is_log_y,
-            title,
-            xlabel,
-            ylabel,
-            save_fig,
-            save_fig_path,
-        )
-
     @staticmethod
-    def plot_angular_momentum_error(
+    def plot_rel_angular_momentum_error(
         sol_angular_momentum: np.ndarray,
         sol_time: np.ndarray,
         is_log_y: bool = True,
@@ -883,86 +426,6 @@ class GravitySimulatorAPI:
             xlabel=xlabel,
             ylabel=ylabel,
             is_log_y=is_log_y,
-            save_fig=save_fig,
-            save_fig_path=save_fig_path,
-        )
-
-    def compute_and_plot_angular_momentum_error(
-        self,
-        system: GravitationalSystem,
-        sol_state: np.ndarray,
-        sol_time: np.ndarray,
-        is_log_y: bool = True,
-        title: Optional[str] = None,
-        xlabel: Optional[str] = "Time",
-        ylabel: Optional[str] = "$(L_0 - L(t)) / L_0$",
-        save_fig: bool = False,
-        save_fig_path: Optional[str | Path] = None,
-    ) -> None:
-        sol_angular_momentum = self.compute_angular_momentum(system, sol_state)
-        GravitySimulatorAPI.plot_angular_momentum_error(
-            sol_angular_momentum,
-            sol_time,
-            is_log_y,
-            title,
-            xlabel,
-            ylabel,
-            save_fig,
-            save_fig_path,
-        )
-
-    def compute_and_plot_eccentricity(
-        self,
-        system: GravitationalSystem,
-        sol_state: np.ndarray,
-        sol_time: np.ndarray,
-        colors: list[str] | None = None,
-        labels: list[str] | None = None,
-        legend: bool = False,
-        title: str | None = None,
-        xlabel: Optional[str] = "Time",
-        ylabel: Optional[str] = "Eccentricity",
-        save_fig: bool = False,
-        save_fig_path: str | Path | None = None,
-    ) -> None:
-        sol_eccentricity = self.compute_eccentricity(system, sol_state)
-        self.plot_eccentricity_or_inclination(
-            eccentricity_or_inclination=sol_eccentricity,
-            sol_time=sol_time,
-            colors=colors,
-            labels=labels,
-            legend=legend,
-            title=title,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            save_fig=save_fig,
-            save_fig_path=save_fig_path,
-        )
-
-    def compute_and_plot_inclination(
-        self,
-        system: GravitationalSystem,
-        sol_state: np.ndarray,
-        sol_time: np.ndarray,
-        colors: list[str] | None = None,
-        labels: list[str] | None = None,
-        legend: bool = False,
-        title: str | None = None,
-        xlabel: Optional[str] = "Time",
-        ylabel: Optional[str] = "Inclination",
-        save_fig: bool = False,
-        save_fig_path: str | Path | None = None,
-    ) -> None:
-        sol_inclination = self.compute_inclination(system, sol_state)
-        self.plot_eccentricity_or_inclination(
-            eccentricity_or_inclination=sol_inclination,
-            sol_time=sol_time,
-            colors=colors,
-            labels=labels,
-            legend=legend,
-            title=title,
-            xlabel=xlabel,
-            ylabel=ylabel,
             save_fig=save_fig,
             save_fig_path=save_fig_path,
         )

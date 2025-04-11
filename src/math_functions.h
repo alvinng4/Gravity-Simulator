@@ -21,6 +21,15 @@
 double vec_sum(const double *__restrict vec, const int vec_length);
 
 /**
+ * \brief Calculate the sum of a 3D vector
+ * 
+ * \param vec 1D array of size 3
+ * 
+ * \return Sum of the vector
+ */
+double vec_sum_3d(const double *__restrict vec);
+
+/**
  * \brief Calculate the norm of a 3D vector
  * 
  * \param vec 1D array of size 3

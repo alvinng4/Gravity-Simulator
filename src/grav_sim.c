@@ -24,13 +24,15 @@
  * \param acceleration_param Pointer to the acceleration parameters.
  * \param output_param Pointer to the output parameters.
  * \param settings Pointer to the settings.
+ * \param tf Simulation time.
  */
 IN_FILE void print_simulation_info(
     const System *__restrict system,
     const IntegratorParam *__restrict integrator_param,
     const AccelerationParam *__restrict acceleration_param,
     const OutputParam *__restrict output_param,
-    const Settings *__restrict settings
+    const Settings *__restrict settings,
+    const double tf
 );
 
 #ifdef USE_FFTW3
@@ -117,7 +119,8 @@ WIN32DLL_API ErrorStatus launch_simulation(
             integrator_param,
             acceleration_param,
             output_param,
-            settings
+            settings,
+            tf
         );
     }
 
@@ -195,6 +198,13 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
     }
 
     /* Check output parameters */
+    if (output_param->method == OUTPUT_METHOD_CSV)
+    {
+        return WRAP_RAISE_ERROR(
+            GRAV_VALUE_ERROR,
+            "CSV output is not supported for cosmological simulations. Please use HDF5 output format."
+        );
+    }
     error_status = WRAP_TRACEBACK(finalize_output_param(output_param, settings));
     if (error_status.return_code != GRAV_SUCCESS)
     {
@@ -288,13 +298,18 @@ IN_FILE void print_simulation_info(
     const IntegratorParam *__restrict integrator_param,
     const AccelerationParam *__restrict acceleration_param,
     const OutputParam *__restrict output_param,
-    const Settings *__restrict settings
+    const Settings *__restrict settings,
+    const double tf
 )
 {
     const char *__restrict new_line = "\n";
     const char *__restrict straight_line = "-----------------------------------------------------------------\n";
     
     fputs("Simulation parameters:\n", stdout);
+
+    /* TF */
+    printf("  tf: %g\n", tf);
+    fputs(new_line, stdout);
 
     /* System */
     fputs("System:\n", stdout);
@@ -376,6 +391,15 @@ IN_FILE void print_simulation_info(
     // Method
     switch (acceleration_param->method)
     {
+        case ACCELERATION_METHOD_PAIRWISE:
+            fputs("  Acceleration method: Pairwise\n", stdout);
+            break;
+        case ACCELERATION_METHOD_MASSLESS:
+            fputs("  Acceleration method: Massless\n", stdout);
+            break;
+        case ACCELERATION_METHOD_BARNES_HUT:
+            fputs("  Acceleration method: Barnes-Hut\n", stdout);
+            break;
         case ACCELERATION_METHOD_PM:
             fputs("  Acceleration method: Particle-mesh\n", stdout);
             break;
@@ -401,6 +425,9 @@ IN_FILE void print_simulation_info(
     // Method
     switch (output_param->method)
     {
+        case OUTPUT_METHOD_DISABLED:
+            fputs("  Output method: Disabled\n", stdout);
+            break;
         case OUTPUT_METHOD_CSV:
             fputs("  Output method: CSV\n", stdout);
             break;

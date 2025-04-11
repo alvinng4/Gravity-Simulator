@@ -20,6 +20,11 @@ WIN32DLL_API double vec_sum(const double *__restrict vec, const int vec_length)
     return sum;
 }
 
+WIN32DLL_API double vec_sum_3d(const double *__restrict vec)
+{
+    return vec[0] + vec[1] + vec[2];
+}
+
 WIN32DLL_API double vec_norm_3d(const double *__restrict vec)
 {
     return sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);

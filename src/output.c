@@ -310,6 +310,10 @@ WIN32DLL_API ErrorStatus output_snapshot_cosmology(
         case OUTPUT_METHOD_DISABLED:
             break;
         case OUTPUT_METHOD_CSV:
+            error_status = WRAP_RAISE_ERROR(
+                GRAV_VALUE_ERROR,
+                "CSV output method is not supported for cosmological simulation."
+            );
             break;
         case OUTPUT_METHOD_HDF5:
 #ifdef USE_HDF5
@@ -360,7 +364,6 @@ IN_FILE ErrorStatus output_snapshot_csv(
 
     (void) integrator_param;
     (void) acceleration_param;
-    (void) simulation_status;
     (void) settings;
 
     if (!output_param->output_dir)
@@ -405,6 +408,12 @@ IN_FILE ErrorStatus output_snapshot_csv(
         );
         goto err_open_file;
     }
+
+    /* Write metadata */
+    fprintf(file, "# num_particles: %d\n", system->num_particles);
+    fprintf(file, "# G: %.17g\n", system->G);
+    fprintf(file, "# time: %.17g\n", simulation_status->t);
+    fprintf(file, "# dt: %.17g\n", simulation_status->dt);
 
     /* Write header */
     fputs("particle_id,m,x,y,z,vx,vy,vz\n", file);
