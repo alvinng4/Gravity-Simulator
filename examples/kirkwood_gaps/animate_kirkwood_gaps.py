@@ -8,15 +8,12 @@ Author: Ching-Yin Ng
 
 import glob
 from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import h5py
 import numpy as np
 import PIL
 import matplotlib.pyplot as plt
-from gravity_sim.utils import Progress_bar
+from rich.progress import track
 
 FPS = 30
 DPI = 200
@@ -41,10 +38,6 @@ def main():
     colors = ["orange", "red", "darkgoldenrod", "gold"]
     marker_sizes = [6.0, 1.5, 4.0, 3.5]
 
-    inner_objects_count = 2
-    outer_objects_count = 2
-    massive_objects_count = inner_objects_count + outer_objects_count
-
     def natural_sort_key(s):
         """Sort strings with embedded numbers naturally."""
         return [int(Path(s).stem.strip("snapshot_"))]
@@ -61,171 +54,160 @@ def main():
 
     print()
     print("Drawing frames for semi-major-axes plots...")
-    progress_bar = Progress_bar()
-    task = progress_bar.add_task("", total=num_snapshots)
-    with progress_bar:
-        fig1, ax1 = plt.subplots()
-        ax1_xlim_min = 1.8
-        ax1_xlim_max = 3.5
-        ax1_ylim_min = 0.0
-        ax1_ylim_max = 1.0
-        for i, snapshot_file_path in enumerate(snapshot_file_paths):
-            with h5py.File(snapshot_file_path, "r") as f:
-                year = f["Header"].attrs["Time"][0] / 365.242189 / 1e6
-                x = f["PartType0/Coordinates"][:]
-                v = f["PartType0/Velocities"][:]
-                
-                eccentricity = calculate_eccentricity(x[0:] - x[0], v[0:] - v[0], 0.0, G, M)
-                semi_major_axes = calculate_semi_major_axis(x[0:] - x[0], v[0:] - v[0], 0.0, G, M)
+    fig1, ax1 = plt.subplots()
+    ax1_xlim_min = 1.8
+    ax1_xlim_max = 3.5
+    ax1_ylim_min = 0.0
+    ax1_ylim_max = 1.0
+    for i in track(range(num_snapshots)):
+        snapshot_file_path = snapshot_file_paths[i]
+        with h5py.File(snapshot_file_path, "r") as f:
+            year = f["Header"].attrs["Time"][0] / 365.242189 / 1e6
+            x = f["PartType0/Coordinates"][:]
+            v = f["PartType0/Velocities"][:]
+            
+            eccentricity = calculate_eccentricity(x[0:] - x[0], v[0:] - v[0], 0.0, G, M)
+            semi_major_axes = calculate_semi_major_axis(x[0:] - x[0], v[0:] - v[0], 0.0, G, M)
 
-                # Scatter plot
-                ax1.scatter(
-                    semi_major_axes,
-                    eccentricity,
-                    s=2,
-                    marker=".",
-                    color="black",
-                    alpha=0.5,
-                )
+            # Scatter plot
+            ax1.scatter(
+                semi_major_axes,
+                eccentricity,
+                s=2,
+                marker=".",
+                color="black",
+                alpha=0.5,
+            )
 
-                # Annotate time
-                ax1.annotate(
-                    f"{year:.2f} Myr",
-                    xy=(0.95, 0.95),
-                    xycoords="axes fraction",
-                    fontsize=12,
-                    ha="right",
-                    va="top",
-                )
+            # Annotate time
+            ax1.annotate(
+                f"{year:.2f} Myr",
+                xy=(0.95, 0.95),
+                xycoords="axes fraction",
+                fontsize=12,
+                ha="right",
+                va="top",
+            )
 
-                # Draw dashed lines indicating the gaps
-                # fmt: off
-                ax1.axvline(x=2.065, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
-                ax1.axvline(x=2.502, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
-                ax1.axvline(x=2.825, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
-                ax1.axvline(x=2.958, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
-                ax1.axvline(x=3.279, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
+            # Draw dashed lines indicating the gaps
+            # fmt: off
+            ax1.axvline(x=2.065, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
+            ax1.axvline(x=2.502, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
+            ax1.axvline(x=2.825, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
+            ax1.axvline(x=2.958, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
+            ax1.axvline(x=3.279, color="black", linestyle="--", linewidth=0.5, alpha=0.2, zorder=0)
 
-                # Annotate resonance ratios
-                ax1.text(2.065, ax1_ylim_max, '4:1', color='black', ha='center', va='bottom', fontsize=10)
-                ax1.text(2.502, ax1_ylim_max, '3:1', color='black', ha='center', va='bottom', fontsize=10)
-                ax1.text(2.825, ax1_ylim_max, '5:2', color='black', ha='center', va='bottom', fontsize=10)
-                ax1.text(2.958, ax1_ylim_max, '7:3', color='black', ha='center', va='bottom', fontsize=10)
-                ax1.text(3.279, ax1_ylim_max, '2:1', color='black', ha='center', va='bottom', fontsize=10)
+            # Annotate resonance ratios
+            ax1.text(2.065, ax1_ylim_max, '4:1', color='black', ha='center', va='bottom', fontsize=10)
+            ax1.text(2.502, ax1_ylim_max, '3:1', color='black', ha='center', va='bottom', fontsize=10)
+            ax1.text(2.825, ax1_ylim_max, '5:2', color='black', ha='center', va='bottom', fontsize=10)
+            ax1.text(2.958, ax1_ylim_max, '7:3', color='black', ha='center', va='bottom', fontsize=10)
+            ax1.text(3.279, ax1_ylim_max, '2:1', color='black', ha='center', va='bottom', fontsize=10)
 
-                # Set labels
-                ax1.set_xlabel("Semi-major axis (AU)")
-                ax1.set_ylabel("Eccentricity")
+            # Set labels
+            ax1.set_xlabel("Semi-major axis (AU)")
+            ax1.set_ylabel("Eccentricity")
 
-                # Set axes
-                ax1.set_xlim(ax1_xlim_min, ax1_xlim_max)
-                ax1.set_ylim(ax1_ylim_min, ax1_ylim_max)
+            # Set axes
+            ax1.set_xlim(ax1_xlim_min, ax1_xlim_max)
+            ax1.set_ylim(ax1_ylim_min, ax1_ylim_max)
 
-                fig1.tight_layout()
+            fig1.tight_layout()
 
-                # Capture the frame
-                plt.savefig(FRAMES_FOLDER / f"semi_major_axes_frames_{i:04d}.png", dpi=DPI)
+            # Capture the frame
+            plt.savefig(FRAMES_FOLDER / f"semi_major_axes_frames_{i:04d}.png", dpi=DPI)
 
-                # Clear the plot to prepare for the next frame
-                ax1.clear()
+            # Clear the plot to prepare for the next frame
+            ax1.clear()
 
-                progress_bar.update(task, completed=(i + 1))
-
-    progress_bar.stop_task(task)
     plt.close("all")
 
     print()
     print("Drawing frames for visualization plots...")
-    progress_bar = Progress_bar()
-    task = progress_bar.add_task("", total=num_snapshots)
+    fig2, ax2 = plt.subplots(figsize=(4.8, 4.8))
+    ax2.set_facecolor("black")
+    ax2_xlim_min = -3.5
+    ax2_xlim_max = 3.5
+    ax2_ylim_min = -3.5
+    ax2_ylim_max = 3.5
+    for i in track(range(num_snapshots)):
+        snapshot_file_path = snapshot_file_paths[i]
+        with h5py.File(snapshot_file_path, "r") as f:
+            year = f["Header"].attrs["Time"][0] / 365.242189 / 1e6
+            num_particles = f["Header"].attrs["NumPart_Total"][0]
+            x = f["PartType0/Coordinates"][:]
+            v = f["PartType0/Velocities"][:]
 
-    with progress_bar:
-        fig2, ax2 = plt.subplots(figsize=(4.8, 4.8))
-        ax2.set_facecolor("black")
-        ax2_xlim_min = -3.5
-        ax2_xlim_max = 3.5
-        ax2_ylim_min = -3.5
-        ax2_ylim_max = 3.5
-        for i, snapshot_file_path in enumerate(snapshot_file_paths):
-            with h5py.File(snapshot_file_path, "r") as f:
-                year = f["Header"].attrs["Time"][0] / 365.242189 / 1e6
-                num_particles = f["Header"].attrs["NumPart_Total"][0]
-                x = f["PartType0/Coordinates"][:]
-                v = f["PartType0/Velocities"][:]
-
-                new_x = np.zeros((num_particles - 1, 3))
-                for j in range(1, num_particles):
-                    semi_major_axis, _, true_anomaly, _, arg_per, long_asc_nodes = cartesian_to_orbital_elements(
-                        0.0, M, x[j] - x[0], v[j] - v[0], G=G
-                    )
-                    new_x[j - 1] = keplerian_to_cartesian(
-                        semi_major_axis=semi_major_axis,
-                        eccentricity=0.0,
-                        inclination=0.0,
-                        argument_of_periapsis=arg_per,
-                        longitude_of_ascending_node=long_asc_nodes,
-                        true_anomaly=true_anomaly,
-                    )
-
-                # Plotting the sun
-                ax2.plot(
-                    x[0, 0],
-                    x[0, 1],
-                    "o",
-                    label=labels[0],
-                    color=colors[0],
-                    markersize=marker_sizes[0],
+            new_x = np.zeros((num_particles - 1, 3))
+            for j in range(1, num_particles):
+                semi_major_axis, _, true_anomaly, _, arg_per, long_asc_nodes = cartesian_to_orbital_elements(
+                    0.0, M, x[j] - x[0], v[j] - v[0], G=G
+                )
+                new_x[j - 1] = keplerian_to_cartesian(
+                    semi_major_axis=semi_major_axis,
+                    eccentricity=0.0,
+                    inclination=0.0,
+                    argument_of_periapsis=arg_per,
+                    longitude_of_ascending_node=long_asc_nodes,
+                    true_anomaly=true_anomaly,
                 )
 
-                # Plotting the asteroids
-                ax2.scatter(
-                    new_x[:, 0],
-                    new_x[:, 1],
-                    color="white",
-                    marker=".",
-                    s=0.1,
-                    alpha=0.4,
-                )
+            # Plotting the sun
+            ax2.plot(
+                x[0, 0],
+                x[0, 1],
+                "o",
+                label=labels[0],
+                color=colors[0],
+                markersize=marker_sizes[0],
+            )
 
-                # Annotate time
-                ax2.annotate(
-                    f"{year:.2f} Myr",
-                    xy=(0.95, 0.95),
-                    xycoords="axes fraction",
-                    fontsize=12,
-                    ha="right",
-                    va="top",
-                    color="white",
-                )
+            # Plotting the asteroids
+            ax2.scatter(
+                new_x[:, 0],
+                new_x[:, 1],
+                color="white",
+                marker=".",
+                s=0.1,
+                alpha=0.4,
+            )
 
-                # Set labels
-                ax2.set_xlabel("$x$ (AU)")
-                ax2.set_ylabel("$y$ (AU)")
+            # Annotate time
+            ax2.annotate(
+                f"{year:.2f} Myr",
+                xy=(0.95, 0.95),
+                xycoords="axes fraction",
+                fontsize=12,
+                ha="right",
+                va="top",
+                color="white",
+            )
 
-                # Set axes
-                ax2.set_xlim(ax2_xlim_min, ax2_xlim_max)
-                ax2.set_ylim(ax2_ylim_min, ax2_ylim_max)
+            # Set labels
+            ax2.set_xlabel("$x$ (AU)")
+            ax2.set_ylabel("$y$ (AU)")
 
-                # Set equal aspect ratio to prevent distortion
-                ax2.set_aspect("equal")
+            # Set axes
+            ax2.set_xlim(ax2_xlim_min, ax2_xlim_max)
+            ax2.set_ylim(ax2_ylim_min, ax2_ylim_max)
 
-                ax2.set_title("2D scatter plot with correction\n(eccentricity = inclination = 0)")
+            # Set equal aspect ratio to prevent distortion
+            ax2.set_aspect("equal")
 
-                fig2.tight_layout()
+            ax2.set_title("2D scatter plot with correction\n(eccentricity = inclination = 0)")
 
-                # Capture the frame
-                plt.savefig(
-                    FRAMES_FOLDER
-                    / f"visualization_frames_{i:04d}.png",
-                    dpi=DPI,
-                )
+            fig2.tight_layout()
 
-                # Clear the plot to prepare for the next frame
-                ax2.clear()
+            # Capture the frame
+            plt.savefig(
+                FRAMES_FOLDER
+                / f"visualization_frames_{i:04d}.png",
+                dpi=DPI,
+            )
 
-                progress_bar.update(task, completed=(i + 1))
+            # Clear the plot to prepare for the next frame
+            ax2.clear()
 
-    progress_bar.stop_task(task)
     plt.close("all")
 
     print()
