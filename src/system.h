@@ -1,8 +1,6 @@
 /**
  * \file system.h
  * \brief Header file for the system module
- * 
- * \author Ching-Yin Ng
  */
 
 #ifndef SYSTEM_H

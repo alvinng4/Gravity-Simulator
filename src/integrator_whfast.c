@@ -371,7 +371,7 @@ WIN32DLL_API ErrorStatus whfast(
         }
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }

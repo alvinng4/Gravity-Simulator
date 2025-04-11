@@ -225,7 +225,7 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
         }
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }

@@ -120,6 +120,7 @@ WIN32DLL_API int launch_simulation_python(
     const int32 mass_output_dtype,
     const int32 verbose,
     const bool enable_progress_bar,
+    bool *is_exit_ptr,
     const double tf
 )
 {
@@ -164,6 +165,7 @@ WIN32DLL_API int launch_simulation_python(
     Settings settings = get_new_settings();
     settings.verbose = verbose;
     settings.enable_progress_bar = enable_progress_bar;
+    settings.is_exit_ptr = is_exit_ptr;
 
     /* Launch simulation */
     ErrorStatus error_status = WRAP_TRACEBACK(launch_simulation(
