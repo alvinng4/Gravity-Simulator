@@ -421,7 +421,7 @@ IN_FILE ErrorStatus euler(
         }
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }
@@ -595,7 +595,7 @@ IN_FILE ErrorStatus euler_cromer(
         }
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }
@@ -845,7 +845,7 @@ IN_FILE ErrorStatus rk4(
         }
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }
@@ -1078,7 +1078,7 @@ IN_FILE ErrorStatus leapfrog(
         }
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }

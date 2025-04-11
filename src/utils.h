@@ -1,8 +1,6 @@
 /**
  * \file utils.h
  * \brief Utility functions
- * 
- * \author Ching-Yin Ng
  */
 
 #ifndef UTILS_H
@@ -75,70 +73,5 @@ void keplerian_to_cartesian(
     const double total_mass,
     const double G
 );
-
-// /**
-//  * \brief Compute the energy from solution state
-//  * 
-//  * \param num_particles Number of particles in the system
-//  * \param m Pointer to the mass array
-//  * \param G Gravitational constant
-//  * \param npts Number of time steps
-//  * \param count Pointer to the count variable
-//  * \param energy Pointer to the energy array to be updated
-//  * \param sol_state Pointer to the solution state array
-//  * \param is_exit Pointer to the exit flag
-//  */
-// void compute_energy_python(
-//     const int num_particles,
-//     const double *__restrict m,
-//     const double G,
-//     const int npts,
-//     int *__restrict count,
-//     double *__restrict energy,
-//     const double (*__restrict sol_state)[num_particles * 6],
-//     int *__restrict is_exit
-// );
-
-// /**
-//  * \brief Compute the linear momentum from solution state
-//  * 
-//  * \param num_particles Number of particles in the system
-//  * \param m Pointer to the mass array
-//  * \param npts Number of time steps
-//  * \param count Pointer to the count variable
-//  * \param linear_momentum Pointer to the linear momentum array to be updated
-//  * \param sol_state Pointer to the solution state array
-//  * \param is_exit Pointer to the exit flag
-//  */
-// void compute_linear_momentum_python(
-//     const int num_particles,
-//     const double *__restrict m,
-//     const int npts,
-//     int *__restrict count,
-//     double *__restrict linear_momentum,
-//     const double (*__restrict sol_state)[num_particles * 6],
-//     int *__restrict is_exit
-// );
-
-// /**
-//  * \brief Compute the angular momentum from solution state
-//  * 
-//  * \param num_particles Number of particles in the system
-//  * \param m Pointer to the mass array
-//  * \param npts Number of time steps
-//  * \param count Pointer to the count variable
-//  * \param angular_momentum Pointer to the angular momentum array to be updated
-//  * \param sol_state Pointer to the solution state array
-//  * \param is_exit Pointer to the exit flag
-//  */
-// void compute_angular_momentum_python(
-//     const int num_particles,
-//     const double *__restrict m,
-//     const int npts,
-//     int *__restrict count,
-//     double *__restrict angular_momentum,
-//     const double (*__restrict sol_state)[num_particles * 6],
-//     int *__restrict is_exit
-// );
 
 #endif

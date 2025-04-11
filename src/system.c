@@ -1,8 +1,6 @@
 /**
  * \file system.c
  * \brief System module for grav_sim
- * 
- * \author Ching-Yin Ng
  */
 
 #include <math.h>

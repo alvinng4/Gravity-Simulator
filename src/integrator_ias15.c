@@ -550,7 +550,7 @@ WIN32DLL_API ErrorStatus ias15(
         simulation_status->dt = dt;
 
         /* Check exit */
-        if (settings->is_exit)
+        if (*(settings->is_exit_ptr))
         {
             break;
         }

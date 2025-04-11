@@ -12,7 +12,7 @@ typedef struct Settings
 {
     int verbose;
     bool enable_progress_bar;
-    bool is_exit;
+    bool *is_exit_ptr;
 } Settings;
 
 /**

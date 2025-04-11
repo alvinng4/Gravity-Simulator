@@ -112,6 +112,7 @@ int launch_simulation_python(
     const int32 mass_output_dtype,
     const int32 verbose,
     const bool enable_progress_bar,
+    bool *is_exit_ptr,
     const double tf
 );
 

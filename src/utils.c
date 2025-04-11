@@ -1,8 +1,6 @@
 /**
  * \file utils.c
  * \brief Definitions of utility functions
- * 
- * \author Ching-Yin Ng
  */
 
 #include <math.h>
