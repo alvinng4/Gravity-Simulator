@@ -694,7 +694,7 @@ WIN32DLL_API void print_compilation_info(void)
     fputs(new_line, stdout);
     fputs(new_line, stdout);
 
-    printf("grav_sim version %d.%d.%d\n", GRAV_SIM_VERSION_MAJOR, GRAV_SIM_VERSION_MINOR, GRAV_SIM_VERSION_PATCH);
+    printf("grav_sim version %s\n", VERSION_INFO);
     fputs(new_line, stdout);
 
     /* Print OS information */
