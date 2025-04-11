@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
-        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm, iOS, pyodide ]
+        os: [ linux-intel, linux-arm, windows, macOS-intel, macOS-arm ]
         include:
           - archs: auto
             platform: auto
@@ -32,22 +32,32 @@ jobs:
           - os: macos-arm
             # macos-14+ (including latest) are ARM64 runners
             runs-on: macos-latest
-            archs: auto,universal2
-          - os: ios
-            runs-on: macos-latest
-            platform: ios
-          - os: pyodide
-            runs-on: ubuntu-latest
-            platform: pyodide
+            archs: "arm64"
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up MinGW for Windows
+        if: matrix.os == 'windows'
+        shell: powershell
+        run: |
+          choco install mingw --version=8.1.0 -y
+          $env:Path += ";C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin"
+          echo "PATH=$env:Path" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23.2
         env:
           CIBW_PLATFORM: ${{ matrix.platform }}
           CIBW_ARCHS: ${{ matrix.archs }}
+
+          CIBW_ENVIRONMENT_WINDOWS: >
+            CMAKE_GENERATOR="MinGW Makefiles"
+            CMAKE_C_COMPILER=gcc
+            CMAKE_CXX_COMPILER=g++
+            CC=gcc
+            CXX=g++
+
         # Can also be configured directly, using `with:`
         # with:
         #   package-dir: .
@@ -91,5 +101,3 @@ jobs:
           merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          # To test: repository-url: https://test.pypi.org/legacy/
