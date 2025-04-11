@@ -71,5 +71,7 @@ setup(
     packages=["grav_sim"],
     ext_modules=[CMakeExtension("grav_sim", sourcedir="src")],
     cmdclass={"build_ext": CMakeBuild},
+    package_data={"": ["src/*"]},
+    include_package_data=True,
     zip_safe=False,
 )
