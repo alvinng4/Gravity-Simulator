@@ -35,11 +35,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
   
+      - name: Install HDF5 on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
+
+      - name: Install HDF5 on macOS
+        if: runner.os == 'macOS'
+        run: brew update && brew install hdf5
+  
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23.2
         env:
           CIBW_PLATFORM: ${{ matrix.platform }}
           CIBW_ARCHS: ${{ matrix.archs }}
+          CMAKE_ARGS: "-DUSE_HDF5=ON"
+          CIBW_ENVIRONMENT: "MACOSX_DEPLOYMENT_TARGET=14.0"
 
       - uses: actions/upload-artifact@v4
         with:
