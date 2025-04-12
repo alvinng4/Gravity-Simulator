@@ -33,10 +33,10 @@ WIN32DLL_API ErrorStatus make_success_error_status(void)
 }
 
 WIN32DLL_API void raise_warning(
-    const char *__restrict warning_file,
+    const char *restrict warning_file,
     const int warning_line,
-    const char *__restrict warning_func,
-    const char *__restrict warning_msg
+    const char *restrict warning_func,
+    const char *restrict warning_msg
 )
 {
     fprintf(
@@ -60,10 +60,10 @@ WIN32DLL_API void raise_warning(
 }
 
 WIN32DLL_API ErrorStatus raise_warning_fmt(
-    const char *__restrict warning_file,
+    const char *restrict warning_file,
     const int warning_line,
-    const char *__restrict warning_func,
-    const char *__restrict format,
+    const char *restrict warning_func,
+    const char *restrict format,
     ...
 )
 {
@@ -74,7 +74,7 @@ WIN32DLL_API ErrorStatus raise_warning_fmt(
     va_end(args1);
 
     /* Allocate memory for the warning message */
-    char *__restrict warning_msg = malloc(warning_msg_size);
+    char *restrict warning_msg = malloc(warning_msg_size);
     if (!warning_msg)
     {
         return WRAP_RAISE_ERROR(
@@ -119,11 +119,11 @@ WIN32DLL_API ErrorStatus raise_warning_fmt(
 }
 
 WIN32DLL_API ErrorStatus raise_error(
-    const char *__restrict error_file,
+    const char *restrict error_file,
     const int error_line,
-    const char *__restrict error_func,
+    const char *restrict error_func,
     const int error_code,
-    const char *__restrict error_msg
+    const char *restrict error_msg
 )
 {
     ErrorStatus error_status = {
@@ -230,11 +230,11 @@ err_memory_alloc:
 }
 
 WIN32DLL_API ErrorStatus raise_error_fmt(
-    const char *__restrict error_file,
+    const char *restrict error_file,
     const int error_line,
-    const char *__restrict error_func,
+    const char *restrict error_func,
     const int error_code,
-    const char *__restrict format,
+    const char *restrict format,
     ...
 )
 {
@@ -297,7 +297,7 @@ WIN32DLL_API ErrorStatus raise_error_fmt(
     );
 
     /* Allocate memory for the error message */
-    char *__restrict formatted_string = malloc(formatted_string_size);
+    char *restrict formatted_string = malloc(formatted_string_size);
     error_status.traceback = malloc(error_msg_size * sizeof(char));
     if (!error_status.traceback || !formatted_string)
     {
@@ -375,10 +375,10 @@ err_malloc:
 
 WIN32DLL_API ErrorStatus traceback(
     ErrorStatus error_status,
-    const char *__restrict function_call_source_code,
-    const char *__restrict error_file,
+    const char *restrict function_call_source_code,
+    const char *restrict error_file,
     const int error_line,
-    const char *__restrict error_func
+    const char *restrict error_func
 )
 {
     if (
@@ -454,7 +454,7 @@ WIN32DLL_API ErrorStatus traceback(
     return error_status;
 }
 
-WIN32DLL_API void free_traceback(ErrorStatus *__restrict error_status)
+WIN32DLL_API void free_traceback(ErrorStatus *restrict error_status)
 {
     if (error_status->traceback)
     {
@@ -463,7 +463,7 @@ WIN32DLL_API void free_traceback(ErrorStatus *__restrict error_status)
     }
 }
 
-WIN32DLL_API void print_and_free_traceback(ErrorStatus *__restrict error_status)
+WIN32DLL_API void print_and_free_traceback(ErrorStatus *restrict error_status)
 {
     fprintf(stderr, "\n%sTraceback%s %s(most recent call last):%s\n", BRIGHT_RED, RESET, DIM_RED, RESET);
     switch (error_status->traceback_code_)

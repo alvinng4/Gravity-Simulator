@@ -126,8 +126,8 @@ IN_FILE ErrorStatus check_output_method(const int output_method)
 }
 
 WIN32DLL_API ErrorStatus finalize_output_param(
-    OutputParam *__restrict output_param,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const Settings *restrict settings
 )
 {
     ErrorStatus error_status;
@@ -352,12 +352,12 @@ WIN32DLL_API ErrorStatus output_snapshot_cosmology(
 }
 
 IN_FILE ErrorStatus output_snapshot_csv(
-    OutputParam *__restrict output_param,
-    const System *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const SimulationStatus *__restrict simulation_status,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const System *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const SimulationStatus *restrict simulation_status,
+    const Settings *restrict settings
 )
 {
     ErrorStatus error_status;
@@ -378,7 +378,7 @@ IN_FILE ErrorStatus output_snapshot_csv(
         + snprintf(NULL, 0, "snapshot_%05d.csv", output_param->output_count_)
         + 1  // Null terminator
     );
-    char *__restrict file_path = malloc(file_path_length * sizeof(char));
+    char *restrict file_path = malloc(file_path_length * sizeof(char));
     if (!file_path)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for file path string.");
@@ -420,10 +420,10 @@ IN_FILE ErrorStatus output_snapshot_csv(
 
     /* Write data */
     const int num_particles = system->num_particles;
-    const int *__restrict particle_ids = system->particle_ids;
-    const double *__restrict x = system->x;
-    const double *__restrict v = system->v;
-    const double *__restrict m = system->m;
+    const int *restrict particle_ids = system->particle_ids;
+    const double *restrict x = system->x;
+    const double *restrict v = system->v;
+    const double *restrict m = system->m;
 
     for (int i = 0; i < num_particles; i++)
     {
@@ -484,12 +484,12 @@ err_output_dir_null:
 
 #ifdef USE_HDF5
 IN_FILE ErrorStatus output_snapshot_hdf5(
-    OutputParam *__restrict output_param,
-    const System *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const SimulationStatus *__restrict simulation_status,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const System *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const SimulationStatus *restrict simulation_status,
+    const Settings *restrict settings
 )
 {
     ErrorStatus error_status;
@@ -506,10 +506,10 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
 
     /* Declare variables */
     const int num_particles = system->num_particles;
-    const int *__restrict particle_ids = system->particle_ids;
-    const double *__restrict x = system->x;
-    const double *__restrict v = system->v;
-    const double *__restrict m = system->m;
+    const int *restrict particle_ids = system->particle_ids;
+    const double *restrict x = system->x;
+    const double *restrict v = system->v;
+    const double *restrict m = system->m;
 
     /* Make file path string */
     const int file_path_length = (
@@ -517,7 +517,7 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
         + snprintf(NULL, 0, "snapshot_%05d.hdf5", output_param->output_count_)
         + 1  // Null terminator
     );
-    char *__restrict file_path = malloc(file_path_length * sizeof(char));
+    char *restrict file_path = malloc(file_path_length * sizeof(char));
     if (!file_path)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for file path string.");
@@ -698,12 +698,12 @@ err_output_dir_null:
 }
 
 IN_FILE ErrorStatus output_snapshot_cosmology_hdf5(
-    OutputParam *__restrict output_param,
-    const CosmologicalSystem *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const SimulationStatus *__restrict simulation_status,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const CosmologicalSystem *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const SimulationStatus *restrict simulation_status,
+    const Settings *restrict settings
 )
 {
     ErrorStatus error_status;
@@ -720,10 +720,10 @@ IN_FILE ErrorStatus output_snapshot_cosmology_hdf5(
 
     /* Declare variables */
     const int num_particles = system->num_particles;
-    const int *__restrict particle_ids = system->particle_ids;
-    const double *__restrict x = system->x;
-    const double *__restrict v = system->v;
-    const double *__restrict m = system->m;
+    const int *restrict particle_ids = system->particle_ids;
+    const double *restrict x = system->x;
+    const double *restrict v = system->v;
+    const double *restrict m = system->m;
 
     /* Make file path string */
     const int file_path_length = (
@@ -731,7 +731,7 @@ IN_FILE ErrorStatus output_snapshot_cosmology_hdf5(
         + snprintf(NULL, 0, "snapshot_%05d.hdf5", output_param->output_count_)
         + 1  // Null terminator
     );
-    char *__restrict file_path = malloc(file_path_length * sizeof(char));
+    char *restrict file_path = malloc(file_path_length * sizeof(char));
     if (!file_path)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for file path string.");

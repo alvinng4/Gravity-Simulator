@@ -31,21 +31,21 @@
  * 
  * \param[out] nodes 1D array of size 8 to be modified
  */
-IN_FILE void initialize_radau_spacing(double *__restrict nodes);
+IN_FILE void initialize_radau_spacing(double *restrict nodes);
 
 /**
  * \brief Initialize the auxiliary coefficients aux_c for IAS15
  * 
  * \param[out] aux_c 1D array of length 49 to be modified
  */ 
-IN_FILE void initialize_aux_c(double *__restrict aux_c);
+IN_FILE void initialize_aux_c(double *restrict aux_c);
 
 /**
  * \brief Initialize auxiliary coefficients aux_r for IAS15
  * 
  * \param[out] aux_r 1D array of size 64 to be modified
  */
-IN_FILE void initialize_aux_r(double *__restrict aux_r);
+IN_FILE void initialize_aux_r(double *restrict aux_r);
 
 /**
  * \brief Calculate the initial time step for IAS15 integrator
@@ -62,11 +62,11 @@ IN_FILE void initialize_aux_r(double *__restrict aux_r);
  * \exception GRAV_VALUE_ERROR if initial_dt is negative
  */
 IN_FILE ErrorStatus ias15_initial_dt(
-    double *__restrict initial_dt,
+    double *restrict initial_dt,
     const int power,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const double *__restrict a
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param,
+    const double *restrict a
 );
 
 /**
@@ -84,15 +84,15 @@ IN_FILE ErrorStatus ias15_initial_dt(
  *                       for compensated summation
  */
 IN_FILE void approx_pos_pc(
-    double *__restrict x,
+    double *restrict x,
     const int num_particles,
-    const double *__restrict x0,
-    const double *__restrict v0,
-    const double *__restrict a0,
+    const double *restrict x0,
+    const double *restrict v0,
+    const double *restrict a0,
     const double node,
-    const double *__restrict aux_b,
+    const double *restrict aux_b,
     const double dt,
-    const double *__restrict x_err_comp_sum
+    const double *restrict x_err_comp_sum
 );
 
 /**
@@ -109,14 +109,14 @@ IN_FILE void approx_pos_pc(
  *                       for compensated summation
  */
 IN_FILE void approx_vel_pc(
-    double *__restrict v,
+    double *restrict v,
     const int num_particles,
-    const double *__restrict v0,
-    const double *__restrict a0,
+    const double *restrict v0,
+    const double *restrict a0,
     const double node,
-    const double *__restrict aux_b,
+    const double *restrict aux_b,
     const double dt,
-    const double *__restrict v_err_comp_sum
+    const double *restrict v_err_comp_sum
 );
 
 /**
@@ -132,13 +132,13 @@ IN_FILE void approx_vel_pc(
  * \param[in] dt Current time step of the system
  */
 IN_FILE void approx_pos_step(
-    double *__restrict x,
-    double *__restrict temp_x_err_comp_sum,
+    double *restrict x,
+    double *restrict temp_x_err_comp_sum,
     const int num_particles,
-    const double *__restrict x0,
-    const double *__restrict v0,
-    const double *__restrict a0,
-    const double *__restrict aux_b,
+    const double *restrict x0,
+    const double *restrict v0,
+    const double *restrict a0,
+    const double *restrict aux_b,
     const double dt
 );
 
@@ -154,12 +154,12 @@ IN_FILE void approx_pos_step(
  * \param[in] dt Current time step of the system
  */
 IN_FILE void approx_vel_step(
-    double *__restrict v,
-    double *__restrict temp_v_err_comp_sum,
+    double *restrict v,
+    double *restrict temp_v_err_comp_sum,
     const int num_particles,
-    const double *__restrict v0,
-    const double *__restrict a0,
-    const double *__restrict aux_b,
+    const double *restrict v0,
+    const double *restrict a0,
+    const double *restrict aux_b,
     const double dt
 );
 
@@ -174,11 +174,11 @@ IN_FILE void approx_vel_step(
  * \param[in] i Current iteration of nodes of the predictor-corrector algorithm
  */
 IN_FILE void compute_aux_b(
-    double *__restrict aux_b,
+    double *restrict aux_b,
     const int num_particles,
     const int dim_nodes_minus_1,
-    const double *__restrict aux_g,
-    const double *__restrict aux_c,
+    const double *restrict aux_g,
+    const double *restrict aux_c,
     const int i
 );
 
@@ -194,13 +194,13 @@ IN_FILE void compute_aux_b(
  * \param[in] F Helper array for this function
  */
 IN_FILE void compute_aux_g(
-    double *__restrict aux_g,
+    double *restrict aux_g,
     const int num_particles,
     const int dim_nodes,
-    const double *__restrict aux_r,
-    const double *__restrict aux_a,
+    const double *restrict aux_r,
+    const double *restrict aux_a,
     const int i,
-    double *__restrict F
+    double *restrict F
 );
 
 /**
@@ -216,9 +216,9 @@ IN_FILE void compute_aux_g(
  * \param[in] refine_flag Helper flag for this function
  */
 IN_FILE void refine_aux_b(
-    double *__restrict aux_b,
-    double *__restrict aux_e,
-    double *__restrict delta_aux_b,
+    double *restrict aux_b,
+    double *restrict aux_e,
+    double *restrict delta_aux_b,
     const int num_particles,
     const int dim_nodes_minus_1,
     const double dt,
@@ -252,16 +252,16 @@ WIN32DLL_API ErrorStatus ias15(
     double tolerance_pc = 1e-16;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
@@ -272,13 +272,13 @@ WIN32DLL_API ErrorStatus ias15(
     const int dim_nodes = 8;
     const int dim_nodes_minus_1 = 7;
     const int dim_nodes_minus_2 = 6;
-    double *__restrict nodes = malloc(dim_nodes * sizeof(double));
-    double *__restrict aux_c = calloc(7 * 7, sizeof(double));
-    double *__restrict aux_r = calloc(8 * 8, sizeof(double));
-    double *__restrict aux_b0 = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
-    double *__restrict aux_b = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
-    double *__restrict aux_g = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
-    double *__restrict aux_e = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
+    double *restrict nodes = malloc(dim_nodes * sizeof(double));
+    double *restrict aux_c = calloc(7 * 7, sizeof(double));
+    double *restrict aux_r = calloc(8 * 8, sizeof(double));
+    double *restrict aux_b0 = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
+    double *restrict aux_b = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
+    double *restrict aux_g = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
+    double *restrict aux_e = calloc((dim_nodes - 1) * num_particles * 3, sizeof(double));
     if (!nodes || !aux_c || !aux_r || !aux_b0 || !aux_b || !aux_g || !aux_e)
     {
         error_status = WRAP_RAISE_ERROR(
@@ -292,24 +292,24 @@ WIN32DLL_API ErrorStatus ias15(
     initialize_aux_r(aux_r);
 
     // Arrays
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict aux_a = calloc(dim_nodes * num_particles * 3, sizeof(double));
-    double *__restrict x_1 = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_1 = calloc(num_particles * 3, sizeof(double));
-    double *__restrict a_1 = calloc(num_particles * 3, sizeof(double));
-    double *__restrict delta_b7 = calloc(num_particles * 3, sizeof(double));
+    double *restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *restrict aux_a = calloc(dim_nodes * num_particles * 3, sizeof(double));
+    double *restrict x_1 = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_1 = calloc(num_particles * 3, sizeof(double));
+    double *restrict a_1 = calloc(num_particles * 3, sizeof(double));
+    double *restrict delta_b7 = calloc(num_particles * 3, sizeof(double));
 
     // Array for compute aux_g
-    double *__restrict F = calloc(8 * num_particles * 3, sizeof(double));
+    double *restrict F = calloc(8 * num_particles * 3, sizeof(double));
 
     // Array for refine aux_b
-    double *__restrict delta_aux_b = calloc(dim_nodes_minus_1 * num_particles * 3, sizeof(double));
+    double *restrict delta_aux_b = calloc(dim_nodes_minus_1 * num_particles * 3, sizeof(double));
 
     // Arrays for compensated summation
-    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict temp_x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict temp_v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict temp_x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict temp_v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     if (
         !a || 
@@ -614,7 +614,7 @@ err_aux_memory:
     return error_status;
 }
 
-IN_FILE void initialize_radau_spacing(double *__restrict nodes)
+IN_FILE void initialize_radau_spacing(double *restrict nodes)
 {
     nodes[0] = 0.0L;
     nodes[1] = 0.056262560536922146465652191032L;
@@ -626,7 +626,7 @@ IN_FILE void initialize_radau_spacing(double *__restrict nodes)
     nodes[7] = 0.977520613561287501891174500429L;
 }
 
-IN_FILE void initialize_aux_c(double *__restrict aux_c)
+IN_FILE void initialize_aux_c(double *restrict aux_c)
 {
     for (int i = 0; i < 7; i++)
     {
@@ -661,7 +661,7 @@ IN_FILE void initialize_aux_c(double *__restrict aux_c)
     aux_c[6 * 7 + 5] = -2.7558127197720458314421589L;
 }
 
-void initialize_aux_r(double *__restrict aux_r)
+void initialize_aux_r(double *restrict aux_r)
 {
     aux_r[1 * 8 + 0] = 17.773808914078000840752659565672904106978971632681L;
     aux_r[2 * 8 + 0] = 5.5481367185372165056928216140765061758579336941398L;
@@ -700,23 +700,23 @@ void initialize_aux_r(double *__restrict aux_r)
 }
 
 IN_FILE ErrorStatus ias15_initial_dt(
-    double *__restrict initial_dt,
+    double *restrict initial_dt,
     const int power,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const double *__restrict a
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param,
+    const double *restrict a
 )
 {
     ErrorStatus error_status;
     *initial_dt = -1.0;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     /* Allocate memory and declare variables */
-    double *__restrict x_1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict x_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a_1 = malloc(num_particles * 3 * sizeof(double));
     if (!x_1 || !a_1)
     {
         error_status = WRAP_RAISE_ERROR(
@@ -806,15 +806,15 @@ error_memory:
 }
 
 IN_FILE void approx_pos_pc(
-    double *__restrict x,
+    double *restrict x,
     const int num_particles,
-    const double *__restrict x0,
-    const double *__restrict v0,
-    const double *__restrict a0,
+    const double *restrict x0,
+    const double *restrict v0,
+    const double *restrict a0,
     const double node,
-    const double *__restrict aux_b,
+    const double *restrict aux_b,
     const double dt,
-    const double *__restrict x_err_comp_sum
+    const double *restrict x_err_comp_sum
 )
 {   
     for (int j = 0; j < num_particles; j++)
@@ -866,14 +866,14 @@ IN_FILE void approx_pos_pc(
 }
 
 IN_FILE void approx_vel_pc(
-    double *__restrict v,
+    double *restrict v,
     const int num_particles,
-    const double *__restrict v0,
-    const double *__restrict a0,
+    const double *restrict v0,
+    const double *restrict a0,
     const double node,
-    const double *__restrict aux_b,
+    const double *restrict aux_b,
     const double dt,
-    const double *__restrict v_err_comp_sum
+    const double *restrict v_err_comp_sum
 )
 {
     for (int j = 0; j < num_particles; j++)
@@ -919,13 +919,13 @@ IN_FILE void approx_vel_pc(
 }
 
 IN_FILE void approx_pos_step(
-    double *__restrict x,
-    double *__restrict temp_x_err_comp_sum,
+    double *restrict x,
+    double *restrict temp_x_err_comp_sum,
     const int num_particles,
-    const double *__restrict x0,
-    const double *__restrict v0,
-    const double *__restrict a0,
-    const double *__restrict aux_b,
+    const double *restrict x0,
+    const double *restrict v0,
+    const double *restrict a0,
+    const double *restrict aux_b,
     const double dt
 )
 {   
@@ -953,12 +953,12 @@ IN_FILE void approx_pos_step(
 }
 
 IN_FILE void approx_vel_step(
-    double *__restrict v,
-    double *__restrict temp_v_err_comp_sum,
+    double *restrict v,
+    double *restrict temp_v_err_comp_sum,
     const int num_particles,
-    const double *__restrict v0,
-    const double *__restrict a0,
-    const double *__restrict aux_b,
+    const double *restrict v0,
+    const double *restrict a0,
+    const double *restrict aux_b,
     const double dt
 )
 {
@@ -983,11 +983,11 @@ IN_FILE void approx_vel_step(
 }
 
 IN_FILE void compute_aux_b(
-    double *__restrict aux_b,
+    double *restrict aux_b,
     const int num_particles,
     const int dim_nodes_minus_1,
-    const double *__restrict aux_g,
-    const double *__restrict aux_c,
+    const double *restrict aux_g,
+    const double *restrict aux_c,
     const int i
 )
 {
@@ -1115,13 +1115,13 @@ IN_FILE void compute_aux_b(
 }
 
 IN_FILE void compute_aux_g(
-    double *__restrict aux_g,
+    double *restrict aux_g,
     const int num_particles,
     const int dim_nodes,
-    const double *__restrict aux_r,
-    const double *__restrict aux_a,
+    const double *restrict aux_r,
+    const double *restrict aux_a,
     const int i,
-    double *__restrict F
+    double *restrict F
 )
 {
     // Retrieve required accelerations
@@ -1274,9 +1274,9 @@ IN_FILE void compute_aux_g(
 }
 
 IN_FILE void refine_aux_b(
-    double *__restrict aux_b,
-    double *__restrict aux_e,
-    double *__restrict delta_aux_b,
+    double *restrict aux_b,
+    double *restrict aux_e,
+    double *restrict delta_aux_b,
     const int num_particles,
     const int dim_nodes_minus_1,
     const double dt,

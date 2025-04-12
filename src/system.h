@@ -54,7 +54,7 @@ System get_new_system(void);
  * \return ErrorStatus
  */
 ErrorStatus get_initialized_system(
-    System *__restrict system,
+    System *restrict system,
     const int num_particles
 );
 
@@ -69,7 +69,7 @@ ErrorStatus get_initialized_system(
  * \exception GRAV_VALUE_ERROR if the number of particles is less than 1
  * \exception GRAV_VALUE_ERROR if the gravitational constant is not positive
  */
-ErrorStatus finalize_system(System *__restrict system);
+ErrorStatus finalize_system(System *restrict system);
 
 /**
  * \brief Get a new cosmological system structure with uninitialized memory
@@ -90,7 +90,7 @@ CosmologicalSystem get_new_cosmological_system(void);
  * \exception GRAV_POINTER_ERROR if system or its members are NULL
  */
 ErrorStatus get_initialized_cosmological_system(
-    CosmologicalSystem *__restrict system,
+    CosmologicalSystem *restrict system,
     const int num_particles
 );
 
@@ -109,21 +109,21 @@ ErrorStatus get_initialized_cosmological_system(
  * \exception GRAV_VALUE_ERROR if omega_lambda is not positive
  * \exception GRAV_VALUE_ERROR if box_width is not positive
  */
-ErrorStatus finalize_cosmological_system(CosmologicalSystem *__restrict system);
+ErrorStatus finalize_cosmological_system(CosmologicalSystem *restrict system);
 
 /**
  * \brief Free the memory allocated for the cosmological system
  * 
  * \param[in] system Pointer to the cosmological system to be freed
  */
-void free_cosmological_system(CosmologicalSystem *__restrict system);
+void free_cosmological_system(CosmologicalSystem *restrict system);
 
 /**
  * \brief Free the memory allocated for the system
  * 
  * \param[in] system Pointer to the system to be freed
  */
-void free_system(System *__restrict system);
+void free_system(System *restrict system);
 
 /**
  * \brief Set the boundary condition for the system
@@ -132,8 +132,8 @@ void free_system(System *__restrict system);
  * \param[in] settings Pointer to the settings
  */
 ErrorStatus set_boundary_condition(
-    System *__restrict system,
-    const Settings *__restrict settings
+    System *restrict system,
+    const Settings *restrict settings
 );
 
 /**
@@ -145,9 +145,9 @@ ErrorStatus set_boundary_condition(
  * \param[in] arr_size Size of the array
  */
 ErrorStatus check_invalid_idx_double(
-    bool *__restrict has_invalid_idx,
+    bool *restrict has_invalid_idx,
     int **invalid_idx_array,
-    const double *__restrict array,
+    const double *restrict array,
     const int arr_size
 );
 
@@ -164,8 +164,8 @@ ErrorStatus check_invalid_idx_double(
  * \exception Other exceptions if failed to remove particles
  */
 ErrorStatus check_and_remove_invalid_particles(
-    System *__restrict system,
-    const Settings *__restrict settings
+    System *restrict system,
+    const Settings *restrict settings
 );
 
 /**
@@ -179,10 +179,10 @@ ErrorStatus check_and_remove_invalid_particles(
  * \return ErrorStatus
  */
 ErrorStatus remove_invalid_particles(
-    System *__restrict system,
-    const int *__restrict remove_idx_list,
+    System *restrict system,
+    const int *restrict remove_idx_list,
     const int num_to_remove,
-    const Settings *__restrict settings
+    const Settings *restrict settings
 );
 
 /**
@@ -197,8 +197,8 @@ ErrorStatus remove_invalid_particles(
  * \exception GRAV_MEMORY_ERROR if failed to reallocate memory for the system
  */
 ErrorStatus remove_particles(
-    System *__restrict system,
-    const int *__restrict remove_idx_list,
+    System *restrict system,
+    const int *restrict remove_idx_list,
     const int num_to_remove
 );
 
@@ -214,8 +214,8 @@ ErrorStatus remove_particles(
  * \return ErrorStatus
  */
 ErrorStatus remove_particle_from_double_arr(
-    double *__restrict arr,
-    const int *__restrict remove_idx_list,
+    double *restrict arr,
+    const int *restrict remove_idx_list,
     const int num_to_remove,
     const int dim,
     const int original_size
@@ -236,8 +236,8 @@ ErrorStatus remove_particle_from_double_arr(
  * \exception GRAV_VALUE_ERROR if the initialized memory is less than the required size
  */
 ErrorStatus initialize_built_in_system(
-    System *__restrict system,
-    const char *__restrict system_name,
+    System *restrict system,
+    const char *restrict system_name,
     const bool is_memory_initialized
 );
 
@@ -252,7 +252,7 @@ ErrorStatus initialize_built_in_system(
  * \exception GRAV_VALUE_ERROR if total mass is non-positive
  * \exception GRAV_VALUE_ERROR if the center of mass is invalid
  */
-ErrorStatus system_set_center_of_mass_zero(System *__restrict system);
+ErrorStatus system_set_center_of_mass_zero(System *restrict system);
 
 /**
  * \brief Set the total momentum of the system to zero
@@ -265,7 +265,7 @@ ErrorStatus system_set_center_of_mass_zero(System *__restrict system);
  * \exception GRAV_VALUE_ERROR if total mass is non-positive
  * \exception GRAV_VALUE_ERROR if the V_CM is invalid
  */
-ErrorStatus system_set_total_momentum_zero(System *__restrict system);
+ErrorStatus system_set_total_momentum_zero(System *restrict system);
 
 /**
  * \brief Sort the system by distance from a primary particle
@@ -276,7 +276,7 @@ ErrorStatus system_set_total_momentum_zero(System *__restrict system);
  * \return ErrorStatus
  */
 ErrorStatus system_sort_by_distance(
-    System *__restrict system,
+    System *restrict system,
     const int primary_particle_id
 );
 
@@ -285,6 +285,6 @@ ErrorStatus system_sort_by_distance(
  * 
  * \param[in, out] system Pointer to the cosmological system
  */
-void set_periodic_boundary_conditions(CosmologicalSystem *__restrict system);
+void set_periodic_boundary_conditions(CosmologicalSystem *restrict system);
 
 #endif

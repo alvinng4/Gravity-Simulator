@@ -18,7 +18,7 @@
  * 
  * \return Sum of the vector
  */
-double vec_sum(const double *__restrict vec, const int vec_length);
+double vec_sum(const double *restrict vec, const int vec_length);
 
 /**
  * \brief Calculate the sum of a 3D vector
@@ -27,7 +27,7 @@ double vec_sum(const double *__restrict vec, const int vec_length);
  * 
  * \return Sum of the vector
  */
-double vec_sum_3d(const double *__restrict vec);
+double vec_sum_3d(const double *restrict vec);
 
 /**
  * \brief Calculate the norm of a 3D vector
@@ -36,7 +36,7 @@ double vec_sum_3d(const double *__restrict vec);
  * 
  * \return Norm of the vector
  */
-double vec_norm_3d(const double *__restrict vec);
+double vec_norm_3d(const double *restrict vec);
 
 /**
  * \brief Calculate the norm of a vector
@@ -46,7 +46,7 @@ double vec_norm_3d(const double *__restrict vec);
  * 
  * \return Norm of the vector
  */
-double vec_norm(const double *__restrict vec, const int vec_length);
+double vec_norm(const double *restrict vec, const int vec_length);
 
 /**
  * \brief Calculate the absolute maximum value from a vector
@@ -56,7 +56,7 @@ double vec_norm(const double *__restrict vec, const int vec_length);
  * 
  * \return Absolute maximum value from the vector
  */
-double abs_max_vec(const double *__restrict vec, const int vec_length);
+double abs_max_vec(const double *restrict vec, const int vec_length);
 
 /**
  * \brief Calculate the dot product of two 3D vectors
@@ -67,8 +67,8 @@ double abs_max_vec(const double *__restrict vec, const int vec_length);
  * \return Dot product of the two vectors
  */
 double vec_dot_3d(
-    const double *__restrict vec_1,
-    const double *__restrict vec_2
+    const double *restrict vec_1,
+    const double *restrict vec_2
 );
 
 /**
@@ -81,8 +81,8 @@ double vec_dot_3d(
  * \return Dot product of the two vectors
  */
 double vec_dot(
-    const double *__restrict vec_1,
-    const double *__restrict vec_2,
+    const double *restrict vec_1,
+    const double *restrict vec_2,
     const int vec_length
 );
 
@@ -95,7 +95,7 @@ double vec_dot(
  * \return Mean of the vector
  */
 double compute_mean(
-    const double *__restrict vec,
+    const double *restrict vec,
     const int vec_length
 );
 
@@ -109,7 +109,7 @@ double compute_mean(
  * \return Standard deviation of the vector
  */
 double compute_std(
-    const double *__restrict vec,
+    const double *restrict vec,
     const int vec_length,
     const double ddof
 );
@@ -124,7 +124,7 @@ double compute_std(
  * \return Variance of the vector
  */
 double compute_variance(
-    const double *__restrict vec,
+    const double *restrict vec,
     const int vec_length,
     const double ddof
 );

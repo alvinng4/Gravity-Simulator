@@ -24,16 +24,16 @@
  * \param[in] octree Pointer to the linear octree
  */
 IN_FILE void helper_compute_acceleration(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const LinearOctree *__restrict octree
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param,
+    const LinearOctree *restrict octree
 );
 
 WIN32DLL_API ErrorStatus acceleration_barnes_hut(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 )
 {
     ErrorStatus error_status;
@@ -76,10 +76,10 @@ WIN32DLL_API ErrorStatus acceleration_barnes_hut(
 }
 
 IN_FILE void helper_compute_acceleration(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const LinearOctree *__restrict octree
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param,
+    const LinearOctree *restrict octree
 )
 {
     typedef struct Stack
@@ -91,24 +91,23 @@ IN_FILE void helper_compute_acceleration(
 
     /* Declare variables */
     const int num_particles = system->num_particles;
-    const double *__restrict x = system->x;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict m = system->m;
     const double G = system->G;
     const double softening_length = acceleration_param->softening_length;
     const double opening_angle = acceleration_param->opening_angle;
 
-    const double box_width = octree->box_width;
     const double box_length = octree->box_width * 2.0;
-    const int64 *__restrict particle_morton_indices_deepest_level = octree->particle_morton_indices_deepest_level;
-    const int *__restrict sorted_indices = octree->sorted_indices;
-    const int *__restrict tree_num_particles = octree->tree_num_particles;
-    const int *__restrict tree_num_internal_children = octree->tree_num_internal_children;
-    const int *__restrict tree_first_particle_sorted_idx = octree->tree_first_particle_sorted_idx;
-    const int *__restrict tree_first_internal_children_idx = octree->tree_first_internal_children_idx;
-    const double *__restrict tree_mass = octree->tree_mass;
-    const double *__restrict tree_center_of_mass_x = octree->tree_center_of_mass_x;
-    const double *__restrict tree_center_of_mass_y = octree->tree_center_of_mass_y;
-    const double *__restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
+    const int64 *restrict particle_morton_indices_deepest_level = octree->particle_morton_indices_deepest_level;
+    const int *restrict sorted_indices = octree->sorted_indices;
+    const int *restrict tree_num_particles = octree->tree_num_particles;
+    const int *restrict tree_num_internal_children = octree->tree_num_internal_children;
+    const int *restrict tree_first_particle_sorted_idx = octree->tree_first_particle_sorted_idx;
+    const int *restrict tree_first_internal_children_idx = octree->tree_first_internal_children_idx;
+    const double *restrict tree_mass = octree->tree_mass;
+    const double *restrict tree_center_of_mass_x = octree->tree_center_of_mass_x;
+    const double *restrict tree_center_of_mass_y = octree->tree_center_of_mass_y;
+    const double *restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
 
 #ifdef USE_OPENMP
     #pragma omp parallel

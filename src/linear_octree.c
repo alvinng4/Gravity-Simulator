@@ -22,9 +22,9 @@
 
 // // For debug only
 // IN_FILE void print_octree_nodes(
-//     const LinearOctree *__restrict octree,
-//     const double *__restrict x,
-//     const double *__restrict m,
+//     const LinearOctree *restrict octree,
+//     const double *restrict x,
+//     const double *restrict m,
 //     const int node_idx,
 //     const int indent
 // )
@@ -111,10 +111,10 @@ LinearOctree get_new_linear_octree(void)
  * \param[in] x Array of position vectors
  */
 IN_FILE void calculate_bounding_box(
-    double *__restrict center,
-    double *__restrict width,
+    double *restrict center,
+    double *restrict width,
     const int num_particles,
-    const double *__restrict x
+    const double *restrict x
 )
 {
     /* Find the width of the bounding box */
@@ -157,10 +157,10 @@ IN_FILE void calculate_bounding_box(
  * \ref https://stackoverflow.com/a/18528775, Stack Overflow
  */
 IN_FILE void compute_3d_particle_morton_indices_deepest_level(
-    int64 *__restrict morton_indices,
+    int64 *restrict morton_indices,
     const int object_count,
-    const double *__restrict x,
-    const double *__restrict center,
+    const double *restrict x,
+    const double *restrict center,
     const double width
 )
 {
@@ -214,8 +214,8 @@ IN_FILE void compute_3d_particle_morton_indices_deepest_level(
  * \exception GRAV_MEMORY_ERROR if memory allocation for temporary arrays failed
  */
 IN_FILE ErrorStatus radix_sort_particles_morton_index(
-    int64 *__restrict morton_indices,
-    int *__restrict indices,
+    int64 *restrict morton_indices,
+    int *restrict indices,
     const int object_count,
     const int level
 )
@@ -229,9 +229,9 @@ IN_FILE ErrorStatus radix_sort_particles_morton_index(
     const int num_passes = (num_significant_bits + RADIX_BITS - 1) / RADIX_BITS;
 
     /* Allocate memory */
-    int64 *__restrict temp_morton_indices = malloc(object_count * sizeof(int64));
-    int *__restrict temp_indices = malloc(object_count * sizeof(int));
-    int *__restrict count = malloc(RADIX_SIZE * sizeof(int));
+    int64 *restrict temp_morton_indices = malloc(object_count * sizeof(int64));
+    int *restrict temp_indices = malloc(object_count * sizeof(int));
+    int *restrict count = malloc(RADIX_SIZE * sizeof(int));
     if (!temp_morton_indices || !temp_indices || !count)
     {
         free(count);
@@ -340,8 +340,8 @@ IN_FILE ErrorStatus radix_sort_particles_morton_index(
  * \exception GRAV_VALUE_ERROR if the Morton index is out of range
  */
 IN_FILE ErrorStatus binary_search_num_particles_per_octant(
-    int *__restrict num_particles_per_octant,
-    const int64 *__restrict particle_morton_indices_deepest_level,
+    int *restrict num_particles_per_octant,
+    const int64 *restrict particle_morton_indices_deepest_level,
     const int64 node_morton_index_level,
     const int start_idx,
     const int end_idx,
@@ -404,8 +404,8 @@ IN_FILE ErrorStatus binary_search_num_particles_per_octant(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus setup_node(
-    LinearOctree *__restrict octree,
-    int *__restrict allocated_internal_nodes_ptr,
+    LinearOctree *restrict octree,
+    int *restrict allocated_internal_nodes_ptr,
     const int level,
     const int node,
     const int64 node_morton_index_level
@@ -414,16 +414,16 @@ IN_FILE ErrorStatus setup_node(
     ErrorStatus error_status;
 
     /* Declare variables */
-    int *__restrict num_internal_nodes_ptr = &octree->num_internal_nodes;
-    int *__restrict tree_num_particles = octree->tree_num_particles;
-    int *__restrict tree_num_internal_children = octree->tree_num_internal_children;
-    int *__restrict tree_first_particle_sorted_idx = octree->tree_first_particle_sorted_idx;
-    int *__restrict tree_first_internal_children_idx = octree->tree_first_internal_children_idx;
+    int *restrict num_internal_nodes_ptr = &octree->num_internal_nodes;
+    int *restrict tree_num_particles = octree->tree_num_particles;
+    int *restrict tree_num_internal_children = octree->tree_num_internal_children;
+    int *restrict tree_first_particle_sorted_idx = octree->tree_first_particle_sorted_idx;
+    int *restrict tree_first_internal_children_idx = octree->tree_first_internal_children_idx;
 
-    double *__restrict tree_mass = octree->tree_mass;
-    double *__restrict tree_center_of_mass_x = octree->tree_center_of_mass_x;
-    double *__restrict tree_center_of_mass_y = octree->tree_center_of_mass_y;
-    double *__restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
+    double *restrict tree_mass = octree->tree_mass;
+    double *restrict tree_center_of_mass_x = octree->tree_center_of_mass_x;
+    double *restrict tree_center_of_mass_y = octree->tree_center_of_mass_y;
+    double *restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
 
     int num_particles_per_octant[8] = {0};
 
@@ -588,12 +588,12 @@ IN_FILE ErrorStatus setup_node(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus helper_construct_octree(
-    LinearOctree *__restrict octree,
+    LinearOctree *restrict octree,
     int allocated_internal_nodes,
     const int max_num_particles_per_leaf,
     const int num_particles,
-    const double *__restrict x,
-    const double *__restrict m
+    const double *restrict x,
+    const double *restrict m
 )
 {
     typedef struct Stack
@@ -609,7 +609,7 @@ IN_FILE ErrorStatus helper_construct_octree(
 
     /* Create a stack */
     Stack stack[MORTON_MAX_LEVEL + 1];
-    Stack *__restrict current_stack = &(stack[0]);
+    Stack *restrict current_stack = &(stack[0]);
 
     current_stack->node = 0;
     current_stack->processed_children = -1;
@@ -620,9 +620,9 @@ IN_FILE ErrorStatus helper_construct_octree(
     current_stack->parent = NULL;
 
     /* Declare variables */
-    int *__restrict num_internal_nodes_ptr = &(octree->num_internal_nodes);
-    const int64 *__restrict particle_morton_indices_deepest_level = octree->particle_morton_indices_deepest_level;
-    const int *__restrict sorted_indices = octree->sorted_indices;
+    int *restrict num_internal_nodes_ptr = &(octree->num_internal_nodes);
+    const int64 *restrict particle_morton_indices_deepest_level = octree->particle_morton_indices_deepest_level;
+    const int *restrict sorted_indices = octree->sorted_indices;
 
     /* Set up the root node */
     int level = 0;
@@ -693,7 +693,7 @@ IN_FILE ErrorStatus helper_construct_octree(
                     return error_status;
                 }
 
-                Stack *__restrict new_item = &(stack[level + 1]);
+                Stack *restrict new_item = &(stack[level + 1]);
                 new_item->node = child;
                 new_item->processed_children = -1;
                 new_item->total_mass = 0.0;
@@ -738,7 +738,7 @@ IN_FILE ErrorStatus helper_construct_octree(
     /* Release unused memory */
     if (allocated_internal_nodes > (*num_internal_nodes_ptr))
     {
-        int *__restrict tmp_tree_num_particles = realloc(octree->tree_num_particles, *num_internal_nodes_ptr * sizeof(int));
+        int *restrict tmp_tree_num_particles = realloc(octree->tree_num_particles, *num_internal_nodes_ptr * sizeof(int));
         if (!tmp_tree_num_particles)
         {
             return WRAP_RAISE_ERROR(
@@ -748,7 +748,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_num_particles = tmp_tree_num_particles;
 
-        int *__restrict tmp_tree_num_internal_children = realloc(octree->tree_num_internal_children, *num_internal_nodes_ptr * sizeof(int));
+        int *restrict tmp_tree_num_internal_children = realloc(octree->tree_num_internal_children, *num_internal_nodes_ptr * sizeof(int));
         if (!tmp_tree_num_internal_children)
         {
             return WRAP_RAISE_ERROR(
@@ -758,7 +758,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_num_internal_children = tmp_tree_num_internal_children;
 
-        int *__restrict tmp_tree_first_particle_sorted_idx = realloc(octree->tree_first_particle_sorted_idx, *num_internal_nodes_ptr * sizeof(int));
+        int *restrict tmp_tree_first_particle_sorted_idx = realloc(octree->tree_first_particle_sorted_idx, *num_internal_nodes_ptr * sizeof(int));
         if (!tmp_tree_first_particle_sorted_idx)
         {
             return WRAP_RAISE_ERROR(
@@ -768,7 +768,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_first_particle_sorted_idx = tmp_tree_first_particle_sorted_idx;
 
-        int *__restrict tmp_tree_first_internal_children_idx = realloc(octree->tree_first_internal_children_idx, *num_internal_nodes_ptr * sizeof(int));
+        int *restrict tmp_tree_first_internal_children_idx = realloc(octree->tree_first_internal_children_idx, *num_internal_nodes_ptr * sizeof(int));
         if (!tmp_tree_first_internal_children_idx)
         {
             return WRAP_RAISE_ERROR(
@@ -778,7 +778,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_first_internal_children_idx = tmp_tree_first_internal_children_idx;
 
-        double *__restrict tmp_tree_mass = realloc(octree->tree_mass, *num_internal_nodes_ptr * sizeof(double));
+        double *restrict tmp_tree_mass = realloc(octree->tree_mass, *num_internal_nodes_ptr * sizeof(double));
         if (!tmp_tree_mass)
         {
             return WRAP_RAISE_ERROR(
@@ -788,7 +788,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_mass = tmp_tree_mass;
 
-        double *__restrict tmp_tree_center_of_mass_x = realloc(octree->tree_center_of_mass_x, *num_internal_nodes_ptr * sizeof(double));
+        double *restrict tmp_tree_center_of_mass_x = realloc(octree->tree_center_of_mass_x, *num_internal_nodes_ptr * sizeof(double));
         if (!tmp_tree_center_of_mass_x)
         {
             return WRAP_RAISE_ERROR(
@@ -798,7 +798,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_center_of_mass_x = tmp_tree_center_of_mass_x;
 
-        double *__restrict tmp_tree_center_of_mass_y = realloc(octree->tree_center_of_mass_y, *num_internal_nodes_ptr * sizeof(double));
+        double *restrict tmp_tree_center_of_mass_y = realloc(octree->tree_center_of_mass_y, *num_internal_nodes_ptr * sizeof(double));
         if (!tmp_tree_center_of_mass_y)
         {
             return WRAP_RAISE_ERROR(
@@ -808,7 +808,7 @@ IN_FILE ErrorStatus helper_construct_octree(
         }
         octree->tree_center_of_mass_y = tmp_tree_center_of_mass_y;
 
-        double *__restrict tmp_tree_center_of_mass_z = realloc(octree->tree_center_of_mass_z, *num_internal_nodes_ptr * sizeof(double));
+        double *restrict tmp_tree_center_of_mass_z = realloc(octree->tree_center_of_mass_z, *num_internal_nodes_ptr * sizeof(double));
         if (!tmp_tree_center_of_mass_z)
         {
             return WRAP_RAISE_ERROR(
@@ -823,10 +823,10 @@ IN_FILE ErrorStatus helper_construct_octree(
 }
 
 WIN32DLL_API ErrorStatus construct_octree(
-    LinearOctree *__restrict octree,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const double *__restrict box_center,
+    LinearOctree *restrict octree,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param,
+    const double *restrict box_center,
     const double box_width
 )
 {
@@ -847,8 +847,8 @@ WIN32DLL_API ErrorStatus construct_octree(
     }
 
     const int num_particles = system->num_particles;
-    const double *__restrict x = system->x;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict m = system->m;
     const int max_num_particles_per_leaf = acceleration_param->max_num_particles_per_leaf;
 
     /* Find the width and center of the bounding box */
@@ -961,7 +961,7 @@ err_indices_memory_alloc:
     return error_status;
 }
 
-WIN32DLL_API void free_linear_octree(LinearOctree *__restrict octree)
+WIN32DLL_API void free_linear_octree(LinearOctree *restrict octree)
 {
     free(octree->particle_morton_indices_deepest_level);
     free(octree->sorted_indices);

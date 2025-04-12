@@ -25,12 +25,12 @@
 
 
 WIN32DLL_API ErrorStatus leapfrog_cosmology(
-    CosmologicalSystem *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    CosmologicalSystem *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -40,8 +40,8 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
     ErrorStatus error_status;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
     const double h0 = system->h0;
     const double omega_m = system->omega_m;
     const double omega_lambda = system->omega_lambda;
@@ -51,21 +51,21 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
     double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
+    double *restrict t_ptr = &(simulation_status->t);
     *t_ptr = a_begin;
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     double da;
 
     /* Allocate memory */
-    double *__restrict momentum = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *restrict momentum = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Check if memory allocation is successful
     if (!momentum || !a)

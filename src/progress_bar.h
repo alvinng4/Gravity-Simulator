@@ -30,7 +30,7 @@ typedef struct ProgressBarParam
  * \param total Total value
  */
 ErrorStatus start_progress_bar(
-    ProgressBarParam *__restrict progress_bar_param,
+    ProgressBarParam *restrict progress_bar_param,
     const double total
 );
 
@@ -42,7 +42,7 @@ ErrorStatus start_progress_bar(
  * \param is_end Whether the progress bar is at the end
  */
 void update_progress_bar(
-    ProgressBarParam *__restrict progress_bar_param,
+    ProgressBarParam *restrict progress_bar_param,
     double current,
     bool is_end
 );

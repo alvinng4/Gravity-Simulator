@@ -103,10 +103,10 @@ ErrorStatus make_success_error_status(void);
  * \param warning_msg Warning message.
  */
 void raise_warning(
-    const char *__restrict warning_file,
+    const char *restrict warning_file,
     const int warning_line,
-    const char *__restrict warning_func,
-    const char *__restrict warning_msg
+    const char *restrict warning_func,
+    const char *restrict warning_msg
 );
 
 /**
@@ -125,10 +125,10 @@ void raise_warning(
  * \exception GRAV_UNKNOWN_ERROR When the warning message is truncated.
  */
 ErrorStatus raise_warning_fmt(
-    const char *__restrict warning_file,
+    const char *restrict warning_file,
     const int warning_line,
-    const char *__restrict warning_func,
-    const char *__restrict format,
+    const char *restrict warning_func,
+    const char *restrict format,
     ...
 );
 
@@ -144,11 +144,11 @@ ErrorStatus raise_warning_fmt(
  * \return ErrorStatus
  */
 ErrorStatus raise_error(
-    const char *__restrict error_file,
+    const char *restrict error_file,
     const int error_line,
-    const char *__restrict error_func,
+    const char *restrict error_func,
     const int error_code,
-    const char *__restrict error_msg
+    const char *restrict error_msg
 );
 
 /**
@@ -164,11 +164,11 @@ ErrorStatus raise_error(
  * \return ErrorStatus
  */
 ErrorStatus raise_error_fmt(
-    const char *__restrict error_file,
+    const char *restrict error_file,
     const int error_line,
-    const char *__restrict error_func,
+    const char *restrict error_func,
     const int error_code,
-    const char *__restrict format,
+    const char *restrict format,
     ...
 );
 
@@ -185,22 +185,22 @@ ErrorStatus raise_error_fmt(
  */
 ErrorStatus traceback(
     ErrorStatus error_status,
-    const char *__restrict function_call_source_code,
-    const char *__restrict error_file,
+    const char *restrict function_call_source_code,
+    const char *restrict error_file,
     const int error_line,
-    const char *__restrict error_func
+    const char *restrict error_func
 );
 
 /**
  * \brief Free the memory allocated for the traceback string.
  */
-void free_traceback(ErrorStatus *__restrict error_status);
+void free_traceback(ErrorStatus *restrict error_status);
 
 /**
  * \brief Print the traceback string to stderr and free the memory.
  * 
  * \param error_status Pointer to the error status struct.
  */
-void print_and_free_traceback(ErrorStatus *__restrict error_status);
+void print_and_free_traceback(ErrorStatus *restrict error_status);
  
 #endif

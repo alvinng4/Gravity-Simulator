@@ -13,13 +13,13 @@
 #include "math_functions.h"
 
 IN_FILE void cloud_in_cell(
-    double *__restrict delta,
+    double *restrict delta,
     const double mean_bkg_density,
-    const double *__restrict x,
-    const double *__restrict m,
+    const double *restrict x,
+    const double *restrict m,
     const int num_particles,
     const int pm_grid_size,
-    const double *__restrict box_center,
+    const double *restrict box_center,
     const double box_length
 )
 {
@@ -110,12 +110,12 @@ IN_FILE void cloud_in_cell(
 }
 
 IN_FILE void get_cloud_in_cell_acceleration(
-    double *__restrict a,
-    const double *__restrict x,
-    const double *__restrict acc_grid,
+    double *restrict a,
+    const double *restrict x,
+    const double *restrict acc_grid,
     const int num_particles,
     const int pm_grid_size,
-    const double *__restrict box_center,
+    const double *restrict box_center,
     const double box_length
 )
 {
@@ -210,8 +210,8 @@ IN_FILE void get_cloud_in_cell_acceleration(
 }
 
 IN_FILE void compute_acceleration_with_gradient(
-    double *__restrict acc_grid,
-    const double *__restrict phi,
+    double *restrict acc_grid,
+    const double *restrict phi,
     const int pm_grid_size,
     const double box_length
 )
@@ -272,9 +272,9 @@ IN_FILE void compute_acceleration_with_gradient(
 }
 
 WIN32DLL_API ErrorStatus acceleration_PM(
-    double *__restrict a,
-    const CosmologicalSystem *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
+    double *restrict a,
+    const CosmologicalSystem *restrict system,
+    const AccelerationParam *restrict acceleration_param,
     const double mean_bkg_density,
     const int pm_grid_size,
     const double scale_factor
@@ -285,21 +285,21 @@ WIN32DLL_API ErrorStatus acceleration_PM(
 
     /* Declare variables */
     const int num_particles = system->num_particles;
-    const double *__restrict x = system->x;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict m = system->m;
     const double G = system->G;
 
-    const double *__restrict box_center = system->box_center;
+    const double *restrict box_center = system->box_center;
     const double box_width = system->box_width;
     const double box_length = box_width * 2.0;
 
     const int grid_size_2 = pm_grid_size * pm_grid_size;
     const int grid_size_3 = pm_grid_size * pm_grid_size * pm_grid_size;
 
-    double *__restrict acc_grid = malloc(grid_size_3 * 3 * sizeof(double));
-    double *__restrict delta = fftw_malloc(grid_size_3 * sizeof(double));
+    double *restrict acc_grid = malloc(grid_size_3 * 3 * sizeof(double));
+    double *restrict delta = fftw_malloc(grid_size_3 * sizeof(double));
     fftw_complex *delta_fourier = fftw_malloc(grid_size_2 * (pm_grid_size / 2 + 1) * sizeof(fftw_complex));
-    double *__restrict phi = fftw_malloc(grid_size_3 * sizeof(double));
+    double *restrict phi = fftw_malloc(grid_size_3 * sizeof(double));
     if (!acc_grid || !delta || !delta_fourier || !phi)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for particle mesh acceleration");

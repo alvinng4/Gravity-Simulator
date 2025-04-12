@@ -5,12 +5,12 @@
 #include "grav_sim.h"
 #include "math_functions.h"
 
-WIN32DLL_API void free_memory_int32(int32 *__restrict ptr)
+WIN32DLL_API void free_memory_int32(int32 *restrict ptr)
 {
     free(ptr);
 }
 
-WIN32DLL_API void free_memory_double(double *__restrict ptr)
+WIN32DLL_API void free_memory_double(double *restrict ptr)
 {
     free(ptr);
 }
@@ -53,12 +53,12 @@ err:
 }
 
 WIN32DLL_API void keplerian_to_cartesian_python(
-    double *__restrict x,
-    double *__restrict y,
-    double *__restrict z,
-    double *__restrict v_x,
-    double *__restrict v_y,
-    double *__restrict v_z,
+    double *restrict x,
+    double *restrict y,
+    double *restrict z,
+    double *restrict v_x,
+    double *restrict v_y,
+    double *restrict v_z,
     const double semi_major_axis,
     const double eccentricity,
     const double inclination,
@@ -92,7 +92,7 @@ WIN32DLL_API void keplerian_to_cartesian_python(
 }
 
 WIN32DLL_API int launch_simulation_python(
-    int32 *__restrict num_particles,
+    int32 *restrict num_particles,
     int32 *particle_ids,
     double *x,
     double *v,
@@ -193,9 +193,9 @@ WIN32DLL_API int launch_simulation_python(
 }
 
 WIN32DLL_API void compute_energy_python(
-    double *__restrict energy,
+    double *restrict energy,
     const double G,
-    const double *__restrict sol_state,
+    const double *restrict sol_state,
     const int32 num_snapshots,
     const int32 num_particles
 )
@@ -243,8 +243,8 @@ WIN32DLL_API void compute_energy_python(
 }
 
 WIN32DLL_API void compute_linear_momentum_python(
-    double *__restrict linear_momentum,
-    const double *__restrict sol_state,
+    double *restrict linear_momentum,
+    const double *restrict sol_state,
     const int32 num_snapshots,
     const int32 num_particles
 )
@@ -268,8 +268,8 @@ WIN32DLL_API void compute_linear_momentum_python(
 }
 
 WIN32DLL_API void compute_angular_momentum_python(
-    double *__restrict angular_momentum,
-    const double *__restrict sol_state,
+    double *restrict angular_momentum,
+    const double *restrict sol_state,
     const int32 num_snapshots,
     const int32 num_particles
 )
