@@ -358,6 +358,91 @@ class GravitySimulatorAPI:
         )
 
         return angular_momentum
+    
+    @staticmethod
+    def compute_eccentricity(
+        G: float,
+        sol_state: np.ndarray,
+    ) -> np.ndarray:
+        """Compute the eccentricity using the sol_state array,
+        assuming that the first object is the central object
+
+        Parameters
+        ----------
+        G : float
+            Gravitational constant
+        sol_state : np.ndarray
+            Solution state of the system
+
+        Returns
+        -------
+        np.ndarray
+            Eccentricity of the system at each time step,
+            with shape (num_snapshots, num_particles - 1)
+
+        Notes
+        -----
+        - The function assumes that the first object is the central object.
+        - C library function is not used here since this can be done with
+            purely numpy vectorized operations. Nevertheless, we may consider
+            implementing this in C library in the future.
+        """
+        num_snapshots = sol_state.shape[0]
+        m_0 = sol_state[0, 0, 0]
+        m = sol_state[0, 1:, 0]
+        
+        eccentricity = np.zeros(num_snapshots)
+
+        x = sol_state[:, 1:, 1:4].copy() - sol_state[:, 0, 1:4].reshape(-1, 1, 3)
+        v = sol_state[:, 1:, 4:7].copy() - sol_state[:, 0, 4:7].reshape(-1, 1, 3)
+
+        denom = G * (m_0 + m)[np.newaxis, :, np.newaxis]
+        eccentricity = (
+            np.cross(v, np.cross(x, v)) / denom
+            - x / np.linalg.norm(x, axis=2)[:, :, np.newaxis]
+        )
+        eccentricity = np.linalg.norm(eccentricity, axis=2)
+
+        return eccentricity
+
+    @staticmethod
+    def compute_inclination(sol_state: np.ndarray) -> np.ndarray:
+        """Compute the inclination using the sol_state array,
+        assuming that the first object is the central object
+
+        Parameters
+        ----------
+        sol_state : np.ndarray
+            Solution state of the system
+
+        Returns
+        -------
+        np.ndarray
+            Inclination of the system at each time step, 
+            with shape (num_snapshots, num_particles - 1)
+
+        Notes
+        -----
+        - The function assumes that the first object is the central object.
+        - C library function is not used here since this can be done with
+          purely numpy vectorized operations. Nevertheless, we may consider
+          implementing this in C library in the future.
+        """
+        num_snapshots = sol_state.shape[0]
+
+        inclination = np.zeros(num_snapshots)
+
+        x = sol_state[:, 1:, 1:4].copy() - sol_state[:, 0, 1:4].reshape(-1, 1, 3)
+        v = sol_state[:, 1:, 4:7].copy() - sol_state[:, 0, 4:7].reshape(-1, 1, 3)
+
+        unit_angular_momentum_vector = (
+            np.cross(x, v) / np.linalg.norm(np.cross(x, v), axis=2)[:, :, np.newaxis]
+        )
+        unit_z = np.array([0, 0, 1])
+
+        inclination = np.arccos(np.sum(unit_angular_momentum_vector * unit_z, axis=2))
+
+        return inclination
 
     @staticmethod
     def plot_rel_energy_error(
