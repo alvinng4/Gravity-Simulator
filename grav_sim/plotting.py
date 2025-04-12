@@ -247,6 +247,9 @@ def plot_quantity_against_time(
     title: Optional[str] = None,
     xlabel: Optional[str] = None,
     ylabel: Optional[str] = None,
+    colors: Optional[list[str]] = None,
+    labels: Optional[list[str]] = None,
+    legend: bool = False,
     save_fig: bool = False,
     save_fig_path: Optional[str | Path] = None,
 ) -> None:
@@ -266,6 +269,12 @@ def plot_quantity_against_time(
         Label of x-axis, by default None
     ylabel : Optional[str], optional
         Label of y-axis, by default None
+    colors : Optional[list[str]], optional
+        Colors of the trajectories, by default None
+    labels : Optional[list[str]], optional
+        Labels of the objects, used for legend, by default None
+    legend : bool, optional
+        Flag to check whether to show legend, by default False
     save_fig : bool, optional
         Flag to check whether to save the figure, by default False
     save_fig_path : Optional[str], optional
@@ -273,17 +282,37 @@ def plot_quantity_against_time(
     """
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    if is_log_y:
-        ax.semilogy(sol_time, quantity)
-    else:
-        ax.plot(sol_time, quantity)
 
+    if len(quantity.shape) == 1:
+        quantity = quantity.reshape(-1, 1)
+
+    for i in range(quantity.shape[1]):
+        if colors is not None:
+            colors_i = colors[i]
+        else:
+            colors_i = None
+
+        if labels is not None:
+            labels_i = labels[i]
+        else:
+            labels_i = None
+    
+        ax.plot(sol_time, quantity[:, i], color=colors_i, label=labels_i)
+
+    if is_log_y:
+        ax.set_yscale("log")
     if title is not None:
         ax.set_title(title)
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:
         ax.set_ylabel(ylabel)
+
+    if legend:
+        ax.legend(loc="center right", bbox_to_anchor=(1.325, 0.5))
+        fig.subplots_adjust(
+            right=0.7
+        )  # Adjust the right boundary of the plot to make room for the legend
 
     if save_fig:
         plt.savefig(save_fig_path, dpi=300)
