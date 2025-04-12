@@ -8,6 +8,10 @@
 #include <math.h>
 #include <stdio.h>
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 #include "acceleration.h"
 #include "linear_octree.h"
 
@@ -94,6 +98,7 @@ IN_FILE void helper_compute_acceleration(
     const double opening_angle = acceleration_param->opening_angle;
 
     const double box_width = octree->box_width;
+    const double box_length = octree->box_width * 2.0;
     const int64 *__restrict particle_morton_indices_deepest_level = octree->particle_morton_indices_deepest_level;
     const int *__restrict sorted_indices = octree->sorted_indices;
     const int *__restrict tree_num_particles = octree->tree_num_particles;
@@ -105,6 +110,9 @@ IN_FILE void helper_compute_acceleration(
     const double *__restrict tree_center_of_mass_y = octree->tree_center_of_mass_y;
     const double *__restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
 
+#ifdef USE_OPENMP
+    #pragma omp parallel
+#endif
     for (int i = 0; i < num_particles; i++)
     {
         const int idx_i = sorted_indices[i];    // For coalesced memory access
@@ -147,9 +155,9 @@ IN_FILE void helper_compute_acceleration(
                     R[0] = x_i[0] - tree_center_of_mass_x[child_j];
                     R[1] = x_i[1] - tree_center_of_mass_y[child_j];
                     R[2] = x_i[2] - tree_center_of_mass_z[child_j];
-                    const double box_width_j = box_width / (2 << level);
+                    const double box_length_j = box_length / (2 << level);
                     norm_square = R[0] * R[0] + R[1] * R[1] + R[2] * R[2];
-                    if (box_width_j / sqrt(norm_square) < opening_angle)
+                    if (box_length_j / sqrt(norm_square) < opening_angle)
                     {
                         criteria_met = true;
                     }

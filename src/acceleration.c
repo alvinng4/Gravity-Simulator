@@ -63,7 +63,7 @@ WIN32DLL_API AccelerationParam get_new_acceleration_param(void)
 {
     AccelerationParam acceleration_param = {
         .method = ACCELERATION_METHOD_PAIRWISE,
-        .opening_angle = 0.5,
+        .opening_angle = 1.0,
         .softening_length = 0.0,
         .max_num_particles_per_leaf = -1
     };
