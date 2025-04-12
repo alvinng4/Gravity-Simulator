@@ -36,7 +36,7 @@ WIN32DLL_API System get_new_system(void)
 }
 
 WIN32DLL_API ErrorStatus get_initialized_system(
-    System *__restrict system,
+    System *restrict system,
     const int num_particles
 )
 {
@@ -67,7 +67,7 @@ WIN32DLL_API ErrorStatus get_initialized_system(
     return make_success_error_status();
 }
 
-WIN32DLL_API ErrorStatus finalize_system(System *__restrict system)
+WIN32DLL_API ErrorStatus finalize_system(System *restrict system)
 {
     if (!system)
     {
@@ -110,7 +110,7 @@ WIN32DLL_API ErrorStatus finalize_system(System *__restrict system)
     return make_success_error_status();
 }
 
-WIN32DLL_API void free_system(System *__restrict system)
+WIN32DLL_API void free_system(System *restrict system)
 {
     free(system->particle_ids);
     free(system->x);
@@ -142,7 +142,7 @@ WIN32DLL_API CosmologicalSystem get_new_cosmological_system(void)
 }
 
 WIN32DLL_API ErrorStatus get_initialized_cosmological_system(
-    CosmologicalSystem *__restrict system,
+    CosmologicalSystem *restrict system,
     const int num_particles
 )
 {
@@ -172,7 +172,7 @@ WIN32DLL_API ErrorStatus get_initialized_cosmological_system(
     return make_success_error_status();
 }
 
-WIN32DLL_API ErrorStatus finalize_cosmological_system(CosmologicalSystem *__restrict system)
+WIN32DLL_API ErrorStatus finalize_cosmological_system(CosmologicalSystem *restrict system)
 {
     if (!system)
     {
@@ -244,7 +244,7 @@ WIN32DLL_API ErrorStatus finalize_cosmological_system(CosmologicalSystem *__rest
     return make_success_error_status();
 }
 
-WIN32DLL_API void free_cosmological_system(CosmologicalSystem *__restrict system)
+WIN32DLL_API void free_cosmological_system(CosmologicalSystem *restrict system)
 {
     free(system->particle_ids);
     free(system->x);
@@ -253,9 +253,9 @@ WIN32DLL_API void free_cosmological_system(CosmologicalSystem *__restrict system
 }
 
 WIN32DLL_API ErrorStatus check_invalid_idx_double(
-    bool *__restrict has_invalid_idx,
+    bool *restrict has_invalid_idx,
     int **invalid_idx_array,
-    const double *__restrict array,
+    const double *restrict array,
     const int arr_size
 )
 {
@@ -270,7 +270,7 @@ WIN32DLL_API ErrorStatus check_invalid_idx_double(
 
     int invalid_count = 0;
     int buffer_size = 10;
-    int *__restrict invalid_particle_idx = malloc(buffer_size * sizeof(int));
+    int *restrict invalid_particle_idx = malloc(buffer_size * sizeof(int));
     if (!invalid_particle_idx)
     {
         return WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for invalid particle index");
@@ -287,7 +287,7 @@ WIN32DLL_API ErrorStatus check_invalid_idx_double(
         if (invalid_count >= buffer_size)
         {
             buffer_size *= 2;
-            int *__restrict new_invalid_particle_idx = realloc(invalid_particle_idx, buffer_size * sizeof(int));
+            int *restrict new_invalid_particle_idx = realloc(invalid_particle_idx, buffer_size * sizeof(int));
             if (!new_invalid_particle_idx)
             {
                 free(invalid_particle_idx);
@@ -313,8 +313,8 @@ WIN32DLL_API ErrorStatus check_invalid_idx_double(
 }
 
 WIN32DLL_API ErrorStatus check_and_remove_invalid_particles(
-    System *__restrict system,
-    const Settings *__restrict settings
+    System *restrict system,
+    const Settings *restrict settings
 )
 {
     ErrorStatus error_status;
@@ -325,10 +325,10 @@ WIN32DLL_API ErrorStatus check_and_remove_invalid_particles(
 
     /* Declare variables */
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
-    double *__restrict m = system->m;
-    int *__restrict particle_ids = system->particle_ids;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
+    double *restrict m = system->m;
+    int *restrict particle_ids = system->particle_ids;
 
     if (!x || !v || !m || !particle_ids)
     {
@@ -337,7 +337,7 @@ WIN32DLL_API ErrorStatus check_and_remove_invalid_particles(
 
     int invalid_count = 0;
     int buffer_size = 10;
-    int *__restrict invalid_particle_idx = malloc(buffer_size * sizeof(int));
+    int *restrict invalid_particle_idx = malloc(buffer_size * sizeof(int));
     if (!invalid_particle_idx)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to allocate memory for invalid particle index");
@@ -363,7 +363,7 @@ WIN32DLL_API ErrorStatus check_and_remove_invalid_particles(
         if (invalid_count >= buffer_size)
         {
             buffer_size *= 2;
-            int *__restrict new_invalid_particle_idx = realloc(invalid_particle_idx, buffer_size * sizeof(int));
+            int *restrict new_invalid_particle_idx = realloc(invalid_particle_idx, buffer_size * sizeof(int));
             if (!new_invalid_particle_idx)
             {
                 error_status = WRAP_RAISE_ERROR(GRAV_MEMORY_ERROR, "Failed to reallocate memory for invalid particle index");
@@ -398,10 +398,10 @@ err_memory:
 }
 
 WIN32DLL_API ErrorStatus remove_invalid_particles(
-    System *__restrict system,
-    const int *__restrict remove_idx_list,
+    System *restrict system,
+    const int *restrict remove_idx_list,
     const int num_to_remove,
-    const Settings *__restrict settings
+    const Settings *restrict settings
 )
 {
     if (num_to_remove == 0)
@@ -445,8 +445,8 @@ WIN32DLL_API ErrorStatus remove_invalid_particles(
 }
 
 WIN32DLL_API ErrorStatus remove_particles(
-    System *__restrict system,
-    const int *__restrict remove_idx_list,
+    System *restrict system,
+    const int *restrict remove_idx_list,
     const int num_to_remove
 )
 {
@@ -456,10 +456,10 @@ WIN32DLL_API ErrorStatus remove_particles(
     }
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
-    double *__restrict m = system->m;
-    int *__restrict particle_ids = system->particle_ids;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
+    double *restrict m = system->m;
+    int *restrict particle_ids = system->particle_ids;
 
     if (!x || !v || !m || !particle_ids)
     {
@@ -531,8 +531,8 @@ WIN32DLL_API ErrorStatus remove_particles(
 }
 
 WIN32DLL_API ErrorStatus remove_particle_from_double_arr(
-    double *__restrict arr,
-    const int *__restrict remove_idx_list,
+    double *restrict arr,
+    const int *restrict remove_idx_list,
     const int num_to_remove,
     const int dim,
     const int original_size
@@ -580,8 +580,8 @@ WIN32DLL_API ErrorStatus remove_particle_from_double_arr(
 }
 
 WIN32DLL_API ErrorStatus initialize_built_in_system(
-    System *__restrict system,
-    const char *__restrict system_name,
+    System *restrict system,
+    const char *restrict system_name,
     const bool is_memory_initialized
 )
 {
@@ -1097,7 +1097,7 @@ WIN32DLL_API ErrorStatus initialize_built_in_system(
     return make_success_error_status();
 }
 
-WIN32DLL_API ErrorStatus system_set_center_of_mass_zero(System *__restrict system)
+WIN32DLL_API ErrorStatus system_set_center_of_mass_zero(System *restrict system)
 {
     if (!system)
     {
@@ -1106,8 +1106,8 @@ WIN32DLL_API ErrorStatus system_set_center_of_mass_zero(System *__restrict syste
 
     /* Declare variables */
     const double num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict m = system->m;
+    double *restrict x = system->x;
+    double *restrict m = system->m;
     if (!x || !m)
     {
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System member is NULL");
@@ -1150,7 +1150,7 @@ WIN32DLL_API ErrorStatus system_set_center_of_mass_zero(System *__restrict syste
     return make_success_error_status();
 }
 
-WIN32DLL_API ErrorStatus system_set_total_momentum_zero(System *__restrict system)
+WIN32DLL_API ErrorStatus system_set_total_momentum_zero(System *restrict system)
 {
     if (!system)
     {
@@ -1159,8 +1159,8 @@ WIN32DLL_API ErrorStatus system_set_total_momentum_zero(System *__restrict syste
 
     /* Declare variables */
     const double num_particles = system->num_particles;
-    double *__restrict v = system->v;
-    double *__restrict m = system->m;
+    double *restrict v = system->v;
+    double *restrict m = system->m;
     if (!v || !m)
     {
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System member is NULL");
@@ -1211,7 +1211,7 @@ IN_FILE int compare_distance(const void *a, const void *b)
 }
 
 WIN32DLL_API ErrorStatus system_sort_by_distance(
-    System *__restrict system,
+    System *restrict system,
     const int primary_particle_id
 )
 {
@@ -1223,10 +1223,10 @@ WIN32DLL_API ErrorStatus system_sort_by_distance(
     }
 
     const int num_particles = system->num_particles;
-    int *__restrict particle_ids = system->particle_ids;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
-    double *__restrict m = system->m;
+    int *restrict particle_ids = system->particle_ids;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
+    double *restrict m = system->m;
     if (!particle_ids || !x || !v || !m)
     {
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System member is NULL");
@@ -1283,10 +1283,10 @@ WIN32DLL_API ErrorStatus system_sort_by_distance(
     qsort(helper_arr, num_particles, sizeof(HelperSystemSortByDistanceStruct), compare_distance);
 
     /* Allocate temporary arrays */
-    int *__restrict new_particle_ids = malloc(num_particles * sizeof(int));
-    double *__restrict new_x = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict new_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict new_m = malloc(num_particles * sizeof(double));
+    int *restrict new_particle_ids = malloc(num_particles * sizeof(int));
+    double *restrict new_x = malloc(num_particles * 3 * sizeof(double));
+    double *restrict new_v = malloc(num_particles * 3 * sizeof(double));
+    double *restrict new_m = malloc(num_particles * sizeof(double));
 
     if (!new_particle_ids || !new_x || !new_v || !new_m)
     {
@@ -1337,11 +1337,11 @@ err_helper_arr_malloc:
     return error_status;
 }
 
-WIN32DLL_API void set_periodic_boundary_conditions(CosmologicalSystem *__restrict system)
+WIN32DLL_API void set_periodic_boundary_conditions(CosmologicalSystem *restrict system)
 {
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    const double *__restrict box_center = system->box_center;
+    double *restrict x = system->x;
+    const double *restrict box_center = system->box_center;
     const double box_width = system->box_width;
 
     for (int i = 0; i < num_particles; i++)

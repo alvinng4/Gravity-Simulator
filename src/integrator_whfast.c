@@ -41,9 +41,9 @@
  * \param[in] dt Time step of the system
  */
 IN_FILE void whfast_kick(
-    double *__restrict jacobi_v,
+    double *restrict jacobi_v,
     const int num_particles,
-    const double *__restrict a,
+    const double *restrict a,
     const double dt
 );
 
@@ -63,10 +63,10 @@ IN_FILE void whfast_kick(
  * \exception GRAV_VALUE_ERROR If the input value to the stumpff function is infinite or NaN
  */
 IN_FILE ErrorStatus whfast_drift(
-    double *__restrict jacobi_x,
-    double *__restrict jacobi_v,
-    System *__restrict system,
-    double *__restrict eta,
+    double *restrict jacobi_x,
+    double *restrict jacobi_v,
+    System *restrict system,
+    double *restrict eta,
     const double dt,
     const bool remove_invalid_particles,
     const int verbose
@@ -81,10 +81,10 @@ IN_FILE ErrorStatus whfast_drift(
  * \param eta Array of cumulative masses
  */
 IN_FILE void cartesian_to_jacobi(
-    double *__restrict jacobi_x,
-    double *__restrict jacobi_v,
-    const System *__restrict system,
-    const double *__restrict eta
+    double *restrict jacobi_x,
+    double *restrict jacobi_v,
+    const System *restrict system,
+    const double *restrict eta
 );
 
 /**
@@ -96,10 +96,10 @@ IN_FILE void cartesian_to_jacobi(
  * \param eta Array of cumulative masses
  */
 IN_FILE void jacobi_to_cartesian(
-    System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict jacobi_v,
-    const double *__restrict eta
+    System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict jacobi_v,
+    const double *restrict eta
 );
 
 /**
@@ -112,10 +112,10 @@ IN_FILE void jacobi_to_cartesian(
  * \param[in] z Input value
  */
 IN_FILE void stumpff_functions(
-    double *__restrict c0,
-    double *__restrict c1,
-    double *__restrict c2,
-    double *__restrict c3,
+    double *restrict c0,
+    double *restrict c1,
+    double *restrict c2,
+    double *restrict c3,
     double z
 );
 
@@ -134,11 +134,11 @@ IN_FILE void stumpff_functions(
  * \exception Errors from the acceleration functions if any error occurs
  */
 IN_FILE ErrorStatus whfast_acceleration(
-    double *__restrict a,
-    const System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict eta,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict eta,
+    const AccelerationParam *restrict acceleration_param
 );
 
 /**
@@ -157,11 +157,11 @@ IN_FILE ErrorStatus whfast_acceleration(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus whfast_acceleration_pairwise(
-    double *__restrict a,
-    const System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict eta,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict eta,
+    const AccelerationParam *restrict acceleration_param
 );
 
 /**
@@ -185,16 +185,16 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
  * \exception GRAV_MEMORY_ERROR If memory allocation failed
  */
 IN_FILE ErrorStatus whfast_acceleration_massless(
-    double *__restrict a,
-    const System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict eta,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict eta,
+    const AccelerationParam *restrict acceleration_param
 );
 
 IN_FILE void whfast_compute_eta(
-    double *__restrict eta,
-    const System *__restrict system
+    double *restrict eta,
+    const System *restrict system
 );
 
 WIN32DLL_API ErrorStatus whfast(
@@ -209,27 +209,27 @@ WIN32DLL_API ErrorStatus whfast(
 {
     ErrorStatus error_status;
 
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict jacobi_x = calloc(system->num_particles * 3, sizeof(double));
-    double *__restrict jacobi_v = malloc(system->num_particles * 3 * sizeof(double));
-    double *__restrict temp_jacobi_v = malloc(system->num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(system->num_particles * 3 * sizeof(double));
-    double *__restrict eta = malloc(system->num_particles * sizeof(double));
+    double *restrict jacobi_x = calloc(system->num_particles * 3, sizeof(double));
+    double *restrict jacobi_v = malloc(system->num_particles * 3 * sizeof(double));
+    double *restrict temp_jacobi_v = malloc(system->num_particles * 3 * sizeof(double));
+    double *restrict a = malloc(system->num_particles * 3 * sizeof(double));
+    double *restrict eta = malloc(system->num_particles * sizeof(double));
 
     // Check if memory allocation is successful
     if (!jacobi_x || !jacobi_v || !temp_jacobi_v || !a || !eta)
@@ -407,9 +407,9 @@ err_memory:
 }
 
 IN_FILE void whfast_kick(
-    double *__restrict jacobi_v,
+    double *restrict jacobi_v,
     const int num_particles,
-    const double *__restrict a,
+    const double *restrict a,
     const double dt
 )
 {
@@ -422,10 +422,10 @@ IN_FILE void whfast_kick(
 }
 
 IN_FILE ErrorStatus whfast_drift(
-    double *__restrict jacobi_x,
-    double *__restrict jacobi_v,
-    System *__restrict system,
-    double *__restrict eta,
+    double *restrict jacobi_x,
+    double *restrict jacobi_v,
+    System *restrict system,
+    double *restrict eta,
     const double dt,
     const bool remove_invalid_particles,
     const int verbose
@@ -434,12 +434,12 @@ IN_FILE ErrorStatus whfast_drift(
     ErrorStatus error_status = make_success_error_status();
 
     const int num_particles = system->num_particles;
-    const int *__restrict particle_ids = system->particle_ids;
-    const double *__restrict m = system->m;
+    const int *restrict particle_ids = system->particle_ids;
+    const double *restrict m = system->m;
     const double G = system->G;
 
     int remove_count = 0;
-    int *__restrict remove_idx_list = NULL;
+    int *restrict remove_idx_list = NULL;
     if (remove_invalid_particles)
     {
         remove_idx_list = malloc(num_particles * sizeof(int));
@@ -680,19 +680,19 @@ err:
 }
 
 IN_FILE void cartesian_to_jacobi(
-    double *__restrict jacobi_x,
-    double *__restrict jacobi_v,
-    const System *__restrict system,
-    const double *__restrict eta
+    double *restrict jacobi_x,
+    double *restrict jacobi_v,
+    const System *restrict system,
+    const double *restrict eta
 )
 {
     double x_cm[3];
     double v_cm[3];
 
     const int num_particles = system->num_particles;
-    const double *__restrict x = system->x;
-    const double *__restrict v = system->v;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict v = system->v;
+    const double *restrict m = system->m;
 
     x_cm[0] = m[0] * x[0];
     x_cm[1] = m[0] * x[1];
@@ -724,20 +724,20 @@ IN_FILE void cartesian_to_jacobi(
 }
 
 IN_FILE void jacobi_to_cartesian(
-    System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict jacobi_v,
-    const double *__restrict eta
+    System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict jacobi_v,
+    const double *restrict eta
 )
 {
     double x_cm[3];
     double v_cm[3];
 
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     const int num_particles = system->num_particles;
-    const double *__restrict m = system->m;
+    const double *restrict m = system->m;
 
     x_cm[0] = eta[num_particles - 1] * jacobi_x[0];
     x_cm[1] = eta[num_particles - 1] * jacobi_x[1];
@@ -772,10 +772,10 @@ IN_FILE void jacobi_to_cartesian(
 }
 
 IN_FILE void stumpff_functions(
-    double *__restrict c0,
-    double *__restrict c1,
-    double *__restrict c2,
-    double *__restrict c3,
+    double *restrict c0,
+    double *restrict c1,
+    double *restrict c2,
+    double *restrict c3,
     double z
 )
 {
@@ -815,10 +815,10 @@ IN_FILE void stumpff_functions(
 }
 
 IN_FILE ErrorStatus whfast_acceleration(
-    double *__restrict a,
+    double *restrict a,
     const System *system,
-    const double *__restrict jacobi_x,
-    const double *__restrict eta,
+    const double *restrict jacobi_x,
+    const double *restrict eta,
     const AccelerationParam *acceleration_param
 )
 {
@@ -837,16 +837,16 @@ IN_FILE ErrorStatus whfast_acceleration(
 }
 
 IN_FILE ErrorStatus whfast_acceleration_pairwise(
-    double *__restrict a,
-    const System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict eta,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict eta,
+    const AccelerationParam *restrict acceleration_param
 )
 {
     const int num_particles = system->num_particles;
-    const double *__restrict x = system->x;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict m = system->m;
     const double G = system->G;
 
     const double softening_length = acceleration_param->softening_length;
@@ -957,16 +957,16 @@ IN_FILE ErrorStatus whfast_acceleration_pairwise(
 }
 
 IN_FILE ErrorStatus whfast_acceleration_massless(
-    double *__restrict a,
-    const System *__restrict system,
-    const double *__restrict jacobi_x,
-    const double *__restrict eta,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const double *restrict jacobi_x,
+    const double *restrict eta,
+    const AccelerationParam *restrict acceleration_param
 )
 {
     const int num_particles = system->num_particles;
-    const double *__restrict x = system->x;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict m = system->m;
     const double G = system->G;
 
     const double softening_length = acceleration_param->softening_length;
@@ -989,8 +989,8 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
     }
 
     /* Find the indices of massive and massless particles */
-    int *__restrict massive_indices = malloc(massive_objects_count * sizeof(int));
-    int *__restrict massless_indices = malloc(massless_objects_count * sizeof(int));
+    int *restrict massive_indices = malloc(massive_objects_count * sizeof(int));
+    int *restrict massless_indices = malloc(massless_objects_count * sizeof(int));
     massive_objects_count = 0;
     massless_objects_count = 0;
 
@@ -1264,12 +1264,12 @@ IN_FILE ErrorStatus whfast_acceleration_massless(
 }
 
 IN_FILE void whfast_compute_eta(
-    double *__restrict eta,
-    const System *__restrict system
+    double *restrict eta,
+    const System *restrict system
 )
 {
     const int num_particles = system->num_particles;
-    const double *__restrict m = system->m;
+    const double *restrict m = system->m;
 
     eta[0] = m[0];
     for (int i = 1; i < num_particles; i++)

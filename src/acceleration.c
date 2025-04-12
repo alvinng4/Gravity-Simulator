@@ -37,9 +37,9 @@ IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method);
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus acceleration_pairwise(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 );
 
 /**
@@ -53,9 +53,9 @@ IN_FILE ErrorStatus acceleration_pairwise(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus acceleration_massless(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 );
 
 
@@ -71,7 +71,7 @@ WIN32DLL_API AccelerationParam get_new_acceleration_param(void)
 }
 
 WIN32DLL_API ErrorStatus finalize_acceleration_param(
-    AccelerationParam *__restrict acceleration_param
+    AccelerationParam *restrict acceleration_param
 )
 {
     ErrorStatus error_status;
@@ -129,9 +129,9 @@ WIN32DLL_API ErrorStatus finalize_acceleration_param(
 }
 
 WIN32DLL_API ErrorStatus acceleration(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 )
 {
     switch (acceleration_param->method)
@@ -176,9 +176,9 @@ IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method)
 }
 
 IN_FILE ErrorStatus acceleration_pairwise(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 )
 {
     const int num_particles = system->num_particles;
@@ -235,9 +235,9 @@ IN_FILE ErrorStatus acceleration_pairwise(
 }
 
 IN_FILE ErrorStatus acceleration_massless(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 )
 {
     const int num_particles = system->num_particles;
@@ -270,8 +270,8 @@ IN_FILE ErrorStatus acceleration_massless(
     }
 
     /* Find the indices of massive and massless particles */
-    int *__restrict massive_indices = malloc(massive_objects_count * sizeof(int));
-    int *__restrict massless_indices = malloc(massless_objects_count * sizeof(int));
+    int *restrict massive_indices = malloc(massive_objects_count * sizeof(int));
+    int *restrict massless_indices = malloc(massless_objects_count * sizeof(int));
     massive_objects_count = 0;
     massless_objects_count = 0;
 
@@ -368,18 +368,18 @@ IN_FILE ErrorStatus acceleration_massless(
 }
 
 WIN32DLL_API ErrorStatus benchmark_acceleration(
-    const System *__restrict system,
+    const System *restrict system,
     const AccelerationParam *acceleration_params,
     const int num_acceleration_params,
-    const int *__restrict num_times_acceleration_param    
+    const int *restrict num_times_acceleration_param    
 )
 {
     ErrorStatus error_status;
 
-    double *__restrict reference_a = malloc(
+    double *restrict reference_a = malloc(
         system->num_particles * 3 * sizeof(double)
     );
-    double *__restrict a = malloc(
+    double *restrict a = malloc(
         system->num_particles * 3 * sizeof(double)
     );
     if (!reference_a || !a)
@@ -404,7 +404,7 @@ WIN32DLL_API ErrorStatus benchmark_acceleration(
             continue;
         }
 
-        double *__restrict run_time = calloc(num_times, sizeof(double));
+        double *restrict run_time = calloc(num_times, sizeof(double));
         double mae = 0.0;
 
         if (!run_time)

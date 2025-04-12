@@ -34,7 +34,7 @@
  * \exception GRAV_VALUE_ERROR if the given method is invalid
  */
 IN_FILE ErrorStatus get_rk_embedded_order(
-    int *__restrict order,
+    int *restrict order,
     const int method
 )
 {
@@ -78,10 +78,10 @@ IN_FILE ErrorStatus get_rk_embedded_order(
  */
 IN_FILE ErrorStatus rk_embedded_butcher_tableaus(
     const int order,
-    int *__restrict power,
-    int *__restrict power_test,
+    int *restrict power,
+    int *restrict power_test,
     double **coeff,
-    int *__restrict len_weights,
+    int *restrict len_weights,
     double **weights,
     double **weights_test
 )
@@ -344,7 +344,7 @@ IN_FILE ErrorStatus rk_embedded_butcher_tableaus(
  * \exception GRAV_VALUE_ERROR if initial_dt is negative
  */
 IN_FILE ErrorStatus rk_embedded_initial_dt(
-    double *__restrict initial_dt,
+    double *restrict initial_dt,
     const double rel_tolerance,
     const double abs_tolerance,
     const int power,
@@ -356,16 +356,16 @@ IN_FILE ErrorStatus rk_embedded_initial_dt(
     *initial_dt = -1.0;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     /* Allocate memory and declare variables */
-    double *__restrict tolerance_scale_x = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict tolerance_scale_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict x_1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict v_1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a_1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *restrict tolerance_scale_x = malloc(num_particles * 3 * sizeof(double));
+    double *restrict tolerance_scale_v = malloc(num_particles * 3 * sizeof(double));
+    double *restrict x_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict v_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a = malloc(num_particles * 3 * sizeof(double));
     if (
         !tolerance_scale_x ||
         !tolerance_scale_v ||
@@ -566,7 +566,7 @@ WIN32DLL_API ErrorStatus rk_embedded(
     const int stages = len_weights;
     const int min_power = power < power_test ? power : power_test;
 
-    double *__restrict error_estimation_delta_weights = malloc(len_weights * sizeof(double));
+    double *restrict error_estimation_delta_weights = malloc(len_weights * sizeof(double));
     if (!error_estimation_delta_weights)
     {
         error_status = WRAP_RAISE_ERROR(
@@ -592,16 +592,16 @@ WIN32DLL_API ErrorStatus rk_embedded(
 
     /* Declare variables */
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
@@ -618,22 +618,22 @@ WIN32DLL_API ErrorStatus rk_embedded(
     };
 
     /* Allocate memory */
-    double *__restrict v_1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict x_1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict vk = malloc(stages * num_particles * 3 * sizeof(double));
-    double *__restrict xk = malloc(stages * num_particles * 3 * sizeof(double));    
-    double *__restrict temp_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict temp_x = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict error_estimation_delta_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict error_estimation_delta_x = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict tolerance_scale_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict tolerance_scale_x = malloc(num_particles * 3 * sizeof(double));
+    double *restrict v_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict x_1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict vk = malloc(stages * num_particles * 3 * sizeof(double));
+    double *restrict xk = malloc(stages * num_particles * 3 * sizeof(double));    
+    double *restrict temp_v = malloc(num_particles * 3 * sizeof(double));
+    double *restrict temp_x = malloc(num_particles * 3 * sizeof(double));
+    double *restrict error_estimation_delta_v = malloc(num_particles * 3 * sizeof(double));
+    double *restrict error_estimation_delta_x = malloc(num_particles * 3 * sizeof(double));
+    double *restrict tolerance_scale_v = malloc(num_particles * 3 * sizeof(double));
+    double *restrict tolerance_scale_x = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict temp_x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict temp_v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict temp_x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict temp_v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     if (
         !v_1 ||

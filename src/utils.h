@@ -25,7 +25,7 @@ double grav_get_current_time(void);
  * 
  * \return Energy of the system
  */
-double compute_energy(const System *__restrict system);
+double compute_energy(const System *restrict system);
 
 /**
  * \brief Initialize the PCG random number generator
@@ -62,8 +62,8 @@ double grav_randrange(
  * \param[in] G Gravitational constant
  */
 void keplerian_to_cartesian(
-    double *__restrict x,
-    double *__restrict v,
+    double *restrict x,
+    double *restrict v,
     const double semi_major_axis,
     const double eccentricity,
     const double inclination,

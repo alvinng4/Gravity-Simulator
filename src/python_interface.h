@@ -9,14 +9,14 @@
  * 
  * \param ptr Pointer to the int32 array
  */
-void free_memory_int32(int32 *__restrict ptr);
+void free_memory_int32(int32 *restrict ptr);
 
 /**
  * \brief Free memory allocated for a double array
  * 
  * \param ptr Pointer to the double array
  */
-void free_memory_double(double *__restrict ptr);
+void free_memory_double(double *restrict ptr);
 
 /**
  * \brief Load a built-in system
@@ -61,12 +61,12 @@ int32 load_built_in_system_python(
  * \param[in] G Gravitational constant
  */
 void keplerian_to_cartesian_python(
-    double *__restrict x,
-    double *__restrict y,
-    double *__restrict z,
-    double *__restrict v_x,
-    double *__restrict v_y,
-    double *__restrict v_z,
+    double *restrict x,
+    double *restrict y,
+    double *restrict z,
+    double *restrict v_x,
+    double *restrict v_y,
+    double *restrict v_z,
     const double semi_major_axis,
     const double eccentricity,
     const double inclination,
@@ -84,7 +84,7 @@ void keplerian_to_cartesian_python(
  * \retval 1 Failure
  */
 int launch_simulation_python(
-    int32 *__restrict num_particles,
+    int32 *restrict num_particles,
     int32 *particle_ids,
     double *x,
     double *v,
@@ -126,9 +126,9 @@ int launch_simulation_python(
  * \param[in] num_particles Number of particles in the system
  */
 void compute_energy_python(
-    double *__restrict energy,
+    double *restrict energy,
     const double G,
-    const double *__restrict sol_state,
+    const double *restrict sol_state,
     const int32 num_snapshots,
     const int32 num_particles
 );
@@ -142,8 +142,8 @@ void compute_energy_python(
  * \param[in] num_particles Number of particles in the system
  */
 void compute_linear_momentum_python(
-    double *__restrict linear_momentum,
-    const double *__restrict sol_state,
+    double *restrict linear_momentum,
+    const double *restrict sol_state,
     const int32 num_snapshots,
     const int32 num_particles
 );
@@ -157,8 +157,8 @@ void compute_linear_momentum_python(
  * \param[in] num_particles Number of particles in the system
  */
 void compute_angular_momentum_python(
-    double *__restrict angular_momentum,
-    const double *__restrict sol_state,
+    double *restrict angular_momentum,
+    const double *restrict sol_state,
     const int32 num_snapshots,
     const int32 num_particles
 );

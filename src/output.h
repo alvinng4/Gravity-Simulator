@@ -42,8 +42,8 @@ OutputParam get_new_output_param(void);
  * \return ErrorStatus
  */
 ErrorStatus finalize_output_param(
-    OutputParam *__restrict output_param,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const Settings *restrict settings
 );
 
 /**
@@ -59,12 +59,12 @@ ErrorStatus finalize_output_param(
  * \return ErrorStatus
  */
 ErrorStatus output_snapshot(
-    OutputParam *__restrict output_param,
-    const System *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const SimulationStatus *__restrict simulation_status,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const System *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const SimulationStatus *restrict simulation_status,
+    const Settings *restrict settings
 );
 
 /**
@@ -80,12 +80,12 @@ ErrorStatus output_snapshot(
  * \return ErrorStatus
  */
 ErrorStatus output_snapshot_cosmology(
-    OutputParam *__restrict output_param,
-    const CosmologicalSystem *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const SimulationStatus *__restrict simulation_status,
-    const Settings *__restrict settings
+    OutputParam *restrict output_param,
+    const CosmologicalSystem *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const SimulationStatus *restrict simulation_status,
+    const Settings *restrict settings
 );
 
 #endif

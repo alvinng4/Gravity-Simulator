@@ -27,11 +27,11 @@
  * \param tf Simulation time.
  */
 IN_FILE void print_simulation_info(
-    const System *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const OutputParam *__restrict output_param,
-    const Settings *__restrict settings,
+    const System *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const OutputParam *restrict output_param,
+    const Settings *restrict settings,
     const double tf
 );
 
@@ -49,11 +49,11 @@ IN_FILE void print_simulation_info(
  * \param pm_grid_size Size of the PM grid.
  */
 IN_FILE void print_cosmological_simulation_info(
-    const CosmologicalSystem *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const OutputParam *__restrict output_param,
-    const Settings *__restrict settings,
+    const CosmologicalSystem *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const OutputParam *restrict output_param,
+    const Settings *restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -61,12 +61,12 @@ IN_FILE void print_cosmological_simulation_info(
 #endif
 
 WIN32DLL_API ErrorStatus launch_simulation(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 )
 {
@@ -140,12 +140,12 @@ WIN32DLL_API ErrorStatus launch_simulation(
 }
 
 WIN32DLL_API ErrorStatus launch_cosmological_simulation(
-    CosmologicalSystem *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    CosmologicalSystem *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -294,16 +294,16 @@ WIN32DLL_API const char* get_grav_sim_logo_string(void)
 }
 
 IN_FILE void print_simulation_info(
-    const System *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const OutputParam *__restrict output_param,
-    const Settings *__restrict settings,
+    const System *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const OutputParam *restrict output_param,
+    const Settings *restrict settings,
     const double tf
 )
 {
-    const char *__restrict new_line = "\n";
-    const char *__restrict straight_line = "-----------------------------------------------------------------\n";
+    const char *restrict new_line = "\n";
+    const char *restrict straight_line = "-----------------------------------------------------------------\n";
     
     fputs("Simulation parameters:\n", stdout);
 
@@ -516,18 +516,18 @@ IN_FILE void print_simulation_info(
 
 #ifdef USE_FFTW3
 IN_FILE void print_cosmological_simulation_info(
-    const CosmologicalSystem *__restrict system,
-    const IntegratorParam *__restrict integrator_param,
-    const AccelerationParam *__restrict acceleration_param,
-    const OutputParam *__restrict output_param,
-    const Settings *__restrict settings,
+    const CosmologicalSystem *restrict system,
+    const IntegratorParam *restrict integrator_param,
+    const AccelerationParam *restrict acceleration_param,
+    const OutputParam *restrict output_param,
+    const Settings *restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
 )
 {
-    const char *__restrict new_line = "\n";
-    const char *__restrict straight_line = "-----------------------------------------------------------------\n";
+    const char *restrict new_line = "\n";
+    const char *restrict straight_line = "-----------------------------------------------------------------\n";
     
     fputs("Simulation parameters:\n", stdout);
 

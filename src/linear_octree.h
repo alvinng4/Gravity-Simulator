@@ -73,10 +73,10 @@ LinearOctree get_new_linear_octree(void);
  * \return ErrorStatus
  */
 ErrorStatus construct_octree(
-    LinearOctree *__restrict octree,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
-    const double *__restrict box_center,
+    LinearOctree *restrict octree,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param,
+    const double *restrict box_center,
     const double box_width
 );
 
@@ -85,7 +85,7 @@ ErrorStatus construct_octree(
  * 
  * \param octree Pointer to the linear octree
  */
-void free_linear_octree(LinearOctree *__restrict octree);
+void free_linear_octree(LinearOctree *restrict octree);
 
 /**
  * \brief Check if two Morton indices are included in the same octant

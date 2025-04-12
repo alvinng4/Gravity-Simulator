@@ -39,7 +39,7 @@ AccelerationParam get_new_acceleration_param(void);
  * \param acceleration_param Pointer to the acceleration parameters
  */
 ErrorStatus finalize_acceleration_param(
-    AccelerationParam *__restrict acceleration_param
+    AccelerationParam *restrict acceleration_param
 );
 
 /**
@@ -52,9 +52,9 @@ ErrorStatus finalize_acceleration_param(
  * \return ErrorStatus
  */
 ErrorStatus acceleration(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 );
 
 /**
@@ -65,16 +65,16 @@ ErrorStatus acceleration(
  * \param[in] acceleration_param Pointer to the acceleration parameters
  */
 ErrorStatus acceleration_barnes_hut(
-    double *__restrict a,
-    const System *__restrict system,
-    const AccelerationParam *__restrict acceleration_param
+    double *restrict a,
+    const System *restrict system,
+    const AccelerationParam *restrict acceleration_param
 );
 
 #ifdef USE_FFTW3
 ErrorStatus acceleration_PM(
-    double *__restrict a,
-    const CosmologicalSystem *__restrict system,
-    const AccelerationParam *__restrict acceleration_param,
+    double *restrict a,
+    const CosmologicalSystem *restrict system,
+    const AccelerationParam *restrict acceleration_param,
     const double mean_bkg_density,
     const int pm_grid_size,
     const double scale_factor
@@ -92,10 +92,10 @@ ErrorStatus acceleration_PM(
  * \return ErrorStatus
  */
 ErrorStatus benchmark_acceleration(
-    const System *__restrict system,
+    const System *restrict system,
     const AccelerationParam *acceleration_params,
     const int num_acceleration_params,
-    const int *__restrict num_times_acceleration_param    
+    const int *restrict num_times_acceleration_param    
 );
 
 #endif

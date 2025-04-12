@@ -38,12 +38,12 @@
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus euler(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -61,12 +61,12 @@ IN_FILE ErrorStatus euler(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus euler_cromer(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -84,12 +84,12 @@ IN_FILE ErrorStatus euler_cromer(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus rk4(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -107,12 +107,12 @@ IN_FILE ErrorStatus rk4(
  * \return ErrorStatus
  */
 IN_FILE ErrorStatus leapfrog(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -128,7 +128,7 @@ WIN32DLL_API IntegratorParam get_new_integrator_param(void)
     return integrator_param;
 }
 
-WIN32DLL_API ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_param)
+WIN32DLL_API ErrorStatus finalize_integration_param(IntegratorParam *restrict integration_param)
 {
     if (!integration_param)
     {
@@ -292,29 +292,29 @@ IN_FILE ErrorStatus euler(
     ErrorStatus error_status;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict x_0 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict v_0 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *restrict x_0 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict v_0 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (!x_0 || !v_0 || !a || !x_err_comp_sum || !v_err_comp_sum)
@@ -467,29 +467,29 @@ IN_FILE ErrorStatus euler_cromer(
     ErrorStatus error_status;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict x_0 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict v_0 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *restrict x_0 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict v_0 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (!x_0 || !v_0 || !a || !x_err_comp_sum || !v_err_comp_sum)
@@ -641,36 +641,36 @@ IN_FILE ErrorStatus rk4(
     ErrorStatus error_status;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict x_0 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict v_0 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict vk1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict vk2 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict vk3 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict vk4 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict xk1 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict xk2 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict xk3 = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict xk4 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict x_0 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict v_0 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict vk1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict vk2 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict vk3 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict vk4 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict xk1 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict xk2 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict xk3 = malloc(num_particles * 3 * sizeof(double));
+    double *restrict xk4 = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (
@@ -905,29 +905,29 @@ IN_FILE ErrorStatus leapfrog(
     ErrorStatus error_status;
 
     const int num_particles = system->num_particles;
-    double *__restrict x = system->x;
-    double *__restrict v = system->v;
+    double *restrict x = system->x;
+    double *restrict v = system->v;
 
     double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
-    int *__restrict output_count_ptr = &(output_param->output_count_);
+    int *restrict output_count_ptr = &(output_param->output_count_);
     const double output_interval = output_param->output_interval;
     double next_output_time = output_interval;
 
-    double *__restrict t_ptr = &(simulation_status->t);
-    int64 *__restrict num_steps_ptr = &(simulation_status->num_steps);
+    double *restrict t_ptr = &(simulation_status->t);
+    int64 *restrict num_steps_ptr = &(simulation_status->num_steps);
 
     const bool enable_progress_bar = settings->enable_progress_bar;
 
     /* Allocate memory */
-    double *__restrict temp_x = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict temp_v = malloc(num_particles * 3 * sizeof(double));
-    double *__restrict a = malloc(num_particles * 3 * sizeof(double));
+    double *restrict temp_x = malloc(num_particles * 3 * sizeof(double));
+    double *restrict temp_v = malloc(num_particles * 3 * sizeof(double));
+    double *restrict a = malloc(num_particles * 3 * sizeof(double));
 
     // Compensated summation
-    double *__restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
-    double *__restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict x_err_comp_sum = calloc(num_particles * 3, sizeof(double));
+    double *restrict v_err_comp_sum = calloc(num_particles * 3, sizeof(double));
 
     // Check if memory allocation is successful
     if (

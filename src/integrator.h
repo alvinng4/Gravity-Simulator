@@ -42,7 +42,7 @@ IntegratorParam get_new_integrator_param(void);
  * \exception GRAV_VALUE_ERROR If integrator is fixed step size integrators and dt is not positive
  * \exception GRAV_VALUE_ERROR If integrator is adaptive step size integrators and tolerance is not positive
  */
-ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_param);
+ErrorStatus finalize_integration_param(IntegratorParam *restrict integration_param);
 
 /**
  * \brief Launch the simulation with the specified integrator
@@ -60,12 +60,12 @@ ErrorStatus finalize_integration_param(IntegratorParam *__restrict integration_p
  * \param tf Simulation time
  */
 ErrorStatus integrator_launch_simulation(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -83,12 +83,12 @@ ErrorStatus integrator_launch_simulation(
  * \return ErrorStatus
  */
 ErrorStatus rk_embedded(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -106,12 +106,12 @@ ErrorStatus rk_embedded(
  * \return ErrorStatus
  */
 ErrorStatus ias15(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -129,12 +129,12 @@ ErrorStatus ias15(
  * \return ErrorStatus
  */
 ErrorStatus whfast(
-    System *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    System *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double tf
 );
 
@@ -154,12 +154,12 @@ ErrorStatus whfast(
  * \return ErrorStatus
  */
 ErrorStatus leapfrog_cosmology(
-    CosmologicalSystem *__restrict system,
-    IntegratorParam *__restrict integrator_param,
-    AccelerationParam *__restrict acceleration_param,
-    OutputParam *__restrict output_param,
-    SimulationStatus *__restrict simulation_status,
-    Settings *__restrict settings,
+    CosmologicalSystem *restrict system,
+    IntegratorParam *restrict integrator_param,
+    AccelerationParam *restrict acceleration_param,
+    OutputParam *restrict output_param,
+    SimulationStatus *restrict simulation_status,
+    Settings *restrict settings,
     const double a_begin,
     const double a_final,
     const int pm_grid_size

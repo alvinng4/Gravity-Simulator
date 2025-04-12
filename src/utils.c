@@ -24,11 +24,11 @@ WIN32DLL_API double grav_get_current_time(void)
     return (double) ts.tv_sec + (double) ts.tv_nsec / 1.0e9;
 }
 
-WIN32DLL_API double compute_energy(const System *__restrict system)
+WIN32DLL_API double compute_energy(const System *restrict system)
 {
-    const double *__restrict x = system->x;
-    const double *__restrict v = system->v;
-    const double *__restrict m = system->m;
+    const double *restrict x = system->x;
+    const double *restrict v = system->v;
+    const double *restrict m = system->m;
     const double G = system->G;
     const int num_particles = system->num_particles;
 
@@ -80,8 +80,8 @@ WIN32DLL_API double grav_randrange(
 }
 
 WIN32DLL_API void keplerian_to_cartesian(
-    double *__restrict x,
-    double *__restrict v,
+    double *restrict x,
+    double *restrict v,
     const double semi_major_axis,
     const double eccentricity,
     const double inclination,

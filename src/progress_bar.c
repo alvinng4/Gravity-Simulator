@@ -44,7 +44,7 @@
  * \param is_end Whether the progress bar is at the end
  */
 IN_FILE void print_progress_bar(
-    const ProgressBarParam *__restrict progress_bar_param,
+    const ProgressBarParam *restrict progress_bar_param,
     double percent,
     const double estimated_time_remaining,
     const bool is_end
@@ -174,7 +174,7 @@ IN_FILE void print_progress_bar(
 }
 
 ErrorStatus start_progress_bar(
-    ProgressBarParam *__restrict progress_bar_param,
+    ProgressBarParam *restrict progress_bar_param,
     const double total
 )
 {
@@ -203,7 +203,7 @@ error:
 }
 
 IN_FILE time_t least_squares_regression_remaining_time(
-    const ProgressBarParam *__restrict progress_bar_param,
+    const ProgressBarParam *restrict progress_bar_param,
     const double diff_now_start
 )
 {
@@ -245,7 +245,7 @@ IN_FILE time_t least_squares_regression_remaining_time(
 }
 
 void update_progress_bar(
-    ProgressBarParam *__restrict progress_bar_param,
+    ProgressBarParam *restrict progress_bar_param,
     double current_progress,
     bool is_end
 )
