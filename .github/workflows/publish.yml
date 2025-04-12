@@ -34,6 +34,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Clean dist directory
+        run: rm -rf dist && mkdir dist
   
       - name: Install HDF5 on Linux
         if: runner.os == 'Linux'
