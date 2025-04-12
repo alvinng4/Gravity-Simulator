@@ -36,7 +36,7 @@ class AccelerationParam:
 
     def __init__(self) -> None:
         self.method = "pairwise"
-        self.opening_angle = 0.5
+        self.opening_angle = 1.0
         self.softening_length = 0.0
         self.pm_grid_size = 128
         self.max_num_particles_per_leaf = 1
