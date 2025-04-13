@@ -110,7 +110,7 @@ IN_FILE void helper_compute_acceleration(
     const double *restrict tree_center_of_mass_z = octree->tree_center_of_mass_z;
 
 #ifdef USE_OPENMP
-    #pragma omp parallel
+    #pragma omp parallel for
 #endif
     for (int i = 0; i < num_particles; i++)
     {
