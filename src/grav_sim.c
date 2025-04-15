@@ -40,20 +40,18 @@ IN_FILE void print_simulation_info(
  * \brief Print cosmological simulation information.
  * 
  * \param system Pointer to the cosmological system.
- * \param integrator_param Pointer to the integrator parameters.
- * \param acceleration_param Pointer to the acceleration parameters.
  * \param output_param Pointer to the output parameters.
  * \param settings Pointer to the settings.
+ * \param dt Time step.
  * \param a_begin Initial scale factor.
  * \param a_final Final scale factor.
  * \param pm_grid_size Size of the PM grid.
  */
 IN_FILE void print_cosmological_simulation_info(
     const CosmologicalSystem *restrict system,
-    const IntegratorParam *restrict integrator_param,
-    const AccelerationParam *restrict acceleration_param,
     const OutputParam *restrict output_param,
     const Settings *restrict settings,
+    const double dt,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -141,11 +139,10 @@ WIN32DLL_API ErrorStatus launch_simulation(
 
 WIN32DLL_API ErrorStatus launch_cosmological_simulation(
     CosmologicalSystem *restrict system,
-    IntegratorParam *restrict integrator_param,
-    AccelerationParam *restrict acceleration_param,
     OutputParam *restrict output_param,
     SimulationStatus *restrict simulation_status,
     Settings *restrict settings,
+    double dt,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -153,11 +150,10 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
 {
 #ifndef USE_FFTW3
     (void) system;
-    (void) integrator_param;
-    (void) acceleration_param;
     (void) output_param;
     (void) simulation_status;
     (void) settings;
+    (void) dt;
     (void) a_begin;
     (void) a_final;
     (void) pm_grid_size;
@@ -175,28 +171,6 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
         return error_status;
     }
 
-    /* Check acceleration parameters */
-    if (acceleration_param->method != ACCELERATION_METHOD_PM)
-    {
-        return WRAP_RAISE_ERROR_FMT(
-            GRAV_VALUE_ERROR,
-            "Only particle-mesh acceleration is supported for cosmological simulations. Got: %d",
-            acceleration_param->method
-        );
-    }
-    error_status = WRAP_TRACEBACK(finalize_acceleration_param(acceleration_param));
-    if (error_status.return_code != GRAV_SUCCESS)
-    {
-        return error_status;
-    }
-
-    /* Check integrator parameters */
-    error_status = WRAP_TRACEBACK(finalize_integration_param(integrator_param));
-    if (error_status.return_code != GRAV_SUCCESS)
-    {
-        return error_status;
-    }
-
     /* Check output parameters */
     if (output_param->method == OUTPUT_METHOD_CSV)
     {
@@ -209,6 +183,16 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
     if (error_status.return_code != GRAV_SUCCESS)
     {
         return error_status;
+    }
+
+    /* Check dt */
+    if (dt < 0.0)
+    {
+        return WRAP_RAISE_ERROR_FMT(
+            GRAV_VALUE_ERROR,
+            "dt must be non=negative. Got: %g",
+            dt
+        );
     }
 
     /* Check a_begin and a_final */
@@ -253,10 +237,9 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
         print_compilation_info();
         print_cosmological_simulation_info(
             system,
-            integrator_param,
-            acceleration_param,
             output_param,
             settings,
+            dt,
             a_begin,
             a_final,
             pm_grid_size
@@ -265,11 +248,10 @@ WIN32DLL_API ErrorStatus launch_cosmological_simulation(
 
     return WRAP_TRACEBACK(leapfrog_cosmology(
         system,
-        integrator_param,
-        acceleration_param,
         output_param,
         simulation_status,
         settings,
+        dt,
         a_begin,
         a_final,
         pm_grid_size
@@ -400,9 +382,6 @@ IN_FILE void print_simulation_info(
         case ACCELERATION_METHOD_BARNES_HUT:
             fputs("  Acceleration method: Barnes-Hut\n", stdout);
             break;
-        case ACCELERATION_METHOD_PM:
-            fputs("  Acceleration method: Particle-mesh\n", stdout);
-            break;
         default:
             fputs("  Acceleration method: Unknown\n", stdout);
             break;
@@ -517,10 +496,9 @@ IN_FILE void print_simulation_info(
 #ifdef USE_FFTW3
 IN_FILE void print_cosmological_simulation_info(
     const CosmologicalSystem *restrict system,
-    const IntegratorParam *restrict integrator_param,
-    const AccelerationParam *restrict acceleration_param,
     const OutputParam *restrict output_param,
     const Settings *restrict settings,
+    const double dt,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -534,7 +512,7 @@ IN_FILE void print_cosmological_simulation_info(
     /* System */
     fputs("System:\n", stdout);
     printf("  Number of particles: %d\n", system->num_particles);
-    printf("  Hubble parameter: %g\n", system->h0);
+    printf("  Hubble parameter: %g\n", system->h);
     printf("  Omega_m: %g\n", system->omega_m);
     printf("  Omega_lambda: %g\n", system->omega_lambda);
     printf("  Omega k: %g\n", system->omega_k);
@@ -544,51 +522,16 @@ IN_FILE void print_cosmological_simulation_info(
     printf("  Unit length in cgs: %g\n", system->unit_length);
     printf("  Unit time in cgs: %g\n", system->unit_time);
 
+    printf("  dt: %g\n", dt);
     printf("  a_begin: %g\n", a_begin);
     printf("  a_final: %g\n", a_final);
 
     fputs(new_line, stdout);
 
-    /* Integrator */
-    fputs("Integrator parameters:\n", stdout);
-    fputs("  Integrator: Leapfrog\n", stdout);
-    printf("  dt: %g\n", integrator_param->dt);
-    fputs(new_line, stdout);
-    
-    /* Acceleration */
-    fputs("Acceleration parameters:\n", stdout);
-
-    // Method
-    switch (acceleration_param->method)
-    {
-        case ACCELERATION_METHOD_PAIRWISE:
-            fputs("  Acceleration method: Pairwise\n", stdout);
-            break;
-        case ACCELERATION_METHOD_MASSLESS:
-            fputs("  Acceleration method: Massless\n", stdout);
-            break;
-        case ACCELERATION_METHOD_BARNES_HUT:
-            fputs("  Acceleration method: Barnes-Hut\n", stdout);
-            break;
-        case ACCELERATION_METHOD_PM:
-            fputs("  Acceleration method: Particle-mesh\n", stdout);
-            break;
-        default:
-            fputs("  Acceleration method: Unknown\n", stdout);
-            break;
-    }
-
+    /* Particle-Mesh */
+    fputs("Particle-Mesh parameters:\n", stdout);
     printf("  Particle-mesh grid size: %d\n", pm_grid_size);
 
-    // // Softening length
-    // printf("  Softening length: %g\n", acceleration_param->softening_length);
-
-    // // Opening angle and Max number of particles per leaf
-    // if (acceleration_param->method == ACCELERATION_METHOD_BARNES_HUT)
-    // {
-    //     printf("  Opening angle: %g\n", acceleration_param->opening_angle);
-    //     printf("  Max number of particles per leaf: %d\n", acceleration_param->max_num_particles_per_leaf);
-    // }
     fputs(new_line, stdout);
 
     /* Output */

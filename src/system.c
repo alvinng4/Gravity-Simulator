@@ -126,8 +126,7 @@ WIN32DLL_API CosmologicalSystem get_new_cosmological_system(void)
     system.x = NULL;
     system.v = NULL;
     system.m = NULL;
-    system.G = -1.0;
-    system.h0 = -1.0;
+    system.h = -1.0;
     system.omega_m = -1.0;
     system.omega_lambda = -1.0;
     system.box_center[0] = 0.0;
@@ -203,12 +202,12 @@ WIN32DLL_API ErrorStatus finalize_cosmological_system(CosmologicalSystem *restri
     {
         return WRAP_RAISE_ERROR(GRAV_POINTER_ERROR, "System array m is NULL");
     }
-    if (system->h0 <= 0.0)
+    if (system->h <= 0.0)
     {
         return WRAP_RAISE_ERROR_FMT(
             GRAV_VALUE_ERROR,
-            "Hubble constant h0 must be positive. Got: %g",
-            system->h0
+            "Hubble parameter system->h must be positive. Got: %g",
+            system->h
         );
     }
 
@@ -229,8 +228,6 @@ WIN32DLL_API ErrorStatus finalize_cosmological_system(CosmologicalSystem *restri
             system->omega_lambda
         );
     }
-
-    system->G = compute_G(system->omega_m, system->h0);
 
     if (system->box_width <= 0.0)
     {

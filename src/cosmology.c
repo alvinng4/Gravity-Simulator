@@ -10,14 +10,6 @@ WIN32DLL_API double compute_omega_k(
     return 1.0 - omega_m - omega_lambda;
 }
 
-WIN32DLL_API double compute_G(
-    const double omega_m,
-    const double h0
-)
-{
-    return 3.0 / 2.0 * omega_m * h0 * h0;
-}
-
 WIN32DLL_API double compute_da(
     const double a,
     const double h0,

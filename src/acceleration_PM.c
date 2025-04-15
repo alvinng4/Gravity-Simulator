@@ -273,24 +273,21 @@ IN_FILE void compute_acceleration_with_gradient(
 
 WIN32DLL_API ErrorStatus acceleration_PM(
     double *restrict a,
-    const CosmologicalSystem *restrict system,
-    const AccelerationParam *restrict acceleration_param,
+    const int num_particles,
+    const double *restrict x,
+    const double *restrict m,
+    const double *restrict box_center,
+    const double box_width,
+    const double h,
+    const double omega_m,
     const double mean_bkg_density,
     const int pm_grid_size,
     const double scale_factor
 )
 {
     ErrorStatus error_status;
-    (void) acceleration_param;
 
     /* Declare variables */
-    const int num_particles = system->num_particles;
-    const double *restrict x = system->x;
-    const double *restrict m = system->m;
-    const double G = system->G;
-
-    const double *restrict box_center = system->box_center;
-    const double box_width = system->box_width;
     const double box_length = box_width * 2.0;
 
     const int grid_size_2 = pm_grid_size * pm_grid_size;
@@ -352,9 +349,10 @@ WIN32DLL_API ErrorStatus acceleration_PM(
     }
     fftw_execute(plan_backward);
 
+    const double factor = ((3.0 / 2.0) * omega_m * h * h) / (scale_factor * (double) grid_size_3);
     for (int i = 0; i < grid_size_3; i++)
     {
-        phi[i] *= G / (scale_factor * (double) grid_size_3);
+        phi[i] *= factor;
     }
 
     /* Compute the force by taking the gradient of the potential */

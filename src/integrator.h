@@ -142,11 +142,10 @@ ErrorStatus whfast(
  * \brief Leapfrog integrator for cosmological simulations.
  * 
  * \param system Pointer to the cosmological system
- * \param integrator_param Pointer to the integrator parameters
- * \param acceleration_param Pointer to the acceleration parameters
  * \param output_param Pointer to the output parameters
  * \param simulation_status Pointer to the simulation status
  * \param settings Pointer to the settings
+ * \param dt Time step
  * \param a_begin Initial scale factor
  * \param a_final Final scale factor
  * \param pm_grid_size Size of the PM grid
@@ -155,11 +154,10 @@ ErrorStatus whfast(
  */
 ErrorStatus leapfrog_cosmology(
     CosmologicalSystem *restrict system,
-    IntegratorParam *restrict integrator_param,
-    AccelerationParam *restrict acceleration_param,
     OutputParam *restrict output_param,
     SimulationStatus *restrict simulation_status,
     Settings *restrict settings,
+    double dt,
     const double a_begin,
     const double a_final,
     const int pm_grid_size

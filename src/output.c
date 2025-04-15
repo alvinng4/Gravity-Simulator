@@ -77,8 +77,6 @@ IN_FILE ErrorStatus output_snapshot_hdf5(
 IN_FILE ErrorStatus output_snapshot_cosmology_hdf5(
     OutputParam *output_param,
     const CosmologicalSystem *system,
-    const IntegratorParam *integrator_param,
-    const AccelerationParam *acceleration_param,
     const SimulationStatus *simulation_status,
     const Settings *settings
 );
@@ -297,8 +295,6 @@ WIN32DLL_API ErrorStatus output_snapshot(
 WIN32DLL_API ErrorStatus output_snapshot_cosmology(
     OutputParam *output_param,
     const CosmologicalSystem *system,
-    const IntegratorParam *integrator_param,
-    const AccelerationParam *acceleration_param,
     const SimulationStatus *simulation_status,
     const Settings *settings
 )
@@ -320,8 +316,6 @@ WIN32DLL_API ErrorStatus output_snapshot_cosmology(
             error_status = WRAP_TRACEBACK(output_snapshot_cosmology_hdf5(
                 output_param,
                 system,
-                integrator_param,
-                acceleration_param,
                 simulation_status,
                 settings
             ));
@@ -700,16 +694,12 @@ err_output_dir_null:
 IN_FILE ErrorStatus output_snapshot_cosmology_hdf5(
     OutputParam *restrict output_param,
     const CosmologicalSystem *restrict system,
-    const IntegratorParam *restrict integrator_param,
-    const AccelerationParam *restrict acceleration_param,
     const SimulationStatus *restrict simulation_status,
     const Settings *restrict settings
 )
 {
     ErrorStatus error_status;
 
-    (void) integrator_param;
-    (void) acceleration_param;
     (void) settings;
 
     if (!output_param->output_dir)
