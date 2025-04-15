@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Define source and library directories
-set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
+set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 include_directories(${SRC_DIR})
 
 # Define the executable
