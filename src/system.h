@@ -26,8 +26,7 @@ typedef struct CosmologicalSystem
     double *x;
     double *v;
     double *m;
-    double G;
-    double h0;
+    double h;
     double omega_m;
     double omega_lambda;
     double omega_k;

@@ -7,11 +7,6 @@ double compute_omega_k(
     const double omega_lambda
 );
 
-double compute_G(
-    const double omega_m,
-    const double h0
-);
-
 double compute_da(
     const double a,
     const double h0,

@@ -26,11 +26,10 @@
 
 WIN32DLL_API ErrorStatus leapfrog_cosmology(
     CosmologicalSystem *restrict system,
-    IntegratorParam *restrict integrator_param,
-    AccelerationParam *restrict acceleration_param,
     OutputParam *restrict output_param,
     SimulationStatus *restrict simulation_status,
     Settings *restrict settings,
+    double dt,
     const double a_begin,
     const double a_final,
     const int pm_grid_size
@@ -42,13 +41,10 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
     const int num_particles = system->num_particles;
     double *restrict x = system->x;
     double *restrict v = system->v;
-    const double h0 = system->h0;
+    double *restrict m = system->m;
+    const double h = system->h;
     const double omega_m = system->omega_m;
     const double omega_lambda = system->omega_lambda;
-    const double G = compute_G(omega_m, h0);
-    system->G = G;
-
-    double dt = integrator_param->dt;
 
     bool is_output = (output_param->method != OUTPUT_METHOD_DISABLED);
     int *restrict output_count_ptr = &(output_param->output_count_);
@@ -83,8 +79,6 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
         error_status = WRAP_TRACEBACK(output_snapshot_cosmology(
             output_param,
             system,
-            integrator_param,
-            acceleration_param,
             simulation_status,
             settings
         ));
@@ -109,8 +103,13 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
     /* Compute initial acceleration */
     error_status = WRAP_TRACEBACK(acceleration_PM(
         a,
-        system,
-        acceleration_param,
+        num_particles,
+        x,
+        m,
+        system->box_center,
+        system->box_width,
+        h,
+        omega_m,
         mean_bkg_density,
         pm_grid_size,
         *t_ptr
@@ -144,7 +143,7 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
         simulation_status->dt = dt;
 
         /* Kick (p_1/2) */
-        da = compute_da(*t_ptr, h0, omega_m, omega_lambda);
+        da = compute_da(*t_ptr, h, omega_m, omega_lambda);
         for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
@@ -155,7 +154,7 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
         *t_ptr += 0.5 * dt;
 
         /* Drift (x_1) */
-        da = compute_da(*t_ptr, h0, omega_m, omega_lambda);
+        da = compute_da(*t_ptr, h, omega_m, omega_lambda);
         for (int i = 0; i < num_particles; i++)
         {
             for (int j = 0; j < 3; j++)
@@ -170,8 +169,13 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
         /* Kick (p_1) */
         error_status = WRAP_TRACEBACK(acceleration_PM(
             a,
-            system,
-            acceleration_param,
+            num_particles,
+            x,
+            m,
+            system->box_center,
+            system->box_width,
+            h,
+            omega_m,
             mean_bkg_density,
             pm_grid_size,
             *t_ptr
@@ -206,8 +210,6 @@ WIN32DLL_API ErrorStatus leapfrog_cosmology(
             error_status = WRAP_TRACEBACK(output_snapshot_cosmology(
                 output_param,
                 system,
-                integrator_param,
-                acceleration_param,
                 simulation_status,
                 settings
             ));

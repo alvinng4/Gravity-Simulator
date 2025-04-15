@@ -160,7 +160,6 @@ IN_FILE ErrorStatus check_acceleration_method(const int acceleration_method)
         case ACCELERATION_METHOD_PAIRWISE:
         case ACCELERATION_METHOD_MASSLESS:
         case ACCELERATION_METHOD_BARNES_HUT:
-        case ACCELERATION_METHOD_PM:
             break;
         default:
         {

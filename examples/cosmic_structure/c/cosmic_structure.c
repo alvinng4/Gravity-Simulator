@@ -9,24 +9,17 @@
 
 ErrorStatus read_init_condition(
     CosmologicalSystem *__restrict system,
-    double *__restrict softening_length,
     int *__restrict pm_grid_size,
     double *__restrict a_begin
 );
 
 int main(void)
 {
-    /* Acceleration parameters */
-    AccelerationParam acceleration_param = get_new_acceleration_param();
-    acceleration_param.method = ACCELERATION_METHOD_PM;
-    // acceleration_param.opening_angle = 0.5;
-
     CosmologicalSystem system;
     int pm_grid_size;
     double a_begin;
     ErrorStatus error_status = WRAP_TRACEBACK(read_init_condition(
         &system,
-        &acceleration_param.softening_length,
         &pm_grid_size,
         &a_begin
     ));
@@ -35,10 +28,7 @@ int main(void)
         goto error;
     }
 
-    /* Integrator parameters */
-    IntegratorParam integrator_param = get_new_integrator_param();
-    integrator_param.integrator = INTEGRATOR_LEAPFROG;
-    integrator_param.dt = (A_FINAL - a_begin) / 1000.0;
+    double dt = (A_FINAL - a_begin) / 1000.0;
 
     /* Output parameters */
     OutputParam output_param = get_new_output_param();
@@ -59,11 +49,10 @@ int main(void)
 
     error_status = WRAP_TRACEBACK(launch_cosmological_simulation(
         &system,
-        &integrator_param,
-        &acceleration_param,
         &output_param,
         &simulation_status,
         &settings,
+        dt,
         a_begin,
         A_FINAL,
         pm_grid_size
@@ -86,7 +75,6 @@ error:
 
 ErrorStatus read_init_condition(
     CosmologicalSystem *__restrict system,
-    double *__restrict softening_length,
     int *__restrict pm_grid_size,
     double *__restrict a_begin
 )
@@ -95,7 +83,7 @@ ErrorStatus read_init_condition(
 
     /* Open file */
     hid_t file = H5Fopen(INIT_CONDITION_FILE, H5F_ACC_RDONLY, H5P_DEFAULT);
-    if (file == H5I_INVALID_HID)    
+    if (file == H5I_INVALID_HID)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to open initial condition file");
         goto err_open_file;
@@ -105,9 +93,10 @@ ErrorStatus read_init_condition(
     hid_t header = H5Gopen(file, "/Header", H5P_DEFAULT);
     hid_t units = H5Gopen(file, "/Units", H5P_DEFAULT);
     hid_t part_type_1 = H5Gopen(file, "/PartType1", H5P_DEFAULT);
-    if (header == H5I_INVALID_HID 
+    if (header == H5I_INVALID_HID
         || units == H5I_INVALID_HID
-        || part_type_1 == H5I_INVALID_HID)
+        || part_type_1 == H5I_INVALID_HID
+    )
     {
         error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to open groups in initial condition file");
         goto err_open_group;
@@ -116,7 +105,6 @@ ErrorStatus read_init_condition(
     /* Read header attributes */
     hid_t num_particles_attr = H5Aopen(header, "NumPart_ThisFile", H5P_DEFAULT);
     hid_t box_size_attr = H5Aopen(header, "BoxSize", H5P_DEFAULT);
-    hid_t softening_length_attr = H5Aopen(header, "suggested_highressoft", H5P_DEFAULT);
     hid_t grid_size_attr = H5Aopen(header, "suggested_pmgrid", H5P_DEFAULT);
     hid_t omega_m_attr = H5Aopen(header, "Omega0", H5P_DEFAULT);
     hid_t omega_lambda_attr = H5Aopen(header, "OmegaLambda", H5P_DEFAULT);
@@ -126,7 +114,6 @@ ErrorStatus read_init_condition(
     if (
         num_particles_attr == H5I_INVALID_HID
         || box_size_attr == H5I_INVALID_HID
-        || softening_length_attr == H5I_INVALID_HID
         || grid_size_attr == H5I_INVALID_HID
         || omega_m_attr == H5I_INVALID_HID
         || omega_lambda_attr == H5I_INVALID_HID
@@ -149,11 +136,6 @@ ErrorStatus read_init_condition(
     if (H5Aread(box_size_attr, H5T_NATIVE_DOUBLE, &box_size) < 0)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to read box size from header");
-        goto err_header_attr;
-    }
-    if (H5Aread(softening_length_attr, H5T_NATIVE_DOUBLE, softening_length) < 0)
-    {
-        error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to read softening length from header");
         goto err_header_attr;
     }
     uint32_t temp_grid_size;
@@ -183,8 +165,8 @@ ErrorStatus read_init_condition(
     }
     *a_begin = 1.0 / (*a_begin + 1.0);
 
-    double h0;
-    if (H5Aread(h_attr, H5T_NATIVE_DOUBLE, &h0) < 0)
+    double h;
+    if (H5Aread(h_attr, H5T_NATIVE_DOUBLE, &h) < 0)
     {
         error_status = WRAP_RAISE_ERROR(GRAV_OS_ERROR, "Failed to read Hubble parameter from header");
         goto err_header_attr;
@@ -210,7 +192,7 @@ ErrorStatus read_init_condition(
     system->box_center[2] = system->box_width;
     system->omega_m = omega_m;
     system->omega_lambda = omega_lambda;
-    system->h0 = h0;
+    system->h = h;
     for (int i = 0; i < system->num_particles; i++)
     {
         system->m[i] = temp_mass_arr[1];
@@ -289,7 +271,6 @@ ErrorStatus read_init_condition(
 
     H5Aclose(num_particles_attr);
     H5Aclose(box_size_attr);
-    H5Aclose(softening_length_attr);
     H5Aclose(grid_size_attr);
     H5Aclose(omega_m_attr);
     H5Aclose(omega_lambda_attr);
@@ -319,7 +300,6 @@ err_initialize_system:
 err_header_attr:
     H5Aclose(num_particles_attr);
     H5Aclose(box_size_attr);
-    H5Aclose(softening_length_attr);
     H5Aclose(grid_size_attr);
     H5Aclose(omega_m_attr);
     H5Aclose(omega_lambda_attr);

@@ -16,7 +16,6 @@
 #define ACCELERATION_METHOD_PAIRWISE 1
 #define ACCELERATION_METHOD_MASSLESS 2
 #define ACCELERATION_METHOD_BARNES_HUT 3
-#define ACCELERATION_METHOD_PM 4
 
 typedef struct AccelerationParam
 {
@@ -73,8 +72,13 @@ ErrorStatus acceleration_barnes_hut(
 #ifdef USE_FFTW3
 ErrorStatus acceleration_PM(
     double *restrict a,
-    const CosmologicalSystem *restrict system,
-    const AccelerationParam *restrict acceleration_param,
+    const int num_particles,
+    const double *restrict x,
+    const double *restrict m,
+    const double *restrict box_center,
+    const double box_width,
+    const double h,
+    const double omega_m,
     const double mean_bkg_density,
     const int pm_grid_size,
     const double scale_factor

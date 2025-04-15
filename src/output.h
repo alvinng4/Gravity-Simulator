@@ -72,8 +72,6 @@ ErrorStatus output_snapshot(
  * 
  * \param output_param Pointer to the output parameters.
  * \param system Pointer to the gravitational system.
- * \param integrator_param Pointer to the integrator parameters.
- * \param acceleration_param Pointer to the acceleration parameters.
  * \param simulation_status Pointer to the simulation status.
  * \param settings Pointer to the settings.
  * 
@@ -82,8 +80,6 @@ ErrorStatus output_snapshot(
 ErrorStatus output_snapshot_cosmology(
     OutputParam *restrict output_param,
     const CosmologicalSystem *restrict system,
-    const IntegratorParam *restrict integrator_param,
-    const AccelerationParam *restrict acceleration_param,
     const SimulationStatus *restrict simulation_status,
     const Settings *restrict settings
 );
