@@ -40,7 +40,7 @@ set(FFTW3_SRCS
 add_library(grav_sim SHARED ${SRCS})
 
 # Use the current source directory as a public include for this target
-target_include_directories(grav_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/pcg)
+target_include_directories(grav_sim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/pcg)
 
 # Debug mode
 option(DEBUG "Debug mode" OFF)
