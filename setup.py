@@ -68,7 +68,7 @@ class CMakeBuild(build_ext):
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     packages=["grav_sim"],
-    ext_modules=[CMakeExtension("grav_sim", sourcedir="src")],
+    ext_modules=[CMakeExtension("grav_sim", sourcedir="")],
     cmdclass={"build_ext": CMakeBuild},
     package_data={"": ["src/*"]},
     include_package_data=True,

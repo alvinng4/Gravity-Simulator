@@ -8,31 +8,32 @@ project(grav_sim LANGUAGES C)
 # Set the C standard
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 # List of source files
 set(SRCS
-    acceleration.c
-    acceleration_barnes_hut.c
-    cosmology.c
-    error.c
-    grav_sim.c
-    integrator.c
-    integrator_rk_embedded.c
-    integrator_ias15.c
-    integrator_whfast.c
-    linear_octree.c
-    math_functions.c
-    output.c
-    progress_bar.c
-    python_interface.c
-    settings.c
-    system.c
-    utils.c
+    src/acceleration.c
+    src/acceleration_barnes_hut.c
+    src/cosmology.c
+    src/error.c
+    src/grav_sim.c
+    src/integrator.c
+    src/integrator_rk_embedded.c
+    src/integrator_ias15.c
+    src/integrator_whfast.c
+    src/linear_octree.c
+    src/math_functions.c
+    src/output.c
+    src/progress_bar.c
+    src/python_interface.c
+    src/settings.c
+    src/system.c
+    src/utils.c
 )
 
 set(FFTW3_SRCS
-    acceleration_PM.c
-    integrator_cosmology_leapfrog.c
+    src/acceleration_PM.c
+    src/integrator_cosmology_leapfrog.c
 )
 
 # Create the library target
@@ -87,7 +88,7 @@ endif()
 # Optionally enable FFTW support
 option(USE_FFTW3 "Enable FFTW3" OFF)
 if (USE_FFTW3)
-    find_package(FFTW3 REQUIRED)
+    find_package(FFTW3)
     if (FFTW3_FOUND)
         target_sources(grav_sim PRIVATE ${FFTW3_SRCS})
         target_include_directories(grav_sim PRIVATE ${FFTW3_INCLUDE_DIRS})
@@ -111,7 +112,7 @@ endif()
 if(DEFINED VERSION_INFO)
     target_compile_definitions(grav_sim PRIVATE VERSION_INFO="${VERSION_INFO}")
 else()
-    target_compile_definitions(grav_sim PRIVATE VERSION_INFO="unknown")
+    target_compile_definitions(grav_sim PRIVATE VERSION_INFO="0.0.4")
 endif()
 
 target_link_libraries(grav_sim PRIVATE m)

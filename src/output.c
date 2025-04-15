@@ -321,6 +321,9 @@ WIN32DLL_API ErrorStatus output_snapshot_cosmology(
             ));
             break;
 #else
+            (void) system;
+            (void) simulation_status;
+            (void) settings;
             error_status = WRAP_RAISE_ERROR(
                 GRAV_VALUE_ERROR,
                 "HDF5 output method is not available. Please recompile with HDF5 support."
