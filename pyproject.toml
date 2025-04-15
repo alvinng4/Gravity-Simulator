@@ -1,8 +1,8 @@
 [project]
 name = "grav_sim"
-version = "0.0.3"
+version = "0.0.4"
 description="Gravity Simulator"
-requires-python = ">= 3.10"
+requires-python = ">= 3.9"
 readme = "README.md"
 license-files = ["LICENSE"]
 dependencies = [
