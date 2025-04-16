@@ -6,10 +6,13 @@ docs_dir: .
 nav:
   - Home:
     - README.md
+  - Getting started:
+    - docs/getting_started/getting_started.md
+    - Installation in C: docs/getting_started/installation_in_c.md
+    - Installation in Python: docs/getting_started/installation_in_python.md
   - Documentation:
       - Tutorials:
-          - docs/API.md
-          - docs/CLI.md
+          - docs/documentation.md
   - Examples:
     - examples/solar_system_one_mil_yrs.ipynb
 theme:
@@ -40,7 +43,6 @@ theme:
       accent: purple
   
 markdown_extensions:
-  - pymdownx.critic
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -51,6 +53,8 @@ markdown_extensions:
   - footnotes
   - pymdownx.details:
   - pymdownx.superfences
+  - pymdownx.blocks.tab:
+      alternate_style: true
   - pymdownx.mark
   - attr_list
   - pymdownx.emoji:

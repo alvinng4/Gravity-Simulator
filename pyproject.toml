@@ -1,19 +1,17 @@
 [project]
 name = "grav_sim"
-version = "0.0.4"
+version = "0.0.5"
 description="Gravity Simulator"
 requires-python = ">= 3.9"
 readme = "README.md"
 license-files = ["LICENSE"]
-dependencies = [
-    "matplotlib>=3.8.3",
-    "numpy>=1.26.4",
-    "Pillow>=10.3.0",
-    "h5py>=3.0.0",
-]
+dynamic = ["dependencies"]
 authors = [
     {name = "Ching-Yin Ng", email = "alvinng324@gmail.com"}
 ]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [build-system]
 requires = ["setuptools>=42", "wheel", "cmake>=3.10"]
