@@ -19,6 +19,7 @@ nav:
     - examples/solar_system_one_mil_yrs.ipynb
 theme:
   name: material
+  logo: docs/orbit_logo.svg
   icon:
     repo: fontawesome/brands/github-alt
   custom_dir: overrides
