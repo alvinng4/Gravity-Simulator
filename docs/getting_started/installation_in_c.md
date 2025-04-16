@@ -97,4 +97,4 @@ Compiler: GCC (version: 14)
 ```
 
 Congrats! :partying_face: Now you have successfully built a project
-with our grav_sim package in C.
+with the grav_sim package in C.

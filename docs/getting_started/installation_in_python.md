@@ -21,8 +21,6 @@ Python packages: (Check `requirements.txt` for the latest version)
 
 There are multiple ways to install the package, depending on your use case.
 
-You are able to install from PyPI, but you want to compile the package locally with libraries like HDF5, OpenMP, and FFTW3.
-
 ### Installing with pip and local compilation
 If you want to compile the package locally, you could run
 ```

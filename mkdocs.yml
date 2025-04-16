@@ -10,13 +10,18 @@ nav:
     - docs/getting_started/getting_started.md
     - Installation in C: docs/getting_started/installation_in_c.md
     - Installation in Python: docs/getting_started/installation_in_python.md
-  - Documentation:
-      - Tutorials:
-          - docs/documentation.md
+    - Tutorial (Python): examples/tutorial.ipynb
+  - Documentations:
+    - docs/documentations/documentations.md
+    - Barnes-Hut algorithm: docs/documentations/barnes_hut.md
+    - API: docs/documentations/api.md
   - Examples:
     - examples/solar_system_one_mil_yrs.ipynb
 theme:
   name: material
+  icon:
+    repo: fontawesome/brands/github-alt
+  custom_dir: overrides
   features:
     - navigation.tabs
     - navigation.sections
@@ -74,6 +79,8 @@ plugins:
       execute: False
       custom_mathjax_url: "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full,Safe"
   - same-dir
+  - mkdocstrings
+  - meta
 
 extra_javascript:
   - docs/javascripts/mathjax.js
