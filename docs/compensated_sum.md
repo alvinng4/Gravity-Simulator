@@ -1,5 +1,6 @@
-## Compensated summation
+# Reducing rounding error with compensated summation
 
+[@CompensatedSummation]
 A method known as compensated summation [1], [4] is implemented for all integrators EXCEPT WHFast:
 
 When we advance our system by $\text{d}t$, we have 
