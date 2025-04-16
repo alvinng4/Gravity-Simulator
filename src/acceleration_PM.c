@@ -257,13 +257,13 @@ IN_FILE void compute_acceleration_with_gradient(
                 const int index_z_p   = i * grid_size_2 + j * pm_grid_size + k_p;
                 const int index_z_p_2 = i * grid_size_2 + j * pm_grid_size + k_p_2;
 
-                acc_grid[index * 3 + 0] = -(
+                acc_grid[index * 3 + 0] = (
                     phi[index_x_m_2] - 8.0 * phi[index_x_m] + 8.0 * phi[index_x_p] - phi[index_x_p_2]
                 ) / (12.0 * cell_length);
-                acc_grid[index * 3 + 1] = -(
+                acc_grid[index * 3 + 1] = (
                     phi[index_y_m_2] - 8.0 * phi[index_y_m] + 8.0 * phi[index_y_p] - phi[index_y_p_2]
                 ) / (12.0 * cell_length);
-                acc_grid[index * 3 + 2] = -(
+                acc_grid[index * 3 + 2] = (
                     phi[index_z_m_2] - 8.0 * phi[index_z_m] + 8.0 * phi[index_z_p] - phi[index_z_p_2]
                 ) / (12.0 * cell_length);
             }
@@ -331,7 +331,7 @@ WIN32DLL_API ErrorStatus acceleration_PM(
                 const int k_z = k;
                 const double k_sq = (k_x * k_x + k_y * k_y + k_z * k_z) * two_pi_over_box_length_squared;
 
-                const double kernel = k_sq == 0.0 ? 0.0 : 1.0 / k_sq;
+                const double kernel = k_sq == 0.0 ? 0.0 : -1.0 / k_sq;
 
                 const int index = i * (pm_grid_size * half_grid_size) + j * half_grid_size + k;
                 delta_fourier[index][0] *= kernel;

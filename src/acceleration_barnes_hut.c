@@ -95,7 +95,9 @@ IN_FILE void helper_compute_acceleration(
     const double *restrict m = system->m;
     const double G = system->G;
     const double softening_length = acceleration_param->softening_length;
+    const double softening_length_squared = softening_length * softening_length;
     const double opening_angle = acceleration_param->opening_angle;
+    const double opening_angle_squared = opening_angle * opening_angle;
 
     const double box_length = octree->box_width * 2.0;
     const int64 *restrict particle_morton_indices_deepest_level = octree->particle_morton_indices_deepest_level;
@@ -137,8 +139,6 @@ IN_FILE void helper_compute_acceleration(
                 const int num_children_j = tree_num_internal_children[child_j];
                 const int start_idx_j = tree_first_particle_sorted_idx[child_j];
 
-                bool criteria_met = false;
-
                 // If object i is included, then we need to traverse deeper
                 const bool is_included = linear_octree_check_if_included(
                     morton_index_i,
@@ -147,87 +147,83 @@ IN_FILE void helper_compute_acceleration(
                 );
 
                 // Check Barnes-Hut criteria
-                double R[3];
-                double norm_square;
                 if (!is_included)
                 {
-                    R[0] = x_i[0] - tree_center_of_mass_x[child_j];
-                    R[1] = x_i[1] - tree_center_of_mass_y[child_j];
-                    R[2] = x_i[2] - tree_center_of_mass_z[child_j];
+                    const double R[3] = {
+                        x_i[0] - tree_center_of_mass_x[child_j],
+                        x_i[1] - tree_center_of_mass_y[child_j],
+                        x_i[2] - tree_center_of_mass_z[child_j]
+                    };
                     const double box_length_j = box_length / (2 << level);
-                    norm_square = R[0] * R[0] + R[1] * R[1] + R[2] * R[2];
-                    if (box_length_j / sqrt(norm_square) < opening_angle)
+                    const double norm_square = R[0] * R[0] + R[1] * R[1] + R[2] * R[2];
+
+                    // Check if box_length_j / norm < opening_angle
+                    // Use squared values to avoid sqrt
+                    if ((box_length_j * box_length_j) < opening_angle_squared * norm_square)
                     {
-                        criteria_met = true;
+                        const double R_norm = sqrt(
+                            norm_square + softening_length_squared
+                        );
+
+                        const double temp_value = G * tree_mass[child_j] / (R_norm * R_norm * R_norm);
+                        acceleration[0] -= temp_value * R[0];
+                        acceleration[1] -= temp_value * R[1];
+                        acceleration[2] -= temp_value * R[2];
+    
+                        current_stack->processed_children = j;
+                        continue;
                     }
                 }
 
-                if (criteria_met)
-                {
-                    const double R_norm = sqrt(
-                        norm_square + softening_length * softening_length
-                    );
+                /* Traverse deeper */
 
-                    const double temp_value = G * tree_mass[child_j] / (R_norm * R_norm * R_norm);
-                    acceleration[0] -= temp_value * R[0];
-                    acceleration[1] -= temp_value * R[1];
-                    acceleration[2] -= temp_value * R[2];
+                /* Leaf node */
+                if (num_children_j <= 0)
+                {
+                    const int num_particles_j = tree_num_particles[child_j];
+                    for (int k = 0; k < num_particles_j; k++)
+                    {
+                        const int idx_j = sorted_indices[start_idx_j + k];
+                        if (idx_i == idx_j)
+                        {
+                            continue;
+                        }
+
+                        // Calculate \vec{R} and its norm
+                        const double R[3] = {
+                            x_i[0] - x[idx_j * 3 + 0],
+                            x_i[1] - x[idx_j * 3 + 1],
+                            x_i[2] - x[idx_j * 3 + 2]
+                        };
+                        const double R_norm = sqrt(
+                            R[0] * R[0] + 
+                            R[1] * R[1] + 
+                            R[2] * R[2] +
+                            softening_length_squared
+                        );
+
+                        // Calculate the acceleration
+                        const double temp_value = G * m[idx_j] / (R_norm * R_norm * R_norm);
+                        acceleration[0] -= temp_value * R[0];
+                        acceleration[1] -= temp_value * R[1];
+                        acceleration[2] -= temp_value * R[2];
+                    }
 
                     current_stack->processed_children = j;
                     continue;
                 }
 
-                // Traverse deeper
+                /* Internal node */
                 else
                 {
-                    /* Leaf node */
-                    if (num_children_j <= 0)
-                    {
-                        const int num_particles_j = tree_num_particles[child_j];
-                        for (int k = 0; k < num_particles_j; k++)
-                        {
-                            const int idx_j = sorted_indices[start_idx_j + k];
-                            if (idx_i == idx_j)
-                            {
-                                continue;
-                            }
+                    Stack *new_item = &(stack[level + 1]);
+                    new_item->node = child_j;
+                    new_item->processed_children = -1;
+                    new_item->parent = current_stack;
 
-                            double R[3];
-
-                            // Calculate \vec{R} and its norm
-                            R[0] = x_i[0] - x[idx_j * 3 + 0];
-                            R[1] = x_i[1] - x[idx_j * 3 + 1];
-                            R[2] = x_i[2] - x[idx_j * 3 + 2];
-                            const double R_norm = sqrt(
-                                R[0] * R[0] + 
-                                R[1] * R[1] + 
-                                R[2] * R[2] +
-                                softening_length * softening_length
-                            );
-
-                            // Calculate the acceleration
-                            const double temp_value = G * m[idx_j] / (R_norm * R_norm * R_norm);
-                            acceleration[0] -= temp_value * R[0];
-                            acceleration[1] -= temp_value * R[1];
-                            acceleration[2] -= temp_value * R[2];
-                        }
-
-                        current_stack->processed_children = j;
-                        continue;
-                    }
-
-                    /* Internal node */
-                    else
-                    {
-                        Stack *new_item = &(stack[level + 1]);
-                        new_item->node = child_j;
-                        new_item->processed_children = -1;
-                        new_item->parent = current_stack;
-
-                        current_stack = new_item;
-                        level++;
-                        break;
-                    }
+                    current_stack = new_item;
+                    level++;
+                    break;
                 }
             }
 
