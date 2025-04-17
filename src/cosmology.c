@@ -12,13 +12,13 @@ WIN32DLL_API double compute_omega_k(
 
 WIN32DLL_API double compute_da(
     const double a,
-    const double h0,
+    const double H0,
     const double omega_m,
     const double omega_lambda
 )
 {
     const double omega_k = compute_omega_k(omega_m, omega_lambda);
-    return h0 * a * sqrt(
+    return H0 * a * sqrt(
         omega_lambda
         + omega_m / (a * a * a)
         + omega_k / (a * a)

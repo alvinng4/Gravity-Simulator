@@ -77,7 +77,7 @@ ErrorStatus acceleration_PM(
     const double *restrict m,
     const double *restrict box_center,
     const double box_width,
-    const double h,
+    const double H0,
     const double omega_m,
     const double mean_bkg_density,
     const int pm_grid_size,

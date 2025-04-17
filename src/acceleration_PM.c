@@ -278,7 +278,7 @@ WIN32DLL_API ErrorStatus acceleration_PM(
     const double *restrict m,
     const double *restrict box_center,
     const double box_width,
-    const double h,
+    const double H0,
     const double omega_m,
     const double mean_bkg_density,
     const int pm_grid_size,
@@ -349,7 +349,7 @@ WIN32DLL_API ErrorStatus acceleration_PM(
     }
     fftw_execute(plan_backward);
 
-    const double factor = ((3.0 / 2.0) * omega_m * h * h) / (scale_factor * (double) grid_size_3);
+    const double factor = ((3.0 / 2.0) * omega_m * H0 * H0) / (scale_factor * (double) grid_size_3);
     for (int i = 0; i < grid_size_3; i++)
     {
         phi[i] *= factor;
