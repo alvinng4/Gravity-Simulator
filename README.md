@@ -35,13 +35,9 @@ Project Homepage and documentations: https://alvinng4.github.io/grav_sim/
 <img src="./examples/media/Kirkwood_gap_semi_major_axes.png" alt="Image" width="300">
 <img src="./examples/media/Kirkwood_gap_visualization.png" alt="Image" width="225">
 
-Videos:
-* https://www.youtube.com/watch?v=AEyjIF-8zT0
-* https://www.youtube.com/watch?v=jHLLr7ACvDQ
-
 ### Galaxy collision
-Note: Initial condition is taken from Gadget-2 by Volker Springel.
-Visualization is done with gadgetviewer.
+<!-- Note: Initial condition is taken from Gadget-2 by Volker Springel.
+Visualization is done with gadgetviewer. -->
 
 <img src="./examples/media/galaxy_collision.png" alt="Image" width="400">
 

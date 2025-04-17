@@ -7,16 +7,24 @@ nav:
   - Home:
     - README.md
   - Getting started:
-    - docs/getting_started/getting_started.md
+    - Getting started: docs/getting_started/index.md
     - Installation in C: docs/getting_started/installation_in_c.md
     - Installation in Python: docs/getting_started/installation_in_python.md
     - Tutorial (Python): examples/tutorial.ipynb
   - Documentations:
-    - docs/documentations/documentations.md
+    - docs/documentations/index.md
     - Barnes-Hut algorithm: docs/documentations/barnes_hut.md
-    - API: docs/documentations/api.md
+    - Particle-Mesh algorithm: docs/documentations/particle_mesh.md
+    - Python API:
+        - docs/documentations/PythonAPI/GravitySimulatorAPI.md
+        - docs/documentations/PythonAPI/parameters.md
+    - C API:
+        - docs/documentations/CAPI/grav_sim.md
   - Examples:
+    - examples/index.md
     - examples/solar_system_one_mil_yrs.ipynb
+  - 12 steps to N-body simulation:
+    - "12 steps to N-body simulation": 12_steps_to_n_body_simulation/index.md
 theme:
   name: material
   logo: docs/orbit_logo.svg
@@ -24,15 +32,20 @@ theme:
     repo: fontawesome/brands/github-alt
   custom_dir: overrides
   features:
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.tabs
     - navigation.sections
     - navigation.top
+    - navigation.indexes
     - toc.integrate
     - search.suggest
     - search.highlight
     - content.tabs.link
     - content.code.annotation
     - content.code.copy
+    - content.tooltips
+    
   language: en
   palette:
     - scheme: default
@@ -51,6 +64,7 @@ theme:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
+  - pymdownx.magiclink
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - admonition
@@ -68,7 +82,7 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 copyright:
-  "&copy; 2025 <a href='https://github.com/alvinng4'  target='_blank' rel='noopener'>Ching-Yin Ng</a>"
+  "Copyright &copy; 2025 <a href='https://github.com/alvinng4'  target='_blank' rel='noopener'>Ching-Yin Ng</a>"
 
 plugins:
   - search
@@ -82,6 +96,7 @@ plugins:
   - same-dir
   - mkdocstrings
   - meta
+  # - mkdocs-video
 
 extra_javascript:
   - docs/javascripts/mathjax.js
