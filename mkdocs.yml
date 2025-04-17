@@ -15,6 +15,7 @@ nav:
     - docs/documentations/index.md
     - Barnes-Hut algorithm: docs/documentations/barnes_hut.md
     - Particle-Mesh algorithm: docs/documentations/particle_mesh.md
+    - Reducing round off error: docs/documentations/reducing_round_off_error.md
     - Python API:
         - docs/documentations/PythonAPI/GravitySimulatorAPI.md
         - docs/documentations/PythonAPI/parameters.md
