@@ -38,3 +38,22 @@ About 7500 asteroids are removed from the simulation due to failure to converge 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/AEyjIF-8zT0?si=M5G8cS0i3D71PGLg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/jHLLr7ACvDQ?si=O_YzbUGx_grNV2ct" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+## Running the example (C)
+To build the example, run
+```
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_HDF5=ON -DUSE_OPENMP=ON --fresh
+cmake --build build
+```
+Then, you can run it by
+```
+cd build
+./kirkwood_gaps
+```
+
+## Running the example (Python)
+Simply run
+```
+python kirkwood_gaps.py
+```

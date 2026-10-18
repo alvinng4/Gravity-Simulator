@@ -9,6 +9,10 @@
 #define OUTPUT_INTERVAL 2500 * 365.24 // Store 2000 snapshots
 #define OUTPUT_METHOD OUTPUT_METHOD_HDF5
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 int main(void)
 {
     ErrorStatus error_status;
