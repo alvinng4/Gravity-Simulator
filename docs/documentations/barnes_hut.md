@@ -1,3 +1,8 @@
+!!! Note
+    This page covers the Barnes-Hut algorithm, plus our linear octree implementation
+    which is useful for parallel computing. If you are only interested in the Barnes-Hut algorithm,
+    you should just skim over the parts on linear octree and Morton index.
+
 The classic Barnes-Hut algorithm[@barnes_hierarchical_1986]
 provides a way to approximate forces in $\mathcal{O}(N \log N)$ without losing accuracy at close range.
 Because gravity decays at a quadratic rate, the accuracy of long range interactions
