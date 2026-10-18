@@ -39,7 +39,10 @@ cd build
 ```
 
 ## Running the example (Python)
-
+Simply run
+```
+python galaxy_collusion.py
+```
 
 ## Animating with gadgetviewer
 To use gadgetviewer, you may download the latest release on their GitHub page. For version 1.2.0 and assuming you are on Linux / MacOS, install the dependencies by
@@ -60,5 +63,5 @@ cd bin
 ```
 For example,
 ```
-./gadgetviewer ../../grav_sim/examples/galaxy_collision/c/build/snapshots/snapshot_00000.hdf5
+./gadgetviewer  <path of grav_sim>/examples/galaxy_collision/c/build/snapshots/snapshot_00000.hdf5
 ```
