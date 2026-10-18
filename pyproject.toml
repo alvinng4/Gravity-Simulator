@@ -16,8 +16,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "poethepoet>=0.37.0",
     "pytest>=8.4.2",
     "ruff>=0.16.5",
+    "ty>=0.0.89",
 ]
 mkdocs = [
     "mkdocs-bibtex>=4.4.0",
@@ -34,3 +36,13 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-root = ""
 module-name = "grav_sim"
+
+[tool.poe.tasks]
+format = "ruff format"
+lint   = "ruff check"
+types  = "ty check"
+
+[tool.poe.tasks.clean]
+sequence = ["format", "lint", "types"]
+ignore_fail = "return_non_zero"
+help = "Run format, lint, and type checks"
