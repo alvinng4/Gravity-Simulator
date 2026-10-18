@@ -1,6 +1,6 @@
 # Step 2: Gravity
 
-Welcome to step 2. This is the most important step &mdash;
+Welcome to step 2. This is the most important step:
 computing the gravitational acceleration.
 Turns out this is also the most expensive part in N-body simulation, 
 so we will spend some time on optimization.
@@ -17,7 +17,7 @@ $\hat{r}_{ij}$ is the unit vector pointing from particle $i$ to particle $j$. Th
 
 $$
     \mathbf{r}_{ij} = \mathbf{r}_j - \mathbf{r}_i, \quad
-    \hat{r}_{ij} = \mathbf{r}_{ij} / r_{ij}.
+    \hat{r}_{ij} = \frac{\mathbf{r}_{ij}}{r_{ij}}.
 $$
 
 In practice, we are only interested in the acceleration. To compute the acceleration of
@@ -27,7 +27,7 @@ $$
     \mathbf{a}_{i} = \sum_{j \neq i} \frac{G m_j}{r_{ij}^3} \mathbf{r}_{ij},
 $$
 
-which can be easily done as this only involve simple vector operations.
+which can be easily done as this only involves simple vector operations.
 
 ## Implementation 1
 Below shows our first naive implementation of the acceleration function.
@@ -38,7 +38,7 @@ However, this implementation is very slow.
 ```python linenums="1"
 def acceleration_1(
     a: np.ndarray,
-    system: System,
+    system: common.System,
 ) -> None:
     """
     Compute the gravitational acceleration
@@ -76,16 +76,16 @@ def acceleration_1(
 
 ## Implementation 2
 
-To optimize the code, we utilize the fact that the distance between particles $i$ and $j$ is the same:
+To optimize the code, we utilize the fact that the distance between particles $i$ and $j$ is the same as that between $j$ and $i$:
 
 $$
     \mathbf{r}_{ij} = - \mathbf{r}_{ji} \implies r_{ij} = r_{ji}.
 $$
 
 !!! Note
-    In our notation, the lowercase, non-bold $r_{ij}$ is the vector norm, which is always positive.
+    In our notation, the lowercase, non-bold $r_{ij}$ is the vector norm, which is always non-negative.
 
-This allows us to effectively reduce half of the distance calculations.
+This allows us to cut the number of distance calculations in half.
 (Calculating the distance is quite expensive as it involves the computation of `sqrt`.)
 The outer loop $i$ still iterates over all particles,
 but the inner loop $j$ only iterates from $i + 1$ to $N$. (Why? because all combinations of $i$ 
@@ -98,7 +98,7 @@ care about $j > i$.)
 ```python linenums="1"
 def acceleration_2(
     a: np.ndarray,
-    system: System,
+    system: common.System,
 ) -> None:
     """
     Compute the gravitational acceleration
@@ -133,15 +133,20 @@ def acceleration_2(
 
 The above implementation is still quite slow because we are using Python loops
 to iterate over the particles. NumPy is (partly) implemented in C, which
-makes it much faster than Python operations. If we were able to avoid 
+makes it much faster than Python operations. If we can avoid 
 Python loops completely, we can achieve a significant speedup.
-This can be done by vectorizing the code. Note that this would be quite difficult
-for beginners, but learning this could help you understand a lot about NumPy arrays.
+This can be done by vectorizing the code. Note that this may be difficult
+for beginners.
 
-1. We first compute a displacement matrix $\mathbf{R}$, where $\mathbf{R}_{ij} = \mathbf{r}_j - \mathbf{r}_i$.
-    Therefore, it is a 3D array of shape $(N, N, 3)$, and the diagonal elements are all zero.
-    This is computed by broadcasting first $\mathbf{r}$ along the axis 0 (row) and 
-    the second $\mathbf{r}$ along the axis 1 (column): `r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]`
+1. We first compute a displacement matrix $\mathbf{R}$, where $\mathbf{R}_{ij} = \mathbf{r}_{ij}$.
+    It is a 3D array of shape $(N, N, 3)$, and the diagonal elements are all
+    zero. This is computed by broadcasting: 
+    
+    * `x[np.newaxis, :, :]` has shape $(1, N, 3)$ and
+    * `x[:, np.newaxis, :]` has shape $(N, 1, 3)$,
+    
+    so `r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]` has entry $(i, j)$ equal to
+    $\mathbf{r}_{ij}$.
 
     $$
         \mathbf{R} =
@@ -158,17 +163,13 @@ for beginners, but learning this could help you understand a lot about NumPy arr
     (`r_norm = np.linalg.norm(r_ij, axis=2)`).
 
 3. We compute $1 / \mathbf{R}_\text{norm}^3$ (element-wise).
-    Because the diagonal elements are all zero, the division will produce
-    undefined values along the diagonal. Therefore, we want to silence the warnings from NumPy
-    and set the diagonal elements to zero.
+    Because the diagonal elements are all zero, division by zero will produce
+    undefined values along the diagonal. Therefore, we only divide for positions where `r_norm` $> 0$.
 
     ```python
-    # Compute 1 / r^3
-    with np.errstate(divide='ignore', invalid='ignore'):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
     ```
 
 4. We compute the acceleration by 
@@ -177,11 +178,11 @@ $$
     \mathbf{a}_{i} = \sum_{j \neq i} \frac{G m_j}{r_{ij}^3} \mathbf{r}_{ij},
 $$
 
-The last step can be done by using NumPy's broadcasting feature. The resulting
+The last step can again be done by using broadcasting. The resulting
 acceleration array will be of shape $(N, 3)$.
-```
+```python
 a[:] = G * np.sum(
-    r_ij * inv_r_cubed[:, :, np.newaxis] * m[:, np.newaxis, np.newaxis], axis=0
+    r_ij * inv_r_cubed[:, :, np.newaxis] * m[np.newaxis, :, np.newaxis], axis=1
 )
 ```
 
@@ -189,13 +190,13 @@ This line of code is a bit complicated. Let us break it down:
  
 * G is a constant, so it can be factored out of the summation.
 * Ignore the last dimension with length 3 for now. We have
-```
+```python
 a[:, 0] = G * np.sum(
-    r_ij[:, :, 0] * inv_r_cubed[:, :] * m[:, np.newaxis], axis=0
+    r_ij[:, :, 0] * inv_r_cubed[:, :] * m[np.newaxis, :], axis=1
 )
 ```
-We are summing over the axis 0 (row), so
-the mass vector $\mathbf{m}$ needs to be broadcasted along the axis 1 (column)
+We are summing over the axis 1 (column), so
+the mass vector $\mathbf{m}$ needs to be broadcasted along the axis 0 (rows)
 to $\mathbf{M}$ with the shape of $(N, N)$. We have
 
 $$
@@ -212,30 +213,31 @@ The element-wise multiplication of $\mathbf{M}$ with $\mathbf{R}$ divided by $\m
 
 $$
     \begin{bmatrix}
-        0                              & m_2 \mathbf{x}_{12} / x_{12}^3 & \cdots & m_N \mathbf{x}_{1N} / x_{1N}^3 \\
-        m_1 \mathbf{x}_{21} / x_{21}^3 & 0                              & \cdots & m_N \mathbf{x}_{2N} / x_{2N}^3 \\
-        \vdots                         & \vdots                         & \ddots & \vdots \\
-        m_1 \mathbf{x}_{N1} / x_{N1}^3 & m_2 \mathbf{x}_{N2} / x_{N2}^3 & \cdots & 0
+        0                          & m_2 x_{12} / r_{12}^3 & \cdots & m_N x_{1N} / r_{1N}^3 \\
+        m_1 x_{21} / r_{21}^3      & 0                     & \cdots & m_N x_{2N} / r_{2N}^3 \\
+        \vdots                     & \vdots                & \ddots & \vdots \\
+        m_1 x_{N1} / r_{N1}^3      & m_2 x_{N2} / r_{N2}^3 & \cdots & 0
     \end{bmatrix}
 $$
 
-We are summing along the axis 0 (row). For particle $i$, we have
+where $x_{ij}$ denotes the $x$-component of $\mathbf{r}_{ij}$.
+We are summing along the axis 1 (column). For particle $i$, we have
 
 $$
-    \mathbf{a}_{i, 0} = G \left[m_1 \frac{\mathbf{x}_{i1}}{x_{i1}^3} + m_2 \frac{\mathbf{x}_{i2}}{x_{i2}^3}
-    + \cdots + 0 + \cdots + m_N \frac{\mathbf{x}_{iN}}{x_{iN}^3} \right]
-    = \sum_{j \neq i} \frac{G m_j}{x_{ij}^3} \mathbf{x}_{ij}
+    a_{i, x} = G \left[m_1 \frac{x_{i1}}{r_{i1}^3} + m_2 \frac{x_{i2}}{r_{i2}^3}
+    + \cdots + 0 + \cdots + m_N \frac{x_{iN}}{r_{iN}^3} \right]
+    = \sum_{j \neq i} \frac{G m_j}{r_{ij}^3} x_{ij}
 $$
 
 This is exactly what we want! Now, to also include the last dimension with length 3,
-we simple add `np.newaxis` to the last axis. This gives us the vectorized version of the
+we simply add `np.newaxis` to the last axis. This gives us the vectorized version of the
 full acceleration function. Later, we will see in the benchmark that this is much faster
 than the previous implementations.
 
 ```python linenums="1"
 def acceleration_3(
     a: np.ndarray,
-    system: System,
+    system: common.System,
 ) -> None:
     """
     Compute the gravitational acceleration
@@ -248,30 +250,25 @@ def acceleration_3(
     system : System
         System object.
     """
-    # Empty acceleration array
-    a.fill(0.0)
-
     # Declare variables
     x = system.x
     m = system.m
     G = system.G
 
     # Compute the displacement vector
-    r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]
+    r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]
 
     # Compute the distance
     r_norm = np.linalg.norm(r_ij, axis=2)
 
     # Compute 1 / r^3
-    with np.errstate(divide='ignore', invalid='ignore'):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
 
     # Compute the acceleration
     a[:] = G * np.sum(
-        r_ij * inv_r_cubed[:, :, np.newaxis] * m[:, np.newaxis, np.newaxis], axis=0
+        r_ij * inv_r_cubed[:, :, np.newaxis] * m[np.newaxis, :, np.newaxis], axis=1
     )
 ```
 
@@ -284,7 +281,7 @@ implementation, we will replace the `np.sum` with `np.einsum`.
 In our original implementation, notice how the broadcasting is done:
 ```python
 a[:] = G * np.sum(
-    r_ij * inv_r_cubed[:, :, np.newaxis] * m[:, np.newaxis, np.newaxis], axis=0
+    r_ij * inv_r_cubed[:, :, np.newaxis] * m[np.newaxis, :, np.newaxis], axis=1
 )
 ```
 
@@ -292,21 +289,21 @@ Denote the axis 0, 1, and 2 as $i$, $j$, and $k$ respectively.
 
 * `r_ij` is a 3D array multiplied without broadcasting $\implies ijk$.
 * `inv_r_cubed` is a 2D array multiplied with broadcasting along axis 2 $\implies ij$.
-* `m` is a 1D array multiplied with broadcasting along axis 1 and 2 $\implies i$.
+* `m` is a 1D array multiplied with broadcasting along axis 0 and 2 $\implies j$.
 
-The final sum is done along axis 0 $\implies ijk \to jk$.
+The final sum is done along axis 1 $\implies ijk \to ik$.
 
 Using `np.einsum`, we can specify the indices to be summed over.
 The following line of code is equivalent to the original implementation:   
-```
-a[:] = G * np.einsum("ijk,ij,i->jk", r_ij, inv_r_cubed, m)
+```python
+a[:] = G * np.einsum("ijk,ij,j->ik", r_ij, inv_r_cubed, m)
 ```
 
 Full implementation:
-```python linenums="1" hl_lines="39 40"
+```python linenums="1" hl_lines="33"
 def acceleration_4(
     a: np.ndarray,
-    system: System,
+    system: common.System,
 ) -> None:
     """
     Compute the gravitational acceleration
@@ -319,29 +316,24 @@ def acceleration_4(
     system : System
         System object.
     """
-    # Empty acceleration array
-    a.fill(0.0)
-
     # Declare variables
     x = system.x
     m = system.m
     G = system.G
 
     # Compute the displacement vector
-    r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]
+    r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]
 
     # Compute the distance
     r_norm = np.linalg.norm(r_ij, axis=2)
 
     # Compute 1 / r^3
-    with np.errstate(divide='ignore', invalid='ignore'):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
 
     # Compute the acceleration
-    a[:] = G * np.einsum("ijk,ij,i->jk", r_ij, inv_r_cubed, m)
+    a[:] = G * np.einsum("ijk,ij,j->ik", r_ij, inv_r_cubed, m)
 ```
 
 ## Benchmark
@@ -384,12 +376,10 @@ def main() -> None:
         f"acceleration_1: {run_time_1.mean():.6f} +- {run_time_1.std(ddof=1) / math.sqrt(NUM_REPEATS):.3g} seconds"
     )
 
-
-    ... # (Repeat for acceleration_2, 3, and 4)
+    ...  # (Repeat for acceleration_2, 3, and 4)
 ```
 
-Finally, we do a error check by
-comparing the results from the first naive implementation. 
+Finally, we do an error check by comparing the results with those from the first naive implementation.
 ```python
 def main() -> None:
     ...
@@ -404,9 +394,9 @@ def main() -> None:
     acceleration_4(a, system)
     a_4 = a.copy()
 
-    rel_error_2 = np.sum(np.abs(a_1 - a_2)) / np.sum(a_1)
-    rel_error_3 = np.sum(np.abs(a_1 - a_3)) / np.sum(a_1)
-    rel_error_4 = np.sum(np.abs(a_1 - a_4)) / np.sum(a_1)
+    rel_error_2 = np.sum(np.abs(a_1 - a_2)) / np.sum(np.abs(a_1))
+    rel_error_3 = np.sum(np.abs(a_1 - a_3)) / np.sum(np.abs(a_1))
+    rel_error_4 = np.sum(np.abs(a_1 - a_4)) / np.sum(np.abs(a_1))
 
     print()
     print("Error check: (relative difference from acceleration_1)")
@@ -426,8 +416,8 @@ acceleration_4: 0.000012 +- 1.38e-08 seconds
 
 Error check: (relative difference from acceleration_1)
 acceleration_2: 0
-acceleration_3: 1.31e-15
-acceleration_4: 1.31e-15
+acceleration_3: 1.9e-16
+acceleration_4: 1.9e-16
 ```
 The vectorized implementation is about 10 - 20 times faster than the naive implementation!
 As for the error check, the small relative difference is likely due to rounding errors,
@@ -435,7 +425,7 @@ which could be ignored. (For 64-bit floating point numbers, the machine epsilon 
 By the way, since `acceleration_4` is the fastest, we put it into `common.py`.
 
 !!! Tip "Performance in C"
-    By the way, if you are interested in the performance in C,
+    If you are interested in the performance in C,
     below is a benchmark using our `grav_sim` package:
     ```
     Test 0:    Method: Pairwise

@@ -74,9 +74,9 @@ def main() -> None:
     acceleration_4(a, system)
     a_4 = a.copy()
 
-    rel_error_2 = np.sum(np.abs(a_1 - a_2)) / np.sum(a_1)
-    rel_error_3 = np.sum(np.abs(a_1 - a_3)) / np.sum(a_1)
-    rel_error_4 = np.sum(np.abs(a_1 - a_4)) / np.sum(a_1)
+    rel_error_2 = np.sum(np.abs(a_1 - a_2)) / np.sum(np.abs(a_1))
+    rel_error_3 = np.sum(np.abs(a_1 - a_3)) / np.sum(np.abs(a_1))
+    rel_error_4 = np.sum(np.abs(a_1 - a_4)) / np.sum(np.abs(a_1))
 
     print()
     print("Error check: (relative difference from acceleration_1)")
@@ -167,30 +167,25 @@ def acceleration_3(
     system : System
         System object.
     """
-    # Empty acceleration array
-    a.fill(0.0)
-
     # Declare variables
     x = system.x
     m = system.m
     G = system.G
 
     # Compute the displacement vector
-    r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]
+    r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]
 
     # Compute the distance
     r_norm = np.linalg.norm(r_ij, axis=2)
 
     # Compute 1 / r^3
-    with np.errstate(divide="ignore", invalid="ignore"):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
 
     # Compute the acceleration
     a[:] = G * np.sum(
-        r_ij * inv_r_cubed[:, :, np.newaxis] * m[:, np.newaxis, np.newaxis], axis=0
+        r_ij * inv_r_cubed[:, :, np.newaxis] * m[np.newaxis, :, np.newaxis], axis=1
     )
 
 
@@ -209,29 +204,24 @@ def acceleration_4(
     system : System
         System object.
     """
-    # Empty acceleration array
-    a.fill(0.0)
-
     # Declare variables
     x = system.x
     m = system.m
     G = system.G
 
     # Compute the displacement vector
-    r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]
+    r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]
 
     # Compute the distance
     r_norm = np.linalg.norm(r_ij, axis=2)
 
     # Compute 1 / r^3
-    with np.errstate(divide="ignore", invalid="ignore"):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
 
     # Compute the acceleration
-    a[:] = G * np.einsum("ijk,ij,i->jk", r_ij, inv_r_cubed, m)
+    a[:] = G * np.einsum("ijk,ij,j->ik", r_ij, inv_r_cubed, m)
 
 
 if __name__ == "__main__":
