@@ -3,7 +3,7 @@
 N-body gravity simulation library with C and Python API
 
 - Source code: <https://github.com/alvinng4/grav_sim>
-- Project Homepage and documentations: <https://alvinng4.github.io/grav_sim/>
+- Project Homepage and documentations: <https://alvinng4.com/grav_sim/>
 
 **Target Audience:**
 
@@ -21,7 +21,7 @@ N-body gravity simulation library with C and Python API
 
 A short course to teach beginners how to write fast and clean N-body gravity simulations code in Python.
 
-Homepage: https://alvinng4.github.io/grav_sim/5_steps_to_n_body_simulation/
+Homepage: https://alvinng4.com/grav_sim/5_steps_to_n_body_simulation/
 
 **Contents**
 
