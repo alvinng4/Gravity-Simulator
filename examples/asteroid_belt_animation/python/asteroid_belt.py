@@ -19,6 +19,7 @@ Author: Ching-Yin Ng
 """
 
 import glob
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -44,11 +45,13 @@ DT = 0.1  # Time step in days
 ACC_METHOD = "massless"
 INTEGRATOR = "rk4"
 
+RUN_DATETIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
 OUTPUT_INITIAL = False
-SNAPSHOTS_DIR = Path("snapshots/")
+SNAPSHOTS_DIR = Path(f"snapshots_{RUN_DATETIME}/")
 SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-FRAMES_DIR = Path("frames/")
+FRAMES_DIR = Path(f"frames_{RUN_DATETIME}/")
 FRAMES_DIR.mkdir(parents=True, exist_ok=True)
 
 DELETE_SNAPSHOTS = True  # Delete snapshots after creating the gif
@@ -158,13 +161,13 @@ def main():
     # We can't use the library function to read all
     # data in the memory as it is too large.
     # We have to read them manually one by one.
+    plt.style.use("dark_background")
     for i in track(range(actual_n_frames)):
         snapshot_file = snapshot_files[i]
         data = np.genfromtxt(snapshot_file, delimiter=",", skip_header=5)
         x = data[:, 2:5]
 
         fig = plt.figure()
-        plt.style.use("dark_background")
         ax = fig.add_subplot(111, projection="3d")
 
         xlim_min = -3
@@ -208,7 +211,7 @@ def main():
             color="white",
             marker=".",
             s=0.1,
-            alpha=0.2,
+            alpha=0.5,
         )
 
         # Add legend
