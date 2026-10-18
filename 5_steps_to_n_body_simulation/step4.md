@@ -108,9 +108,9 @@ end of the `main` function:
 def main() -> None:
     ...
     # Compute and plot relative energy error
-    rel_energy_error = compute_rel_energy_error(sol_x, sol_v, system)
+    rel_energy_error = common.compute_rel_energy_error(sol_x, sol_v, system)
     print(f"Relative energy error: {rel_energy_error[-1]:.3g}")
-    plot_rel_energy_error(rel_energy_error, sol_t / 365.24)
+    common.plot_rel_energy_error(rel_energy_error, sol_t / 365.24)
 ```
 
 ## Euler method

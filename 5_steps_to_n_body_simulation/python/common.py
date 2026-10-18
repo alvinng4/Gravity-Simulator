@@ -1,5 +1,3 @@
-from typing import Tuple, List, Optional
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -18,19 +16,17 @@ class System:
     def center_of_mass_correction(self) -> None:
         """Set center of mass of position and velocity to zero"""
         M = np.sum(self.m)
-        x_cm = np.einsum("i,ij->j", self.m, self.x) / M
-        v_cm = np.einsum("i,ij->j", self.m, self.v) / M
-
+        x_cm = (self.m @ self.x) / M
+        v_cm = (self.m @ self.v) / M
         self.x -= x_cm
         self.v -= v_cm
 
 
 def get_initial_conditions(
     initial_condition: str,
-) -> Tuple[System, List[Optional[str]], List[Optional[str]], bool]:
+) -> tuple[System, list[str], list[str | None], bool]:
     """
-    Returns the initial conditions for solar system,
-    with units AU, days, and M_sun.
+    Returns the initial conditions with units AU, days, and M_sun.
 
     Parameters
     ----------
@@ -41,9 +37,9 @@ def get_initial_conditions(
     -------
     system: System
         System object with initial conditions.
-    labels: list
+    labels: list[str]
         Labels for the particles.
-    colors: list
+    colors: list[str | None]
         Colors for the particles.
     legend: bool
         Whether to show the legend.
@@ -203,18 +199,6 @@ def get_initial_conditions(
         "Saturn": "gold",
         "Uranus": "paleturquoise",
         "Neptune": "blue",
-    }
-
-    SOLAR_SYSTEM_PLUS_COLORS = {
-        "Sun": "orange",
-        "Mercury": "slategrey",
-        "Venus": "wheat",
-        "Earth": "skyblue",
-        "Mars": "red",
-        "Jupiter": "darkgoldenrod",
-        "Saturn": "gold",
-        "Uranus": "paleturquoise",
-        "Neptune": "blue",
         "Pluto": None,
         "Ceres": None,
         "Vesta": None,
@@ -242,73 +226,27 @@ def get_initial_conditions(
         )
         system.center_of_mass_correction()
 
-        labels: List[Optional[str]] = [None, None, None]
-        colors: List[Optional[str]] = [None, None, None]
+        labels: list[str] = ["P1", "P2", "P3"]
+        colors: list[str | None] = [None, None, None]
         legend = False
 
         return system, labels, colors, legend
 
     elif initial_condition == "solar_system":
-        m = np.array(
-            [
-                SOLAR_SYSTEM_MASSES["Sun"],
-                SOLAR_SYSTEM_MASSES["Mercury"],
-                SOLAR_SYSTEM_MASSES["Venus"],
-                SOLAR_SYSTEM_MASSES["Earth"],
-                SOLAR_SYSTEM_MASSES["Mars"],
-                SOLAR_SYSTEM_MASSES["Jupiter"],
-                SOLAR_SYSTEM_MASSES["Saturn"],
-                SOLAR_SYSTEM_MASSES["Uranus"],
-                SOLAR_SYSTEM_MASSES["Neptune"],
-            ]
-        )
-
-        R1 = np.array(SOLAR_SYSTEM_POS["Sun"])
-        R2 = np.array(SOLAR_SYSTEM_POS["Mercury"])
-        R3 = np.array(SOLAR_SYSTEM_POS["Venus"])
-        R4 = np.array(SOLAR_SYSTEM_POS["Earth"])
-        R5 = np.array(SOLAR_SYSTEM_POS["Mars"])
-        R6 = np.array(SOLAR_SYSTEM_POS["Jupiter"])
-        R7 = np.array(SOLAR_SYSTEM_POS["Saturn"])
-        R8 = np.array(SOLAR_SYSTEM_POS["Uranus"])
-        R9 = np.array(SOLAR_SYSTEM_POS["Neptune"])
-
-        V1 = np.array(SOLAR_SYSTEM_VEL["Sun"])
-        V2 = np.array(SOLAR_SYSTEM_VEL["Mercury"])
-        V3 = np.array(SOLAR_SYSTEM_VEL["Venus"])
-        V4 = np.array(SOLAR_SYSTEM_VEL["Earth"])
-        V5 = np.array(SOLAR_SYSTEM_VEL["Mars"])
-        V6 = np.array(SOLAR_SYSTEM_VEL["Jupiter"])
-        V7 = np.array(SOLAR_SYSTEM_VEL["Saturn"])
-        V8 = np.array(SOLAR_SYSTEM_VEL["Uranus"])
-        V9 = np.array(SOLAR_SYSTEM_VEL["Neptune"])
-
-        x = np.array(
-            [
-                R1,
-                R2,
-                R3,
-                R4,
-                R5,
-                R6,
-                R7,
-                R8,
-                R9,
-            ]
-        )
-        v = np.array(
-            [
-                V1,
-                V2,
-                V3,
-                V4,
-                V5,
-                V6,
-                V7,
-                V8,
-                V9,
-            ]
-        )
+        labels = [
+            "Sun",
+            "Mercury",
+            "Venus",
+            "Earth",
+            "Mars",
+            "Jupiter",
+            "Saturn",
+            "Uranus",
+            "Neptune",
+        ]
+        m = np.array([SOLAR_SYSTEM_MASSES[l] for l in labels])
+        x = np.array([SOLAR_SYSTEM_POS[l] for l in labels])
+        v = np.array([SOLAR_SYSTEM_VEL[l] for l in labels])
 
         system = System(
             num_particles=len(m),
@@ -319,88 +257,29 @@ def get_initial_conditions(
         )
         system.center_of_mass_correction()
 
-        labels = list(SOLAR_SYSTEM_COLORS.keys())
-        colors = list(SOLAR_SYSTEM_COLORS.values())
+        colors = [SOLAR_SYSTEM_COLORS.get(l) for l in labels]
         legend = True
 
         return system, labels, colors, legend
 
     elif initial_condition == "solar_system_plus":
-        m = np.array(
-            [
-                SOLAR_SYSTEM_MASSES["Sun"],
-                SOLAR_SYSTEM_MASSES["Mercury"],
-                SOLAR_SYSTEM_MASSES["Venus"],
-                SOLAR_SYSTEM_MASSES["Earth"],
-                SOLAR_SYSTEM_MASSES["Mars"],
-                SOLAR_SYSTEM_MASSES["Jupiter"],
-                SOLAR_SYSTEM_MASSES["Saturn"],
-                SOLAR_SYSTEM_MASSES["Uranus"],
-                SOLAR_SYSTEM_MASSES["Neptune"],
-                SOLAR_SYSTEM_MASSES["Pluto"],
-                SOLAR_SYSTEM_MASSES["Ceres"],
-                SOLAR_SYSTEM_MASSES["Vesta"],
-            ]
-        )
-
-        R1 = np.array(SOLAR_SYSTEM_POS["Sun"])
-        R2 = np.array(SOLAR_SYSTEM_POS["Mercury"])
-        R3 = np.array(SOLAR_SYSTEM_POS["Venus"])
-        R4 = np.array(SOLAR_SYSTEM_POS["Earth"])
-        R5 = np.array(SOLAR_SYSTEM_POS["Mars"])
-        R6 = np.array(SOLAR_SYSTEM_POS["Jupiter"])
-        R7 = np.array(SOLAR_SYSTEM_POS["Saturn"])
-        R8 = np.array(SOLAR_SYSTEM_POS["Uranus"])
-        R9 = np.array(SOLAR_SYSTEM_POS["Neptune"])
-        R10 = np.array(SOLAR_SYSTEM_POS["Pluto"])
-        R11 = np.array(SOLAR_SYSTEM_POS["Ceres"])
-        R12 = np.array(SOLAR_SYSTEM_POS["Vesta"])
-
-        V1 = np.array(SOLAR_SYSTEM_VEL["Sun"])
-        V2 = np.array(SOLAR_SYSTEM_VEL["Mercury"])
-        V3 = np.array(SOLAR_SYSTEM_VEL["Venus"])
-        V4 = np.array(SOLAR_SYSTEM_VEL["Earth"])
-        V5 = np.array(SOLAR_SYSTEM_VEL["Mars"])
-        V6 = np.array(SOLAR_SYSTEM_VEL["Jupiter"])
-        V7 = np.array(SOLAR_SYSTEM_VEL["Saturn"])
-        V8 = np.array(SOLAR_SYSTEM_VEL["Uranus"])
-        V9 = np.array(SOLAR_SYSTEM_VEL["Neptune"])
-        V10 = np.array(SOLAR_SYSTEM_VEL["Pluto"])
-        V11 = np.array(SOLAR_SYSTEM_VEL["Ceres"])
-        V12 = np.array(SOLAR_SYSTEM_VEL["Vesta"])
-
-        x = np.array(
-            [
-                R1,
-                R2,
-                R3,
-                R4,
-                R5,
-                R6,
-                R7,
-                R8,
-                R9,
-                R10,
-                R11,
-                R12,
-            ]
-        )
-        v = np.array(
-            [
-                V1,
-                V2,
-                V3,
-                V4,
-                V5,
-                V6,
-                V7,
-                V8,
-                V9,
-                V10,
-                V11,
-                V12,
-            ]
-        )
+        labels = [
+            "Sun",
+            "Mercury",
+            "Venus",
+            "Earth",
+            "Mars",
+            "Jupiter",
+            "Saturn",
+            "Uranus",
+            "Neptune",
+            "Pluto",
+            "Ceres",
+            "Vesta",
+        ]
+        m = np.array([SOLAR_SYSTEM_MASSES[l] for l in labels])
+        x = np.array([SOLAR_SYSTEM_POS[l] for l in labels])
+        v = np.array([SOLAR_SYSTEM_VEL[l] for l in labels])
 
         system = System(
             num_particles=len(m),
@@ -411,8 +290,7 @@ def get_initial_conditions(
         )
         system.center_of_mass_correction()
 
-        labels = list(SOLAR_SYSTEM_PLUS_COLORS.keys())
-        colors = list(SOLAR_SYSTEM_PLUS_COLORS.values())
+        colors = [SOLAR_SYSTEM_COLORS.get(l) for l in labels]
         legend = True
 
         return system, labels, colors, legend
@@ -472,29 +350,24 @@ def acceleration(
     system : System
         System object.
     """
-    # Empty acceleration array
-    a.fill(0.0)
-
     # Declare variables
     x = system.x
     m = system.m
     G = system.G
 
     # Compute the displacement vector
-    r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]
+    r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]
 
     # Compute the distance
     r_norm = np.linalg.norm(r_ij, axis=2)
 
     # Compute 1 / r^3
-    with np.errstate(divide="ignore", invalid="ignore"):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
 
     # Compute the acceleration
-    a[:] = G * np.einsum("ijk,ij,i->jk", r_ij, inv_r_cubed, m)
+    a[:] = G * np.einsum("ijk,ij,j->ik", r_ij, inv_r_cubed, m)
 
 
 ##### Step 3 #####
