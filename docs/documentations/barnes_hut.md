@@ -1,7 +1,7 @@
 !!! Note
     In this page, we details the implementation of Barnes-Hut algorithm using linear octree,
     which is useful for parallel computing. If you are only interested at Barnes-Hut algorithm,
-    you should skip the parts on linear octree.
+    you should skip the parts on linear octree and Morton index.
 
 The classic Barnes-Hut algorithm[@barnes_hierarchical_1986]
 provides a way to approximate forces in $\mathcal{O}(N \log N)$ without losing accuracy at close range.
