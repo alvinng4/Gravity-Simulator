@@ -50,7 +50,6 @@ target_link_libraries(galaxy_collision PRIVATE
 )
 
 ### HDF5 ###
-# Keep this if galaxy_collision.c directly calls the HDF5 API.
 find_package(HDF5 REQUIRED COMPONENTS C)
 
 if(TARGET HDF5::HDF5)
