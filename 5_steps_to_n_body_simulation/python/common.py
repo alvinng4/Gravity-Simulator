@@ -350,9 +350,6 @@ def acceleration(
     system : System
         System object.
     """
-    # Empty acceleration array
-    a.fill(0.0)
-
     # Declare variables
     x = system.x
     m = system.m
@@ -365,14 +362,12 @@ def acceleration(
     r_norm = np.linalg.norm(r_ij, axis=2)
 
     # Compute 1 / r^3
-    with np.errstate(divide="ignore", invalid="ignore"):
-        inv_r_cubed = 1.0 / (r_norm * r_norm * r_norm)
-
-    # Set diagonal elements to 0 to avoid self-interaction
-    np.fill_diagonal(inv_r_cubed, 0.0)
+    inv_r_cubed = np.divide(
+        1.0, r_norm * r_norm * r_norm, out=np.zeros_like(r_norm), where=r_norm > 0.0
+    )
 
     # Compute the acceleration
-    a[:] = G * np.einsum("ijk,ij,i->jk", r_ij, inv_r_cubed, m)
+    a[:] = G * np.einsum("ijk,ij,j->ik", r_ij, inv_r_cubed, m)
 
 
 ##### Step 3 #####
