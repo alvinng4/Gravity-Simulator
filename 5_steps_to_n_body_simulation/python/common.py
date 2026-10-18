@@ -356,7 +356,7 @@ def acceleration(
     G = system.G
 
     # Compute the displacement vector
-    r_ij = x[:, np.newaxis, :] - x[np.newaxis, :, :]
+    r_ij = x[np.newaxis, :, :] - x[:, np.newaxis, :]
 
     # Compute the distance
     r_norm = np.linalg.norm(r_ij, axis=2)
