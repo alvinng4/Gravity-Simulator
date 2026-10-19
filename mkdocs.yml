@@ -16,8 +16,6 @@ nav:
     - "5 steps to N-body simulation": 5_steps_to_n_body_simulation/
   - Getting started:
     - Getting started: docs/getting_started/index.md
-    - Installation in C: docs/getting_started/installation_in_c.md
-    - Installation in Python: docs/getting_started/installation_in_python.md
     - Tutorial (Python): examples/tutorial.ipynb
   - Documentations:
     - docs/documentations/index.md
